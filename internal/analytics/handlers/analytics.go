@@ -51,6 +51,21 @@ type RestaurantAnalytics struct {
 	LowestRatedDishes []DishAnalytics `json:"lowest_rated_dishes"`
 }
 
+// GetRestaurantAnalytics gets analytics for a restaurant
+// @Summary Get restaurant analytics
+// @Description Get comprehensive analytics data for a restaurant including ratings, feedback counts, and dish performance
+// @Tags analytics
+// @Accept json
+// @Produce json
+// @Security ApiKeyAuth
+// @Param restaurantId path string true "Restaurant ID"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} response.Response
+// @Failure 401 {object} response.Response
+// @Failure 403 {object} response.Response
+// @Failure 404 {object} response.Response
+// @Failure 500 {object} response.Response
+// @Router /api/v1/analytics/restaurants/{restaurantId} [get]
 func (h *AnalyticsHandler) GetRestaurantAnalytics(c echo.Context) error {
 	ctx := c.Request().Context()
 	
@@ -146,6 +161,21 @@ func (h *AnalyticsHandler) GetRestaurantAnalytics(c echo.Context) error {
 	})
 }
 
+// GetDishAnalytics gets analytics for a specific dish
+// @Summary Get dish analytics
+// @Description Get detailed analytics data for a specific dish including ratings, feedback count, and recent feedback
+// @Tags analytics
+// @Accept json
+// @Produce json
+// @Security ApiKeyAuth
+// @Param dishId path string true "Dish ID"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} response.Response
+// @Failure 401 {object} response.Response
+// @Failure 403 {object} response.Response
+// @Failure 404 {object} response.Response
+// @Failure 500 {object} response.Response
+// @Router /api/v1/analytics/dishes/{dishId} [get]
 func (h *AnalyticsHandler) GetDishAnalytics(c echo.Context) error {
 	ctx := c.Request().Context()
 	

@@ -35,6 +35,17 @@ func NewPublicHandler(
 	}
 }
 
+// ValidateQRCode validates a QR code
+// @Summary Validate QR code
+// @Description Validate a QR code and return associated data
+// @Tags public
+// @Accept json
+// @Produce json
+// @Param code path string true "QR Code"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} response.Response
+// @Failure 404 {object} response.Response
+// @Router /api/v1/public/qr/{code} [get]
 func (h *PublicHandler) ValidateQRCode(c echo.Context) error {
 	ctx := c.Request().Context()
 	code := c.Param("code")
@@ -50,6 +61,17 @@ func (h *PublicHandler) ValidateQRCode(c echo.Context) error {
 	return c.JSON(http.StatusOK, map[string]interface{}{"success": true, "data": qrCode})
 }
 
+// GetRestaurantMenu gets public restaurant menu
+// @Summary Get restaurant menu
+// @Description Get public menu for a restaurant
+// @Tags public
+// @Accept json
+// @Produce json
+// @Param id path string true "Restaurant ID"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} response.Response
+// @Failure 404 {object} response.Response
+// @Router /api/v1/public/restaurant/{id}/menu [get]
 func (h *PublicHandler) GetRestaurantMenu(c echo.Context) error {
 	idStr := c.Param("id")
 	id, err := uuid.Parse(idStr)
@@ -68,6 +90,18 @@ func (h *PublicHandler) GetRestaurantMenu(c echo.Context) error {
 	})
 }
 
+// GetQuestionnaire gets questionnaire for a dish
+// @Summary Get questionnaire
+// @Description Get questionnaire for a specific dish
+// @Tags public
+// @Accept json
+// @Produce json
+// @Param restaurantId path string true "Restaurant ID"
+// @Param dishId path string true "Dish ID"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} response.Response
+// @Failure 404 {object} response.Response
+// @Router /api/v1/public/questionnaire/{restaurantId}/{dishId} [get]
 func (h *PublicHandler) GetQuestionnaire(c echo.Context) error {
 	restaurantIDStr := c.Param("restaurantId")
 	dishIDStr := c.Param("dishId")
@@ -94,6 +128,17 @@ func (h *PublicHandler) GetQuestionnaire(c echo.Context) error {
 	})
 }
 
+// SubmitFeedback submits customer feedback
+// @Summary Submit feedback
+// @Description Submit customer feedback for a dish
+// @Tags public
+// @Accept json
+// @Produce json
+// @Param feedback body feedbackModels.Feedback true "Feedback data"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} response.Response
+// @Failure 500 {object} response.Response
+// @Router /api/v1/public/feedback [post]
 func (h *PublicHandler) SubmitFeedback(c echo.Context) error {
 	ctx := c.Request().Context()
 	var feedback feedbackModels.Feedback

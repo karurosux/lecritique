@@ -21,6 +21,21 @@ func NewFeedbackHandler(feedbackService services.FeedbackService) *FeedbackHandl
 	}
 }
 
+// GetByRestaurant gets feedback for a restaurant
+// @Summary Get restaurant feedback
+// @Description Get all feedback for a specific restaurant with pagination
+// @Tags feedback
+// @Accept json
+// @Produce json
+// @Security ApiKeyAuth
+// @Param restaurantId path string true "Restaurant ID"
+// @Param page query int false "Page number (default: 1)"
+// @Param limit query int false "Items per page (default: 20, max: 100)"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} response.Response
+// @Failure 401 {object} response.Response
+// @Failure 500 {object} response.Response
+// @Router /api/v1/restaurants/{restaurantId}/feedback [get]
 func (h *FeedbackHandler) GetByRestaurant(c echo.Context) error {
 	ctx := c.Request().Context()
 	
@@ -68,6 +83,19 @@ func (h *FeedbackHandler) GetByRestaurant(c echo.Context) error {
 	})
 }
 
+// GetStats gets feedback statistics for a restaurant
+// @Summary Get feedback statistics
+// @Description Get feedback analytics and statistics for a restaurant
+// @Tags feedback
+// @Accept json
+// @Produce json
+// @Security ApiKeyAuth
+// @Param restaurantId path string true "Restaurant ID"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} response.Response
+// @Failure 401 {object} response.Response
+// @Failure 500 {object} response.Response
+// @Router /api/v1/restaurants/{restaurantId}/analytics [get]
 func (h *FeedbackHandler) GetStats(c echo.Context) error {
 	ctx := c.Request().Context()
 	

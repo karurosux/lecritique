@@ -32,6 +32,19 @@ type GenerateQRCodeResponse struct {
 	Data    *models.QRCode `json:"data"`
 }
 
+// Generate creates a new QR code
+// @Summary Generate QR code
+// @Description Generate a new QR code for a restaurant
+// @Tags qr-codes
+// @Accept json
+// @Produce json
+// @Security ApiKeyAuth
+// @Param qr_code body GenerateQRCodeRequest true "QR code information"
+// @Success 201 {object} GenerateQRCodeResponse
+// @Failure 400 {object} response.Response
+// @Failure 401 {object} response.Response
+// @Failure 500 {object} response.Response
+// @Router /api/v1/restaurants/{restaurantId}/qr-codes [post]
 func (h *QRCodeHandler) Generate(c echo.Context) error {
 	ctx := c.Request().Context()
 	
@@ -71,6 +84,19 @@ type QRCodeListResponse struct {
 	Data    []models.QRCode  `json:"data"`
 }
 
+// GetByRestaurant gets all QR codes for a restaurant
+// @Summary Get QR codes by restaurant
+// @Description Get all QR codes for a specific restaurant
+// @Tags qr-codes
+// @Accept json
+// @Produce json
+// @Security ApiKeyAuth
+// @Param restaurantId path string true "Restaurant ID"
+// @Success 200 {object} QRCodeListResponse
+// @Failure 400 {object} response.Response
+// @Failure 401 {object} response.Response
+// @Failure 500 {object} response.Response
+// @Router /api/v1/restaurants/{restaurantId}/qr-codes [get]
 func (h *QRCodeHandler) GetByRestaurant(c echo.Context) error {
 	ctx := c.Request().Context()
 	
@@ -99,6 +125,19 @@ func (h *QRCodeHandler) GetByRestaurant(c echo.Context) error {
 	})
 }
 
+// Delete removes a QR code
+// @Summary Delete QR code
+// @Description Delete a QR code from the system
+// @Tags qr-codes
+// @Accept json
+// @Produce json
+// @Security ApiKeyAuth
+// @Param id path string true "QR Code ID"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} response.Response
+// @Failure 401 {object} response.Response
+// @Failure 500 {object} response.Response
+// @Router /api/v1/qr-codes/{id} [delete]
 func (h *QRCodeHandler) Delete(c echo.Context) error {
 	ctx := c.Request().Context()
 	

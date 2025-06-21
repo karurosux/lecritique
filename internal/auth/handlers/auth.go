@@ -106,6 +106,17 @@ func (h *AuthHandler) Login(c echo.Context) error {
 	})
 }
 
+// RefreshToken refreshes an existing JWT token
+// @Summary Refresh JWT token
+// @Description Refresh an existing JWT token to get a new one
+// @Tags auth
+// @Accept json
+// @Produce json
+// @Security ApiKeyAuth
+// @Success 200 {object} response.Response{data=map[string]string}
+// @Failure 400 {object} response.Response
+// @Failure 401 {object} response.Response
+// @Router /api/v1/auth/refresh [post]
 func (h *AuthHandler) RefreshToken(c echo.Context) error {
 	ctx := c.Request().Context()
 	

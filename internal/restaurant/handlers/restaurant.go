@@ -94,6 +94,19 @@ func (h *RestaurantHandler) GetAll(c echo.Context) error {
 	return response.Success(c, restaurants)
 }
 
+// GetByID gets a specific restaurant by ID
+// @Summary Get restaurant by ID
+// @Description Get a specific restaurant by its ID
+// @Tags restaurants
+// @Accept json
+// @Produce json
+// @Security ApiKeyAuth
+// @Param id path string true "Restaurant ID"
+// @Success 200 {object} response.Response{data=models.Restaurant}
+// @Failure 400 {object} response.Response
+// @Failure 401 {object} response.Response
+// @Failure 404 {object} response.Response
+// @Router /api/v1/restaurants/{id} [get]
 func (h *RestaurantHandler) GetByID(c echo.Context) error {
 	ctx := c.Request().Context()
 	accountID := c.Get("account_id").(uuid.UUID)
@@ -111,6 +124,20 @@ func (h *RestaurantHandler) GetByID(c echo.Context) error {
 	return response.Success(c, restaurant)
 }
 
+// Update updates a restaurant
+// @Summary Update restaurant
+// @Description Update a restaurant's information
+// @Tags restaurants
+// @Accept json
+// @Produce json
+// @Security ApiKeyAuth
+// @Param id path string true "Restaurant ID"
+// @Param updates body map[string]interface{} true "Fields to update"
+// @Success 200 {object} response.Response{data=map[string]string}
+// @Failure 400 {object} response.Response
+// @Failure 401 {object} response.Response
+// @Failure 404 {object} response.Response
+// @Router /api/v1/restaurants/{id} [put]
 func (h *RestaurantHandler) Update(c echo.Context) error {
 	ctx := c.Request().Context()
 	accountID := c.Get("account_id").(uuid.UUID)
@@ -134,6 +161,19 @@ func (h *RestaurantHandler) Update(c echo.Context) error {
 	})
 }
 
+// Delete deletes a restaurant
+// @Summary Delete restaurant
+// @Description Delete a restaurant from the system
+// @Tags restaurants
+// @Accept json
+// @Produce json
+// @Security ApiKeyAuth
+// @Param id path string true "Restaurant ID"
+// @Success 200 {object} response.Response{data=map[string]string}
+// @Failure 400 {object} response.Response
+// @Failure 401 {object} response.Response
+// @Failure 404 {object} response.Response
+// @Router /api/v1/restaurants/{id} [delete]
 func (h *RestaurantHandler) Delete(c echo.Context) error {
 	ctx := c.Request().Context()
 	accountID := c.Get("account_id").(uuid.UUID)

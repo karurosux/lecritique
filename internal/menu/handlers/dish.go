@@ -33,6 +33,19 @@ type CreateDishRequest struct {
 	Currency     string    `json:"currency"`
 }
 
+// Create creates a new dish
+// @Summary Create a new dish
+// @Description Create a new dish for a restaurant
+// @Tags dishes
+// @Accept json
+// @Produce json
+// @Security ApiKeyAuth
+// @Param dish body CreateDishRequest true "Dish information"
+// @Success 200 {object} response.Response{data=models.Dish}
+// @Failure 400 {object} response.Response
+// @Failure 401 {object} response.Response
+// @Failure 500 {object} response.Response
+// @Router /api/v1/dishes [post]
 func (h *DishHandler) Create(c echo.Context) error {
 	ctx := c.Request().Context()
 	accountID := c.Get("account_id").(uuid.UUID)
@@ -68,6 +81,20 @@ func (h *DishHandler) Create(c echo.Context) error {
 	return response.Success(c, dish)
 }
 
+// GetByRestaurant gets all dishes for a specific restaurant
+// @Summary Get dishes by restaurant
+// @Description Get all dishes for a specific restaurant
+// @Tags dishes
+// @Accept json
+// @Produce json
+// @Security ApiKeyAuth
+// @Param restaurantId path string true "Restaurant ID"
+// @Success 200 {object} response.Response{data=[]models.Dish}
+// @Failure 400 {object} response.Response
+// @Failure 401 {object} response.Response
+// @Failure 404 {object} response.Response
+// @Failure 500 {object} response.Response
+// @Router /api/v1/restaurants/{restaurantId}/dishes [get]
 func (h *DishHandler) GetByRestaurant(c echo.Context) error {
 	ctx := c.Request().Context()
 	accountID := c.Get("account_id").(uuid.UUID)
@@ -85,6 +112,20 @@ func (h *DishHandler) GetByRestaurant(c echo.Context) error {
 	return response.Success(c, dishes)
 }
 
+// GetByID gets a specific dish by ID
+// @Summary Get dish by ID
+// @Description Get a specific dish by its ID
+// @Tags dishes
+// @Accept json
+// @Produce json
+// @Security ApiKeyAuth
+// @Param id path string true "Dish ID"
+// @Success 200 {object} response.Response{data=models.Dish}
+// @Failure 400 {object} response.Response
+// @Failure 401 {object} response.Response
+// @Failure 404 {object} response.Response
+// @Failure 500 {object} response.Response
+// @Router /api/v1/dishes/{id} [get]
 func (h *DishHandler) GetByID(c echo.Context) error {
 	ctx := c.Request().Context()
 	accountID := c.Get("account_id").(uuid.UUID)
@@ -102,6 +143,21 @@ func (h *DishHandler) GetByID(c echo.Context) error {
 	return response.Success(c, dish)
 }
 
+// Update updates a dish
+// @Summary Update a dish
+// @Description Update a dish's information
+// @Tags dishes
+// @Accept json
+// @Produce json
+// @Security ApiKeyAuth
+// @Param id path string true "Dish ID"
+// @Param updates body map[string]interface{} true "Fields to update"
+// @Success 200 {object} response.Response{data=map[string]string}
+// @Failure 400 {object} response.Response
+// @Failure 401 {object} response.Response
+// @Failure 404 {object} response.Response
+// @Failure 500 {object} response.Response
+// @Router /api/v1/dishes/{id} [put]
 func (h *DishHandler) Update(c echo.Context) error {
 	ctx := c.Request().Context()
 	accountID := c.Get("account_id").(uuid.UUID)
@@ -125,6 +181,20 @@ func (h *DishHandler) Update(c echo.Context) error {
 	})
 }
 
+// Delete deletes a dish
+// @Summary Delete a dish
+// @Description Delete a dish from the system
+// @Tags dishes
+// @Accept json
+// @Produce json
+// @Security ApiKeyAuth
+// @Param id path string true "Dish ID"
+// @Success 200 {object} response.Response{data=map[string]string}
+// @Failure 400 {object} response.Response
+// @Failure 401 {object} response.Response
+// @Failure 404 {object} response.Response
+// @Failure 500 {object} response.Response
+// @Router /api/v1/dishes/{id} [delete]
 func (h *DishHandler) Delete(c echo.Context) error {
 	ctx := c.Request().Context()
 	accountID := c.Get("account_id").(uuid.UUID)
