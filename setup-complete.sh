@@ -1,0 +1,17 @@
+#!/bin/bash
+
+echo "🎉 LeCritique API setup complete!"
+echo ""
+echo "Next steps:"
+echo "1. Initialize go modules: go mod tidy"
+echo "2. Copy environment file: cp .env.example .env"
+echo "3. Update .env with your configuration"
+echo "4. Start Docker services: make docker-up"
+echo "5. Run migrations: make migrate-up"
+echo "6. Start the server: make run"
+echo ""
+echo "For development with hot reload:"
+echo "- Install air: go install github.com/cosmtrek/air@latest"
+echo "- Run: make dev"
+echo ""
+echo "API Documentation available in API_DOCS.md"
