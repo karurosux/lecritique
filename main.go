@@ -7,10 +7,10 @@ import (
 	"os/signal"
 	"time"
 
-	"github.com/lecritique/api/internal/shared/server"
+	_ "github.com/lecritique/api/docs"
 	"github.com/lecritique/api/internal/shared/config"
 	"github.com/lecritique/api/internal/shared/database"
-	_ "github.com/lecritique/api/docs"
+	"github.com/lecritique/api/internal/shared/server"
 )
 
 // @title LeCritique API
@@ -20,9 +20,6 @@ import (
 
 // @contact.name API Support
 // @contact.email support@lecritique.com
-
-// @license.name MIT
-// @license.url https://opensource.org/licenses/MIT
 
 // @host localhost:8080
 // @BasePath /api/v1
@@ -68,3 +65,4 @@ func main() {
 		log.Fatal(err)
 	}
 }
+

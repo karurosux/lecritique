@@ -166,9 +166,6 @@ info:
     email: support@lecritique.com
     name: API Support
   description: Restaurant feedback management system API
-  license:
-    name: MIT
-    url: https://opensource.org/licenses/MIT
   termsOfService: http://swagger.io/terms/
   title: LeCritique API
   version: "1.0"

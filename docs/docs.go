@@ -14,10 +14,6 @@ const docTemplate = `{
             "name": "API Support",
             "email": "support@lecritique.com"
         },
-        "license": {
-            "name": "MIT",
-            "url": "https://opensource.org/licenses/MIT"
-        },
         "version": "{{.Version}}"
     },
     "host": "{{.Host}}",
