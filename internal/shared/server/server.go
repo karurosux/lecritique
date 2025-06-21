@@ -15,12 +15,16 @@ import (
 	
 	// Domain handlers for route registration
 	authHandlers "github.com/lecritique/api/internal/auth/handlers"
-	// feedbackHandlers "github.com/lecritique/api/internal/feedback/handlers"   // TODO: Fix domain models first
-	// menuHandlers "github.com/lecritique/api/internal/menu/handlers"           // TODO: Fix domain models first
-	// restaurantHandlers "github.com/lecritique/api/internal/restaurant/handlers" // TODO: Fix domain models first
+	feedbackHandlers "github.com/lecritique/api/internal/feedback/handlers"
+	menuHandlers "github.com/lecritique/api/internal/menu/handlers"
+	restaurantHandlers "github.com/lecritique/api/internal/restaurant/handlers"
+	qrcodeHandlers "github.com/lecritique/api/internal/qrcode/handlers"
+	analyticsHandlers "github.com/lecritique/api/internal/analytics/handlers"
 	
 	"github.com/sirupsen/logrus"
 	"gorm.io/gorm"
+	
+	echoSwagger "github.com/swaggo/echo-swagger"
 )
 
 type Server struct {
@@ -63,6 +67,17 @@ func (s *Server) setupRoutes() {
 	// Health check route
 	s.echo.GET("/api/health", s.healthCheck)
 
+	// Swagger documentation with relaxed CSP
+	swaggerGroup := s.echo.Group("/swagger")
+	swaggerGroup.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
+		return func(c echo.Context) error {
+			// Relax CSP for Swagger UI
+			c.Response().Header().Set("Content-Security-Policy", "default-src 'self' 'unsafe-inline' 'unsafe-eval'; img-src 'self' data:; font-src 'self' data:")
+			return next(c)
+		}
+	})
+	swaggerGroup.GET("/*", echoSwagger.WrapHandler)
+
 	// Rate limiter
 	rateLimiter := sharedMiddleware.NewRateLimiter(100, time.Minute)
 
@@ -71,16 +86,27 @@ func (s *Server) setupRoutes() {
 	v1.Use(rateLimiter.Middleware())
 
 	// Register domain routes
-	authHandlers.RegisterRoutes(v1, s.db, s.config)
+	authService := authHandlers.RegisterRoutes(v1, s.db, s.config)
 	
-	// TODO: Uncomment when domains are ready
-	// public := v1.Group("/public")
-	// protected := v1.Group("")
-	// feedbackHandlers.RegisterRoutes(public, s.db)                   // TODO: Fix domain models first
-	// restaurantHandlers.RegisterRoutes(protected, s.db, nil)        // TODO: Fix domain models first  
-	// menuHandlers.RegisterRoutes(protected, s.db, nil)              // TODO: Fix domain models first
+	// Public and protected route groups
+	public := v1.Group("/public")
+	protected := v1.Group("")
+	
+	// Register all routes
+	feedbackHandlers.RegisterRoutes(public, protected, s.db, authService)
+	restaurantHandlers.RegisterRoutes(protected, s.db, authService)
+	menuHandlers.RegisterRoutes(protected, s.db, authService)
+	qrcodeHandlers.RegisterRoutes(protected, s.db, authService)
+	analyticsHandlers.RegisterRoutes(protected, s.db, authService)
 }
 
+// HealthCheck godoc
+// @Summary Health check
+// @Description Check if the service is running
+// @Tags system
+// @Produce json
+// @Success 200 {object} map[string]interface{}
+// @Router /health [get]
 func (s *Server) healthCheck(c echo.Context) error {
 	return c.JSON(http.StatusOK, map[string]interface{}{
 		"status":  "healthy",

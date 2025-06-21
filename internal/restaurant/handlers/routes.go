@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"github.com/labstack/echo/v4"
+	authServices "github.com/lecritique/api/internal/auth/services"
 	"github.com/lecritique/api/internal/restaurant/repositories"
 	"github.com/lecritique/api/internal/restaurant/services"
 	"github.com/lecritique/api/internal/shared/middleware"
@@ -9,7 +10,7 @@ import (
 	"gorm.io/gorm"
 )
 
-func RegisterRoutes(protected *echo.Group, db *gorm.DB, authService interface{}) {
+func RegisterRoutes(protected *echo.Group, db *gorm.DB, authService authServices.AuthService) {
 	// Initialize repositories
 	restaurantRepo := repositories.NewRestaurantRepository(db)
 	subscriptionRepo := subscriptionRepos.NewSubscriptionRepository(db)

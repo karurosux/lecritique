@@ -32,6 +32,18 @@ type CreateRestaurantRequest struct {
 	Website     string `json:"website"`
 }
 
+// Create godoc
+// @Summary Create a new restaurant
+// @Description Create a new restaurant for the authenticated account
+// @Tags restaurants
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param request body CreateRestaurantRequest true "Restaurant details"
+// @Success 200 {object} response.Response{data=models.Restaurant}
+// @Failure 400 {object} response.Response
+// @Failure 401 {object} response.Response
+// @Router /restaurants [post]
 func (h *RestaurantHandler) Create(c echo.Context) error {
 	accountID := c.Get("account_id").(uuid.UUID)
 
@@ -60,6 +72,15 @@ func (h *RestaurantHandler) Create(c echo.Context) error {
 	return response.Success(c, restaurant)
 }
 
+// GetAll godoc
+// @Summary Get all restaurants
+// @Description Get all restaurants for the authenticated account
+// @Tags restaurants
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} response.Response{data=[]models.Restaurant}
+// @Failure 401 {object} response.Response
+// @Router /restaurants [get]
 func (h *RestaurantHandler) GetAll(c echo.Context) error {
 	accountID := c.Get("account_id").(uuid.UUID)
 

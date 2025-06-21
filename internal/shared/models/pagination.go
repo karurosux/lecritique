@@ -10,12 +10,12 @@ type PageRequest struct {
 }
 
 // PageResponse represents paginated response
-type PageResponse struct {
-	Data       interface{} `json:"data"`
-	Page       int         `json:"page"`
-	Limit      int         `json:"limit"`
-	TotalItems int64       `json:"total_items"`
-	TotalPages int         `json:"total_pages"`
+type PageResponse[T any] struct {
+	Data       []T   `json:"data"`
+	Page       int   `json:"page"`
+	Limit      int   `json:"limit"`
+	Total      int   `json:"total"`
+	TotalPages int   `json:"total_pages"`
 }
 
 // NewPageRequest creates a new page request with defaults
@@ -32,17 +32,17 @@ func (p *PageRequest) Offset() int {
 }
 
 // NewPageResponse creates a new page response
-func NewPageResponse(data interface{}, page, limit int, total int64) *PageResponse {
+func NewPageResponse[T any](data []T, page, limit int, total int64) *PageResponse[T] {
 	totalPages := int(total) / limit
 	if int(total)%limit > 0 {
 		totalPages++
 	}
 	
-	return &PageResponse{
+	return &PageResponse[T]{
 		Data:       data,
 		Page:       page,
 		Limit:      limit,
-		TotalItems: total,
+		Total:      int(total),
 		TotalPages: totalPages,
 	}
 }

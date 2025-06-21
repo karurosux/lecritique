@@ -5,7 +5,8 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/lecritique/api/internal/shared/models"
+	"github.com/lecritique/api/internal/qrcode/models"
+	sharedRepos "github.com/lecritique/api/internal/shared/repositories"
 	"gorm.io/gorm"
 )
 
@@ -20,22 +21,22 @@ type QRCodeRepository interface {
 }
 
 type qrCodeRepository struct {
-	*repositories.BaseRepository[models.QRCode]
+	*sharedRepos.BaseRepository[models.QRCode]
 }
 
 func NewQRCodeRepository(db *gorm.DB) QRCodeRepository {
 	return &qrCodeRepository{
-		repositories.BaseRepository: Newrepositories.BaseRepository[models.QRCode](db),
+		BaseRepository: sharedRepos.NewBaseRepository[models.QRCode](db),
 	}
 }
 
 func (r *qrCodeRepository) FindByCode(code string) (*models.QRCode, error) {
 	var qrCode models.QRCode
-	err := r.db.Preload("Restaurant").Preload("Location").
+	err := r.DB.Preload("Restaurant").Preload("Location").
 		Where("code = ?", code).First(&qrCode).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, ErrRecordNotFound
+			return nil, sharedRepos.ErrRecordNotFound
 		}
 		return nil, err
 	}
@@ -44,7 +45,7 @@ func (r *qrCodeRepository) FindByCode(code string) (*models.QRCode, error) {
 
 func (r *qrCodeRepository) FindByRestaurantID(restaurantID uuid.UUID) ([]models.QRCode, error) {
 	var qrCodes []models.QRCode
-	err := r.db.Preload("Location").
+	err := r.DB.Preload("Location").
 		Where("restaurant_id = ?", restaurantID).
 		Order("created_at DESC").
 		Find(&qrCodes).Error
@@ -53,7 +54,7 @@ func (r *qrCodeRepository) FindByRestaurantID(restaurantID uuid.UUID) ([]models.
 
 func (r *qrCodeRepository) IncrementScanCount(id uuid.UUID) error {
 	now := time.Now()
-	return r.db.Model(&models.QRCode{}).
+	return r.DB.Model(&models.QRCode{}).
 		Where("id = ?", id).
 		Updates(map[string]interface{}{
 			"scans_count":     gorm.Expr("scans_count + ?", 1),

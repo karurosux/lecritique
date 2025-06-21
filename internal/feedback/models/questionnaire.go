@@ -3,14 +3,17 @@ package models
 import (
 	"github.com/google/uuid"
 	"github.com/lib/pq"
+	menuModels "github.com/lecritique/api/internal/menu/models"
+	restaurantModels "github.com/lecritique/api/internal/restaurant/models"
+	sharedModels "github.com/lecritique/api/internal/shared/models"
 )
 
 type Questionnaire struct {
-	BaseModel
+	sharedModels.BaseModel
 	RestaurantID uuid.UUID          `gorm:"not null" json:"restaurant_id"`
-	Restaurant   Restaurant         `json:"restaurant,omitempty"`
+	Restaurant   restaurantModels.Restaurant         `json:"restaurant,omitempty"`
 	DishID       *uuid.UUID         `json:"dish_id"`
-	Dish         *Dish              `json:"dish,omitempty"`
+	Dish         *menuModels.Dish              `json:"dish,omitempty"`
 	Name         string             `gorm:"not null" json:"name"`
 	Description  string             `json:"description"`
 	IsDefault    bool               `gorm:"default:false" json:"is_default"`
@@ -19,7 +22,7 @@ type Questionnaire struct {
 }
 
 type Question struct {
-	BaseModel
+	sharedModels.BaseModel
 	QuestionnaireID uuid.UUID     `gorm:"not null" json:"questionnaire_id"`
 	Questionnaire   Questionnaire `json:"questionnaire,omitempty"`
 	Text            string        `gorm:"not null" json:"text"`
@@ -45,7 +48,7 @@ const (
 )
 
 type QuestionTemplate struct {
-	BaseModel
+	sharedModels.BaseModel
 	Category     string        `gorm:"not null" json:"category"`
 	Name         string        `gorm:"not null" json:"name"`
 	Description  string        `json:"description"`

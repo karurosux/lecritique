@@ -192,21 +192,102 @@
 }
 ```
 
-## Future Endpoints (Planned)
+## QR Code Management (Protected)
 
-### QR Code Management
 | Method | Endpoint | Purpose |
 |--------|----------|---------|
-| POST | `/restaurants/:id/qr-codes` | Generate QR codes |
-| GET | `/restaurants/:id/qr-codes` | List QR codes |
+| POST | `/restaurants/:restaurantId/qr-codes` | Generate QR codes |
+| GET | `/restaurants/:restaurantId/qr-codes` | List QR codes for restaurant |
 | DELETE | `/qr-codes/:id` | Delete QR code |
 
-### Feedback Analytics
+### Request/Response Examples:
+
+**POST /restaurants/:restaurantId/qr-codes**
+```json
+// Request
+{
+  "type": "table",
+  "label": "Table 5"
+}
+
+// Response
+{
+  "success": true,
+  "data": {
+    "id": "uuid",
+    "restaurant_id": "uuid",
+    "code": "LCQ-abc123-timestamp",
+    "label": "Table 5",
+    "type": "table",
+    "is_active": true,
+    "scans_count": 0,
+    "created_at": "2025-06-21T10:00:00Z"
+  }
+}
+```
+
+## Feedback Management (Protected)
+
 | Method | Endpoint | Purpose |
 |--------|----------|---------|
-| GET | `/restaurants/:id/feedback` | List feedback with pagination |
-| GET | `/restaurants/:id/analytics` | Get analytics dashboard data |
-| GET | `/dishes/:id/analytics` | Get dish-specific analytics |
+| GET | `/restaurants/:restaurantId/feedback` | List feedback with pagination |
+| GET | `/restaurants/:restaurantId/analytics` | Get basic feedback statistics |
+
+### Request/Response Examples:
+
+**GET /restaurants/:restaurantId/feedback?page=1&limit=20**
+```json
+// Response
+{
+  "success": true,
+  "data": [
+    {
+      "id": "uuid",
+      "customer_name": "John Doe",
+      "overall_rating": 5,
+      "created_at": "2025-06-21T10:00:00Z",
+      "dish": {...},
+      "qr_code": {...}
+    }
+  ],
+  "meta": {
+    "total": 150,
+    "page": 1,
+    "limit": 20,
+    "total_pages": 8
+  }
+}
+```
+
+## Analytics (Protected)
+
+| Method | Endpoint | Purpose |
+|--------|----------|---------|
+| GET | `/analytics/restaurants/:restaurantId` | Get comprehensive restaurant analytics |
+| GET | `/analytics/dishes/:dishId` | Get dish-specific analytics |
+
+### Request/Response Examples:
+
+**GET /analytics/restaurants/:restaurantId**
+```json
+// Response
+{
+  "success": true,
+  "data": {
+    "restaurant_id": "uuid",
+    "restaurant_name": "Downtown Bistro",
+    "total_feedback": 500,
+    "average_rating": 4.2,
+    "feedback_today": 12,
+    "feedback_this_week": 85,
+    "feedback_this_month": 320,
+    "top_rated_dishes": [...],
+    "lowest_rated_dishes": [...]
+  }
+}
+```
+
+## Future Endpoints (Planned)
 
 ### Subscription Management
 | Method | Endpoint | Purpose |
@@ -271,11 +352,13 @@ Content-Type: application/json
 - Public feedback submission
 - QR code validation
 - Menu retrieval
+- QR code generation and management
+- Feedback retrieval for restaurant owners
+- Basic analytics and statistics
 
 ### 🚧 Partially Implemented
-- QR code generation (service exists, endpoint pending)
-- Feedback retrieval (repository exists, endpoint pending)
-- Basic analytics (service exists, endpoint pending)
+- Email verification endpoints
+- Password reset endpoints
 
 ### 📋 TODO
 - Subscription management endpoints
@@ -283,8 +366,6 @@ Content-Type: application/json
 - Advanced analytics endpoints
 - Questionnaire customization endpoints
 - Location management endpoints
-- Email verification endpoints
-- Password reset endpoints
 - Notification settings endpoints
 
 ## Database Models Available

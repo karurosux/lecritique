@@ -2,9 +2,10 @@ package services
 
 import (
 	"github.com/google/uuid"
-	"github.com/lecritique/api/internal/shared/models"
-	"github.com/lecritique/api/internal/shared/repositories"
-	"github.com/lecritique/api/internal/shared/errors"
+	"github.com/lecritique/api/internal/restaurant/models"
+	restaurantRepos "github.com/lecritique/api/internal/restaurant/repositories"
+	subscriptionRepos "github.com/lecritique/api/internal/subscription/repositories"
+	sharedRepos "github.com/lecritique/api/internal/shared/repositories"
 )
 
 type RestaurantService interface {
@@ -16,11 +17,11 @@ type RestaurantService interface {
 }
 
 type restaurantService struct {
-	restaurantRepo   repositories.RestaurantRepository
-	subscriptionRepo repositories.SubscriptionRepository
+	restaurantRepo   restaurantRepos.RestaurantRepository
+	subscriptionRepo subscriptionRepos.SubscriptionRepository
 }
 
-func NewRestaurantService(restaurantRepo repositories.RestaurantRepository, subscriptionRepo repositories.SubscriptionRepository) RestaurantService {
+func NewRestaurantService(restaurantRepo restaurantRepos.RestaurantRepository, subscriptionRepo subscriptionRepos.SubscriptionRepository) RestaurantService {
 	return &restaurantService{
 		restaurantRepo:   restaurantRepo,
 		subscriptionRepo: subscriptionRepo,
@@ -31,7 +32,7 @@ func (s *restaurantService) Create(accountID uuid.UUID, restaurant *models.Resta
 	// Check subscription limits
 	subscription, err := s.subscriptionRepo.FindByAccountID(accountID)
 	if err != nil {
-		return errors.ErrSubscriptionLimit
+		return sharedRepos.ErrRecordNotFound
 	}
 
 	currentCount, err := s.restaurantRepo.CountByAccountID(accountID)
@@ -40,7 +41,7 @@ func (s *restaurantService) Create(accountID uuid.UUID, restaurant *models.Resta
 	}
 
 	if !subscription.CanAddRestaurant(int(currentCount)) {
-		return errors.ErrSubscriptionLimit
+		return sharedRepos.ErrRecordNotFound
 	}
 
 	// Set account ID and create
@@ -56,7 +57,7 @@ func (s *restaurantService) Update(accountID uuid.UUID, restaurantID uuid.UUID, 
 	}
 
 	if restaurant.AccountID != accountID {
-		return errors.ErrForbidden
+		return sharedRepos.ErrRecordNotFound
 	}
 
 	// Update fields
@@ -88,7 +89,7 @@ func (s *restaurantService) Delete(accountID uuid.UUID, restaurantID uuid.UUID) 
 	}
 
 	if restaurant.AccountID != accountID {
-		return errors.ErrForbidden
+		return sharedRepos.ErrRecordNotFound
 	}
 
 	return s.restaurantRepo.Delete(restaurantID)
@@ -101,7 +102,7 @@ func (s *restaurantService) GetByID(accountID uuid.UUID, restaurantID uuid.UUID)
 	}
 
 	if restaurant.AccountID != accountID {
-		return nil, errors.ErrForbidden
+		return nil, sharedRepos.ErrRecordNotFound
 	}
 
 	return restaurant, nil

@@ -2,68 +2,68 @@ package handlers
 
 import (
 	"net/http"
-	"strconv"
 
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
-	"github.com/lecritique/api/internal/feedback/services"
-	"github.com/lecritique/api/internal/qrcode/services"
-	"github.com/lecritique/api/internal/shared/errors"
-	"github.com/lecritique/api/internal/shared/models"
-	"github.com/lecritique/api/internal/shared/repositories"
-	"github.com/lecritique/api/internal/shared/response"
-	"github.com/lecritique/api/internal/shared/validator"
+	feedbackModels "github.com/lecritique/api/internal/feedback/models"
+	feedbackRepos "github.com/lecritique/api/internal/feedback/repositories"
+	feedbackServices "github.com/lecritique/api/internal/feedback/services"
+	menuRepos "github.com/lecritique/api/internal/menu/repositories"
+	qrcodeServices "github.com/lecritique/api/internal/qrcode/services"
+	"github.com/lecritique/api/internal/shared/logger"
+	"github.com/sirupsen/logrus"
 )
 
 type PublicHandler struct {
 	qrCodeService     qrcodeServices.QRCodeService
 	feedbackService   feedbackServices.FeedbackService
-	dishRepo          repositories.Repository[models.Dish]
-	questionnaireRepo repositories.Repository[models.Questionnaire]
-	validator         *validator.Validator
+	dishRepo          menuRepos.DishRepository
+	questionnaireRepo feedbackRepos.QuestionnaireRepository
 }
 
 func NewPublicHandler(
 	qrCodeService qrcodeServices.QRCodeService,
 	feedbackService feedbackServices.FeedbackService,
-	dishRepo repositories.Repository[models.Dish],
-	questionnaireRepo repositories.Repository[models.Questionnaire],
+	dishRepo menuRepos.DishRepository,
+	questionnaireRepo feedbackRepos.QuestionnaireRepository,
 ) *PublicHandler {
 	return &PublicHandler{
 		qrCodeService:     qrCodeService,
 		feedbackService:   feedbackService,
 		dishRepo:          dishRepo,
 		questionnaireRepo: questionnaireRepo,
-		validator:         validator.New(),
 	}
 }
 
 func (h *PublicHandler) ValidateQRCode(c echo.Context) error {
 	code := c.Param("code")
 	if code == "" {
-		return response.Error(c, errors.ErrBadRequest)
+		return echo.NewHTTPError(http.StatusBadRequest, "Invalid request")
 	}
 
-	qrCode, err := h.qrCodeService.ValidateCode(code)
+	qrCode, err := h.qrCodeService.GetByCode(code)
 	if err != nil {
-		return response.Error(c, err)
+		return echo.NewHTTPError(http.StatusNotFound, "QR code not found")
 	}
 
-	return response.Success(c, qrCode)
+	return c.JSON(http.StatusOK, map[string]interface{}{"success": true, "data": qrCode})
 }
 
 func (h *PublicHandler) GetRestaurantMenu(c echo.Context) error {
 	idStr := c.Param("id")
 	id, err := uuid.Parse(idStr)
 	if err != nil {
-		return response.Error(c, errors.ErrBadRequest)
+		return echo.NewHTTPError(http.StatusBadRequest, "Invalid request")
 	}
 
 	// Implementation would get restaurant menu
 	// For now, return placeholder
-	return response.Success(c, map[string]interface{}{
-		"restaurant_id": id,
-		"message":       "Menu endpoint - to be implemented",
+	return c.JSON(http.StatusOK, map[string]interface{}{
+		"success": true,
+		"data": map[string]interface{}{
+			"restaurant_id": id,
+			"message":       "Menu endpoint - to be implemented",
+		},
 	})
 }
 
@@ -73,38 +73,43 @@ func (h *PublicHandler) GetQuestionnaire(c echo.Context) error {
 
 	restaurantID, err := uuid.Parse(restaurantIDStr)
 	if err != nil {
-		return response.Error(c, errors.ErrBadRequest)
+		return echo.NewHTTPError(http.StatusBadRequest, "Invalid request")
 	}
 
 	dishID, err := uuid.Parse(dishIDStr)
 	if err != nil {
-		return response.Error(c, errors.ErrBadRequest)
+		return echo.NewHTTPError(http.StatusBadRequest, "Invalid request")
 	}
 
 	// Implementation would get questionnaire
 	// For now, return placeholder
-	return response.Success(c, map[string]interface{}{
-		"restaurant_id": restaurantID,
-		"dish_id":       dishID,
-		"message":       "Questionnaire endpoint - to be implemented",
+	return c.JSON(http.StatusOK, map[string]interface{}{
+		"success": true,
+		"data": map[string]interface{}{
+			"restaurant_id": restaurantID,
+			"dish_id":       dishID,
+			"message":       "Questionnaire endpoint - to be implemented",
+		},
 	})
 }
 
 func (h *PublicHandler) SubmitFeedback(c echo.Context) error {
-	var feedback models.Feedback
+	var feedback feedbackModels.Feedback
 	if err := c.Bind(&feedback); err != nil {
-		return response.Error(c, errors.ErrBadRequest)
-	}
-
-	if err := h.validator.Validate(feedback); err != nil {
-		return response.Error(c, errors.NewWithDetails("VALIDATION_ERROR", "Validation failed", http.StatusBadRequest, h.validator.FormatErrors(err)))
+		return echo.NewHTTPError(http.StatusBadRequest, "Invalid request")
 	}
 
 	if err := h.feedbackService.Submit(&feedback); err != nil {
-		return response.Error(c, err)
+		logger.Error("Failed to submit feedback", err, logrus.Fields{
+			"feedback": feedback,
+		})
+		return echo.NewHTTPError(http.StatusInternalServerError, "Failed to submit feedback")
 	}
 
-	return response.Success(c, map[string]string{
-		"message": "Feedback submitted successfully",
+	return c.JSON(http.StatusOK, map[string]interface{}{
+		"success": true,
+		"data": map[string]string{
+			"message": "Feedback submitted successfully",
+		},
 	})
 }

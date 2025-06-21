@@ -4,12 +4,14 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	authModels "github.com/lecritique/api/internal/auth/models"
+	sharedModels "github.com/lecritique/api/internal/shared/models"
 )
 
 type Subscription struct {
-	BaseModel
+	sharedModels.BaseModel
 	AccountID          uuid.UUID          `gorm:"not null" json:"account_id"`
-	Account            Account            `json:"account,omitempty"`
+	Account            authModels.Account `json:"account,omitempty"`
 	PlanID             uuid.UUID          `gorm:"not null" json:"plan_id"`
 	Plan               SubscriptionPlan   `json:"plan,omitempty"`
 	Status             SubscriptionStatus `gorm:"not null" json:"status"`
@@ -31,7 +33,7 @@ const (
 )
 
 type SubscriptionPlan struct {
-	BaseModel
+	sharedModels.BaseModel
 	Name        string      `gorm:"not null" json:"name"`
 	Code        string      `gorm:"uniqueIndex;not null" json:"code"`
 	Description string      `json:"description"`

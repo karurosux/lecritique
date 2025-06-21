@@ -38,6 +38,17 @@ type AuthResponse struct {
 	Account interface{} `json:"account"`
 }
 
+// Register godoc
+// @Summary Register a new account
+// @Description Create a new restaurant owner account
+// @Tags auth
+// @Accept json
+// @Produce json
+// @Param request body RegisterRequest true "Registration details"
+// @Success 201 {object} response.Response{data=interface{}}
+// @Failure 400 {object} response.Response
+// @Failure 409 {object} response.Response
+// @Router /auth/register [post]
 func (h *AuthHandler) Register(c echo.Context) error {
 	var req RegisterRequest
 	if err := c.Bind(&req); err != nil {
@@ -59,6 +70,17 @@ func (h *AuthHandler) Register(c echo.Context) error {
 	})
 }
 
+// Login godoc
+// @Summary Login to account
+// @Description Authenticate and get JWT token
+// @Tags auth
+// @Accept json
+// @Produce json
+// @Param request body LoginRequest true "Login credentials"
+// @Success 200 {object} response.Response{data=AuthResponse}
+// @Failure 400 {object} response.Response
+// @Failure 401 {object} response.Response
+// @Router /auth/login [post]
 func (h *AuthHandler) Login(c echo.Context) error {
 	var req LoginRequest
 	if err := c.Bind(&req); err != nil {

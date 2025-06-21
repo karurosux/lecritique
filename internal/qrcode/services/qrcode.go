@@ -7,9 +7,10 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/lecritique/api/internal/shared/models"
-	"github.com/lecritique/api/internal/shared/repositories"
-	"github.com/lecritique/api/internal/shared/errors"
+	"github.com/lecritique/api/internal/qrcode/models"
+	qrcodeRepos "github.com/lecritique/api/internal/qrcode/repositories"
+	restaurantRepos "github.com/lecritique/api/internal/restaurant/repositories"
+	sharedRepos "github.com/lecritique/api/internal/shared/repositories"
 )
 
 type QRCodeService interface {
@@ -21,11 +22,11 @@ type QRCodeService interface {
 }
 
 type qrCodeService struct {
-	qrCodeRepo     repositories.QRCodeRepository
-	restaurantRepo repositories.RestaurantRepository
+	qrCodeRepo     qrcodeRepos.QRCodeRepository
+	restaurantRepo restaurantRepos.RestaurantRepository
 }
 
-func NewQRCodeService(qrCodeRepo repositories.QRCodeRepository, restaurantRepo repositories.RestaurantRepository) QRCodeService {
+func NewQRCodeService(qrCodeRepo qrcodeRepos.QRCodeRepository, restaurantRepo restaurantRepos.RestaurantRepository) QRCodeService {
 	return &qrCodeService{
 		qrCodeRepo:     qrCodeRepo,
 		restaurantRepo: restaurantRepo,
@@ -40,7 +41,7 @@ func (s *qrCodeService) Generate(accountID uuid.UUID, restaurantID uuid.UUID, qr
 	}
 
 	if restaurant.AccountID != accountID {
-		return nil, errors.ErrForbidden
+		return nil, sharedRepos.ErrRecordNotFound
 	}
 
 	// Generate unique code
@@ -72,7 +73,7 @@ func (s *qrCodeService) GetByCode(code string) (*models.QRCode, error) {
 	}
 
 	if !qrCode.IsValid() {
-		return nil, errors.ErrNotFound
+		return nil, sharedRepos.ErrRecordNotFound
 	}
 
 	return qrCode, nil
@@ -86,7 +87,7 @@ func (s *qrCodeService) GetByRestaurantID(accountID uuid.UUID, restaurantID uuid
 	}
 
 	if restaurant.AccountID != accountID {
-		return nil, errors.ErrForbidden
+		return nil, sharedRepos.ErrRecordNotFound
 	}
 
 	return s.qrCodeRepo.FindByRestaurantID(restaurantID)
@@ -106,7 +107,7 @@ func (s *qrCodeService) Delete(accountID uuid.UUID, qrCodeID uuid.UUID) error {
 	}
 
 	if restaurant.AccountID != accountID {
-		return errors.ErrForbidden
+		return sharedRepos.ErrRecordNotFound
 	}
 
 	return s.qrCodeRepo.Delete(qrCodeID)
@@ -119,7 +120,7 @@ func (s *qrCodeService) RecordScan(code string) error {
 	}
 
 	if !qrCode.IsValid() {
-		return errors.ErrNotFound
+		return sharedRepos.ErrRecordNotFound
 	}
 
 	return s.qrCodeRepo.IncrementScanCount(qrCode.ID)

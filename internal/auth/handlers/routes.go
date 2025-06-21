@@ -8,7 +8,7 @@ import (
 	"gorm.io/gorm"
 )
 
-func RegisterRoutes(v1 *echo.Group, db *gorm.DB, cfg *config.Config) {
+func RegisterRoutes(v1 *echo.Group, db *gorm.DB, cfg *config.Config) services.AuthService {
 	// Initialize repository
 	accountRepo := repositories.NewAccountRepository(db)
 	
@@ -23,4 +23,6 @@ func RegisterRoutes(v1 *echo.Group, db *gorm.DB, cfg *config.Config) {
 	auth.POST("/register", authHandler.Register)
 	auth.POST("/login", authHandler.Login)
 	auth.POST("/refresh", authHandler.RefreshToken)
+	
+	return authService
 }

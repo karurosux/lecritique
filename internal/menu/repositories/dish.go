@@ -18,12 +18,12 @@ type DishRepository interface {
 }
 
 type dishRepository struct {
-	*repositories.repositories.BaseRepository[models.Dish]
+	*repositories.BaseRepository[models.Dish]
 }
 
 func NewDishRepository(db *gorm.DB) DishRepository {
 	return &dishRepository{
-		repositories.BaseRepository: repositories.Newrepositories.BaseRepository[models.Dish](db),
+		BaseRepository: repositories.NewBaseRepository[models.Dish](db),
 	}
 }
 

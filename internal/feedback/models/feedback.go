@@ -5,16 +5,20 @@ import (
 	"encoding/json"
 
 	"github.com/google/uuid"
+	menuModels "github.com/lecritique/api/internal/menu/models"
+	qrcodeModels "github.com/lecritique/api/internal/qrcode/models"
+	restaurantModels "github.com/lecritique/api/internal/restaurant/models"
+	sharedModels "github.com/lecritique/api/internal/shared/models"
 )
 
 type Feedback struct {
-	BaseModel
+	sharedModels.BaseModel
 	RestaurantID uuid.UUID  `gorm:"not null" json:"restaurant_id"`
-	Restaurant   Restaurant `json:"restaurant,omitempty"`
+	Restaurant   restaurantModels.Restaurant `json:"restaurant,omitempty"`
 	DishID       uuid.UUID  `gorm:"not null" json:"dish_id"`
-	Dish         Dish       `json:"dish,omitempty"`
+	Dish         menuModels.Dish       `json:"dish,omitempty"`
 	QRCodeID     uuid.UUID  `gorm:"not null" json:"qr_code_id"`
-	QRCode       QRCode     `json:"qr_code,omitempty"`
+	QRCode       qrcodeModels.QRCode     `json:"qr_code,omitempty"`
 	CustomerName string     `json:"customer_name"`
 	CustomerEmail string    `json:"customer_email"`
 	CustomerPhone string    `json:"customer_phone"`
@@ -63,26 +67,3 @@ func (d *DeviceInfo) Scan(value interface{}) error {
 	return json.Unmarshal(bytes, d) 
 }
 
-func (p PlanFeatures) Value() (driver.Value, error) { return json.Marshal(p) }
-func (p *PlanFeatures) Scan(value interface{}) error { 
-	if value == nil {
-		return nil
-	}
-	bytes, ok := value.([]byte)
-	if !ok {
-		return json.Unmarshal([]byte("{}"), p)
-	}
-	return json.Unmarshal(bytes, p) 
-}
-
-func (s Settings) Value() (driver.Value, error) { return json.Marshal(s) }
-func (s *Settings) Scan(value interface{}) error { 
-	if value == nil {
-		return nil
-	}
-	bytes, ok := value.([]byte)
-	if !ok {
-		return json.Unmarshal([]byte("{}"), s)
-	}
-	return json.Unmarshal(bytes, s) 
-}

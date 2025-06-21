@@ -2,9 +2,10 @@ package services
 
 import (
 	"github.com/google/uuid"
-	"github.com/lecritique/api/internal/shared/models"
-	"github.com/lecritique/api/internal/shared/repositories"
-	"github.com/lecritique/api/internal/shared/errors"
+	"github.com/lecritique/api/internal/menu/models"
+	menuRepos "github.com/lecritique/api/internal/menu/repositories"
+	restaurantRepos "github.com/lecritique/api/internal/restaurant/repositories"
+	sharedRepos "github.com/lecritique/api/internal/shared/repositories"
 )
 
 type DishService interface {
@@ -16,11 +17,11 @@ type DishService interface {
 }
 
 type dishService struct {
-	dishRepo       repositories.DishRepository
-	restaurantRepo repositories.RestaurantRepository
+	dishRepo       menuRepos.DishRepository
+	restaurantRepo restaurantRepos.RestaurantRepository
 }
 
-func NewDishService(dishRepo repositories.DishRepository, restaurantRepo repositories.RestaurantRepository) DishService {
+func NewDishService(dishRepo menuRepos.DishRepository, restaurantRepo restaurantRepos.RestaurantRepository) DishService {
 	return &dishService{
 		dishRepo:       dishRepo,
 		restaurantRepo: restaurantRepo,
@@ -35,7 +36,7 @@ func (s *dishService) Create(accountID uuid.UUID, dish *models.Dish) error {
 	}
 
 	if restaurant.AccountID != accountID {
-		return errors.ErrForbidden
+		return sharedRepos.ErrRecordNotFound
 	}
 
 	return s.dishRepo.Create(dish)
@@ -55,7 +56,7 @@ func (s *dishService) Update(accountID uuid.UUID, dishID uuid.UUID, updates map[
 	}
 
 	if restaurant.AccountID != accountID {
-		return errors.ErrForbidden
+		return sharedRepos.ErrRecordNotFound
 	}
 
 	// Update fields
@@ -93,7 +94,7 @@ func (s *dishService) Delete(accountID uuid.UUID, dishID uuid.UUID) error {
 	}
 
 	if restaurant.AccountID != accountID {
-		return errors.ErrForbidden
+		return sharedRepos.ErrRecordNotFound
 	}
 
 	return s.dishRepo.Delete(dishID)
@@ -112,7 +113,7 @@ func (s *dishService) GetByID(accountID uuid.UUID, dishID uuid.UUID) (*models.Di
 	}
 
 	if restaurant.AccountID != accountID {
-		return nil, errors.ErrForbidden
+		return nil, sharedRepos.ErrRecordNotFound
 	}
 
 	return dish, nil
@@ -126,7 +127,7 @@ func (s *dishService) GetByRestaurantID(accountID uuid.UUID, restaurantID uuid.U
 	}
 
 	if restaurant.AccountID != accountID {
-		return nil, errors.ErrForbidden
+		return nil, sharedRepos.ErrRecordNotFound
 	}
 
 	return s.dishRepo.FindByRestaurantID(restaurantID)

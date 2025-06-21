@@ -4,20 +4,24 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/lecritique/api/internal/shared/models"
-	"github.com/lecritique/api/internal/shared/repositories"
+	"github.com/lecritique/api/internal/feedback/models"
+	feedbackRepos "github.com/lecritique/api/internal/feedback/repositories"
+	qrcodeRepos "github.com/lecritique/api/internal/qrcode/repositories"
+	restaurantRepos "github.com/lecritique/api/internal/restaurant/repositories"
+	sharedModels "github.com/lecritique/api/internal/shared/models"
+	sharedRepos "github.com/lecritique/api/internal/shared/repositories"
 )
 
 type FeedbackService interface {
 	Submit(feedback *models.Feedback) error
-	GetByRestaurantID(accountID uuid.UUID, restaurantID uuid.UUID, page, limit int) (*repositories.PageResponse[models.Feedback], error)
+	GetByRestaurantID(accountID uuid.UUID, restaurantID uuid.UUID, page, limit int) (*sharedModels.PageResponse[models.Feedback], error)
 	GetStats(accountID uuid.UUID, restaurantID uuid.UUID) (*FeedbackStats, error)
 }
 
 type feedbackService struct {
-	feedbackRepo   repositories.FeedbackRepository
-	restaurantRepo repositories.RestaurantRepository
-	qrCodeRepo     repositories.QRCodeRepository
+	feedbackRepo   feedbackRepos.FeedbackRepository
+	restaurantRepo restaurantRepos.RestaurantRepository
+	qrCodeRepo     qrcodeRepos.QRCodeRepository
 }
 
 type FeedbackStats struct {
@@ -27,7 +31,7 @@ type FeedbackStats struct {
 	FeedbacksThisWeek int64   `json:"feedbacks_this_week"`
 }
 
-func NewFeedbackService(feedbackRepo repositories.FeedbackRepository, restaurantRepo repositories.RestaurantRepository, qrCodeRepo repositories.QRCodeRepository) FeedbackService {
+func NewFeedbackService(feedbackRepo feedbackRepos.FeedbackRepository, restaurantRepo restaurantRepos.RestaurantRepository, qrCodeRepo qrcodeRepos.QRCodeRepository) FeedbackService {
 	return &feedbackService{
 		feedbackRepo:   feedbackRepo,
 		restaurantRepo: restaurantRepo,
@@ -43,7 +47,7 @@ func (s *feedbackService) Submit(feedback *models.Feedback) error {
 	}
 
 	if !qrCode.IsValid() {
-		return repositories.ErrRecordNotFound
+		return sharedRepos.ErrRecordNotFound
 	}
 
 	// Set restaurant ID from QR code
@@ -53,7 +57,7 @@ func (s *feedbackService) Submit(feedback *models.Feedback) error {
 	return s.feedbackRepo.Create(feedback)
 }
 
-func (s *feedbackService) GetByRestaurantID(accountID uuid.UUID, restaurantID uuid.UUID, page, limit int) (*repositories.PageResponse[models.Feedback], error) {
+func (s *feedbackService) GetByRestaurantID(accountID uuid.UUID, restaurantID uuid.UUID, page, limit int) (*sharedModels.PageResponse[models.Feedback], error) {
 	// Verify ownership
 	restaurant, err := s.restaurantRepo.FindByID(restaurantID)
 	if err != nil {
@@ -61,10 +65,10 @@ func (s *feedbackService) GetByRestaurantID(accountID uuid.UUID, restaurantID uu
 	}
 
 	if restaurant.AccountID != accountID {
-		return nil, repositories.ErrRecordNotFound
+		return nil, sharedRepos.ErrRecordNotFound
 	}
 
-	return s.feedbackRepo.FindByRestaurantID(restaurantID, repositories.PageRequest{
+	return s.feedbackRepo.FindByRestaurantID(restaurantID, sharedModels.PageRequest{
 		Page:  page,
 		Limit: limit,
 	})
@@ -78,7 +82,7 @@ func (s *feedbackService) GetStats(accountID uuid.UUID, restaurantID uuid.UUID) 
 	}
 
 	if restaurant.AccountID != accountID {
-		return nil, repositories.ErrRecordNotFound
+		return nil, sharedRepos.ErrRecordNotFound
 	}
 
 	// Get stats
