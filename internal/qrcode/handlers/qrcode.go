@@ -33,6 +33,8 @@ type GenerateQRCodeResponse struct {
 }
 
 func (h *QRCodeHandler) Generate(c echo.Context) error {
+	ctx := c.Request().Context()
+	
 	var req GenerateQRCodeRequest
 	if err := c.Bind(&req); err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, "Invalid request body")
@@ -47,7 +49,7 @@ func (h *QRCodeHandler) Generate(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusUnauthorized, "Invalid authentication")
 	}
 
-	qrCode, err := h.qrCodeService.Generate(accountID, req.RestaurantID, req.Type, req.Label)
+	qrCode, err := h.qrCodeService.Generate(ctx, accountID, req.RestaurantID, req.Type, req.Label)
 	if err != nil {
 		logger.Error("Failed to generate QR code", err, logrus.Fields{
 			"account_id":    accountID,
@@ -70,6 +72,8 @@ type QRCodeListResponse struct {
 }
 
 func (h *QRCodeHandler) GetByRestaurant(c echo.Context) error {
+	ctx := c.Request().Context()
+	
 	restaurantID, err := uuid.Parse(c.Param("restaurantId"))
 	if err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, "Invalid restaurant ID")
@@ -80,7 +84,7 @@ func (h *QRCodeHandler) GetByRestaurant(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusUnauthorized, "Invalid authentication")
 	}
 
-	qrCodes, err := h.qrCodeService.GetByRestaurantID(accountID, restaurantID)
+	qrCodes, err := h.qrCodeService.GetByRestaurantID(ctx, accountID, restaurantID)
 	if err != nil {
 		logger.Error("Failed to get QR codes", err, logrus.Fields{
 			"account_id":    accountID,
@@ -96,6 +100,8 @@ func (h *QRCodeHandler) GetByRestaurant(c echo.Context) error {
 }
 
 func (h *QRCodeHandler) Delete(c echo.Context) error {
+	ctx := c.Request().Context()
+	
 	qrCodeID, err := uuid.Parse(c.Param("id"))
 	if err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, "Invalid QR code ID")
@@ -106,7 +112,7 @@ func (h *QRCodeHandler) Delete(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusUnauthorized, "Invalid authentication")
 	}
 
-	if err := h.qrCodeService.Delete(accountID, qrCodeID); err != nil {
+	if err := h.qrCodeService.Delete(ctx, accountID, qrCodeID); err != nil {
 		logger.Error("Failed to delete QR code", err, logrus.Fields{
 			"account_id": accountID,
 			"qr_code_id": qrCodeID,

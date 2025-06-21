@@ -1,6 +1,7 @@
 package services
 
 import (
+	"context"
 	"github.com/google/uuid"
 	"github.com/lecritique/api/internal/restaurant/models"
 	restaurantRepos "github.com/lecritique/api/internal/restaurant/repositories"
@@ -9,11 +10,11 @@ import (
 )
 
 type RestaurantService interface {
-	Create(accountID uuid.UUID, restaurant *models.Restaurant) error
-	Update(accountID uuid.UUID, restaurantID uuid.UUID, updates map[string]interface{}) error
-	Delete(accountID uuid.UUID, restaurantID uuid.UUID) error
-	GetByID(accountID uuid.UUID, restaurantID uuid.UUID) (*models.Restaurant, error)
-	GetByAccountID(accountID uuid.UUID) ([]models.Restaurant, error)
+	Create(ctx context.Context, accountID uuid.UUID, restaurant *models.Restaurant) error
+	Update(ctx context.Context, accountID uuid.UUID, restaurantID uuid.UUID, updates map[string]interface{}) error
+	Delete(ctx context.Context, accountID uuid.UUID, restaurantID uuid.UUID) error
+	GetByID(ctx context.Context, accountID uuid.UUID, restaurantID uuid.UUID) (*models.Restaurant, error)
+	GetByAccountID(ctx context.Context, accountID uuid.UUID) ([]models.Restaurant, error)
 }
 
 type restaurantService struct {
@@ -28,14 +29,14 @@ func NewRestaurantService(restaurantRepo restaurantRepos.RestaurantRepository, s
 	}
 }
 
-func (s *restaurantService) Create(accountID uuid.UUID, restaurant *models.Restaurant) error {
+func (s *restaurantService) Create(ctx context.Context, accountID uuid.UUID, restaurant *models.Restaurant) error {
 	// Check subscription limits
-	subscription, err := s.subscriptionRepo.FindByAccountID(accountID)
+	subscription, err := s.subscriptionRepo.FindByAccountID(ctx, accountID)
 	if err != nil {
 		return sharedRepos.ErrRecordNotFound
 	}
 
-	currentCount, err := s.restaurantRepo.CountByAccountID(accountID)
+	currentCount, err := s.restaurantRepo.CountByAccountID(ctx, accountID)
 	if err != nil {
 		return err
 	}
@@ -46,12 +47,12 @@ func (s *restaurantService) Create(accountID uuid.UUID, restaurant *models.Resta
 
 	// Set account ID and create
 	restaurant.AccountID = accountID
-	return s.restaurantRepo.Create(restaurant)
+	return s.restaurantRepo.Create(ctx, restaurant)
 }
 
-func (s *restaurantService) Update(accountID uuid.UUID, restaurantID uuid.UUID, updates map[string]interface{}) error {
+func (s *restaurantService) Update(ctx context.Context, accountID uuid.UUID, restaurantID uuid.UUID, updates map[string]interface{}) error {
 	// Verify ownership
-	restaurant, err := s.restaurantRepo.FindByID(restaurantID)
+	restaurant, err := s.restaurantRepo.FindByID(ctx, restaurantID)
 	if err != nil {
 		return err
 	}
@@ -78,12 +79,12 @@ func (s *restaurantService) Update(accountID uuid.UUID, restaurantID uuid.UUID, 
 		}
 	}
 
-	return s.restaurantRepo.Update(restaurant)
+	return s.restaurantRepo.Update(ctx, restaurant)
 }
 
-func (s *restaurantService) Delete(accountID uuid.UUID, restaurantID uuid.UUID) error {
+func (s *restaurantService) Delete(ctx context.Context, accountID uuid.UUID, restaurantID uuid.UUID) error {
 	// Verify ownership
-	restaurant, err := s.restaurantRepo.FindByID(restaurantID)
+	restaurant, err := s.restaurantRepo.FindByID(ctx, restaurantID)
 	if err != nil {
 		return err
 	}
@@ -92,11 +93,11 @@ func (s *restaurantService) Delete(accountID uuid.UUID, restaurantID uuid.UUID) 
 		return sharedRepos.ErrRecordNotFound
 	}
 
-	return s.restaurantRepo.Delete(restaurantID)
+	return s.restaurantRepo.Delete(ctx, restaurantID)
 }
 
-func (s *restaurantService) GetByID(accountID uuid.UUID, restaurantID uuid.UUID) (*models.Restaurant, error) {
-	restaurant, err := s.restaurantRepo.FindByID(restaurantID)
+func (s *restaurantService) GetByID(ctx context.Context, accountID uuid.UUID, restaurantID uuid.UUID) (*models.Restaurant, error) {
+	restaurant, err := s.restaurantRepo.FindByID(ctx, restaurantID)
 	if err != nil {
 		return nil, err
 	}
@@ -108,6 +109,6 @@ func (s *restaurantService) GetByID(accountID uuid.UUID, restaurantID uuid.UUID)
 	return restaurant, nil
 }
 
-func (s *restaurantService) GetByAccountID(accountID uuid.UUID) ([]models.Restaurant, error) {
-	return s.restaurantRepo.FindByAccountID(accountID)
+func (s *restaurantService) GetByAccountID(ctx context.Context, accountID uuid.UUID) ([]models.Restaurant, error) {
+	return s.restaurantRepo.FindByAccountID(ctx, accountID)
 }

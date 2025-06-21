@@ -52,6 +52,8 @@ type RestaurantAnalytics struct {
 }
 
 func (h *AnalyticsHandler) GetRestaurantAnalytics(c echo.Context) error {
+	ctx := c.Request().Context()
+	
 	restaurantID, err := uuid.Parse(c.Param("restaurantId"))
 	if err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, "Invalid restaurant ID")
@@ -63,7 +65,7 @@ func (h *AnalyticsHandler) GetRestaurantAnalytics(c echo.Context) error {
 	}
 
 	// Verify restaurant ownership
-	restaurant, err := h.restaurantRepo.FindByID(restaurantID)
+	restaurant, err := h.restaurantRepo.FindByID(ctx, restaurantID)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusNotFound, "Restaurant not found")
 	}
@@ -72,11 +74,11 @@ func (h *AnalyticsHandler) GetRestaurantAnalytics(c echo.Context) error {
 	}
 
 	// Get overall restaurant stats
-	totalFeedback, _ := h.feedbackRepo.CountByRestaurantID(restaurantID, time.Time{})
-	feedbackToday, _ := h.feedbackRepo.CountByRestaurantID(restaurantID, time.Now().Truncate(24*time.Hour))
-	feedbackThisWeek, _ := h.feedbackRepo.CountByRestaurantID(restaurantID, time.Now().AddDate(0, 0, -7))
-	feedbackThisMonth, _ := h.feedbackRepo.CountByRestaurantID(restaurantID, time.Now().AddDate(0, -1, 0))
-	averageRating, _ := h.feedbackRepo.GetAverageRating(restaurantID, nil)
+	totalFeedback, _ := h.feedbackRepo.CountByRestaurantID(ctx, restaurantID, time.Time{})
+	feedbackToday, _ := h.feedbackRepo.CountByRestaurantID(ctx, restaurantID, time.Now().Truncate(24*time.Hour))
+	feedbackThisWeek, _ := h.feedbackRepo.CountByRestaurantID(ctx, restaurantID, time.Now().AddDate(0, 0, -7))
+	feedbackThisMonth, _ := h.feedbackRepo.CountByRestaurantID(ctx, restaurantID, time.Now().AddDate(0, -1, 0))
+	averageRating, _ := h.feedbackRepo.GetAverageRating(ctx, restaurantID, nil)
 
 	analytics := RestaurantAnalytics{
 		RestaurantID:      restaurantID,
@@ -89,13 +91,13 @@ func (h *AnalyticsHandler) GetRestaurantAnalytics(c echo.Context) error {
 	}
 
 	// Get dish analytics
-	dishes, err := h.dishRepo.FindByRestaurantID(restaurantID)
+	dishes, err := h.dishRepo.FindByRestaurantID(ctx, restaurantID)
 	if err == nil && len(dishes) > 0 {
 		dishAnalytics := make([]DishAnalytics, 0, len(dishes))
 
 		for _, dish := range dishes {
-			avgRating, _ := h.feedbackRepo.GetAverageRating(restaurantID, &dish.ID)
-			count, _ := h.feedbackRepo.CountByDishID(dish.ID)
+			avgRating, _ := h.feedbackRepo.GetAverageRating(ctx, restaurantID, &dish.ID)
+			count, _ := h.feedbackRepo.CountByDishID(ctx, dish.ID)
 
 			if count > 0 {
 				dishAnalytics = append(dishAnalytics, DishAnalytics{
@@ -145,6 +147,8 @@ func (h *AnalyticsHandler) GetRestaurantAnalytics(c echo.Context) error {
 }
 
 func (h *AnalyticsHandler) GetDishAnalytics(c echo.Context) error {
+	ctx := c.Request().Context()
+	
 	dishID, err := uuid.Parse(c.Param("dishId"))
 	if err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, "Invalid dish ID")
@@ -156,22 +160,22 @@ func (h *AnalyticsHandler) GetDishAnalytics(c echo.Context) error {
 	}
 
 	// Get dish and verify ownership
-	dish, err := h.dishRepo.FindByID(dishID)
+	dish, err := h.dishRepo.FindByID(ctx, dishID)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusNotFound, "Dish not found")
 	}
 
-	restaurant, err := h.restaurantRepo.FindByID(dish.RestaurantID)
+	restaurant, err := h.restaurantRepo.FindByID(ctx, dish.RestaurantID)
 	if err != nil || restaurant.AccountID != accountID {
 		return echo.NewHTTPError(http.StatusForbidden, "Access denied")
 	}
 
 	// Get dish stats
-	totalFeedback, _ := h.feedbackRepo.CountByDishID(dishID)
-	averageRating, _ := h.feedbackRepo.GetAverageRating(dish.RestaurantID, &dishID)
+	totalFeedback, _ := h.feedbackRepo.CountByDishID(ctx, dishID)
+	averageRating, _ := h.feedbackRepo.GetAverageRating(ctx, dish.RestaurantID, &dishID)
 
 	// Get recent feedback
-	recentFeedback, err := h.feedbackRepo.FindByDishID(dishID, models.PageRequest{Page: 1, Limit: 10})
+	recentFeedback, err := h.feedbackRepo.FindByDishID(ctx, dishID, models.PageRequest{Page: 1, Limit: 10})
 	if err != nil {
 		logger.Error("Failed to get recent feedback", err, logrus.Fields{
 			"dish_id": dishID,

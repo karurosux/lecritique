@@ -1,6 +1,7 @@
 package services
 
 import (
+	"context"
 	"crypto/rand"
 	"encoding/hex"
 	"fmt"
@@ -14,11 +15,11 @@ import (
 )
 
 type QRCodeService interface {
-	Generate(accountID uuid.UUID, restaurantID uuid.UUID, qrType models.QRCodeType, label string) (*models.QRCode, error)
-	GetByCode(code string) (*models.QRCode, error)
-	GetByRestaurantID(accountID uuid.UUID, restaurantID uuid.UUID) ([]models.QRCode, error)
-	Delete(accountID uuid.UUID, qrCodeID uuid.UUID) error
-	RecordScan(code string) error
+	Generate(ctx context.Context, accountID uuid.UUID, restaurantID uuid.UUID, qrType models.QRCodeType, label string) (*models.QRCode, error)
+	GetByCode(ctx context.Context, code string) (*models.QRCode, error)
+	GetByRestaurantID(ctx context.Context, accountID uuid.UUID, restaurantID uuid.UUID) ([]models.QRCode, error)
+	Delete(ctx context.Context, accountID uuid.UUID, qrCodeID uuid.UUID) error
+	RecordScan(ctx context.Context, code string) error
 }
 
 type qrCodeService struct {
@@ -33,9 +34,9 @@ func NewQRCodeService(qrCodeRepo qrcodeRepos.QRCodeRepository, restaurantRepo re
 	}
 }
 
-func (s *qrCodeService) Generate(accountID uuid.UUID, restaurantID uuid.UUID, qrType models.QRCodeType, label string) (*models.QRCode, error) {
+func (s *qrCodeService) Generate(ctx context.Context, accountID uuid.UUID, restaurantID uuid.UUID, qrType models.QRCodeType, label string) (*models.QRCode, error) {
 	// Verify restaurant ownership
-	restaurant, err := s.restaurantRepo.FindByID(restaurantID)
+	restaurant, err := s.restaurantRepo.FindByID(ctx, restaurantID)
 	if err != nil {
 		return nil, err
 	}
@@ -59,15 +60,15 @@ func (s *qrCodeService) Generate(accountID uuid.UUID, restaurantID uuid.UUID, qr
 		IsActive:     true,
 	}
 
-	if err := s.qrCodeRepo.Create(qrCode); err != nil {
+	if err := s.qrCodeRepo.Create(ctx, qrCode); err != nil {
 		return nil, err
 	}
 
 	return qrCode, nil
 }
 
-func (s *qrCodeService) GetByCode(code string) (*models.QRCode, error) {
-	qrCode, err := s.qrCodeRepo.FindByCode(code)
+func (s *qrCodeService) GetByCode(ctx context.Context, code string) (*models.QRCode, error) {
+	qrCode, err := s.qrCodeRepo.FindByCode(ctx, code)
 	if err != nil {
 		return nil, err
 	}
@@ -79,9 +80,9 @@ func (s *qrCodeService) GetByCode(code string) (*models.QRCode, error) {
 	return qrCode, nil
 }
 
-func (s *qrCodeService) GetByRestaurantID(accountID uuid.UUID, restaurantID uuid.UUID) ([]models.QRCode, error) {
+func (s *qrCodeService) GetByRestaurantID(ctx context.Context, accountID uuid.UUID, restaurantID uuid.UUID) ([]models.QRCode, error) {
 	// Verify restaurant ownership
-	restaurant, err := s.restaurantRepo.FindByID(restaurantID)
+	restaurant, err := s.restaurantRepo.FindByID(ctx, restaurantID)
 	if err != nil {
 		return nil, err
 	}
@@ -90,18 +91,18 @@ func (s *qrCodeService) GetByRestaurantID(accountID uuid.UUID, restaurantID uuid
 		return nil, sharedRepos.ErrRecordNotFound
 	}
 
-	return s.qrCodeRepo.FindByRestaurantID(restaurantID)
+	return s.qrCodeRepo.FindByRestaurantID(ctx, restaurantID)
 }
 
-func (s *qrCodeService) Delete(accountID uuid.UUID, qrCodeID uuid.UUID) error {
+func (s *qrCodeService) Delete(ctx context.Context, accountID uuid.UUID, qrCodeID uuid.UUID) error {
 	// Get QR code
-	qrCode, err := s.qrCodeRepo.FindByID(qrCodeID)
+	qrCode, err := s.qrCodeRepo.FindByID(ctx, qrCodeID)
 	if err != nil {
 		return err
 	}
 
 	// Verify ownership
-	restaurant, err := s.restaurantRepo.FindByID(qrCode.RestaurantID)
+	restaurant, err := s.restaurantRepo.FindByID(ctx, qrCode.RestaurantID)
 	if err != nil {
 		return err
 	}
@@ -110,11 +111,11 @@ func (s *qrCodeService) Delete(accountID uuid.UUID, qrCodeID uuid.UUID) error {
 		return sharedRepos.ErrRecordNotFound
 	}
 
-	return s.qrCodeRepo.Delete(qrCodeID)
+	return s.qrCodeRepo.Delete(ctx, qrCodeID)
 }
 
-func (s *qrCodeService) RecordScan(code string) error {
-	qrCode, err := s.qrCodeRepo.FindByCode(code)
+func (s *qrCodeService) RecordScan(ctx context.Context, code string) error {
+	qrCode, err := s.qrCodeRepo.FindByCode(ctx, code)
 	if err != nil {
 		return err
 	}
@@ -123,7 +124,7 @@ func (s *qrCodeService) RecordScan(code string) error {
 		return sharedRepos.ErrRecordNotFound
 	}
 
-	return s.qrCodeRepo.IncrementScanCount(qrCode.ID)
+	return s.qrCodeRepo.IncrementScanCount(ctx, qrCode.ID)
 }
 
 func generateUniqueCode() (string, error) {

@@ -1,6 +1,7 @@
 package repositories
 
 import (
+	"context"
 	"time"
 
 	"github.com/google/uuid"
@@ -11,14 +12,14 @@ import (
 )
 
 type FeedbackRepository interface {
-	Create(feedback *models.Feedback) error
-	FindByID(id uuid.UUID, preloads ...string) (*models.Feedback, error)
-	FindByRestaurantID(restaurantID uuid.UUID, req sharedModels.PageRequest) (*sharedModels.PageResponse[models.Feedback], error)
-	FindByDishID(dishID uuid.UUID, req sharedModels.PageRequest) (*sharedModels.PageResponse[models.Feedback], error)
-	CountByRestaurantID(restaurantID uuid.UUID, since time.Time) (int64, error)
-	CountByDishID(dishID uuid.UUID) (int64, error)
-	GetAverageRating(restaurantID uuid.UUID, dishID *uuid.UUID) (float64, error)
-	Delete(id uuid.UUID) error
+	Create(ctx context.Context, feedback *models.Feedback) error
+	FindByID(ctx context.Context, id uuid.UUID, preloads ...string) (*models.Feedback, error)
+	FindByRestaurantID(ctx context.Context, restaurantID uuid.UUID, req sharedModels.PageRequest) (*sharedModels.PageResponse[models.Feedback], error)
+	FindByDishID(ctx context.Context, dishID uuid.UUID, req sharedModels.PageRequest) (*sharedModels.PageResponse[models.Feedback], error)
+	CountByRestaurantID(ctx context.Context, restaurantID uuid.UUID, since time.Time) (int64, error)
+	CountByDishID(ctx context.Context, dishID uuid.UUID) (int64, error)
+	GetAverageRating(ctx context.Context, restaurantID uuid.UUID, dishID *uuid.UUID) (float64, error)
+	Delete(ctx context.Context, id uuid.UUID) error
 }
 
 type feedbackRepository struct {
@@ -31,7 +32,7 @@ func NewFeedbackRepository(db *gorm.DB) FeedbackRepository {
 	}
 }
 
-func (r *feedbackRepository) FindByRestaurantID(restaurantID uuid.UUID, req sharedModels.PageRequest) (*sharedModels.PageResponse[models.Feedback], error) {
+func (r *feedbackRepository) FindByRestaurantID(ctx context.Context, restaurantID uuid.UUID, req sharedModels.PageRequest) (*sharedModels.PageResponse[models.Feedback], error) {
 	var feedbacks []models.Feedback
 	var total int64
 	
@@ -44,10 +45,10 @@ func (r *feedbackRepository) FindByRestaurantID(restaurantID uuid.UUID, req shar
 	}
 	
 	// Count total
-	r.DB.Model(&models.Feedback{}).Where("restaurant_id = ?", restaurantID).Count(&total)
+	r.DB.WithContext(ctx).Model(&models.Feedback{}).Where("restaurant_id = ?", restaurantID).Count(&total)
 	
 	// Get data
-	query := r.DB.Preload("Dish").Preload("QRCode").
+	query := r.DB.WithContext(ctx).Preload("Dish").Preload("QRCode").
 		Where("restaurant_id = ?", restaurantID).
 		Limit(req.Limit).
 		Offset((req.Page - 1) * req.Limit).
@@ -71,7 +72,7 @@ func (r *feedbackRepository) FindByRestaurantID(restaurantID uuid.UUID, req shar
 	}, nil
 }
 
-func (r *feedbackRepository) FindByDishID(dishID uuid.UUID, req sharedModels.PageRequest) (*sharedModels.PageResponse[models.Feedback], error) {
+func (r *feedbackRepository) FindByDishID(ctx context.Context, dishID uuid.UUID, req sharedModels.PageRequest) (*sharedModels.PageResponse[models.Feedback], error) {
 	var feedbacks []models.Feedback
 	var total int64
 	
@@ -84,10 +85,10 @@ func (r *feedbackRepository) FindByDishID(dishID uuid.UUID, req sharedModels.Pag
 	}
 	
 	// Count total
-	r.DB.Model(&models.Feedback{}).Where("dish_id = ?", dishID).Count(&total)
+	r.DB.WithContext(ctx).Model(&models.Feedback{}).Where("dish_id = ?", dishID).Count(&total)
 	
 	// Get data
-	query := r.DB.Preload("QRCode").
+	query := r.DB.WithContext(ctx).Preload("QRCode").
 		Where("dish_id = ?", dishID).
 		Limit(req.Limit).
 		Offset((req.Page - 1) * req.Limit).
@@ -111,25 +112,25 @@ func (r *feedbackRepository) FindByDishID(dishID uuid.UUID, req sharedModels.Pag
 	}, nil
 }
 
-func (r *feedbackRepository) CountByRestaurantID(restaurantID uuid.UUID, since time.Time) (int64, error) {
+func (r *feedbackRepository) CountByRestaurantID(ctx context.Context, restaurantID uuid.UUID, since time.Time) (int64, error) {
 	var count int64
-	err := r.DB.Model(&models.Feedback{}).
+	err := r.DB.WithContext(ctx).Model(&models.Feedback{}).
 		Where("restaurant_id = ? AND created_at >= ?", restaurantID, since).
 		Count(&count).Error
 	return count, err
 }
 
-func (r *feedbackRepository) CountByDishID(dishID uuid.UUID) (int64, error) {
+func (r *feedbackRepository) CountByDishID(ctx context.Context, dishID uuid.UUID) (int64, error) {
 	var count int64
-	err := r.DB.Model(&models.Feedback{}).
+	err := r.DB.WithContext(ctx).Model(&models.Feedback{}).
 		Where("dish_id = ?", dishID).
 		Count(&count).Error
 	return count, err
 }
 
-func (r *feedbackRepository) GetAverageRating(restaurantID uuid.UUID, dishID *uuid.UUID) (float64, error) {
+func (r *feedbackRepository) GetAverageRating(ctx context.Context, restaurantID uuid.UUID, dishID *uuid.UUID) (float64, error) {
 	var avg float64
-	query := r.DB.Model(&models.Feedback{}).Where("restaurant_id = ?", restaurantID)
+	query := r.DB.WithContext(ctx).Model(&models.Feedback{}).Where("restaurant_id = ?", restaurantID)
 	if dishID != nil {
 		query = query.Where("dish_id = ?", *dishID)
 	}

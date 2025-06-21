@@ -1,6 +1,7 @@
 package services
 
 import (
+	"context"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -12,10 +13,10 @@ import (
 )
 
 type AuthService interface {
-	Register(email, password, companyName string) (*models.Account, error)
-	Login(email, password string) (string, *models.Account, error)
+	Register(ctx context.Context, email, password, companyName string) (*models.Account, error)
+	Login(ctx context.Context, email, password string) (string, *models.Account, error)
 	ValidateToken(tokenString string) (*Claims, error)
-	RefreshToken(oldToken string) (string, error)
+	RefreshToken(ctx context.Context, oldToken string) (string, error)
 }
 
 type authService struct {
@@ -36,9 +37,9 @@ func NewAuthService(accountRepo repositories.AccountRepository, config *config.C
 	}
 }
 
-func (s *authService) Register(email, password, companyName string) (*models.Account, error) {
+func (s *authService) Register(ctx context.Context, email, password, companyName string) (*models.Account, error) {
 	// Check if account already exists
-	existing, _ := s.accountRepo.FindByEmail(email)
+	existing, _ := s.accountRepo.FindByEmail(ctx, email)
 	if existing != nil {
 		return nil, errors.ErrConflict
 	}
@@ -56,16 +57,16 @@ func (s *authService) Register(email, password, companyName string) (*models.Acc
 	}
 
 	// Save account
-	if err := s.accountRepo.Create(account); err != nil {
+	if err := s.accountRepo.Create(ctx, account); err != nil {
 		return nil, err
 	}
 
 	return account, nil
 }
 
-func (s *authService) Login(email, password string) (string, *models.Account, error) {
+func (s *authService) Login(ctx context.Context, email, password string) (string, *models.Account, error) {
 	// Find account
-	account, err := s.accountRepo.FindByEmail(email)
+	account, err := s.accountRepo.FindByEmail(ctx, email)
 	if err != nil {
 		return "", nil, errors.ErrInvalidCredentials
 	}
@@ -122,14 +123,14 @@ func (s *authService) ValidateToken(tokenString string) (*Claims, error) {
 	return nil, errors.ErrTokenInvalid
 }
 
-func (s *authService) RefreshToken(oldToken string) (string, error) {
+func (s *authService) RefreshToken(ctx context.Context, oldToken string) (string, error) {
 	claims, err := s.ValidateToken(oldToken)
 	if err != nil {
 		return "", err
 	}
 
 	// Get account
-	account, err := s.accountRepo.FindByID(claims.AccountID)
+	account, err := s.accountRepo.FindByID(ctx, claims.AccountID)
 	if err != nil {
 		return "", err
 	}

@@ -1,6 +1,7 @@
 package repositories
 
 import (
+	"context"
 	"github.com/google/uuid"
 	"github.com/lecritique/api/internal/restaurant/models"
 	sharedRepos "github.com/lecritique/api/internal/shared/repositories"
@@ -8,12 +9,12 @@ import (
 )
 
 type RestaurantRepository interface {
-	Create(restaurant *models.Restaurant) error
-	FindByID(id uuid.UUID, preloads ...string) (*models.Restaurant, error)
-	FindByAccountID(accountID uuid.UUID) ([]models.Restaurant, error)
-	Update(restaurant *models.Restaurant) error
-	Delete(id uuid.UUID) error
-	CountByAccountID(accountID uuid.UUID) (int64, error)
+	Create(ctx context.Context, restaurant *models.Restaurant) error
+	FindByID(ctx context.Context, id uuid.UUID, preloads ...string) (*models.Restaurant, error)
+	FindByAccountID(ctx context.Context, accountID uuid.UUID) ([]models.Restaurant, error)
+	Update(ctx context.Context, restaurant *models.Restaurant) error
+	Delete(ctx context.Context, id uuid.UUID) error
+	CountByAccountID(ctx context.Context, accountID uuid.UUID) (int64, error)
 }
 
 type restaurantRepository struct {
@@ -26,15 +27,15 @@ func NewRestaurantRepository(db *gorm.DB) RestaurantRepository {
 	}
 }
 
-func (r *restaurantRepository) FindByAccountID(accountID uuid.UUID) ([]models.Restaurant, error) {
+func (r *restaurantRepository) FindByAccountID(ctx context.Context, accountID uuid.UUID) ([]models.Restaurant, error) {
 	var restaurants []models.Restaurant
-	err := r.DB.Where("account_id = ?", accountID).Find(&restaurants).Error
+	err := r.DB.WithContext(ctx).Where("account_id = ?", accountID).Find(&restaurants).Error
 	return restaurants, err
 }
 
-func (r *restaurantRepository) CountByAccountID(accountID uuid.UUID) (int64, error) {
+func (r *restaurantRepository) CountByAccountID(ctx context.Context, accountID uuid.UUID) (int64, error) {
 	var count int64
-	err := r.DB.Model(&models.Restaurant{}).
+	err := r.DB.WithContext(ctx).Model(&models.Restaurant{}).
 		Where("account_id = ? AND deleted_at IS NULL", accountID).
 		Count(&count).Error
 	return count, err

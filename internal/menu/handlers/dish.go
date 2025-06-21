@@ -34,6 +34,7 @@ type CreateDishRequest struct {
 }
 
 func (h *DishHandler) Create(c echo.Context) error {
+	ctx := c.Request().Context()
 	accountID := c.Get("account_id").(uuid.UUID)
 
 	var req CreateDishRequest
@@ -60,7 +61,7 @@ func (h *DishHandler) Create(c echo.Context) error {
 		dish.Currency = "USD"
 	}
 
-	if err := h.dishService.Create(accountID, dish); err != nil {
+	if err := h.dishService.Create(ctx, accountID, dish); err != nil {
 		return response.Error(c, err)
 	}
 
@@ -68,6 +69,7 @@ func (h *DishHandler) Create(c echo.Context) error {
 }
 
 func (h *DishHandler) GetByRestaurant(c echo.Context) error {
+	ctx := c.Request().Context()
 	accountID := c.Get("account_id").(uuid.UUID)
 	
 	restaurantID, err := uuid.Parse(c.Param("restaurantId"))
@@ -75,7 +77,7 @@ func (h *DishHandler) GetByRestaurant(c echo.Context) error {
 		return response.Error(c, errors.ErrBadRequest)
 	}
 
-	dishes, err := h.dishService.GetByRestaurantID(accountID, restaurantID)
+	dishes, err := h.dishService.GetByRestaurantID(ctx, accountID, restaurantID)
 	if err != nil {
 		return response.Error(c, err)
 	}
@@ -84,6 +86,7 @@ func (h *DishHandler) GetByRestaurant(c echo.Context) error {
 }
 
 func (h *DishHandler) GetByID(c echo.Context) error {
+	ctx := c.Request().Context()
 	accountID := c.Get("account_id").(uuid.UUID)
 	
 	dishID, err := uuid.Parse(c.Param("id"))
@@ -91,7 +94,7 @@ func (h *DishHandler) GetByID(c echo.Context) error {
 		return response.Error(c, errors.ErrBadRequest)
 	}
 
-	dish, err := h.dishService.GetByID(accountID, dishID)
+	dish, err := h.dishService.GetByID(ctx, accountID, dishID)
 	if err != nil {
 		return response.Error(c, err)
 	}
@@ -100,6 +103,7 @@ func (h *DishHandler) GetByID(c echo.Context) error {
 }
 
 func (h *DishHandler) Update(c echo.Context) error {
+	ctx := c.Request().Context()
 	accountID := c.Get("account_id").(uuid.UUID)
 	
 	dishID, err := uuid.Parse(c.Param("id"))
@@ -112,7 +116,7 @@ func (h *DishHandler) Update(c echo.Context) error {
 		return response.Error(c, errors.ErrBadRequest)
 	}
 
-	if err := h.dishService.Update(accountID, dishID, updates); err != nil {
+	if err := h.dishService.Update(ctx, accountID, dishID, updates); err != nil {
 		return response.Error(c, err)
 	}
 
@@ -122,6 +126,7 @@ func (h *DishHandler) Update(c echo.Context) error {
 }
 
 func (h *DishHandler) Delete(c echo.Context) error {
+	ctx := c.Request().Context()
 	accountID := c.Get("account_id").(uuid.UUID)
 	
 	dishID, err := uuid.Parse(c.Param("id"))
@@ -129,7 +134,7 @@ func (h *DishHandler) Delete(c echo.Context) error {
 		return response.Error(c, errors.ErrBadRequest)
 	}
 
-	if err := h.dishService.Delete(accountID, dishID); err != nil {
+	if err := h.dishService.Delete(ctx, accountID, dishID); err != nil {
 		return response.Error(c, err)
 	}
 

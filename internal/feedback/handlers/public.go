@@ -36,12 +36,13 @@ func NewPublicHandler(
 }
 
 func (h *PublicHandler) ValidateQRCode(c echo.Context) error {
+	ctx := c.Request().Context()
 	code := c.Param("code")
 	if code == "" {
 		return echo.NewHTTPError(http.StatusBadRequest, "Invalid request")
 	}
 
-	qrCode, err := h.qrCodeService.GetByCode(code)
+	qrCode, err := h.qrCodeService.GetByCode(ctx, code)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusNotFound, "QR code not found")
 	}
@@ -94,12 +95,13 @@ func (h *PublicHandler) GetQuestionnaire(c echo.Context) error {
 }
 
 func (h *PublicHandler) SubmitFeedback(c echo.Context) error {
+	ctx := c.Request().Context()
 	var feedback feedbackModels.Feedback
 	if err := c.Bind(&feedback); err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, "Invalid request")
 	}
 
-	if err := h.feedbackService.Submit(&feedback); err != nil {
+	if err := h.feedbackService.Submit(ctx, &feedback); err != nil {
 		logger.Error("Failed to submit feedback", err, logrus.Fields{
 			"feedback": feedback,
 		})

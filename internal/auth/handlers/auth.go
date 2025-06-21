@@ -50,6 +50,8 @@ type AuthResponse struct {
 // @Failure 409 {object} response.Response
 // @Router /auth/register [post]
 func (h *AuthHandler) Register(c echo.Context) error {
+	ctx := c.Request().Context()
+	
 	var req RegisterRequest
 	if err := c.Bind(&req); err != nil {
 		return response.Error(c, errors.ErrBadRequest)
@@ -59,7 +61,7 @@ func (h *AuthHandler) Register(c echo.Context) error {
 		return response.Error(c, errors.NewWithDetails("VALIDATION_ERROR", "Validation failed", http.StatusBadRequest, h.validator.FormatErrors(err)))
 	}
 
-	account, err := h.authService.Register(req.Email, req.Password, req.CompanyName)
+	account, err := h.authService.Register(ctx, req.Email, req.Password, req.CompanyName)
 	if err != nil {
 		return response.Error(c, err)
 	}
@@ -82,6 +84,8 @@ func (h *AuthHandler) Register(c echo.Context) error {
 // @Failure 401 {object} response.Response
 // @Router /auth/login [post]
 func (h *AuthHandler) Login(c echo.Context) error {
+	ctx := c.Request().Context()
+	
 	var req LoginRequest
 	if err := c.Bind(&req); err != nil {
 		return response.Error(c, errors.ErrBadRequest)
@@ -91,7 +95,7 @@ func (h *AuthHandler) Login(c echo.Context) error {
 		return response.Error(c, errors.NewWithDetails("VALIDATION_ERROR", "Validation failed", http.StatusBadRequest, h.validator.FormatErrors(err)))
 	}
 
-	token, account, err := h.authService.Login(req.Email, req.Password)
+	token, account, err := h.authService.Login(ctx, req.Email, req.Password)
 	if err != nil {
 		return response.Error(c, err)
 	}
@@ -103,6 +107,8 @@ func (h *AuthHandler) Login(c echo.Context) error {
 }
 
 func (h *AuthHandler) RefreshToken(c echo.Context) error {
+	ctx := c.Request().Context()
+	
 	// Get token from header
 	tokenString := c.Request().Header.Get("Authorization")
 	if tokenString == "" {
@@ -114,7 +120,7 @@ func (h *AuthHandler) RefreshToken(c echo.Context) error {
 		tokenString = tokenString[7:]
 	}
 
-	newToken, err := h.authService.RefreshToken(tokenString)
+	newToken, err := h.authService.RefreshToken(ctx, tokenString)
 	if err != nil {
 		return response.Error(c, err)
 	}

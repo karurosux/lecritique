@@ -1,6 +1,7 @@
 package services
 
 import (
+	"context"
 	"github.com/google/uuid"
 	"github.com/lecritique/api/internal/menu/models"
 	menuRepos "github.com/lecritique/api/internal/menu/repositories"
@@ -9,11 +10,11 @@ import (
 )
 
 type DishService interface {
-	Create(accountID uuid.UUID, dish *models.Dish) error
-	Update(accountID uuid.UUID, dishID uuid.UUID, updates map[string]interface{}) error
-	Delete(accountID uuid.UUID, dishID uuid.UUID) error
-	GetByID(accountID uuid.UUID, dishID uuid.UUID) (*models.Dish, error)
-	GetByRestaurantID(accountID uuid.UUID, restaurantID uuid.UUID) ([]models.Dish, error)
+	Create(ctx context.Context, accountID uuid.UUID, dish *models.Dish) error
+	Update(ctx context.Context, accountID uuid.UUID, dishID uuid.UUID, updates map[string]interface{}) error
+	Delete(ctx context.Context, accountID uuid.UUID, dishID uuid.UUID) error
+	GetByID(ctx context.Context, accountID uuid.UUID, dishID uuid.UUID) (*models.Dish, error)
+	GetByRestaurantID(ctx context.Context, accountID uuid.UUID, restaurantID uuid.UUID) ([]models.Dish, error)
 }
 
 type dishService struct {
@@ -28,9 +29,9 @@ func NewDishService(dishRepo menuRepos.DishRepository, restaurantRepo restaurant
 	}
 }
 
-func (s *dishService) Create(accountID uuid.UUID, dish *models.Dish) error {
+func (s *dishService) Create(ctx context.Context, accountID uuid.UUID, dish *models.Dish) error {
 	// Verify restaurant ownership
-	restaurant, err := s.restaurantRepo.FindByID(dish.RestaurantID)
+	restaurant, err := s.restaurantRepo.FindByID(ctx, dish.RestaurantID)
 	if err != nil {
 		return err
 	}
@@ -39,18 +40,18 @@ func (s *dishService) Create(accountID uuid.UUID, dish *models.Dish) error {
 		return sharedRepos.ErrRecordNotFound
 	}
 
-	return s.dishRepo.Create(dish)
+	return s.dishRepo.Create(ctx, dish)
 }
 
-func (s *dishService) Update(accountID uuid.UUID, dishID uuid.UUID, updates map[string]interface{}) error {
+func (s *dishService) Update(ctx context.Context, accountID uuid.UUID, dishID uuid.UUID, updates map[string]interface{}) error {
 	// Get dish
-	dish, err := s.dishRepo.FindByID(dishID)
+	dish, err := s.dishRepo.FindByID(ctx, dishID)
 	if err != nil {
 		return err
 	}
 
 	// Verify ownership
-	restaurant, err := s.restaurantRepo.FindByID(dish.RestaurantID)
+	restaurant, err := s.restaurantRepo.FindByID(ctx, dish.RestaurantID)
 	if err != nil {
 		return err
 	}
@@ -77,18 +78,18 @@ func (s *dishService) Update(accountID uuid.UUID, dishID uuid.UUID, updates map[
 		}
 	}
 
-	return s.dishRepo.Update(dish)
+	return s.dishRepo.Update(ctx, dish)
 }
 
-func (s *dishService) Delete(accountID uuid.UUID, dishID uuid.UUID) error {
+func (s *dishService) Delete(ctx context.Context, accountID uuid.UUID, dishID uuid.UUID) error {
 	// Get dish
-	dish, err := s.dishRepo.FindByID(dishID)
+	dish, err := s.dishRepo.FindByID(ctx, dishID)
 	if err != nil {
 		return err
 	}
 
 	// Verify ownership
-	restaurant, err := s.restaurantRepo.FindByID(dish.RestaurantID)
+	restaurant, err := s.restaurantRepo.FindByID(ctx, dish.RestaurantID)
 	if err != nil {
 		return err
 	}
@@ -97,17 +98,17 @@ func (s *dishService) Delete(accountID uuid.UUID, dishID uuid.UUID) error {
 		return sharedRepos.ErrRecordNotFound
 	}
 
-	return s.dishRepo.Delete(dishID)
+	return s.dishRepo.Delete(ctx, dishID)
 }
 
-func (s *dishService) GetByID(accountID uuid.UUID, dishID uuid.UUID) (*models.Dish, error) {
-	dish, err := s.dishRepo.FindByID(dishID)
+func (s *dishService) GetByID(ctx context.Context, accountID uuid.UUID, dishID uuid.UUID) (*models.Dish, error) {
+	dish, err := s.dishRepo.FindByID(ctx, dishID)
 	if err != nil {
 		return nil, err
 	}
 
 	// Verify ownership
-	restaurant, err := s.restaurantRepo.FindByID(dish.RestaurantID)
+	restaurant, err := s.restaurantRepo.FindByID(ctx, dish.RestaurantID)
 	if err != nil {
 		return nil, err
 	}
@@ -119,9 +120,9 @@ func (s *dishService) GetByID(accountID uuid.UUID, dishID uuid.UUID) (*models.Di
 	return dish, nil
 }
 
-func (s *dishService) GetByRestaurantID(accountID uuid.UUID, restaurantID uuid.UUID) ([]models.Dish, error) {
+func (s *dishService) GetByRestaurantID(ctx context.Context, accountID uuid.UUID, restaurantID uuid.UUID) ([]models.Dish, error) {
 	// Verify restaurant ownership
-	restaurant, err := s.restaurantRepo.FindByID(restaurantID)
+	restaurant, err := s.restaurantRepo.FindByID(ctx, restaurantID)
 	if err != nil {
 		return nil, err
 	}
@@ -130,5 +131,5 @@ func (s *dishService) GetByRestaurantID(accountID uuid.UUID, restaurantID uuid.U
 		return nil, sharedRepos.ErrRecordNotFound
 	}
 
-	return s.dishRepo.FindByRestaurantID(restaurantID)
+	return s.dishRepo.FindByRestaurantID(ctx, restaurantID)
 }

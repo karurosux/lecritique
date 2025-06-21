@@ -1,6 +1,7 @@
 package repositories
 
 import (
+	"context"
 	"errors"
 	"time"
 
@@ -11,13 +12,13 @@ import (
 )
 
 type QRCodeRepository interface {
-	Create(qrCode *models.QRCode) error
-	FindByID(id uuid.UUID, preloads ...string) (*models.QRCode, error)
-	FindByCode(code string) (*models.QRCode, error)
-	FindByRestaurantID(restaurantID uuid.UUID) ([]models.QRCode, error)
-	Update(qrCode *models.QRCode) error
-	Delete(id uuid.UUID) error
-	IncrementScanCount(id uuid.UUID) error
+	Create(ctx context.Context, qrCode *models.QRCode) error
+	FindByID(ctx context.Context, id uuid.UUID, preloads ...string) (*models.QRCode, error)
+	FindByCode(ctx context.Context, code string) (*models.QRCode, error)
+	FindByRestaurantID(ctx context.Context, restaurantID uuid.UUID) ([]models.QRCode, error)
+	Update(ctx context.Context, qrCode *models.QRCode) error
+	Delete(ctx context.Context, id uuid.UUID) error
+	IncrementScanCount(ctx context.Context, id uuid.UUID) error
 }
 
 type qrCodeRepository struct {
@@ -30,9 +31,9 @@ func NewQRCodeRepository(db *gorm.DB) QRCodeRepository {
 	}
 }
 
-func (r *qrCodeRepository) FindByCode(code string) (*models.QRCode, error) {
+func (r *qrCodeRepository) FindByCode(ctx context.Context, code string) (*models.QRCode, error) {
 	var qrCode models.QRCode
-	err := r.DB.Preload("Restaurant").Preload("Location").
+	err := r.DB.WithContext(ctx).Preload("Restaurant").Preload("Location").
 		Where("code = ?", code).First(&qrCode).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -43,18 +44,18 @@ func (r *qrCodeRepository) FindByCode(code string) (*models.QRCode, error) {
 	return &qrCode, nil
 }
 
-func (r *qrCodeRepository) FindByRestaurantID(restaurantID uuid.UUID) ([]models.QRCode, error) {
+func (r *qrCodeRepository) FindByRestaurantID(ctx context.Context, restaurantID uuid.UUID) ([]models.QRCode, error) {
 	var qrCodes []models.QRCode
-	err := r.DB.Preload("Location").
+	err := r.DB.WithContext(ctx).Preload("Location").
 		Where("restaurant_id = ?", restaurantID).
 		Order("created_at DESC").
 		Find(&qrCodes).Error
 	return qrCodes, err
 }
 
-func (r *qrCodeRepository) IncrementScanCount(id uuid.UUID) error {
+func (r *qrCodeRepository) IncrementScanCount(ctx context.Context, id uuid.UUID) error {
 	now := time.Now()
-	return r.DB.Model(&models.QRCode{}).
+	return r.DB.WithContext(ctx).Model(&models.QRCode{}).
 		Where("id = ?", id).
 		Updates(map[string]interface{}{
 			"scans_count":     gorm.Expr("scans_count + ?", 1),

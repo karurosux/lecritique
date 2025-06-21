@@ -1,6 +1,7 @@
 package services
 
 import (
+	"context"
 	"time"
 
 	"github.com/google/uuid"
@@ -13,9 +14,9 @@ import (
 )
 
 type FeedbackService interface {
-	Submit(feedback *models.Feedback) error
-	GetByRestaurantID(accountID uuid.UUID, restaurantID uuid.UUID, page, limit int) (*sharedModels.PageResponse[models.Feedback], error)
-	GetStats(accountID uuid.UUID, restaurantID uuid.UUID) (*FeedbackStats, error)
+	Submit(ctx context.Context, feedback *models.Feedback) error
+	GetByRestaurantID(ctx context.Context, accountID uuid.UUID, restaurantID uuid.UUID, page, limit int) (*sharedModels.PageResponse[models.Feedback], error)
+	GetStats(ctx context.Context, accountID uuid.UUID, restaurantID uuid.UUID) (*FeedbackStats, error)
 }
 
 type feedbackService struct {
@@ -39,9 +40,9 @@ func NewFeedbackService(feedbackRepo feedbackRepos.FeedbackRepository, restauran
 	}
 }
 
-func (s *feedbackService) Submit(feedback *models.Feedback) error {
+func (s *feedbackService) Submit(ctx context.Context, feedback *models.Feedback) error {
 	// Validate QR code
-	qrCode, err := s.qrCodeRepo.FindByID(feedback.QRCodeID)
+	qrCode, err := s.qrCodeRepo.FindByID(ctx, feedback.QRCodeID)
 	if err != nil {
 		return err
 	}
@@ -54,12 +55,12 @@ func (s *feedbackService) Submit(feedback *models.Feedback) error {
 	feedback.RestaurantID = qrCode.RestaurantID
 
 	// Submit feedback
-	return s.feedbackRepo.Create(feedback)
+	return s.feedbackRepo.Create(ctx, feedback)
 }
 
-func (s *feedbackService) GetByRestaurantID(accountID uuid.UUID, restaurantID uuid.UUID, page, limit int) (*sharedModels.PageResponse[models.Feedback], error) {
+func (s *feedbackService) GetByRestaurantID(ctx context.Context, accountID uuid.UUID, restaurantID uuid.UUID, page, limit int) (*sharedModels.PageResponse[models.Feedback], error) {
 	// Verify ownership
-	restaurant, err := s.restaurantRepo.FindByID(restaurantID)
+	restaurant, err := s.restaurantRepo.FindByID(ctx, restaurantID)
 	if err != nil {
 		return nil, err
 	}
@@ -68,15 +69,15 @@ func (s *feedbackService) GetByRestaurantID(accountID uuid.UUID, restaurantID uu
 		return nil, sharedRepos.ErrRecordNotFound
 	}
 
-	return s.feedbackRepo.FindByRestaurantID(restaurantID, sharedModels.PageRequest{
+	return s.feedbackRepo.FindByRestaurantID(ctx, restaurantID, sharedModels.PageRequest{
 		Page:  page,
 		Limit: limit,
 	})
 }
 
-func (s *feedbackService) GetStats(accountID uuid.UUID, restaurantID uuid.UUID) (*FeedbackStats, error) {
+func (s *feedbackService) GetStats(ctx context.Context, accountID uuid.UUID, restaurantID uuid.UUID) (*FeedbackStats, error) {
 	// Verify ownership
-	restaurant, err := s.restaurantRepo.FindByID(restaurantID)
+	restaurant, err := s.restaurantRepo.FindByID(ctx, restaurantID)
 	if err != nil {
 		return nil, err
 	}
@@ -90,10 +91,10 @@ func (s *feedbackService) GetStats(accountID uuid.UUID, restaurantID uuid.UUID) 
 	today := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
 	weekAgo := today.AddDate(0, 0, -7)
 
-	totalFeedbacks, _ := s.feedbackRepo.CountByRestaurantID(restaurantID, time.Time{})
-	feedbacksToday, _ := s.feedbackRepo.CountByRestaurantID(restaurantID, today)
-	feedbacksThisWeek, _ := s.feedbackRepo.CountByRestaurantID(restaurantID, weekAgo)
-	averageRating, _ := s.feedbackRepo.GetAverageRating(restaurantID, nil)
+	totalFeedbacks, _ := s.feedbackRepo.CountByRestaurantID(ctx, restaurantID, time.Time{})
+	feedbacksToday, _ := s.feedbackRepo.CountByRestaurantID(ctx, restaurantID, today)
+	feedbacksThisWeek, _ := s.feedbackRepo.CountByRestaurantID(ctx, restaurantID, weekAgo)
+	averageRating, _ := s.feedbackRepo.GetAverageRating(ctx, restaurantID, nil)
 
 	return &FeedbackStats{
 		TotalFeedbacks:    totalFeedbacks,

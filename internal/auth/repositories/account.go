@@ -1,6 +1,7 @@
 package repositories
 
 import (
+	"context"
 	"errors"
 
 	"github.com/google/uuid"
@@ -11,12 +12,12 @@ import (
 )
 
 type AccountRepository interface {
-	Create(account *models.Account) error
-	FindByID(id uuid.UUID, preloads ...string) (*models.Account, error)
-	FindByEmail(email string) (*models.Account, error)
-	Update(account *models.Account) error
-	Delete(id uuid.UUID) error
-	CountRestaurants(accountID uuid.UUID) (int64, error)
+	Create(ctx context.Context, account *models.Account) error
+	FindByID(ctx context.Context, id uuid.UUID, preloads ...string) (*models.Account, error)
+	FindByEmail(ctx context.Context, email string) (*models.Account, error)
+	Update(ctx context.Context, account *models.Account) error
+	Delete(ctx context.Context, id uuid.UUID) error
+	CountRestaurants(ctx context.Context, accountID uuid.UUID) (int64, error)
 }
 
 type accountRepository struct {
@@ -29,9 +30,9 @@ func NewAccountRepository(db *gorm.DB) AccountRepository {
 	}
 }
 
-func (r *accountRepository) FindByEmail(email string) (*models.Account, error) {
+func (r *accountRepository) FindByEmail(ctx context.Context, email string) (*models.Account, error) {
 	var account models.Account
-	err := r.DB.Where("email = ?", email).First(&account).Error
+	err := r.DB.WithContext(ctx).Where("email = ?", email).First(&account).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, repositories.ErrRecordNotFound
@@ -41,9 +42,9 @@ func (r *accountRepository) FindByEmail(email string) (*models.Account, error) {
 	return &account, nil
 }
 
-func (r *accountRepository) CountRestaurants(accountID uuid.UUID) (int64, error) {
+func (r *accountRepository) CountRestaurants(ctx context.Context, accountID uuid.UUID) (int64, error) {
 	var count int64
-	err := r.DB.Model(&restaurantModels.Restaurant{}).
+	err := r.DB.WithContext(ctx).Model(&restaurantModels.Restaurant{}).
 		Where("account_id = ? AND deleted_at IS NULL", accountID).
 		Count(&count).Error
 	return count, err

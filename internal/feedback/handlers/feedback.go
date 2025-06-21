@@ -22,6 +22,8 @@ func NewFeedbackHandler(feedbackService services.FeedbackService) *FeedbackHandl
 }
 
 func (h *FeedbackHandler) GetByRestaurant(c echo.Context) error {
+	ctx := c.Request().Context()
+	
 	restaurantID, err := uuid.Parse(c.Param("restaurantId"))
 	if err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, "Invalid restaurant ID")
@@ -43,7 +45,7 @@ func (h *FeedbackHandler) GetByRestaurant(c echo.Context) error {
 		limit = 20
 	}
 
-	feedbacks, err := h.feedbackService.GetByRestaurantID(accountID, restaurantID, page, limit)
+	feedbacks, err := h.feedbackService.GetByRestaurantID(ctx, accountID, restaurantID, page, limit)
 	if err != nil {
 		logger.Error("Failed to get feedbacks", err, logrus.Fields{
 			"account_id":    accountID,
@@ -67,6 +69,8 @@ func (h *FeedbackHandler) GetByRestaurant(c echo.Context) error {
 }
 
 func (h *FeedbackHandler) GetStats(c echo.Context) error {
+	ctx := c.Request().Context()
+	
 	restaurantID, err := uuid.Parse(c.Param("restaurantId"))
 	if err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, "Invalid restaurant ID")
@@ -77,7 +81,7 @@ func (h *FeedbackHandler) GetStats(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusUnauthorized, "Invalid authentication")
 	}
 
-	stats, err := h.feedbackService.GetStats(accountID, restaurantID)
+	stats, err := h.feedbackService.GetStats(ctx, accountID, restaurantID)
 	if err != nil {
 		logger.Error("Failed to get feedback stats", err, logrus.Fields{
 			"account_id":    accountID,

@@ -1,6 +1,7 @@
 package repositories
 
 import (
+	"context"
 	"errors"
 
 	"github.com/google/uuid"
@@ -10,10 +11,10 @@ import (
 )
 
 type SubscriptionRepository interface {
-	Create(subscription *models.Subscription) error
-	FindByID(id uuid.UUID, preloads ...string) (*models.Subscription, error)
-	FindByAccountID(accountID uuid.UUID) (*models.Subscription, error)
-	Update(subscription *models.Subscription) error
+	Create(ctx context.Context, subscription *models.Subscription) error
+	FindByID(ctx context.Context, id uuid.UUID, preloads ...string) (*models.Subscription, error)
+	FindByAccountID(ctx context.Context, accountID uuid.UUID) (*models.Subscription, error)
+	Update(ctx context.Context, subscription *models.Subscription) error
 }
 
 type subscriptionRepository struct {
@@ -26,9 +27,9 @@ func NewSubscriptionRepository(db *gorm.DB) SubscriptionRepository {
 	}
 }
 
-func (r *subscriptionRepository) FindByAccountID(accountID uuid.UUID) (*models.Subscription, error) {
+func (r *subscriptionRepository) FindByAccountID(ctx context.Context, accountID uuid.UUID) (*models.Subscription, error) {
 	var subscription models.Subscription
-	err := r.DB.Preload("Plan").Where("account_id = ?", accountID).First(&subscription).Error
+	err := r.DB.WithContext(ctx).Preload("Plan").Where("account_id = ?", accountID).First(&subscription).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, sharedRepos.ErrRecordNotFound
@@ -39,9 +40,9 @@ func (r *subscriptionRepository) FindByAccountID(accountID uuid.UUID) (*models.S
 }
 
 type SubscriptionPlanRepository interface {
-	FindAll() ([]models.SubscriptionPlan, error)
-	FindByID(id uuid.UUID, preloads ...string) (*models.SubscriptionPlan, error)
-	FindByCode(code string) (*models.SubscriptionPlan, error)
+	FindAll(ctx context.Context) ([]models.SubscriptionPlan, error)
+	FindByID(ctx context.Context, id uuid.UUID, preloads ...string) (*models.SubscriptionPlan, error)
+	FindByCode(ctx context.Context, code string) (*models.SubscriptionPlan, error)
 }
 
 type subscriptionPlanRepository struct {
@@ -54,15 +55,15 @@ func NewSubscriptionPlanRepository(db *gorm.DB) SubscriptionPlanRepository {
 	}
 }
 
-func (r *subscriptionPlanRepository) FindAll() ([]models.SubscriptionPlan, error) {
+func (r *subscriptionPlanRepository) FindAll(ctx context.Context) ([]models.SubscriptionPlan, error) {
 	var plans []models.SubscriptionPlan
-	err := r.DB.Where("is_active = ?", true).Order("price ASC").Find(&plans).Error
+	err := r.DB.WithContext(ctx).Where("is_active = ?", true).Order("price ASC").Find(&plans).Error
 	return plans, err
 }
 
-func (r *subscriptionPlanRepository) FindByCode(code string) (*models.SubscriptionPlan, error) {
+func (r *subscriptionPlanRepository) FindByCode(ctx context.Context, code string) (*models.SubscriptionPlan, error) {
 	var plan models.SubscriptionPlan
-	err := r.DB.Where("code = ?", code).First(&plan).Error
+	err := r.DB.WithContext(ctx).Where("code = ?", code).First(&plan).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, sharedRepos.ErrRecordNotFound

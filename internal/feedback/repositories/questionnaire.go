@@ -1,6 +1,7 @@
 package repositories
 
 import (
+	"context"
 	"github.com/google/uuid"
 	"github.com/lecritique/api/internal/feedback/models"
 	sharedRepos "github.com/lecritique/api/internal/shared/repositories"
@@ -8,12 +9,12 @@ import (
 )
 
 type QuestionnaireRepository interface {
-	Create(questionnaire *models.Questionnaire) error
-	FindByID(id uuid.UUID, preloads ...string) (*models.Questionnaire, error)
-	FindByDishID(dishID uuid.UUID) (*models.Questionnaire, error)
-	FindByRestaurantID(restaurantID uuid.UUID) ([]models.Questionnaire, error)
-	Update(questionnaire *models.Questionnaire) error
-	Delete(id uuid.UUID) error
+	Create(ctx context.Context, questionnaire *models.Questionnaire) error
+	FindByID(ctx context.Context, id uuid.UUID, preloads ...string) (*models.Questionnaire, error)
+	FindByDishID(ctx context.Context, dishID uuid.UUID) (*models.Questionnaire, error)
+	FindByRestaurantID(ctx context.Context, restaurantID uuid.UUID) ([]models.Questionnaire, error)
+	Update(ctx context.Context, questionnaire *models.Questionnaire) error
+	Delete(ctx context.Context, id uuid.UUID) error
 }
 
 type questionnaireRepository struct {
@@ -26,9 +27,9 @@ func NewQuestionnaireRepository(db *gorm.DB) QuestionnaireRepository {
 	}
 }
 
-func (r *questionnaireRepository) FindByDishID(dishID uuid.UUID) (*models.Questionnaire, error) {
+func (r *questionnaireRepository) FindByDishID(ctx context.Context, dishID uuid.UUID) (*models.Questionnaire, error) {
 	var questionnaire models.Questionnaire
-	err := r.DB.Preload("Questions").
+	err := r.DB.WithContext(ctx).Preload("Questions").
 		Where("dish_id = ? AND is_active = ?", dishID, true).
 		First(&questionnaire).Error
 	if err != nil {
@@ -37,17 +38,17 @@ func (r *questionnaireRepository) FindByDishID(dishID uuid.UUID) (*models.Questi
 	return &questionnaire, nil
 }
 
-func (r *questionnaireRepository) FindByRestaurantID(restaurantID uuid.UUID) ([]models.Questionnaire, error) {
+func (r *questionnaireRepository) FindByRestaurantID(ctx context.Context, restaurantID uuid.UUID) ([]models.Questionnaire, error) {
 	var questionnaires []models.Questionnaire
-	err := r.DB.Where("restaurant_id = ?", restaurantID).
+	err := r.DB.WithContext(ctx).Where("restaurant_id = ?", restaurantID).
 		Order("created_at DESC").
 		Find(&questionnaires).Error
 	return questionnaires, err
 }
 
 type QuestionTemplateRepository interface {
-	FindAll() ([]models.QuestionTemplate, error)
-	FindByCategory(category string) ([]models.QuestionTemplate, error)
+	FindAll(ctx context.Context) ([]models.QuestionTemplate, error)
+	FindByCategory(ctx context.Context, category string) ([]models.QuestionTemplate, error)
 }
 
 type questionTemplateRepository struct {
@@ -60,17 +61,17 @@ func NewQuestionTemplateRepository(db *gorm.DB) QuestionTemplateRepository {
 	}
 }
 
-func (r *questionTemplateRepository) FindAll() ([]models.QuestionTemplate, error) {
+func (r *questionTemplateRepository) FindAll(ctx context.Context) ([]models.QuestionTemplate, error) {
 	var templates []models.QuestionTemplate
-	err := r.DB.Where("is_active = ?", true).
+	err := r.DB.WithContext(ctx).Where("is_active = ?", true).
 		Order("category, name").
 		Find(&templates).Error
 	return templates, err
 }
 
-func (r *questionTemplateRepository) FindByCategory(category string) ([]models.QuestionTemplate, error) {
+func (r *questionTemplateRepository) FindByCategory(ctx context.Context, category string) ([]models.QuestionTemplate, error) {
 	var templates []models.QuestionTemplate
-	err := r.DB.Where("category = ? AND is_active = ?", category, true).
+	err := r.DB.WithContext(ctx).Where("category = ? AND is_active = ?", category, true).
 		Order("name").
 		Find(&templates).Error
 	return templates, err
