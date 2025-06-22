@@ -19,10 +19,9 @@ import (
 // @termsOfService http://swagger.io/terms/
 
 // @contact.name API Support
-// @contact.email support@lecritique.com
+// @contact.email justdevelopitmx@proton.me
 
 // @host localhost:8080
-// @BasePath /api/v1
 
 // @securityDefinitions.apikey BearerAuth
 // @in header

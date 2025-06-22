@@ -1,4 +1,3 @@
-basePath: /api/v1
 definitions:
   github_com_lecritique_api_internal_menu_models.Dish:
     type: object
@@ -270,13 +269,27 @@ definitions:
 host: localhost:8080
 info:
   contact:
-    email: support@lecritique.com
+    email: justdevelopitmx@proton.me
     name: API Support
   description: Restaurant feedback management system API
   termsOfService: http://swagger.io/terms/
   title: LeCritique API
   version: "1.0"
 paths:
+  /api/health:
+    get:
+      description: Check if the service is running
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Health check
+      tags:
+      - system
   /api/v1/analytics/dishes/{dishId}:
     get:
       consumes:
@@ -367,6 +380,41 @@ paths:
       summary: Get restaurant analytics
       tags:
       - analytics
+  /api/v1/auth/login:
+    post:
+      consumes:
+      - application/json
+      description: Authenticate and get JWT token
+      parameters:
+      - description: Login credentials
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.LoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/handlers.AuthResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: Login to account
+      tags:
+      - auth
   /api/v1/auth/refresh:
     post:
       consumes:
@@ -397,6 +445,40 @@ paths:
       security:
       - ApiKeyAuth: []
       summary: Refresh JWT token
+      tags:
+      - auth
+  /api/v1/auth/register:
+    post:
+      consumes:
+      - application/json
+      description: Create a new restaurant owner account
+      parameters:
+      - description: Registration details
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.RegisterRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data: {}
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: Register a new account
       tags:
       - auth
   /api/v1/dishes:
@@ -743,6 +825,68 @@ paths:
       summary: Delete QR code
       tags:
       - qr-codes
+  /api/v1/restaurants:
+    get:
+      description: Get all restaurants for the authenticated account
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/models.Restaurant'
+                  type: array
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: Get all restaurants
+      tags:
+      - restaurants
+    post:
+      consumes:
+      - application/json
+      description: Create a new restaurant for the authenticated account
+      parameters:
+      - description: Restaurant details
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.CreateRestaurantRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/models.Restaurant'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: Create a new restaurant
+      tags:
+      - restaurants
   /api/v1/restaurants/{id}:
     delete:
       consumes:
@@ -1068,151 +1212,6 @@ paths:
       summary: Generate QR code
       tags:
       - qr-codes
-  /auth/login:
-    post:
-      consumes:
-      - application/json
-      description: Authenticate and get JWT token
-      parameters:
-      - description: Login credentials
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/handlers.LoginRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            allOf:
-            - $ref: '#/definitions/response.Response'
-            - properties:
-                data:
-                  $ref: '#/definitions/handlers.AuthResponse'
-              type: object
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/response.Response'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/response.Response'
-      summary: Login to account
-      tags:
-      - auth
-  /auth/register:
-    post:
-      consumes:
-      - application/json
-      description: Create a new restaurant owner account
-      parameters:
-      - description: Registration details
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/handlers.RegisterRequest'
-      produces:
-      - application/json
-      responses:
-        "201":
-          description: Created
-          schema:
-            allOf:
-            - $ref: '#/definitions/response.Response'
-            - properties:
-                data: {}
-              type: object
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/response.Response'
-        "409":
-          description: Conflict
-          schema:
-            $ref: '#/definitions/response.Response'
-      summary: Register a new account
-      tags:
-      - auth
-  /health:
-    get:
-      description: Check if the service is running
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            additionalProperties: true
-            type: object
-      summary: Health check
-      tags:
-      - system
-  /restaurants:
-    get:
-      description: Get all restaurants for the authenticated account
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            allOf:
-            - $ref: '#/definitions/response.Response'
-            - properties:
-                data:
-                  items:
-                    $ref: '#/definitions/models.Restaurant'
-                  type: array
-              type: object
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/response.Response'
-      security:
-      - BearerAuth: []
-      summary: Get all restaurants
-      tags:
-      - restaurants
-    post:
-      consumes:
-      - application/json
-      description: Create a new restaurant for the authenticated account
-      parameters:
-      - description: Restaurant details
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/handlers.CreateRestaurantRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            allOf:
-            - $ref: '#/definitions/response.Response'
-            - properties:
-                data:
-                  $ref: '#/definitions/models.Restaurant'
-              type: object
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/response.Response'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/response.Response'
-      security:
-      - BearerAuth: []
-      summary: Create a new restaurant
-      tags:
-      - restaurants
 securityDefinitions:
   BearerAuth:
     description: Type "Bearer" followed by a space and JWT token.

@@ -48,7 +48,7 @@ type AuthResponse struct {
 // @Success 201 {object} response.Response{data=interface{}}
 // @Failure 400 {object} response.Response
 // @Failure 409 {object} response.Response
-// @Router /auth/register [post]
+// @Router /api/v1/auth/register [post]
 func (h *AuthHandler) Register(c echo.Context) error {
 	ctx := c.Request().Context()
 	
@@ -82,7 +82,7 @@ func (h *AuthHandler) Register(c echo.Context) error {
 // @Success 200 {object} response.Response{data=AuthResponse}
 // @Failure 400 {object} response.Response
 // @Failure 401 {object} response.Response
-// @Router /auth/login [post]
+// @Router /api/v1/auth/login [post]
 func (h *AuthHandler) Login(c echo.Context) error {
 	ctx := c.Request().Context()
 	

@@ -106,7 +106,7 @@ func (s *Server) setupRoutes() {
 // @Tags system
 // @Produce json
 // @Success 200 {object} map[string]interface{}
-// @Router /health [get]
+// @Router /api/health [get]
 func (s *Server) healthCheck(c echo.Context) error {
 	return c.JSON(http.StatusOK, map[string]interface{}{
 		"status":  "healthy",

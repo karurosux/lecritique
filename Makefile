@@ -1,4 +1,4 @@
-.PHONY: build run test clean migrate-up migrate-down migrate-create docker-build docker-up docker-down
+.PHONY: build run test clean migrate-up migrate-down migrate-create docker-build docker-up docker-down swagger
 
 # Variables
 APP_NAME=lecritique
@@ -54,3 +54,8 @@ docker-down:
 deps:
 	@go mod download
 	@go mod tidy
+
+# Generate Swagger documentation
+swagger:
+	@echo "Generating Swagger documentation..."
+	@swag init -g main.go -o docs

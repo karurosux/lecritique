@@ -43,7 +43,7 @@ type CreateRestaurantRequest struct {
 // @Success 200 {object} response.Response{data=models.Restaurant}
 // @Failure 400 {object} response.Response
 // @Failure 401 {object} response.Response
-// @Router /restaurants [post]
+// @Router /api/v1/restaurants [post]
 func (h *RestaurantHandler) Create(c echo.Context) error {
 	ctx := c.Request().Context()
 	accountID := c.Get("account_id").(uuid.UUID)
@@ -81,7 +81,7 @@ func (h *RestaurantHandler) Create(c echo.Context) error {
 // @Security BearerAuth
 // @Success 200 {object} response.Response{data=[]models.Restaurant}
 // @Failure 401 {object} response.Response
-// @Router /restaurants [get]
+// @Router /api/v1/restaurants [get]
 func (h *RestaurantHandler) GetAll(c echo.Context) error {
 	ctx := c.Request().Context()
 	accountID := c.Get("account_id").(uuid.UUID)
