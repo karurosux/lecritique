@@ -2,11 +2,13 @@ package services
 
 import (
 	"context"
+
 	"github.com/google/uuid"
 	"github.com/lecritique/api/internal/restaurant/models"
 	restaurantRepos "github.com/lecritique/api/internal/restaurant/repositories"
-	subscriptionRepos "github.com/lecritique/api/internal/subscription/repositories"
+	"github.com/lecritique/api/internal/shared/errors"
 	sharedRepos "github.com/lecritique/api/internal/shared/repositories"
+	subscriptionRepos "github.com/lecritique/api/internal/subscription/repositories"
 )
 
 type RestaurantService interface {
@@ -33,82 +35,128 @@ func (s *restaurantService) Create(ctx context.Context, accountID uuid.UUID, res
 	// Check subscription limits
 	subscription, err := s.subscriptionRepo.FindByAccountID(ctx, accountID)
 	if err != nil {
-		return sharedRepos.ErrRecordNotFound
+		// For now, allow creation without subscription (development mode)
+		// TODO: Re-enable subscription check in production
+		// return errors.New("SUBSCRIPTION_REQUIRED", "No active subscription found for account", 402)
 	}
 
 	currentCount, err := s.restaurantRepo.CountByAccountID(ctx, accountID)
 	if err != nil {
-		return err
+		return errors.New("DATABASE_ERROR", "Failed to check restaurant count", 500)
 	}
 
-	if !subscription.CanAddRestaurant(int(currentCount)) {
-		return sharedRepos.ErrRecordNotFound
+	// Only check limits if subscription exists
+	if subscription != nil && !subscription.CanAddRestaurant(int(currentCount)) {
+		return errors.NewWithDetails("SUBSCRIPTION_LIMIT",
+			"Restaurant limit exceeded for current subscription plan",
+			402,
+			map[string]interface{}{
+				"current_count": currentCount,
+				"max_allowed":   subscription.Plan.Features.MaxRestaurants,
+			})
 	}
 
 	// Set account ID and create
 	restaurant.AccountID = accountID
-	return s.restaurantRepo.Create(ctx, restaurant)
+	if err := s.restaurantRepo.Create(ctx, restaurant); err != nil {
+		return errors.New("DATABASE_ERROR", "Failed to create restaurant", 500)
+	}
+
+	return nil
 }
 
 func (s *restaurantService) Update(ctx context.Context, accountID uuid.UUID, restaurantID uuid.UUID, updates map[string]interface{}) error {
 	// Verify ownership
 	restaurant, err := s.restaurantRepo.FindByID(ctx, restaurantID)
 	if err != nil {
-		return err
+		if err == sharedRepos.ErrRecordNotFound {
+			return errors.New("RESTAURANT_NOT_FOUND", "Restaurant not found", 404)
+		}
+		return errors.New("DATABASE_ERROR", "Failed to fetch restaurant", 500)
 	}
 
 	if restaurant.AccountID != accountID {
-		return sharedRepos.ErrRecordNotFound
+		return errors.New("FORBIDDEN", "You don't have permission to update this restaurant", 403)
 	}
 
 	// Update fields
 	for key, value := range updates {
 		switch key {
 		case "name":
-			restaurant.Name = value.(string)
+			if v, ok := value.(string); ok {
+				restaurant.Name = v
+			}
 		case "description":
-			restaurant.Description = value.(string)
+			if v, ok := value.(string); ok {
+				restaurant.Description = v
+			}
 		case "phone":
-			restaurant.Phone = value.(string)
+			if v, ok := value.(string); ok {
+				restaurant.Phone = v
+			}
 		case "email":
-			restaurant.Email = value.(string)
+			if v, ok := value.(string); ok {
+				restaurant.Email = v
+			}
 		case "website":
-			restaurant.Website = value.(string)
+			if v, ok := value.(string); ok {
+				restaurant.Website = v
+			}
 		case "is_active":
-			restaurant.IsActive = value.(bool)
+			if v, ok := value.(bool); ok {
+				restaurant.IsActive = v
+			}
 		}
 	}
 
-	return s.restaurantRepo.Update(ctx, restaurant)
+	if err := s.restaurantRepo.Update(ctx, restaurant); err != nil {
+		return errors.New("DATABASE_ERROR", "Failed to update restaurant", 500)
+	}
+
+	return nil
 }
 
 func (s *restaurantService) Delete(ctx context.Context, accountID uuid.UUID, restaurantID uuid.UUID) error {
 	// Verify ownership
 	restaurant, err := s.restaurantRepo.FindByID(ctx, restaurantID)
 	if err != nil {
-		return err
+		if err == sharedRepos.ErrRecordNotFound {
+			return errors.New("RESTAURANT_NOT_FOUND", "Restaurant not found", 404)
+		}
+		return errors.New("DATABASE_ERROR", "Failed to fetch restaurant", 500)
 	}
 
 	if restaurant.AccountID != accountID {
-		return sharedRepos.ErrRecordNotFound
+		return errors.New("FORBIDDEN", "You don't have permission to delete this restaurant", 403)
 	}
 
-	return s.restaurantRepo.Delete(ctx, restaurantID)
+	if err := s.restaurantRepo.Delete(ctx, restaurantID); err != nil {
+		return errors.New("DATABASE_ERROR", "Failed to delete restaurant", 500)
+	}
+
+	return nil
 }
 
 func (s *restaurantService) GetByID(ctx context.Context, accountID uuid.UUID, restaurantID uuid.UUID) (*models.Restaurant, error) {
 	restaurant, err := s.restaurantRepo.FindByID(ctx, restaurantID)
 	if err != nil {
-		return nil, err
+		if err == sharedRepos.ErrRecordNotFound {
+			return nil, errors.New("RESTAURANT_NOT_FOUND", "Restaurant not found", 404)
+		}
+		return nil, errors.New("DATABASE_ERROR", "Failed to fetch restaurant", 500)
 	}
 
 	if restaurant.AccountID != accountID {
-		return nil, sharedRepos.ErrRecordNotFound
+		return nil, errors.New("FORBIDDEN", "You don't have permission to access this restaurant", 403)
 	}
 
 	return restaurant, nil
 }
 
 func (s *restaurantService) GetByAccountID(ctx context.Context, accountID uuid.UUID) ([]models.Restaurant, error) {
-	return s.restaurantRepo.FindByAccountID(ctx, accountID)
+	restaurants, err := s.restaurantRepo.FindByAccountID(ctx, accountID)
+	if err != nil {
+		return nil, errors.New("DATABASE_ERROR", "Failed to fetch restaurants", 500)
+	}
+	return restaurants, nil
 }

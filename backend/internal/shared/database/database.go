@@ -31,7 +31,6 @@ func Initialize(cfg *config.Config) (*gorm.DB, error) {
 
 	// Connect to database
 	connectionString := cfg.DSN()
-	fmt.Println("connection string -> ", connectionString)
 	db, err := gorm.Open(postgres.Open(connectionString), &gorm.Config{
 		Logger: newLogger,
 	})

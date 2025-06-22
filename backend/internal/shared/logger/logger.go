@@ -2,7 +2,6 @@ package logger
 
 import (
 	"encoding/json"
-	"fmt"
 	"os"
 
 	"github.com/sirupsen/logrus"
@@ -19,34 +18,13 @@ func init() {
 	// Set log level
 	log.SetLevel(logrus.InfoLevel)
 	
-	// Custom JSON formatter for better readability
-	log.SetFormatter(&PrettyJSONFormatter{})
+	// Use text formatter for readable logs
+	log.SetFormatter(&logrus.TextFormatter{
+		FullTimestamp: true,
+		ForceColors:   true,
+	})
 }
 
-// PrettyJSONFormatter formats logs as indented JSON
-type PrettyJSONFormatter struct{}
-
-func (f *PrettyJSONFormatter) Format(entry *logrus.Entry) ([]byte, error) {
-	data := make(logrus.Fields)
-	
-	// Copy entry data
-	for k, v := range entry.Data {
-		data[k] = v
-	}
-	
-	// Add standard fields
-	data["timestamp"] = entry.Time.Format("2006-01-02T15:04:05.000Z07:00")
-	data["level"] = entry.Level.String()
-	data["message"] = entry.Message
-	
-	// Marshal with indentation for readability
-	jsonBytes, err := json.MarshalIndent(data, "", "  ")
-	if err != nil {
-		return nil, fmt.Errorf("failed to marshal fields to JSON: %w", err)
-	}
-	
-	return append(jsonBytes, '\n'), nil
-}
 
 // Get returns the configured logger instance
 func Get() *logrus.Logger {
@@ -89,6 +67,16 @@ func Debug(msg string, fields ...logrus.Fields) {
 		entry = log.WithFields(fields[0])
 	}
 	entry.Debug(msg)
+}
+
+// LogJSON logs an object as formatted JSON for debugging
+func LogJSON(msg string, obj interface{}) {
+	jsonBytes, err := json.MarshalIndent(obj, "", "  ")
+	if err != nil {
+		log.WithField("error", err).Error("Failed to marshal object to JSON")
+		return
+	}
+	log.WithField("json", string(jsonBytes)).Info(msg)
 }
 
 // SetLevel sets the log level

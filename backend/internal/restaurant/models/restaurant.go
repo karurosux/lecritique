@@ -1,6 +1,9 @@
 package models
 
 import (
+	"database/sql/driver"
+	"encoding/json"
+
 	"github.com/google/uuid"
 	"github.com/lib/pq"
 	"github.com/lecritique/api/internal/shared/models"
@@ -28,6 +31,22 @@ type Settings struct {
 	Timezone             string `json:"timezone"`
 	FeedbackNotification bool   `json:"feedback_notification"`
 	LowRatingThreshold   int    `json:"low_rating_threshold"`
+}
+
+// GORM Scanner/Valuer interfaces for JSONB
+func (s Settings) Value() (driver.Value, error) {
+	return json.Marshal(s)
+}
+
+func (s *Settings) Scan(value interface{}) error {
+	if value == nil {
+		return nil
+	}
+	bytes, ok := value.([]byte)
+	if !ok {
+		return json.Unmarshal([]byte("{}"), s)
+	}
+	return json.Unmarshal(bytes, s)
 }
 
 type Location struct {

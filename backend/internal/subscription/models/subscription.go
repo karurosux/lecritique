@@ -1,6 +1,8 @@
 package models
 
 import (
+	"database/sql/driver"
+	"encoding/json"
 	"time"
 
 	"github.com/google/uuid"
@@ -55,6 +57,22 @@ type PlanFeatures struct {
 	CustomBranding          bool `json:"custom_branding"`
 	APIAccess               bool `json:"api_access"`
 	PrioritySupport         bool `json:"priority_support"`
+}
+
+// GORM Scanner/Valuer interfaces for JSONB
+func (pf PlanFeatures) Value() (driver.Value, error) {
+	return json.Marshal(pf)
+}
+
+func (pf *PlanFeatures) Scan(value interface{}) error {
+	if value == nil {
+		return nil
+	}
+	bytes, ok := value.([]byte)
+	if !ok {
+		return json.Unmarshal([]byte("{}"), pf)
+	}
+	return json.Unmarshal(bytes, pf)
 }
 
 func (s *Subscription) IsActive() bool {
