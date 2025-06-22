@@ -3,6 +3,7 @@ package repositories
 import (
 	"context"
 	"errors"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/lecritique/api/internal/auth/models"
@@ -18,6 +19,7 @@ type AccountRepository interface {
 	Update(ctx context.Context, account *models.Account) error
 	Delete(ctx context.Context, id uuid.UUID) error
 	CountRestaurants(ctx context.Context, accountID uuid.UUID) (int64, error)
+	UpdateEmailVerification(ctx context.Context, accountID uuid.UUID, verified bool) error
 }
 
 type accountRepository struct {
@@ -48,4 +50,19 @@ func (r *accountRepository) CountRestaurants(ctx context.Context, accountID uuid
 		Where("account_id = ? AND deleted_at IS NULL", accountID).
 		Count(&count).Error
 	return count, err
+}
+
+func (r *accountRepository) UpdateEmailVerification(ctx context.Context, accountID uuid.UUID, verified bool) error {
+	updates := map[string]interface{}{
+		"email_verified": verified,
+	}
+	if verified {
+		now := time.Now()
+		updates["email_verified_at"] = &now
+	}
+	
+	err := r.DB.WithContext(ctx).Model(&models.Account{}).
+		Where("id = ?", accountID).
+		Updates(updates).Error
+	return err
 }

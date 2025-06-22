@@ -14,6 +14,7 @@ type Config struct {
 	Redis    RedisConfig
 	JWT      JWTConfig
 	Stripe   StripeConfig
+	SMTP     *SMTPConfig
 }
 
 type AppConfig struct {
@@ -49,6 +50,14 @@ type StripeConfig struct {
 	WebhookSecret string
 }
 
+type SMTPConfig struct {
+	Host     string
+	Port     int
+	Username string
+	Password string
+	From     string
+}
+
 func Load() (*Config, error) {
 	// Load .env file
 	_ = godotenv.Load()
@@ -73,6 +82,18 @@ func Load() (*Config, error) {
 	expDuration, err := time.ParseDuration(viper.GetString("JWT_EXPIRATION"))
 	if err != nil {
 		return nil, fmt.Errorf("invalid JWT_EXPIRATION: %w", err)
+	}
+
+	// SMTP config (optional)
+	var smtpConfig *SMTPConfig
+	if viper.GetString("SMTP_HOST") != "" {
+		smtpConfig = &SMTPConfig{
+			Host:     viper.GetString("SMTP_HOST"),
+			Port:     viper.GetInt("SMTP_PORT"),
+			Username: viper.GetString("SMTP_USERNAME"),
+			Password: viper.GetString("SMTP_PASSWORD"),
+			From:     viper.GetString("SMTP_FROM"),
+		}
 	}
 
 	config := &Config{
@@ -104,6 +125,7 @@ func Load() (*Config, error) {
 			SecretKey:     viper.GetString("STRIPE_SECRET_KEY"),
 			WebhookSecret: viper.GetString("STRIPE_WEBHOOK_SECRET"),
 		},
+		SMTP: smtpConfig,
 	}
 
 	return config, nil

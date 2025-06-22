@@ -69,6 +69,10 @@
 | POST | `/auth/register` | Create new account |
 | POST | `/auth/login` | Login and get JWT token |
 | POST | `/auth/refresh` | Refresh JWT token |
+| POST | `/auth/send-verification` | Send email verification (requires auth) |
+| GET | `/auth/verify-email` | Verify email address with token |
+| POST | `/auth/forgot-password` | Send password reset email |
+| POST | `/auth/reset-password` | Reset password with token |
 
 ### Request/Response Examples:
 
@@ -113,6 +117,82 @@
       "email": "owner@restaurant.com",
       "company_name": "My Restaurant Group"
     }
+  }
+}
+```
+
+**POST /auth/send-verification**
+```json
+// Request (Requires Authorization header)
+{}
+
+// Response
+{
+  "success": true,
+  "data": {
+    "message": "Verification email sent successfully"
+  }
+}
+```
+
+**GET /auth/verify-email?token=verification_token_here**
+```json
+// Response (Success)
+{
+  "success": true,
+  "data": {
+    "message": "Email verified successfully"
+  }
+}
+
+// Response (Invalid/Expired Token)
+{
+  "success": false,
+  "error": {
+    "code": "INVALID_TOKEN",
+    "message": "Invalid or expired verification token"
+  }
+}
+```
+
+**POST /auth/forgot-password**
+```json
+// Request
+{
+  "email": "owner@restaurant.com"
+}
+
+// Response
+{
+  "success": true,
+  "data": {
+    "message": "If an account with this email exists, a password reset link has been sent"
+  }
+}
+```
+
+**POST /auth/reset-password**
+```json
+// Request
+{
+  "token": "reset_token_here",
+  "new_password": "newsecurepassword123"
+}
+
+// Response (Success)
+{
+  "success": true,
+  "data": {
+    "message": "Password reset successfully"
+  }
+}
+
+// Response (Invalid/Expired Token)
+{
+  "success": false,
+  "error": {
+    "code": "INVALID_TOKEN",
+    "message": "Invalid or expired reset token"
   }
 }
 ```
@@ -326,6 +406,8 @@
 - `NOT_FOUND` - Resource not found
 - `CONFLICT` - Resource already exists
 - `VALIDATION_ERROR` - Input validation failed
+- `INVALID_TOKEN` - Invalid or expired verification/reset token
+- `EMAIL_ALREADY_VERIFIED` - Email address already verified
 - `SUBSCRIPTION_LIMIT` - Subscription limit reached
 - `RATE_LIMIT` - Too many requests
 
@@ -347,6 +429,8 @@ Content-Type: application/json
 ### ✅ Implemented
 - Health check endpoint
 - Authentication (register, login, refresh)
+- Email verification endpoints
+- Password reset endpoints
 - Restaurant CRUD operations
 - Dish CRUD operations
 - Public feedback submission
@@ -355,10 +439,6 @@ Content-Type: application/json
 - QR code generation and management
 - Feedback retrieval for restaurant owners
 - Basic analytics and statistics
-
-### 🚧 Partially Implemented
-- Email verification endpoints
-- Password reset endpoints
 
 ### 📋 TODO
 - Subscription management endpoints
@@ -379,8 +459,9 @@ Content-Type: application/json
 7. **Questionnaire** - Custom feedback questionnaires
 8. **Question** - Individual questions in questionnaires
 9. **Feedback** - Customer feedback submissions
-10. **Subscription** - Account subscriptions
-11. **SubscriptionPlan** - Available subscription plans
+10. **VerificationToken** - Email verification and password reset tokens
+11. **Subscription** - Account subscriptions
+12. **SubscriptionPlan** - Available subscription plans
 
 ## Service Layer Architecture
 
@@ -393,6 +474,7 @@ Content-Type: application/json
 
 ### Available Repositories
 - **AccountRepository**
+- **TokenRepository**
 - **RestaurantRepository**
 - **DishRepository**
 - **QRCodeRepository**
