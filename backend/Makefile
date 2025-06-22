@@ -1,4 +1,4 @@
-.PHONY: build run test clean migrate-up migrate-down migrate-create docker-build docker-up docker-down swagger
+.PHONY: build run test clean migrate-up migrate-down migrate-create docker-build docker-up docker-down swagger generate-frontend-api seed seed-force
 
 # Variables
 APP_NAME=lecritique
@@ -59,3 +59,18 @@ deps:
 swagger:
 	@echo "Generating Swagger documentation..."
 	@swag init -g main.go -o docs
+
+# Generate TypeScript API client for frontend
+generate-frontend-api: swagger
+	@echo "Generating TypeScript API client..."
+	@cd ../frontend && npm run generate-api
+
+# Seed database with default test data
+seed:
+	@echo "Creating default test user..."
+	@go run cmd/seed/main.go
+
+# Force recreate default test user
+seed-force:
+	@echo "Force recreating default test user..."
+	@go run cmd/seed/main.go --force

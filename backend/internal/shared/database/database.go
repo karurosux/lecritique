@@ -30,7 +30,9 @@ func Initialize(cfg *config.Config) (*gorm.DB, error) {
 	)
 
 	// Connect to database
-	db, err := gorm.Open(postgres.Open(cfg.DSN()), &gorm.Config{
+	connectionString := cfg.DSN()
+	fmt.Println("connection string -> ", connectionString)
+	db, err := gorm.Open(postgres.Open(connectionString), &gorm.Config{
 		Logger: newLogger,
 	})
 	if err != nil {
