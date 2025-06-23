@@ -10,12 +10,26 @@
  * ---------------------------------------------------------------
  */
 
+export enum ModelsSubscriptionStatus {
+  SubscriptionActive = "SubscriptionActive",
+  SubscriptionPending = "SubscriptionPending",
+  SubscriptionCanceled = "SubscriptionCanceled",
+  SubscriptionExpired = "SubscriptionExpired",
+}
+
 export enum ModelsQRCodeType {
   QRCodeTypeTable = "QRCodeTypeTable",
   QRCodeTypeLocation = "QRCodeTypeLocation",
   QRCodeTypeTakeaway = "QRCodeTypeTakeaway",
   QRCodeTypeDelivery = "QRCodeTypeDelivery",
   QRCodeTypeGeneral = "QRCodeTypeGeneral",
+}
+
+export enum ModelsMemberRole {
+  RoleOwner = "RoleOwner",
+  RoleAdmin = "RoleAdmin",
+  RoleManager = "RoleManager",
+  RoleViewer = "RoleViewer",
 }
 
 export type GithubComLecritiqueApiInternalMenuModelsDish = object;
@@ -41,6 +55,10 @@ export interface HandlersCreateRestaurantRequest {
   name: string;
   phone?: string;
   website?: string;
+}
+
+export interface HandlersCreateSubscriptionRequest {
+  plan_id: string;
 }
 
 export interface HandlersGenerateQRCodeRequest {
@@ -85,6 +103,24 @@ export interface HandlersResetPasswordRequest {
   token: string;
 }
 
+export interface ModelsAccount {
+  company_name?: string;
+  created_at?: string;
+  email?: string;
+  email_verified?: boolean;
+  email_verified_at?: string;
+  id?: string;
+  is_active?: boolean;
+  phone?: string;
+  subscription_id?: string;
+  /**
+   * Subscription     *Subscription `json:"subscription,omitempty"` // TODO: Add when subscription domain is ready
+   * Restaurants      []Restaurant  `json:"restaurants,omitempty"`  // TODO: Add when restaurant domain is ready
+   */
+  team_members?: ModelsTeamMember[];
+  updated_at?: string;
+}
+
 export type ModelsFeedback = object;
 
 export interface ModelsLocation {
@@ -102,6 +138,18 @@ export interface ModelsLocation {
   restaurant_id?: string;
   state?: string;
   updated_at?: string;
+}
+
+export interface ModelsPlanFeatures {
+  advanced_analytics?: boolean;
+  api_access?: boolean;
+  custom_branding?: boolean;
+  max_feedbacks_per_month?: number;
+  max_locations_per_restaurant?: number;
+  max_qr_codes_per_location?: number;
+  max_restaurants?: number;
+  max_team_members?: number;
+  priority_support?: boolean;
 }
 
 export interface ModelsQRCode {
@@ -146,6 +194,60 @@ export interface ModelsSettings {
   timezone?: string;
 }
 
+export interface ModelsSubscription {
+  account?: ModelsAccount;
+  account_id?: string;
+  cancel_at?: string;
+  cancelled_at?: string;
+  created_at?: string;
+  current_period_end?: string;
+  current_period_start?: string;
+  id?: string;
+  plan?: ModelsSubscriptionPlan;
+  plan_id?: string;
+  status?: ModelsSubscriptionStatus;
+  updated_at?: string;
+}
+
+export interface ModelsSubscriptionPlan {
+  code?: string;
+  created_at?: string;
+  currency?: string;
+  description?: string;
+  features?: ModelsPlanFeatures;
+  id?: string;
+  interval?: string;
+  is_active?: boolean;
+  name?: string;
+  price?: number;
+  updated_at?: string;
+}
+
+export interface ModelsTeamMember {
+  accepted_at?: string;
+  account?: ModelsAccount;
+  account_id?: string;
+  created_at?: string;
+  id?: string;
+  invited_at?: string;
+  invited_by?: string;
+  role?: ModelsMemberRole;
+  updated_at?: string;
+  user?: ModelsUser;
+  user_id?: string;
+}
+
+export interface ModelsUser {
+  created_at?: string;
+  email?: string;
+  first_name?: string;
+  id?: string;
+  is_active?: boolean;
+  last_name?: string;
+  team_members?: ModelsTeamMember[];
+  updated_at?: string;
+}
+
 export interface ResponseErrorData {
   code?: string;
   details?: any;
@@ -171,6 +273,14 @@ export interface ResponseResponse {
   error?: ResponseErrorData;
   meta?: ResponseMeta;
   success?: boolean;
+}
+
+export interface ServicesPermissionResponse {
+  can_create?: boolean;
+  current_count?: number;
+  max_allowed?: number;
+  reason?: string;
+  subscription_status?: string;
 }
 
 import type {
@@ -705,6 +815,28 @@ export class Api<
       }),
 
     /**
+     * @description Retrieve all available subscription plans with their features and pricing
+     *
+     * @tags subscription
+     * @name V1PlansList
+     * @summary Get available subscription plans
+     * @request GET:/api/v1/plans
+     */
+    v1PlansList: (params: RequestParams = {}) =>
+      this.request<
+        ResponseResponse & {
+          data?: ModelsSubscriptionPlan[];
+        },
+        ResponseResponse
+      >({
+        path: `/api/v1/plans`,
+        method: "GET",
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
      * @description Submit customer feedback for a dish
      *
      * @tags public
@@ -1045,6 +1177,101 @@ export class Api<
         path: `/api/v1/restaurants/${restaurantId}/qr-codes`,
         method: "POST",
         body: qr_code,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description Check if the authenticated user can create more restaurants based on their subscription plan
+     *
+     * @tags subscription
+     * @name V1UserCanCreateRestaurantList
+     * @summary Check if user can create more restaurants
+     * @request GET:/api/v1/user/can-create-restaurant
+     * @secure
+     */
+    v1UserCanCreateRestaurantList: (params: RequestParams = {}) =>
+      this.request<
+        ResponseResponse & {
+          data?: ServicesPermissionResponse;
+        },
+        ResponseResponse
+      >({
+        path: `/api/v1/user/can-create-restaurant`,
+        method: "GET",
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description Retrieve the current subscription details for the authenticated user
+     *
+     * @tags subscription
+     * @name V1UserSubscriptionList
+     * @summary Get user's current subscription
+     * @request GET:/api/v1/user/subscription
+     * @secure
+     */
+    v1UserSubscriptionList: (params: RequestParams = {}) =>
+      this.request<
+        ResponseResponse & {
+          data?: ModelsSubscription;
+        },
+        ResponseResponse
+      >({
+        path: `/api/v1/user/subscription`,
+        method: "GET",
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description Create a new subscription for the authenticated user
+     *
+     * @tags subscription
+     * @name V1UserSubscriptionCreate
+     * @summary Create a new subscription
+     * @request POST:/api/v1/user/subscription
+     * @secure
+     */
+    v1UserSubscriptionCreate: (
+      request: HandlersCreateSubscriptionRequest,
+      params: RequestParams = {},
+    ) =>
+      this.request<
+        ResponseResponse & {
+          data?: ModelsSubscription;
+        },
+        ResponseResponse
+      >({
+        path: `/api/v1/user/subscription`,
+        method: "POST",
+        body: request,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description Cancel the current subscription for the authenticated user
+     *
+     * @tags subscription
+     * @name V1UserSubscriptionDelete
+     * @summary Cancel user's subscription
+     * @request DELETE:/api/v1/user/subscription
+     * @secure
+     */
+    v1UserSubscriptionDelete: (params: RequestParams = {}) =>
+      this.request<ResponseResponse, ResponseResponse>({
+        path: `/api/v1/user/subscription`,
+        method: "DELETE",
         secure: true,
         type: ContentType.Json,
         format: "json",

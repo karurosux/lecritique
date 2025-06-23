@@ -17,13 +17,41 @@ export interface AuthState {
   error: string | null;
 }
 
-const initialState: AuthState = {
-  user: null,
-  token: null,
-  isAuthenticated: false,
-  isLoading: false,
-  error: null
+// Check for stored auth data to set initial state properly
+const getInitialState = (): AuthState => {
+  const baseState = {
+    user: null,
+    token: null,
+    isAuthenticated: false,
+    isLoading: false,
+    error: null
+  };
+
+  if (browser) {
+    const storedToken = localStorage.getItem('auth_token');
+    const storedUser = localStorage.getItem('auth_user');
+    
+    if (storedToken && storedUser) {
+      try {
+        const user = JSON.parse(storedUser);
+        return {
+          ...baseState,
+          user,
+          token: storedToken,
+          isAuthenticated: true
+        };
+      } catch (error) {
+        // Clear invalid stored data
+        localStorage.removeItem('auth_token');
+        localStorage.removeItem('auth_user');
+      }
+    }
+  }
+
+  return baseState;
 };
+
+const initialState = getInitialState();
 
 function createAuthStore() {
   const { subscribe, set, update } = writable<AuthState>(initialState);
@@ -42,28 +70,9 @@ function createAuthStore() {
     }
   });
 
-  // Load auth state from localStorage on initialization
-  if (browser) {
-    const storedToken = localStorage.getItem('auth_token');
-    const storedUser = localStorage.getItem('auth_user');
-    
-    if (storedToken && storedUser) {
-      try {
-        const user = JSON.parse(storedUser);
-        api.setSecurityData(storedToken);
-        set({
-          user,
-          token: storedToken,
-          isAuthenticated: true,
-          isLoading: false,
-          error: null
-        });
-      } catch (error) {
-        // Clear invalid stored data
-        localStorage.removeItem('auth_token');
-        localStorage.removeItem('auth_user');
-      }
-    }
+  // Set initial API security data if we have a token
+  if (initialState.token) {
+    api.setSecurityData(initialState.token);
   }
 
   return {

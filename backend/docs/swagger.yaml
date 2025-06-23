@@ -41,6 +41,13 @@ definitions:
     required:
     - name
     type: object
+  handlers.CreateSubscriptionRequest:
+    properties:
+      plan_id:
+        type: string
+    required:
+    - plan_id
+    type: object
   handlers.GenerateQRCodeRequest:
     properties:
       label:
@@ -121,6 +128,36 @@ definitions:
     - new_password
     - token
     type: object
+  models.Account:
+    properties:
+      company_name:
+        type: string
+      created_at:
+        type: string
+      email:
+        type: string
+      email_verified:
+        type: boolean
+      email_verified_at:
+        type: string
+      id:
+        type: string
+      is_active:
+        type: boolean
+      phone:
+        type: string
+      subscription_id:
+        type: string
+      team_members:
+        description: |-
+          Subscription     *Subscription `json:"subscription,omitempty"` // TODO: Add when subscription domain is ready
+          Restaurants      []Restaurant  `json:"restaurants,omitempty"`  // TODO: Add when restaurant domain is ready
+        items:
+          $ref: '#/definitions/models.TeamMember'
+        type: array
+      updated_at:
+        type: string
+    type: object
   models.Feedback:
     type: object
   models.Location:
@@ -153,6 +190,39 @@ definitions:
         type: string
       updated_at:
         type: string
+    type: object
+  models.MemberRole:
+    enum:
+    - OWNER
+    - ADMIN
+    - MANAGER
+    - VIEWER
+    type: string
+    x-enum-varnames:
+    - RoleOwner
+    - RoleAdmin
+    - RoleManager
+    - RoleViewer
+  models.PlanFeatures:
+    properties:
+      advanced_analytics:
+        type: boolean
+      api_access:
+        type: boolean
+      custom_branding:
+        type: boolean
+      max_feedbacks_per_month:
+        type: integer
+      max_locations_per_restaurant:
+        type: integer
+      max_qr_codes_per_location:
+        type: integer
+      max_restaurants:
+        type: integer
+      max_team_members:
+        type: integer
+      priority_support:
+        type: boolean
     type: object
   models.QRCode:
     properties:
@@ -244,6 +314,116 @@ definitions:
       timezone:
         type: string
     type: object
+  models.Subscription:
+    properties:
+      account:
+        $ref: '#/definitions/models.Account'
+      account_id:
+        type: string
+      cancel_at:
+        type: string
+      cancelled_at:
+        type: string
+      created_at:
+        type: string
+      current_period_end:
+        type: string
+      current_period_start:
+        type: string
+      id:
+        type: string
+      plan:
+        $ref: '#/definitions/models.SubscriptionPlan'
+      plan_id:
+        type: string
+      status:
+        $ref: '#/definitions/models.SubscriptionStatus'
+      updated_at:
+        type: string
+    type: object
+  models.SubscriptionPlan:
+    properties:
+      code:
+        type: string
+      created_at:
+        type: string
+      currency:
+        type: string
+      description:
+        type: string
+      features:
+        $ref: '#/definitions/models.PlanFeatures'
+      id:
+        type: string
+      interval:
+        type: string
+      is_active:
+        type: boolean
+      name:
+        type: string
+      price:
+        type: number
+      updated_at:
+        type: string
+    type: object
+  models.SubscriptionStatus:
+    enum:
+    - active
+    - pending
+    - canceled
+    - expired
+    type: string
+    x-enum-varnames:
+    - SubscriptionActive
+    - SubscriptionPending
+    - SubscriptionCanceled
+    - SubscriptionExpired
+  models.TeamMember:
+    properties:
+      accepted_at:
+        type: string
+      account:
+        $ref: '#/definitions/models.Account'
+      account_id:
+        type: string
+      created_at:
+        type: string
+      id:
+        type: string
+      invited_at:
+        type: string
+      invited_by:
+        type: string
+      role:
+        $ref: '#/definitions/models.MemberRole'
+      updated_at:
+        type: string
+      user:
+        $ref: '#/definitions/models.User'
+      user_id:
+        type: string
+    type: object
+  models.User:
+    properties:
+      created_at:
+        type: string
+      email:
+        type: string
+      first_name:
+        type: string
+      id:
+        type: string
+      is_active:
+        type: boolean
+      last_name:
+        type: string
+      team_members:
+        items:
+          $ref: '#/definitions/models.TeamMember'
+        type: array
+      updated_at:
+        type: string
+    type: object
   response.ErrorData:
     properties:
       code:
@@ -283,6 +463,19 @@ definitions:
         $ref: '#/definitions/response.Meta'
       success:
         type: boolean
+    type: object
+  services.PermissionResponse:
+    properties:
+      can_create:
+        type: boolean
+      current_count:
+        type: integer
+      max_allowed:
+        type: integer
+      reason:
+        type: string
+      subscription_status:
+        type: string
     type: object
 host: localhost:8080
 info:
@@ -811,6 +1004,33 @@ paths:
       summary: Update a dish
       tags:
       - dishes
+  /api/v1/plans:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve all available subscription plans with their features and
+        pricing
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/models.SubscriptionPlan'
+                  type: array
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: Get available subscription plans
+      tags:
+      - subscription
   /api/v1/public/feedback:
     post:
       consumes:
@@ -1360,6 +1580,140 @@ paths:
       summary: Generate QR code
       tags:
       - qr-codes
+  /api/v1/user/can-create-restaurant:
+    get:
+      consumes:
+      - application/json
+      description: Check if the authenticated user can create more restaurants based
+        on their subscription plan
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/services.PermissionResponse'
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: Check if user can create more restaurants
+      tags:
+      - subscription
+  /api/v1/user/subscription:
+    delete:
+      consumes:
+      - application/json
+      description: Cancel the current subscription for the authenticated user
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: Cancel user's subscription
+      tags:
+      - subscription
+    get:
+      consumes:
+      - application/json
+      description: Retrieve the current subscription details for the authenticated
+        user
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/models.Subscription'
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: Get user's current subscription
+      tags:
+      - subscription
+    post:
+      consumes:
+      - application/json
+      description: Create a new subscription for the authenticated user
+      parameters:
+      - description: Subscription details
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.CreateSubscriptionRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/models.Subscription'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: Create a new subscription
+      tags:
+      - subscription
 securityDefinitions:
   BearerAuth:
     description: Type "Bearer" followed by a space and JWT token.

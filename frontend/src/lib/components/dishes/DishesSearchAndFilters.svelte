@@ -104,56 +104,53 @@
     </div>
   </div>
 
-  <!-- Clear Filters Button -->
+  <!-- Active Filters Display -->
   {#if hasActiveFilters}
-    <div class="flex justify-end mt-4 pt-4 border-t border-gray-100">
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mt-4 pt-4 border-t border-gray-100">
+      <div class="flex items-center flex-wrap gap-2">
+        <span class="text-sm text-gray-600">Active filters:</span>
+        {#if searchQuery}
+          <FilterChip
+            label='Search: "{searchQuery}"'
+            value="search"
+            variant="blue"
+            onremove={removeSearchFilter}
+          />
+        {/if}
+        {#if categoryFilter !== 'all'}
+          <FilterChip
+            label='Category: {categoryFilter}'
+            value="category"
+            variant="purple"
+            onremove={removeCategoryFilter}
+          />
+        {/if}
+        {#if availabilityFilter !== 'all'}
+          <FilterChip
+            label='Status: {availabilityFilter === "available" ? "Available" : "Hidden"}'
+            value="availability"
+            variant="green"
+            onremove={removeAvailabilityFilter}
+          />
+        {/if}
+        {#if sortBy !== 'name'}
+          <FilterChip
+            label='Sort: {sortBy === "price" ? "Price" : sortBy === "category" ? "Category" : "Date Added"}'
+            value="sort"
+            variant="orange"
+            onremove={removeSortFilter}
+          />
+        {/if}
+      </div>
+      
       <Button 
         variant="ghost" 
         size="sm" 
         onclick={clearAllFilters}
-        class="text-gray-500 hover:text-gray-700"
+        class="text-gray-500 hover:text-gray-700 flex-shrink-0"
       >
         Clear all filters
       </Button>
-    </div>
-  {/if}
-
-  <!-- Active Filters Display -->
-  {#if hasActiveFilters}
-    <div class="flex items-center space-x-2 mt-4">
-      <span class="text-sm text-gray-600">Active filters:</span>
-      {#if searchQuery}
-        <FilterChip
-          label='Search: "{searchQuery}"'
-          value="search"
-          variant="blue"
-          onremove={removeSearchFilter}
-        />
-      {/if}
-      {#if categoryFilter !== 'all'}
-        <FilterChip
-          label='Category: {categoryFilter}'
-          value="category"
-          variant="purple"
-          onremove={removeCategoryFilter}
-        />
-      {/if}
-      {#if availabilityFilter !== 'all'}
-        <FilterChip
-          label='Status: {availabilityFilter === "available" ? "Available" : "Hidden"}'
-          value="availability"
-          variant="green"
-          onremove={removeAvailabilityFilter}
-        />
-      {/if}
-      {#if sortBy !== 'name'}
-        <FilterChip
-          label='Sort: {sortBy === "price" ? "Price" : sortBy === "category" ? "Category" : "Date Added"}'
-          value="sort"
-          variant="orange"
-          onremove={removeSortFilter}
-        />
-      {/if}
     </div>
   {/if}
 </Card>

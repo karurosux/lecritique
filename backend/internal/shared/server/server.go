@@ -20,6 +20,7 @@ import (
 	restaurantHandlers "github.com/lecritique/api/internal/restaurant/handlers"
 	qrcodeHandlers "github.com/lecritique/api/internal/qrcode/handlers"
 	analyticsHandlers "github.com/lecritique/api/internal/analytics/handlers"
+	subscriptionHandlers "github.com/lecritique/api/internal/subscription/handlers"
 	
 	"github.com/sirupsen/logrus"
 	"gorm.io/gorm"
@@ -98,6 +99,7 @@ func (s *Server) setupRoutes() {
 	menuHandlers.RegisterRoutes(protected, s.db, authService)
 	qrcodeHandlers.RegisterRoutes(protected, s.db, authService)
 	analyticsHandlers.RegisterRoutes(protected, s.db, authService)
+	subscriptionHandlers.RegisterRoutes(v1, s.db, authService)
 }
 
 // HealthCheck godoc

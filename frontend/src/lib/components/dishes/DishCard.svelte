@@ -48,9 +48,10 @@
   variant="default" 
   hover 
   interactive 
-  class="group transform transition-all duration-300"
+  class="group transform transition-all duration-300 h-full"
 >
-  <div class="flex items-start justify-between mb-4">
+  <div class="flex flex-col h-full">
+    <div class="flex items-start justify-between mb-4">
     <div class="flex items-center space-x-3">
       <div class="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl flex items-center justify-center text-white font-bold text-lg shadow-lg shadow-green-500/25 group-hover:scale-110 transition-transform duration-200">
         {formatPrice(dish.price).replace('$', '')}
@@ -112,7 +113,7 @@
     </p>
   {/if}
 
-  <div class="grid grid-cols-1 gap-3 text-sm text-gray-600">
+  <div class="grid grid-cols-1 gap-3 text-sm text-gray-600 min-h-[3rem]">
     {#if dish.preparation_time}
       <div class="flex items-center space-x-2">
         <svg class="h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -136,15 +137,14 @@
     {/if}
   </div>
 
+  <!-- Spacer to push footer to bottom -->
+  <div class="flex-grow"></div>
+
   <div class="flex items-center justify-between mt-4 pt-4 border-t border-gray-100">
     <span class="text-xs text-gray-500">
       Created {new Date(dish.created_at).toLocaleDateString()}
     </span>
-    <div class="opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-      <Button size="sm" variant="outline" onclick={(e) => { e.stopPropagation(); handleEdit(); }}>
-        Edit Dish
-      </Button>
-    </div>
+  </div>
   </div>
 </Card>
 

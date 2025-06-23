@@ -30,6 +30,9 @@
   let sortBy = $state("name"); // 'name', 'created_at', 'status'
   let viewMode = $state<"grid" | "list">("grid");
   let showCreateModal = $state(false);
+  let canCreateRestaurant = $state(false);
+  let checkingPermissions = $state(true);
+  let permissionReason = $state("");
 
   let filteredRestaurants = $derived(
     restaurants
@@ -75,6 +78,13 @@
     }
   });
 
+  // Update permissions when restaurants change
+  $effect(() => {
+    if (authState.isAuthenticated && restaurants.length >= 0) {
+      checkCreatePermission();
+    }
+  });
+
   async function loadRestaurants() {
     loading = true;
     error = "";
@@ -106,6 +116,34 @@
       error = handleApiError(err);
     } finally {
       loading = false;
+    }
+  }
+
+  async function checkCreatePermission() {
+    try {
+      checkingPermissions = true;
+      const api = getApiClient();
+      
+      const response = await api.api.v1UserCanCreateRestaurantList();
+      
+      if (response.data.success) {
+        const data = response.data.data;
+        canCreateRestaurant = data.can_create || false;
+        
+        if (!canCreateRestaurant) {
+          permissionReason = data.reason || "Cannot create more restaurants";
+        }
+      } else {
+        canCreateRestaurant = false;
+        permissionReason = "Unable to verify permissions";
+      }
+      
+    } catch (err) {
+      console.error("Error checking create permission:", err);
+      canCreateRestaurant = false;
+      permissionReason = "Unable to verify permissions";
+    } finally {
+      checkingPermissions = false;
     }
   }
 
@@ -210,6 +248,9 @@
   <RestaurantHeader
     {restaurants}
     {loading}
+    {canCreateRestaurant}
+    {checkingPermissions}
+    {permissionReason}
     bind:viewMode
     onaddrestaurant={handleAddRestaurant}
   />
