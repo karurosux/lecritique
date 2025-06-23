@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import { Card, Button, UserMenu } from '$lib/components/ui';
+  import { Card, Button, UserMenu, Logo } from '$lib/components/ui';
   import { getApiClient, handleApiError } from '$lib/api/client';
   import { auth } from '$lib/stores/auth';
   import { goto } from '$app/navigation';
@@ -175,11 +175,8 @@
     <div class="absolute inset-0 bg-gradient-to-r from-blue-500/5 to-purple-500/5"></div>
     <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="flex justify-between items-center py-8">
-        <div class="space-y-2">
-          <h1 class="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
-            Dashboard
-          </h1>
-          <p class="text-gray-600 font-medium">Welcome back! Here's an overview of your restaurant's feedback.</p>
+        <div class="flex items-center">
+          <Logo size="lg" />
         </div>
         <div class="flex items-center space-x-4">
           <div class="flex space-x-3">
