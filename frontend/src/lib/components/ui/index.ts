@@ -3,3 +3,4 @@ export { default as Input } from './Input.svelte';
 export { default as Card } from './Card.svelte';
 export { default as Modal } from './Modal.svelte';
 export { default as Rating } from './Rating.svelte';
+export { default as UserMenu } from './UserMenu.svelte';
