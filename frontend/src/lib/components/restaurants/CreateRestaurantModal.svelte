@@ -45,7 +45,8 @@
     }
   }
 
-  async function handleSubmit() {
+  async function handleSubmit(event: Event) {
+    event.preventDefault();
     if (!formData.name.trim() || !formData.address.trim()) {
       error = 'Restaurant name and address are required.';
       return;
@@ -117,7 +118,7 @@
       </Card>
     {/if}
 
-    <form on:submit|preventDefault={handleSubmit} on:keydown={handleKeyDown}>
+    <form onsubmit={handleSubmit} onkeydown={handleKeyDown}>
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         <!-- Restaurant Name -->
         <div class="md:col-span-2">
@@ -239,7 +240,7 @@
         <Button
           type="button"
           variant="outline"
-          on:click={handleClose}
+          onclick={handleClose}
           disabled={loading}
         >
           Cancel
