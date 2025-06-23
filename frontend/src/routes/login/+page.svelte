@@ -1,7 +1,7 @@
 <script lang="ts">
   import { goto } from '$app/navigation';
   import { auth } from '$lib/stores/auth';
-  import { Button, Input, Card } from '$lib/components/ui';
+  import { Button, Input, Card, Logo } from '$lib/components/ui';
   import { onMount } from 'svelte';
 
   let email = $state('');
@@ -44,23 +44,33 @@
   <meta name="description" content="Login to your LeCritique restaurant management account" />
 </svelte:head>
 
-<div class="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
-  <div class="sm:mx-auto sm:w-full sm:max-w-md">
-    <div class="flex justify-center">
-      <h1 class="text-3xl font-bold text-gray-900">LeCritique</h1>
+<div class="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+  <!-- Background Pattern -->
+  <div class="absolute inset-0 bg-grid-gray-100/50 bg-[size:20px_20px] opacity-30"></div>
+  <div class="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-blue-500/5 via-transparent to-purple-500/5"></div>
+  
+  <div class="relative z-10 sm:mx-auto sm:w-full sm:max-w-md">
+    <div class="flex justify-center mb-8">
+      <Logo size="xl" />
     </div>
-    <h2 class="mt-6 text-center text-3xl font-semibold text-gray-900">
-      Sign in to your account
-    </h2>
-    <p class="mt-2 text-center text-sm text-gray-600">
-      Or
-      <a href="/register" class="font-medium text-blue-600 hover:text-blue-500">
-        create a new account
-      </a>
-    </p>
+    
+    <div class="text-center space-y-3">
+      <h2 class="text-4xl font-bold bg-gradient-to-r from-gray-900 via-blue-800 to-purple-800 bg-clip-text text-transparent">
+        Welcome Back
+      </h2>
+      <p class="text-gray-600 text-lg">
+        Sign in to your restaurant dashboard
+      </p>
+      <p class="text-sm text-gray-500">
+        Don't have an account?
+        <a href="/register" class="font-semibold text-blue-600 hover:text-blue-700 transition-colors duration-200 ml-1">
+          Create one here
+        </a>
+      </p>
+    </div>
   </div>
 
-  <div class="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
+  <div class="relative z-10 mt-10 sm:mx-auto sm:w-full sm:max-w-md">
     <Card>
       <form on:submit|preventDefault={handleSubmit} class="space-y-6">
         <Input
@@ -110,10 +120,10 @@
 
         <Button
           type="submit"
-          variant="primary"
+          variant="gradient"
           size="lg"
           disabled={isSubmitting || !email || !password}
-          class="w-full"
+          class="w-full shadow-lg hover:shadow-xl transition-all duration-300"
         >
           {#if isSubmitting}
             <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
@@ -122,7 +132,10 @@
             </svg>
             Signing in...
           {:else}
-            Sign in
+            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"></path>
+            </svg>
+            Sign in to Dashboard
           {/if}
         </Button>
       </form>

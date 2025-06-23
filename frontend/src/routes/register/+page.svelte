@@ -1,7 +1,7 @@
 <script lang="ts">
   import { goto } from '$app/navigation';
   import { auth } from '$lib/stores/auth';
-  import { Button, Input, Card } from '$lib/components/ui';
+  import { Button, Input, Card, Logo } from '$lib/components/ui';
   import { onMount } from 'svelte';
 
   let email = $state('');
@@ -82,23 +82,33 @@
   <meta name="description" content="Create your LeCritique restaurant management account" />
 </svelte:head>
 
-<div class="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
-  <div class="sm:mx-auto sm:w-full sm:max-w-md">
-    <div class="flex justify-center">
-      <h1 class="text-3xl font-bold text-gray-900">LeCritique</h1>
+<div class="min-h-full bg-gradient-to-br from-blue-50 via-white to-purple-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+  <!-- Background Pattern -->
+  <div class="fixed inset-0 bg-grid-gray-100/50 bg-[size:20px_20px] opacity-30 -z-10"></div>
+  <div class="fixed top-0 left-0 w-full h-full bg-gradient-to-br from-blue-500/5 via-transparent to-purple-500/5 -z-10"></div>
+  
+  <div class="relative z-10 sm:mx-auto sm:w-full sm:max-w-md">
+    <div class="flex justify-center mb-8">
+      <Logo size="xl" />
     </div>
-    <h2 class="mt-6 text-center text-3xl font-semibold text-gray-900">
-      Create your account
-    </h2>
-    <p class="mt-2 text-center text-sm text-gray-600">
-      Or
-      <a href="/login" class="font-medium text-blue-600 hover:text-blue-500">
-        sign in to your existing account
-      </a>
-    </p>
+    
+    <div class="text-center space-y-3">
+      <h2 class="text-4xl font-bold bg-gradient-to-r from-gray-900 via-blue-800 to-purple-800 bg-clip-text text-transparent">
+        Join LeCritique
+      </h2>
+      <p class="text-gray-600 text-lg">
+        Create your restaurant management account
+      </p>
+      <p class="text-sm text-gray-500">
+        Already have an account?
+        <a href="/login" class="font-semibold text-blue-600 hover:text-blue-700 transition-colors duration-200 ml-1">
+          Sign in here
+        </a>
+      </p>
+    </div>
   </div>
 
-  <div class="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
+  <div class="relative z-10 mt-10 sm:mx-auto sm:w-full sm:max-w-md">
     <Card>
       <form on:submit|preventDefault={handleSubmit} class="space-y-6">
         <Input
@@ -175,10 +185,10 @@
 
         <Button
           type="submit"
-          variant="primary"
+          variant="gradient"
           size="lg"
           disabled={isSubmitting || !email || !password || !confirmPassword || !companyName}
-          class="w-full"
+          class="w-full shadow-lg hover:shadow-xl transition-all duration-300"
         >
           {#if isSubmitting}
             <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
@@ -187,7 +197,10 @@
             </svg>
             Creating account...
           {:else}
-            Create Account
+            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"></path>
+            </svg>
+            Create Your Account
           {/if}
         </Button>
       </form>
