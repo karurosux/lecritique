@@ -63,4 +63,6 @@
   </div>
 {/if}
 
-<slot />
+<div class="min-h-screen bg-gradient-to-br from-gray-100 via-gray-200/50 to-gray-300/70">
+  <slot />
+</div>

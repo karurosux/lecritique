@@ -3,6 +3,8 @@
   export let padding = true;
   export let hover = false;
   export let interactive = false;
+  let className = '';
+  export { className as class };
   
   $: baseClasses = 'relative overflow-hidden transition-all duration-300 ease-out';
   
@@ -21,7 +23,7 @@
   $: interactiveClasses = interactive ? 'cursor-pointer group' : '';
 </script>
 
-<div class="{baseClasses} {variantClasses} {paddingClasses} {hoverClasses} {interactiveClasses}">
+<div class="{baseClasses} {variantClasses} {paddingClasses} {hoverClasses} {interactiveClasses} {className}">
   {#if variant === 'gradient'}
     <div class="absolute inset-0 bg-gradient-to-br from-blue-500/5 via-purple-500/5 to-pink-500/5 rounded-2xl"></div>
   {/if}
