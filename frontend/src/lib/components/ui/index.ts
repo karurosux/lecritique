@@ -5,3 +5,6 @@ export { default as Modal } from './Modal.svelte';
 export { default as Rating } from './Rating.svelte';
 export { default as UserMenu } from './UserMenu.svelte';
 export { default as Logo } from './Logo.svelte';
+export { default as SearchInput } from './SearchInput.svelte';
+export { default as Select } from './Select.svelte';
+export { default as FilterChip } from './FilterChip.svelte';

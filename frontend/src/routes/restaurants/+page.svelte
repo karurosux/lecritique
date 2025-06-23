@@ -1,9 +1,11 @@
 <script lang="ts">
   import { onMount } from "svelte";
-  import { Card, Button } from "$lib/components/ui";
   import { getApiClient, handleApiError } from "$lib/api/client";
   import { auth } from "$lib/stores/auth";
   import { goto } from "$app/navigation";
+  import RestaurantHeader from "$lib/components/restaurants/RestaurantHeader.svelte";
+  import SearchAndFilters from "$lib/components/restaurants/SearchAndFilters.svelte";
+  import RestaurantList from "$lib/components/restaurants/RestaurantList.svelte";
 
   interface Restaurant {
     id: string;
@@ -97,14 +99,41 @@
     }
   }
 
-  function formatDate(dateString: string): string {
-    return new Date(dateString).toLocaleDateString();
+  function handleFiltersChanged(event: CustomEvent) {
+    const { searchQuery: newSearchQuery, statusFilter: newStatusFilter, sortBy: newSortBy } = event.detail;
+    searchQuery = newSearchQuery;
+    statusFilter = newStatusFilter;
+    sortBy = newSortBy;
   }
 
-  function getStatusColor(status: string): string {
-    return status === "active"
-      ? "bg-green-100 text-green-800"
-      : "bg-gray-100 text-gray-800";
+  function handleRestaurantClick(event: CustomEvent) {
+    const restaurant = event.detail;
+    goto(`/restaurants/${restaurant.id}`);
+  }
+
+  function handleRestaurantEdit(event: CustomEvent) {
+    const restaurant = event.detail;
+    goto(`/restaurants/${restaurant.id}/edit`);
+  }
+
+  function handleRestaurantToggleStatus(event: CustomEvent) {
+    const restaurant = event.detail;
+    toggleRestaurantStatus(restaurant);
+  }
+
+  function handleRestaurantDelete(event: CustomEvent) {
+    const restaurant = event.detail;
+    deleteRestaurant(restaurant);
+  }
+
+  function handleAddRestaurant() {
+    goto('/restaurants/new');
+  }
+
+  function handleClearFilters() {
+    searchQuery = '';
+    statusFilter = 'all';
+    sortBy = 'name';
   }
 
   async function toggleRestaurantStatus(restaurant: Restaurant) {
@@ -154,281 +183,27 @@
 <svelte:head>
   <title>Restaurants - LeCritique</title>
   <meta name="description" content="Manage your restaurants" />
-  <style>
-    @keyframes fade-in-up {
-      from {
-        opacity: 0;
-        transform: translateY(20px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-
-    .animate-fade-in-up {
-      animation: fade-in-up 0.6s ease-out forwards;
-      opacity: 0;
-    }
-
-    .stagger-animation {
-      animation-fill-mode: both;
-    }
-  </style>
 </svelte:head>
 
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-  <!-- Enhanced Page Header -->
-  <div class="mb-8">
-    <div
-      class="flex flex-col lg:flex-row lg:justify-between lg:items-center gap-6"
-    >
-      <div class="space-y-3">
-        <div class="flex items-center space-x-3">
-          <div
-            class="h-12 w-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg shadow-blue-500/25"
-          >
-            <svg
-              class="h-6 w-6 text-white"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-4m-5 0H9m11 0a2 2 0 01-2 2H7a2 2 0 01-2-2m2-4h2.01M7 16h6M7 8h6v4H7V8z"
-              />
-            </svg>
-          </div>
-          <div>
-            <h1
-              class="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent"
-            >
-              Your Restaurants
-            </h1>
-            <div class="flex items-center space-x-4 mt-1">
-              <p class="text-gray-600 font-medium">
-                Manage your restaurant locations and menus
-              </p>
-              {#if !loading}
-                <div class="flex items-center space-x-3 text-sm">
-                  <div class="flex items-center space-x-1">
-                    <div class="w-2 h-2 bg-green-400 rounded-full"></div>
-                    <span class="text-gray-600"
-                      >{restaurants.filter((r) => r.status === "active").length}
-                      Active</span
-                    >
-                  </div>
-                  <div class="flex items-center space-x-1">
-                    <div class="w-2 h-2 bg-gray-400 rounded-full"></div>
-                    <span class="text-gray-600"
-                      >{restaurants.filter((r) => r.status === "inactive")
-                        .length} Inactive</span
-                    >
-                  </div>
-                </div>
-              {/if}
-            </div>
-          </div>
-        </div>
-      </div>
+  <!-- Restaurant Header -->
+  <RestaurantHeader
+    {restaurants}
+    {loading}
+    bind:viewMode
+  />
 
-      <div class="flex items-center space-x-3">
-        <!-- View Mode Toggle -->
-        <div
-          class="flex items-center bg-white rounded-xl border border-gray-200 p-1 shadow-sm"
-        >
-          <button
-            class="p-2 rounded-lg transition-all duration-200 {viewMode ===
-            'grid'
-              ? 'bg-blue-100 text-blue-600'
-              : 'text-gray-500 hover:text-gray-700'}"
-            on:click={() => (viewMode = "grid")}
-          >
-            <svg
-              class="h-4 w-4"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"
-              />
-            </svg>
-          </button>
-          <button
-            class="p-2 rounded-lg transition-all duration-200 {viewMode ===
-            'list'
-              ? 'bg-blue-100 text-blue-600'
-              : 'text-gray-500 hover:text-gray-700'}"
-            on:click={() => (viewMode = "list")}
-          >
-            <svg
-              class="h-4 w-4"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M4 6h16M4 10h16M4 14h16M4 18h16"
-              />
-            </svg>
-          </button>
-        </div>
+  <!-- Search and Filters -->
+  <SearchAndFilters
+    bind:searchQuery
+    bind:statusFilter
+    bind:sortBy
+    totalRestaurants={restaurants.length}
+    filteredCount={filteredRestaurants.length}
+    on:filtersChanged={handleFiltersChanged}
+  />
 
-        <Button
-          variant="gradient"
-          size="lg"
-          class="group relative overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300"
-          on:click={() => goto("/restaurants/new")}
-        >
-          <div
-            class="absolute inset-0 bg-gradient-to-r from-blue-600 to-purple-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-          ></div>
-          <svg
-            class="h-5 w-5 mr-2 relative z-10 group-hover:scale-110 transition-transform duration-200"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M12 4v16m8-8H4"
-            />
-          </svg>
-          <span class="relative z-10">Add Restaurant</span>
-        </Button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Search and Filter Bar -->
-  <Card variant="glass" class="mb-4">
-    <div class="flex flex-col lg:flex-row gap-4">
-      <!-- Search Input -->
-      <div class="flex-1 relative">
-        <div
-          class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"
-        >
-          <svg
-            class="h-5 w-5 text-gray-400"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-            />
-          </svg>
-        </div>
-        <input
-          type="text"
-          bind:value={searchQuery}
-          placeholder="Search restaurants by name, description, or email..."
-          class="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl bg-white/50 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
-        />
-      </div>
-
-      <!-- Filters -->
-      <div class="flex items-center space-x-3">
-        <!-- Status Filter -->
-        <select
-          bind:value={statusFilter}
-          class="px-4 py-3 border border-gray-200 rounded-xl bg-white/50 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer min-w-32"
-        >
-          <option value="all">All Status</option>
-          <option value="active">Active Only</option>
-          <option value="inactive">Inactive Only</option>
-        </select>
-
-        <!-- Sort Options -->
-        <select
-          bind:value={sortBy}
-          class="px-4 py-3 border border-gray-200 rounded-xl bg-white/50 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer min-w-32"
-        >
-          <option value="name">Sort by Name</option>
-          <option value="created_at">Sort by Date</option>
-          <option value="status">Sort by Status</option>
-        </select>
-      </div>
-    </div>
-
-    <!-- Active Filters Display -->
-    {#if searchQuery || statusFilter !== "all" || sortBy !== "name"}
-      <div
-        class="flex items-center justify-between mt-4 pt-4 border-t border-gray-100"
-      >
-        <div class="flex items-center space-x-2">
-          <span class="text-sm text-gray-600">Active filters:</span>
-          {#if searchQuery}
-            <span
-              class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800"
-            >
-              Search: "{searchQuery}"
-              <button
-                class="ml-1 hover:text-blue-600"
-                on:click={() => (searchQuery = "")}>×</button
-              >
-            </span>
-          {/if}
-          {#if statusFilter !== "all"}
-            <span
-              class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800"
-            >
-              Status: {statusFilter}
-              <button
-                class="ml-1 hover:text-green-600"
-                on:click={() => (statusFilter = "all")}>×</button
-              >
-            </span>
-          {/if}
-          {#if sortBy !== "name"}
-            <span
-              class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800"
-            >
-              Sort: {sortBy === "created_at" ? "Date" : "Status"}
-              <button
-                class="ml-1 hover:text-purple-600"
-                on:click={() => (sortBy = "name")}>×</button
-              >
-            </span>
-          {/if}
-        </div>
-        <div class="text-sm text-gray-500">
-          {filteredRestaurants.length} of {restaurants.length} restaurants
-        </div>
-      </div>
-    {/if}
-  </Card>
-
-  {#if loading}
-    <!-- Loading State -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      {#each Array(3) as _}
-        <Card>
-          <div class="animate-pulse">
-            <div class="h-6 bg-gray-200 rounded w-3/4 mb-3"></div>
-            <div class="h-4 bg-gray-200 rounded w-full mb-2"></div>
-            <div class="h-4 bg-gray-200 rounded w-2/3 mb-4"></div>
-            <div class="h-8 bg-gray-200 rounded w-1/3"></div>
-          </div>
-        </Card>
-      {/each}
-    </div>
-  {:else if error}
+  {#if error}
     <!-- Error State -->
     <Card>
       <div class="text-center py-12">
@@ -452,577 +227,19 @@
         <Button on:click={loadRestaurants}>Try Again</Button>
       </div>
     </Card>
-  {:else if restaurants.length === 0}
-    <!-- Empty State -->
-    <Card variant="glass">
-      <div class="text-center py-20">
-        <div class="relative mx-auto mb-8">
-          <div
-            class="h-24 w-24 bg-gradient-to-br from-blue-100 to-purple-100 rounded-3xl flex items-center justify-center mx-auto shadow-lg"
-          >
-            <svg
-              class="h-12 w-12 text-gray-400"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-4m-5 0H9m11 0a2 2 0 01-2 2H7a2 2 0 01-2-2m2-4h2.01M7 16h6M7 8h6v4H7V8z"
-              />
-            </svg>
-          </div>
-          <div
-            class="absolute -top-2 -right-2 h-8 w-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center"
-          >
-            <svg
-              class="h-4 w-4 text-white"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M12 4v16m8-8H4"
-              />
-            </svg>
-          </div>
-        </div>
-        <h3 class="text-2xl font-bold text-gray-900 mb-3">
-          No restaurants yet
-        </h3>
-        <p class="text-gray-600 mb-8 max-w-md mx-auto leading-relaxed">
-          Get started by adding your first restaurant location and begin
-          collecting valuable customer feedback
-        </p>
-        <Button
-          variant="gradient"
-          size="lg"
-          on:click={() => goto("/restaurants/new")}
-        >
-          <svg
-            class="h-5 w-5 mr-2"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M12 4v16m8-8H4"
-            />
-          </svg>
-          Add Your First Restaurant
-        </Button>
-      </div>
-    </Card>
-  {:else if filteredRestaurants.length === 0}
-    <!-- No Results State -->
-    <Card variant="glass">
-      <div class="text-center py-16">
-        <div
-          class="h-20 w-20 bg-gradient-to-br from-yellow-100 to-orange-100 rounded-2xl flex items-center justify-center mx-auto mb-6"
-        >
-          <svg
-            class="h-10 w-10 text-yellow-600"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-            />
-          </svg>
-        </div>
-        <h3 class="text-xl font-medium text-gray-900 mb-2">
-          No restaurants match your filters
-        </h3>
-        <p class="text-gray-600 mb-6">
-          Try adjusting your search terms or clearing some filters
-        </p>
-        <div class="flex items-center justify-center space-x-3">
-          <Button
-            variant="outline"
-            on:click={() => {
-              searchQuery = "";
-              statusFilter = "all";
-              sortBy = "name";
-            }}
-          >
-            Clear All Filters
-          </Button>
-          <Button variant="gradient" on:click={() => goto("/restaurants/new")}>
-            Add New Restaurant
-          </Button>
-        </div>
-      </div>
-    </Card>
   {:else}
-    <!-- Restaurant Grid/List -->
-    <div
-      class={viewMode === "grid"
-        ? "grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-12"
-        : "space-y-8"}
-    >
-      {#each filteredRestaurants as restaurant, index}
-        <Card
-          variant="elevated"
-          hover
-          interactive
-          class="group relative overflow-hidden animate-fade-in-up"
-          style="animation-delay: {index * 100}ms; {viewMode === 'list'
-            ? 'display: flex; align-items: center; padding: 1.5rem;'
-            : ''}"
-        >
-          <!-- Background Pattern -->
-          <div
-            class="absolute inset-0 bg-gradient-to-br from-blue-50/30 via-transparent to-purple-50/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-          ></div>
-
-          <!-- Status Badge (Grid Only) -->
-          {#if viewMode === "grid"}
-            <div class="absolute top-4 right-4 z-10">
-              <div class="flex items-center space-x-1">
-                <div
-                  class="w-2 h-2 rounded-full {restaurant.status === 'active'
-                    ? 'bg-green-400'
-                    : 'bg-gray-400'}"
-                ></div>
-                <span
-                  class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold {restaurant.status ===
-                  'active'
-                    ? 'bg-green-100 text-green-800'
-                    : 'bg-gray-100 text-gray-600'}"
-                >
-                  {restaurant.status === "active" ? "Active" : "Inactive"}
-                </span>
-              </div>
-            </div>
-          {/if}
-
-          <div
-            class="relative z-10 {viewMode === 'list'
-              ? 'flex items-center w-full'
-              : ''}"
-          >
-            {#if viewMode === "grid"}
-              <!-- Grid View Layout -->
-              <div class="mb-4">
-                <div class="flex items-start justify-between pr-20">
-                  <div class="flex items-center space-x-3">
-                    <!-- Restaurant Icon -->
-                    <div
-                      class="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-200"
-                    >
-                      <svg
-                        class="h-6 w-6 text-white"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                          stroke-width="2"
-                          d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-4m-5 0H9m11 0a2 2 0 01-2 2H7a2 2 0 01-2-2m2-4h2.01M7 16h6M7 8h6v4H7V8z"
-                        />
-                      </svg>
-                    </div>
-                    <div>
-                      <h3
-                        class="text-xl font-bold text-gray-900 group-hover:text-blue-600 transition-colors duration-200"
-                      >
-                        {restaurant.name}
-                      </h3>
-                      <div class="text-xs text-gray-500 mt-1">
-                        Created {formatDate(restaurant.created_at)}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {#if restaurant.description}
-                  <p
-                    class="text-sm text-gray-600 mt-3 line-clamp-2 leading-relaxed"
-                  >
-                    {restaurant.description}
-                  </p>
-                {/if}
-              </div>
-
-              <!-- Restaurant Details (Grid Only) -->
-              <div class="space-y-3 mb-6">
-                <!-- Address -->
-                <div class="flex items-start space-x-3 text-sm">
-                  <div
-                    class="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center flex-shrink-0 group-hover:bg-blue-100 transition-colors duration-200"
-                  >
-                    <svg
-                      class="h-4 w-4 text-gray-600 group-hover:text-blue-600"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="2"
-                        d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
-                      />
-                      <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="2"
-                        d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
-                      />
-                    </svg>
-                  </div>
-                  <div>
-                    <div class="font-medium text-gray-900">Location</div>
-                    <div class="text-gray-600">
-                      {restaurant.address || "No address provided"}
-                    </div>
-                  </div>
-                </div>
-
-                <!-- Phone -->
-                {#if restaurant.phone}
-                  <div class="flex items-start space-x-3 text-sm">
-                    <div
-                      class="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center flex-shrink-0 group-hover:bg-green-100 transition-colors duration-200"
-                    >
-                      <svg
-                        class="h-4 w-4 text-gray-600 group-hover:text-green-600"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                          stroke-width="2"
-                          d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"
-                        />
-                      </svg>
-                    </div>
-                    <div>
-                      <div class="font-medium text-gray-900">Phone</div>
-                      <div class="text-gray-600">{restaurant.phone}</div>
-                    </div>
-                  </div>
-                {/if}
-
-                <!-- Email -->
-                {#if restaurant.email}
-                  <div class="flex items-start space-x-3 text-sm">
-                    <div
-                      class="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center flex-shrink-0 group-hover:bg-purple-100 transition-colors duration-200"
-                    >
-                      <svg
-                        class="h-4 w-4 text-gray-600 group-hover:text-purple-600"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                          stroke-width="2"
-                          d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207"
-                        />
-                      </svg>
-                    </div>
-                    <div>
-                      <div class="font-medium text-gray-900">Email</div>
-                      <div class="text-gray-600">{restaurant.email}</div>
-                    </div>
-                  </div>
-                {/if}
-              </div>
-
-              <!-- Action Buttons (Grid Only) -->
-              <div class="border-t border-gray-100 pt-4 mt-4">
-                <div class="grid grid-cols-2 gap-2">
-                  <!-- Primary Actions Row -->
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    class="group relative overflow-hidden border-blue-200 hover:border-blue-300 hover:bg-blue-50 transition-all duration-200"
-                    on:click={() => goto(`/restaurants/${restaurant.id}/edit`)}
-                  >
-                    <div
-                      class="absolute inset-0 bg-gradient-to-r from-blue-500/0 to-purple-500/0 group-hover:from-blue-500/5 group-hover:to-purple-500/5 transition-all duration-300"
-                    ></div>
-                    <svg
-                      class="h-3 w-3 mr-1 text-blue-600 relative z-10"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="2"
-                        d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-                      />
-                    </svg>
-                    <span class="relative z-10 font-medium">Edit</span>
-                  </Button>
-
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    class="group relative overflow-hidden border-green-200 hover:border-green-300 hover:bg-green-50 transition-all duration-200"
-                    on:click={() =>
-                      goto(`/restaurants/${restaurant.id}/dishes`)}
-                  >
-                    <div
-                      class="absolute inset-0 bg-gradient-to-r from-green-500/0 to-emerald-500/0 group-hover:from-green-500/5 group-hover:to-emerald-500/5 transition-all duration-300"
-                    ></div>
-                    <svg
-                      class="h-3 w-3 mr-1 text-green-600 relative z-10"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="2"
-                        d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
-                      />
-                    </svg>
-                    <span class="relative z-10 font-medium">Dishes</span>
-                  </Button>
-
-                  <!-- Secondary Actions Row -->
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    class="group relative overflow-hidden {restaurant.status ===
-                    'active'
-                      ? 'border-orange-200 hover:border-orange-300 hover:bg-orange-50'
-                      : 'border-green-200 hover:border-green-300 hover:bg-green-50'} transition-all duration-200"
-                    on:click={() => toggleRestaurantStatus(restaurant)}
-                  >
-                    <div
-                      class="absolute inset-0 bg-gradient-to-r {restaurant.status ===
-                      'active'
-                        ? 'from-orange-500/0 to-red-500/0 group-hover:from-orange-500/5 group-hover:to-red-500/5'
-                        : 'from-green-500/0 to-emerald-500/0 group-hover:from-green-500/5 group-hover:to-emerald-500/5'} transition-all duration-300"
-                    ></div>
-                    <div
-                      class="w-2 h-2 rounded-full mr-2 relative z-10 {restaurant.status ===
-                      'active'
-                        ? 'bg-orange-500'
-                        : 'bg-green-500'}"
-                    ></div>
-                    <span
-                      class="relative z-10 font-medium {restaurant.status ===
-                      'active'
-                        ? 'text-orange-700'
-                        : 'text-green-700'}"
-                    >
-                      {restaurant.status === "active"
-                        ? "Deactivate"
-                        : "Activate"}
-                    </span>
-                  </Button>
-
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    class="group relative overflow-hidden border-red-200 hover:border-red-300 hover:bg-red-50 transition-all duration-200"
-                    on:click={() => deleteRestaurant(restaurant)}
-                  >
-                    <div
-                      class="absolute inset-0 bg-gradient-to-r from-red-500/0 to-pink-500/0 group-hover:from-red-500/5 group-hover:to-pink-500/5 transition-all duration-300"
-                    ></div>
-                    <svg
-                      class="h-3 w-3 mr-1 text-red-600 relative z-10"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="2"
-                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                      />
-                    </svg>
-                    <span class="relative z-10 font-medium">Delete</span>
-                  </Button>
-                </div>
-              </div>
-            {:else}
-              <!-- List View Layout -->
-              <div class="flex items-center justify-between w-full">
-                <div class="flex items-center space-x-4 flex-1">
-                  <!-- Restaurant Icon -->
-                  <div
-                    class="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-105 transition-transform duration-200 flex-shrink-0"
-                  >
-                    <svg
-                      class="h-8 w-8 text-white"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="2"
-                        d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-4m-5 0H9m11 0a2 2 0 01-2 2H7a2 2 0 01-2-2m2-4h2.01M7 16h6M7 8h6v4H7V8z"
-                      />
-                    </svg>
-                  </div>
-
-                  <div class="flex-1 min-w-0">
-                    <div class="flex items-center space-x-3 mb-1">
-                      <h3
-                        class="text-xl font-bold text-gray-900 group-hover:text-blue-600 transition-colors duration-200 truncate"
-                      >
-                        {restaurant.name}
-                      </h3>
-                      <div class="flex items-center space-x-1 flex-shrink-0">
-                        <div
-                          class="w-2 h-2 rounded-full {restaurant.status ===
-                          'active'
-                            ? 'bg-green-400'
-                            : 'bg-gray-400'}"
-                        ></div>
-                        <span
-                          class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium {restaurant.status ===
-                          'active'
-                            ? 'bg-green-100 text-green-800'
-                            : 'bg-gray-100 text-gray-600'}"
-                        >
-                          {restaurant.status === "active"
-                            ? "Active"
-                            : "Inactive"}
-                        </span>
-                      </div>
-                    </div>
-
-                    {#if restaurant.description}
-                      <p class="text-sm text-gray-600 truncate mb-1">
-                        {restaurant.description}
-                      </p>
-                    {/if}
-
-                    <div
-                      class="flex items-center space-x-4 text-xs text-gray-500"
-                    >
-                      <span>Created {formatDate(restaurant.created_at)}</span>
-                      {#if restaurant.phone}
-                        <span>• {restaurant.phone}</span>
-                      {/if}
-                      {#if restaurant.email}
-                        <span>• {restaurant.email}</span>
-                      {/if}
-                    </div>
-                  </div>
-
-                  <!-- List View Actions -->
-                  <div class="flex items-center space-x-2 flex-shrink-0">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      class="group relative overflow-hidden border-blue-200 hover:border-blue-300 hover:bg-blue-50"
-                      on:click={() =>
-                        goto(`/restaurants/${restaurant.id}/edit`)}
-                    >
-                      <svg
-                        class="h-3 w-3 text-blue-600"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                          stroke-width="2"
-                          d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-                        />
-                      </svg>
-                    </Button>
-
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      class="group relative overflow-hidden border-green-200 hover:border-green-300 hover:bg-green-50"
-                      on:click={() =>
-                        goto(`/restaurants/${restaurant.id}/dishes`)}
-                    >
-                      <svg
-                        class="h-3 w-3 text-green-600"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                          stroke-width="2"
-                          d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
-                        />
-                      </svg>
-                    </Button>
-
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      class="group relative overflow-hidden {restaurant.status ===
-                      'active'
-                        ? 'border-orange-200 hover:border-orange-300 hover:bg-orange-50'
-                        : 'border-green-200 hover:border-green-300 hover:bg-green-50'}"
-                      on:click={() => toggleRestaurantStatus(restaurant)}
-                    >
-                      <div
-                        class="w-2 h-2 rounded-full {restaurant.status ===
-                        'active'
-                          ? 'bg-orange-500'
-                          : 'bg-green-500'}"
-                      ></div>
-                    </Button>
-
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      class="group relative overflow-hidden border-red-200 hover:border-red-300 hover:bg-red-50"
-                      on:click={() => deleteRestaurant(restaurant)}
-                    >
-                      <svg
-                        class="h-3 w-3 text-red-600"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                          stroke-width="2"
-                          d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                        />
-                      </svg>
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            {/if}
-          </div>
-        </Card>
-      {/each}
-    </div>
+    <!-- Restaurant List -->
+    <RestaurantList
+      restaurants={filteredRestaurants}
+      {loading}
+      {viewMode}
+      on:restaurantClick={handleRestaurantClick}
+      on:restaurantEdit={handleRestaurantEdit}
+      on:restaurantToggleStatus={handleRestaurantToggleStatus}
+      on:restaurantDelete={handleRestaurantDelete}
+      on:addRestaurant={handleAddRestaurant}
+      on:clearFilters={handleClearFilters}
+    />
   {/if}
 </div>
 
