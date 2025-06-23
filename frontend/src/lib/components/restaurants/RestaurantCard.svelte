@@ -1,5 +1,6 @@
 <script lang="ts">
   import { Card, Button } from '$lib/components/ui';
+  import { goto } from '$app/navigation';
 
   interface Restaurant {
     id: string;
@@ -49,6 +50,11 @@
     ondelete(restaurant);
   }
 
+  function handleViewDetails() {
+    // Navigate to restaurant details/dishes page
+    goto(`/restaurants/${restaurant.id}/dishes`);
+  }
+
   function formatDate(dateString: string): string {
     return new Date(dateString).toLocaleDateString();
   }
@@ -70,7 +76,7 @@
     interactive 
     class="group transform transition-all duration-300 animate-fade-in-up"
     style="animation-delay: {index * 100}ms"
-    on:click={handleClick}
+    onclick={handleClick}
   >
     <div class="flex items-start justify-between mb-4">
       <div class="flex items-center space-x-3">
@@ -96,7 +102,7 @@
       <div class="flex items-center space-x-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
         <button
           class="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-200"
-          on:click|stopPropagation={handleEdit}
+          onclick={(e) => { e.stopPropagation(); handleEdit(); }}
           title="Edit restaurant"
         >
           <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -105,7 +111,7 @@
         </button>
         <button
           class="p-2 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-lg transition-all duration-200"
-          on:click|stopPropagation={handleToggleStatus}
+          onclick={(e) => { e.stopPropagation(); handleToggleStatus(); }}
           title="Toggle status"
         >
           <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -114,7 +120,7 @@
         </button>
         <button
           class="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all duration-200"
-          on:click|stopPropagation={handleDelete}
+          onclick={(e) => { e.stopPropagation(); handleDelete(); }}
           title="Delete restaurant"
         >
           <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -164,8 +170,8 @@
         Created {formatDate(restaurant.created_at)}
       </span>
       <div class="opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-        <Button size="sm" variant="outline">
-          View Details
+        <Button size="sm" variant="outline" onclick={(e) => { e.stopPropagation(); handleViewDetails(); }}>
+          View Dishes
         </Button>
       </div>
     </div>
@@ -179,7 +185,7 @@
     interactive 
     class="group transition-all duration-300 animate-fade-in-up"
     style="animation-delay: {index * 50}ms"
-    on:click={handleClick}
+    onclick={handleClick}
   >
     <div class="flex items-center justify-between">
       <div class="flex items-center space-x-4 flex-1 min-w-0">
@@ -247,7 +253,7 @@
       <div class="flex items-center space-x-2 ml-4 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
         <button
           class="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-200"
-          on:click|stopPropagation={handleEdit}
+          onclick={(e) => { e.stopPropagation(); handleEdit(); }}
           title="Edit restaurant"
         >
           <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -256,7 +262,7 @@
         </button>
         <button
           class="p-2 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-lg transition-all duration-200"
-          on:click|stopPropagation={handleToggleStatus}
+          onclick={(e) => { e.stopPropagation(); handleToggleStatus(); }}
           title="Toggle status"
         >
           <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -265,15 +271,15 @@
         </button>
         <button
           class="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all duration-200"
-          on:click|stopPropagation={handleDelete}
+          onclick={(e) => { e.stopPropagation(); handleDelete(); }}
           title="Delete restaurant"
         >
           <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
           </svg>
         </button>
-        <Button size="sm" variant="outline">
-          View
+        <Button size="sm" variant="outline" onclick={(e) => { e.stopPropagation(); handleViewDetails(); }}>
+          Dishes
         </Button>
       </div>
     </div>
