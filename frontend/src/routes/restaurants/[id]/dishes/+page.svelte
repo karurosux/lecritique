@@ -439,7 +439,7 @@
           <h3 class="text-lg font-medium text-gray-900">
             {editingDish ? 'Edit Dish' : 'Add New Dish'}
           </h3>
-          <button on:click={closeModal} class="text-gray-400 hover:text-gray-600">
+          <button on:click={closeModal} class="text-gray-400 hover:text-gray-600 cursor-pointer">
             <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
             </svg>
@@ -503,7 +503,7 @@
               </label>
               <select
                 id="dish-category"
-                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
                 bind:value={newDishForm.category}
                 required
               >
@@ -523,7 +523,7 @@
                 id="dish-prep-time"
                 type="number"
                 min="0"
-                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
                 placeholder="0"
                 bind:value={newDishForm.preparation_time}
               />
@@ -534,10 +534,10 @@
               <label class="block text-sm font-medium text-gray-700 mb-3">
                 Availability
               </label>
-              <label class="flex items-center">
+              <label class="flex items-center cursor-pointer">
                 <input
                   type="checkbox"
-                  class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                  class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded cursor-pointer"
                   bind:checked={newDishForm.is_available}
                 />
                 <span class="ml-2 text-sm text-gray-700">Available for ordering</span>

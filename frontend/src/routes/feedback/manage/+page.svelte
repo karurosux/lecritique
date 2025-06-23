@@ -266,7 +266,7 @@
           <select
             bind:value={selectedRestaurant}
             on:change={handleFilterChange}
-            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
           >
             <option value="">All Restaurants</option>
             {#each restaurants as restaurant}
@@ -282,7 +282,7 @@
             <select
               bind:value={selectedRatingMin}
               on:change={handleFilterChange}
-              class="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              class="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
             >
               {#each [1, 2, 3, 4, 5] as rating}
                 <option value={rating}>{rating}★</option>
@@ -292,7 +292,7 @@
             <select
               bind:value={selectedRatingMax}
               on:change={handleFilterChange}
-              class="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              class="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
             >
               {#each [1, 2, 3, 4, 5] as rating}
                 <option value={rating}>{rating}★</option>
@@ -309,13 +309,13 @@
               type="date"
               bind:value={dateFrom}
               on:change={handleFilterChange}
-              class="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              class="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
             />
             <input
               type="date"
               bind:value={dateTo}
               on:change={handleFilterChange}
-              class="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              class="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
             />
           </div>
         </div>

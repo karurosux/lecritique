@@ -42,7 +42,7 @@
           {#if showClose}
             <button
               type="button"
-              class="text-gray-400 hover:text-gray-600 transition-colors"
+              class="text-gray-400 hover:text-gray-600 transition-colors cursor-pointer"
               on:click={closeModal}
               aria-label="Close modal"
             >

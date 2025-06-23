@@ -213,7 +213,7 @@
                 </label>
                 <select
                   id="cuisine_type"
-                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
                   bind:value={formData.cuisine_type}
                 >
                   <option value="">Select cuisine type</option>

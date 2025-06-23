@@ -1,7 +1,9 @@
 <script lang="ts">
   type InputType = 'text' | 'email' | 'password' | 'number' | 'tel' | 'url' | 'search';
+  type InputVariant = 'default' | 'filled' | 'glass';
 
   export let type: InputType = 'text';
+  export let variant: InputVariant = 'default';
   export let value = '';
   export let placeholder = '';
   export let disabled = false;
@@ -9,36 +11,79 @@
   export let error = '';
   export let label = '';
   export let id = '';
+  export let icon = '';
+  
+  let focused = false;
 
-  const inputClasses = 'block w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-gray-900 placeholder-gray-500 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:cursor-not-allowed disabled:bg-gray-50 disabled:text-gray-500';
-  const errorClasses = 'border-red-300 focus:border-red-500 focus:ring-red-500';
+  const variantClasses = {
+    default: 'bg-white border-2 border-gray-200 focus:border-blue-500 focus:bg-white',
+    filled: 'bg-gray-50 border-2 border-transparent focus:border-blue-500 focus:bg-white',
+    glass: 'bg-white/50 backdrop-blur-xl border-2 border-white/20 focus:border-blue-500 focus:bg-white/80'
+  };
+
+  $: inputClasses = `
+    block w-full rounded-xl px-4 py-3 text-gray-900 placeholder-gray-500 
+    transition-all duration-300 ease-out
+    focus:outline-none focus:ring-4 focus:ring-blue-500/20 focus:scale-[1.02]
+    disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-500 disabled:opacity-50
+    ${variantClasses[variant]}
+    ${error ? 'border-red-400 focus:border-red-500 focus:ring-red-500/20' : ''}
+    ${icon ? 'pl-12' : ''}
+  `;
+
+  function handleFocus() {
+    focused = true;
+  }
+
+  function handleBlur() {
+    focused = false;
+  }
 </script>
 
-<div class="space-y-1">
+<div class="space-y-2">
   {#if label}
-    <label for={id} class="block text-sm font-medium text-gray-700">
+    <label for={id} class="block text-sm font-semibold text-gray-700 transition-colors duration-200">
       {label}
       {#if required}
-        <span class="text-red-500">*</span>
+        <span class="text-red-500 ml-1">*</span>
       {/if}
     </label>
   {/if}
   
-  <input
-    {id}
-    {type}
-    {placeholder}
-    {disabled}
-    {required}
-    bind:value
-    class="{inputClasses} {error ? errorClasses : ''}"
-    on:input
-    on:focus
-    on:blur
-    on:keydown
-  />
+  <div class="relative">
+    {#if icon}
+      <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+        <svg class="h-5 w-5 text-gray-400 transition-colors duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d={icon}></path>
+        </svg>
+      </div>
+    {/if}
+    
+    <input
+      {id}
+      {type}
+      {placeholder}
+      {disabled}
+      {required}
+      bind:value
+      class={inputClasses}
+      on:input
+      on:focus={handleFocus}
+      on:blur={handleBlur}
+      on:keydown
+    />
+    
+    {#if focused && !error}
+      <div class="absolute inset-0 rounded-xl ring-4 ring-blue-500/10 pointer-events-none transition-all duration-300"></div>
+    {/if}
+  </div>
   
   {#if error}
-    <p class="text-sm text-red-600">{error}</p>
+    <div class="flex items-center space-x-2">
+      <svg class="h-4 w-4 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+      </svg>
+      <p class="text-sm text-red-600 font-medium">{error}</p>
+    </div>
   {/if}
 </div>

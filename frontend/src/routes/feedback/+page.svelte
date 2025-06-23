@@ -168,7 +168,7 @@
   <meta name="description" content="Share your dining experience and help us improve" />
 </svelte:head>
 
-<div class="min-h-screen bg-gray-50 py-8 px-4">
+<div class="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/50 py-8 px-4">
   <div class="max-w-2xl mx-auto">
     {#if loading}
       <!-- Loading State -->
@@ -198,40 +198,69 @@
       <!-- Feedback Form -->
       <form on:submit|preventDefault={handleSubmit} class="space-y-6">
         <!-- Header -->
-        <Card>
-          <div class="text-center">
-            <h1 class="text-2xl font-bold text-gray-900 mb-2">Share Your Experience</h1>
-            <p class="text-gray-600">
-              {#if restaurantName}
-                at <span class="font-medium">{restaurantName}</span>
-              {/if}
-              {#if dishName}
-                - <span class="font-medium">{dishName}</span>
-              {/if}
-            </p>
+        <Card variant="gradient">
+          <div class="text-center space-y-4">
+            <div class="h-16 w-16 bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto shadow-lg shadow-blue-500/25">
+              <svg class="h-8 w-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+              </svg>
+            </div>
+            <div>
+              <h1 class="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent mb-3">
+                Share Your Experience
+              </h1>
+              <p class="text-gray-600 text-lg font-medium">
+                {#if restaurantName}
+                  at <span class="text-blue-600 font-semibold">{restaurantName}</span>
+                {/if}
+                {#if dishName}
+                  <br />
+                  <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800 mt-2">
+                    🍽️ {dishName}
+                  </span>
+                {/if}
+              </p>
+            </div>
           </div>
         </Card>
 
         <!-- Overall Rating -->
-        <Card>
-          <div class="text-center">
-            <h2 class="text-lg font-medium text-gray-900 mb-4">Overall Rating</h2>
+        <Card variant="elevated" padding={false}>
+          <div class="p-8 text-center space-y-6">
+            <div class="space-y-2">
+              <h2 class="text-2xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
+                Overall Rating
+              </h2>
+              <p class="text-gray-600">How was your overall experience?</p>
+            </div>
             <div class="flex justify-center">
               <Rating bind:value={overallRating} size="lg" showLabel />
             </div>
+            {#if overallRating > 0}
+              <div class="transition-all duration-300 ease-out">
+                <div class="inline-flex items-center px-4 py-2 rounded-full bg-gradient-to-r {overallRating >= 4 ? 'from-green-100 to-emerald-100 text-green-800' : overallRating >= 3 ? 'from-yellow-100 to-orange-100 text-yellow-800' : 'from-red-100 to-pink-100 text-red-800'}">
+                  <span class="font-semibold">
+                    {overallRating >= 4 ? '🎉 Excellent!' : overallRating >= 3 ? '👍 Good!' : '🤔 We can do better!'}
+                  </span>
+                </div>
+              </div>
+            {/if}
           </div>
         </Card>
 
         <!-- Dynamic Questions -->
         {#each questions as question}
-          <Card>
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-3">
-                {question.text}
-                {#if question.required}
-                  <span class="text-red-500">*</span>
-                {/if}
-              </label>
+          <Card variant="glass" hover>
+            <div class="space-y-4">
+              <div class="space-y-2">
+                <label class="block text-lg font-semibold text-gray-900">
+                  {question.text}
+                  {#if question.required}
+                    <span class="text-red-500 ml-1">*</span>
+                  {/if}
+                </label>
+                <div class="h-1 w-16 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full"></div>
+              </div>
 
               {#if question.type === 'rating'}
                 <Rating 
@@ -259,14 +288,14 @@
               {:else if question.type === 'single_choice' && question.options}
                 <div class="space-y-2">
                   {#each question.options as option}
-                    <label class="flex items-center">
+                    <label class="flex items-center cursor-pointer">
                       <input
                         type="radio"
                         name="question_{question.id}"
                         value={option.value || option.text}
                         checked={responses[question.id] === (option.value || option.text)}
                         on:change={() => handleQuestionResponse(question.id, option.value || option.text)}
-                        class="h-4 w-4 text-blue-600 focus:ring-blue-500"
+                        class="h-4 w-4 text-blue-600 focus:ring-blue-500 cursor-pointer"
                       />
                       <span class="ml-2 text-gray-700">{option.text}</span>
                     </label>
@@ -276,7 +305,7 @@
               {:else if question.type === 'multiple_choice' && question.options}
                 <div class="space-y-2">
                   {#each question.options as option}
-                    <label class="flex items-center">
+                    <label class="flex items-center cursor-pointer">
                       <input
                         type="checkbox"
                         value={option.value || option.text}
@@ -290,7 +319,7 @@
                             responses[question.id] = responses[question.id].filter((v: any) => v !== value);
                           }
                         }}
-                        class="h-4 w-4 text-blue-600 rounded focus:ring-blue-500"
+                        class="h-4 w-4 text-blue-600 rounded focus:ring-blue-500 cursor-pointer"
                       />
                       <span class="ml-2 text-gray-700">{option.text}</span>
                     </label>
@@ -371,10 +400,11 @@
         <!-- Submit Button -->
         <Button
           type="submit"
-          variant="primary"
-          size="lg"
+          variant="gradient"
+          size="xl"
           disabled={submitting}
-          class="w-full"
+          loading={submitting}
+          class="w-full shadow-lg shadow-blue-500/25 hover:shadow-xl hover:shadow-blue-500/40"
         >
           {#if submitting}
             <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white inline" fill="none" viewBox="0 0 24 24">

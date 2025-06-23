@@ -195,7 +195,7 @@
           <select
             bind:value={selectedRestaurant}
             on:change={handleRestaurantChange}
-            class="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            class="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
           >
             {#each restaurants as restaurant}
               <option value={restaurant.id}>{restaurant.name}</option>
