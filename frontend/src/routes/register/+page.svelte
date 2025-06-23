@@ -4,17 +4,17 @@
   import { Button, Input, Card } from '$lib/components/ui';
   import { onMount } from 'svelte';
 
-  let email = '';
-  let password = '';
-  let confirmPassword = '';
-  let companyName = '';
-  let isSubmitting = false;
-  let formErrors: Record<string, string> = {};
+  let email = $state('');
+  let password = $state('');
+  let confirmPassword = $state('');
+  let companyName = $state('');
+  let isSubmitting = $state(false);
+  let formErrors = $state<Record<string, string>>({});
 
-  $: authState = $auth;
+  let authState = $derived($auth);
 
   // Redirect if already authenticated
-  onMount(() => {
+  $effect(() => {
     if (authState.isAuthenticated) {
       goto('/dashboard');
     }

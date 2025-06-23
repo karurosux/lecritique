@@ -1,8 +1,16 @@
 <script lang="ts">
   import logoImage from '../../../assets/logo.png';
   
-  export let size: 'sm' | 'md' | 'lg' | 'xl' = 'md';
-  export let className = '';
+  let {
+    size = 'md',
+    ...restProps
+  }: {
+    size?: 'sm' | 'md' | 'lg' | 'xl';
+    class?: string;
+    [key: string]: any;
+  } = $props();
+  
+  let className = restProps.class || '';
 
   const sizes = {
     sm: 'h-6',
@@ -11,7 +19,7 @@
     xl: 'h-12'
   };
 
-  $: currentSize = sizes[size];
+  let currentSize = $derived(sizes[size]);
 </script>
 
 <div class="flex items-center {className}">

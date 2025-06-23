@@ -1,14 +1,36 @@
 <script lang="ts">
-  import { createEventDispatcher } from 'svelte';
+  let {
+    isOpen = $bindable(false),
+    open = $bindable(false), // Backward compatibility
+    title = '',
+    showClose = true,
+    size = 'md',
+    onclose = () => {},
+    children
+  }: {
+    isOpen?: boolean;
+    open?: boolean;
+    title?: string;
+    showClose?: boolean;
+    size?: 'sm' | 'md' | 'lg' | 'xl';
+    onclose?: () => void;
+    children?: any;
+  } = $props();
   
-  export let open = false;
-  export let title = '';
-  export let showClose = true;
+  // Support both isOpen and open props for compatibility
+  let modalOpen = $derived(isOpen || open);
   
-  const dispatch = createEventDispatcher();
+  const sizeClasses = {
+    sm: 'max-w-sm',
+    md: 'max-w-md',
+    lg: 'max-w-2xl',
+    xl: 'max-w-4xl'
+  };
   
   function closeModal() {
-    dispatch('close');
+    isOpen = false;
+    open = false;
+    onclose();
   }
   
   function handleBackdropClick(event: MouseEvent) {
@@ -24,16 +46,16 @@
   }
 </script>
 
-{#if open}
+{#if modalOpen}
   <div 
     class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50"
-    on:click={handleBackdropClick}
-    on:keydown={handleKeydown}
+    onclick={handleBackdropClick}
+    onkeydown={handleKeydown}
     role="dialog"
     aria-modal="true"
     tabindex="-1"
   >
-    <div class="relative bg-white rounded-lg shadow-xl max-w-md w-full mx-4 max-h-screen overflow-y-auto">
+    <div class="relative bg-white rounded-lg shadow-xl {sizeClasses[size]} w-full mx-4 max-h-screen overflow-y-auto">
       {#if title || showClose}
         <div class="flex items-center justify-between p-4 border-b border-gray-200">
           {#if title}
@@ -43,7 +65,7 @@
             <button
               type="button"
               class="text-gray-400 hover:text-gray-600 transition-colors cursor-pointer"
-              on:click={closeModal}
+              onclick={closeModal}
               aria-label="Close modal"
             >
               <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -55,7 +77,7 @@
       {/if}
       
       <div class="p-4">
-        <slot />
+        {@render children?.()}
       </div>
     </div>
   </div>

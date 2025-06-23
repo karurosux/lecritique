@@ -22,20 +22,20 @@
 
   const dispatch = createEventDispatcher();
 
-  function handleRestaurantClick(event: CustomEvent) {
-    dispatch('restaurantClick', event.detail);
+  function handleRestaurantClick(restaurant: Restaurant) {
+    dispatch('restaurantClick', restaurant);
   }
 
-  function handleRestaurantEdit(event: CustomEvent) {
-    dispatch('restaurantEdit', event.detail);
+  function handleRestaurantEdit(restaurant: Restaurant) {
+    dispatch('restaurantEdit', restaurant);
   }
 
-  function handleRestaurantToggleStatus(event: CustomEvent) {
-    dispatch('restaurantToggleStatus', event.detail);
+  function handleRestaurantToggleStatus(restaurant: Restaurant) {
+    dispatch('restaurantToggleStatus', restaurant);
   }
 
-  function handleRestaurantDelete(event: CustomEvent) {
-    dispatch('restaurantDelete', event.detail);
+  function handleRestaurantDelete(restaurant: Restaurant) {
+    dispatch('restaurantDelete', restaurant);
   }
 </script>
 
@@ -102,10 +102,10 @@
         {restaurant} 
         {viewMode}
         {index}
-        on:click={handleRestaurantClick}
-        on:edit={handleRestaurantEdit}
-        on:toggleStatus={handleRestaurantToggleStatus}
-        on:delete={handleRestaurantDelete}
+        onclick={handleRestaurantClick}
+        onedit={handleRestaurantEdit}
+        ontogglestatus={handleRestaurantToggleStatus}
+        ondelete={handleRestaurantDelete}
       />
     {/each}
   </div>

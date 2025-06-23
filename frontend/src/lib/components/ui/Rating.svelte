@@ -1,9 +1,17 @@
 <script lang="ts">
-  export let value = 0;
-  export let max = 5;
-  export let size: 'sm' | 'md' | 'lg' = 'md';
-  export let readonly = false;
-  export let showLabel = false;
+  let {
+    value = $bindable(0),
+    max = 5,
+    size = 'md',
+    readonly = false,
+    showLabel = false
+  }: {
+    value?: number;
+    max?: number;
+    size?: 'sm' | 'md' | 'lg';
+    readonly?: boolean;
+    showLabel?: boolean;
+  } = $props();
 
   const sizes = {
     sm: 'h-4 w-4',
@@ -19,10 +27,10 @@
     }
   }
 
-  $: stars = Array(max).fill(0).map((_, i) => ({
+  let stars = $derived(Array(max).fill(0).map((_, i) => ({
     filled: i < value,
     index: i + 1
-  }));
+  })));
 </script>
 
 <div class="inline-flex items-center space-x-1">
@@ -30,7 +38,7 @@
     <button
       type="button"
       class="focus:outline-none transition-transform {!readonly ? 'hover:scale-110 cursor-pointer' : 'cursor-default'}"
-      on:click={() => handleClick(star.index)}
+      onclick={() => handleClick(star.index)}
       disabled={readonly}
     >
       <svg

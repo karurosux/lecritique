@@ -1,6 +1,5 @@
 <script lang="ts">
   import { Card, Button } from '$lib/components/ui';
-  import { createEventDispatcher } from 'svelte';
 
   interface Restaurant {
     id: string;
@@ -16,26 +15,38 @@
     updated_at: string;
   }
 
-  export let restaurant: Restaurant;
-  export let viewMode: 'grid' | 'list' = 'grid';
-  export let index = 0;
-
-  const dispatch = createEventDispatcher();
+  let {
+    restaurant,
+    viewMode = 'grid',
+    index = 0,
+    onclick = (restaurant: Restaurant) => {},
+    onedit = (restaurant: Restaurant) => {},
+    ontogglestatus = (restaurant: Restaurant) => {},
+    ondelete = (restaurant: Restaurant) => {}
+  }: {
+    restaurant: Restaurant;
+    viewMode?: 'grid' | 'list';
+    index?: number;
+    onclick?: (restaurant: Restaurant) => void;
+    onedit?: (restaurant: Restaurant) => void;
+    ontogglestatus?: (restaurant: Restaurant) => void;
+    ondelete?: (restaurant: Restaurant) => void;
+  } = $props();
 
   function handleClick() {
-    dispatch('click', restaurant);
+    onclick(restaurant);
   }
 
   function handleEdit() {
-    dispatch('edit', restaurant);
+    onedit(restaurant);
   }
 
   function handleToggleStatus() {
-    dispatch('toggleStatus', restaurant);
+    ontogglestatus(restaurant);
   }
 
   function handleDelete() {
-    dispatch('delete', restaurant);
+    ondelete(restaurant);
   }
 
   function formatDate(dateString: string): string {

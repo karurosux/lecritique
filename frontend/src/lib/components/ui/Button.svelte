@@ -2,15 +2,30 @@
   type ButtonVariant = 'primary' | 'secondary' | 'outline' | 'ghost' | 'destructive' | 'gradient' | 'glass';
   type ButtonSize = 'sm' | 'md' | 'lg' | 'xl';
 
-  export let variant: ButtonVariant = 'primary';
-  export let size: ButtonSize = 'md';
-  export let disabled = false;
-  export let type: 'button' | 'submit' | 'reset' = 'button';
-  export let href: string | undefined = undefined;
-  export let loading = false;
+  let {
+    variant = 'primary',
+    size = 'md',
+    disabled = false,
+    type = 'button',
+    href = undefined,
+    loading = false,
+    onclick = undefined,
+    children,
+    ...restProps
+  }: {
+    variant?: ButtonVariant;
+    size?: ButtonSize;
+    disabled?: boolean;
+    type?: 'button' | 'submit' | 'reset';
+    href?: string;
+    loading?: boolean;
+    onclick?: ((event: MouseEvent) => void) | undefined;
+    children?: any;
+    class?: string;
+    [key: string]: any;
+  } = $props();
   
-  let className = '';
-  export { className as class };
+  let className = restProps.class || '';
 
   const variants = {
     primary: 'bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-lg shadow-blue-500/25 hover:shadow-xl hover:shadow-blue-500/40 hover:from-blue-700 hover:to-blue-800 focus-visible:ring-blue-500',
@@ -45,14 +60,14 @@
         <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
       </svg>
     {/if}
-    <slot />
+    {@render children?.()}
   </a>
 {:else}
   <button
     {type}
     {disabled}
     class="{baseClasses} {variants[variant]} {sizes[size]} {className}"
-    on:click
+    {onclick}
   >
     {#if loading}
       <svg class="animate-spin -ml-1 mr-3 h-4 w-4" fill="none" viewBox="0 0 24 24">
@@ -60,6 +75,6 @@
         <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 714 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
       </svg>
     {/if}
-    <slot />
+    {@render children?.()}
   </button>
 {/if}

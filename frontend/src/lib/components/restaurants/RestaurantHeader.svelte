@@ -1,17 +1,24 @@
 <script lang="ts">
   import { Button } from '$lib/components/ui';
-  import { goto } from '$app/navigation';
 
   interface Restaurant {
     status: 'active' | 'inactive';
   }
 
-  export let restaurants: Restaurant[] = [];
-  export let loading = false;
-  export let viewMode: 'grid' | 'list' = 'grid';
+  let {
+    restaurants = [],
+    loading = false,
+    viewMode = $bindable('grid'),
+    onaddrestaurant = () => {}
+  }: {
+    restaurants?: Restaurant[];
+    loading?: boolean;
+    viewMode?: 'grid' | 'list';
+    onaddrestaurant?: () => void;
+  } = $props();
 
-  $: activeCount = restaurants.filter(r => r.status === 'active').length;
-  $: inactiveCount = restaurants.filter(r => r.status === 'inactive').length;
+  let activeCount = $derived(restaurants.filter(r => r.status === 'active').length);
+  let inactiveCount = $derived(restaurants.filter(r => r.status === 'inactive').length);
 </script>
 
 <div class="mb-8">
@@ -67,7 +74,7 @@
         </button>
       </div>
 
-      <Button variant="gradient" size="lg" class="group relative overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300" on:click={() => goto('/restaurants/new')}>
+      <Button variant="gradient" size="lg" class="group relative overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300" onclick={onaddrestaurant}>
         <div class="absolute inset-0 bg-gradient-to-r from-blue-600 to-purple-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
         <svg class="h-5 w-5 mr-2 relative z-10 group-hover:scale-110 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />

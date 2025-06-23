@@ -5,9 +5,9 @@
   import { goto } from '$app/navigation';
   import { Button, UserMenu, Logo } from '$lib/components/ui';
 
-  $: authState = $auth;
-  $: isAuthPage = $page.route?.id?.includes('login') || $page.route?.id?.includes('register');
-  $: showNavbar = authState.isAuthenticated && !isAuthPage;
+  let authState = $derived($auth);
+  let isAuthPage = $derived($page.route?.id?.includes('login') || $page.route?.id?.includes('register'));
+  let showNavbar = $derived(authState.isAuthenticated && !isAuthPage);
 </script>
 
 {#if showNavbar}

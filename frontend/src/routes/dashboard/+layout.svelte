@@ -3,21 +3,24 @@
   import { goto } from '$app/navigation';
   import { onMount } from 'svelte';
 
-  $: authState = $auth;
+  let authState = $derived($auth);
+  let hasCheckedAuth = $state(false);
 
-  onMount(() => {
-    // Redirect to login if not authenticated
-    if (!authState.isAuthenticated) {
-      goto('/login');
+  $effect(() => {
+    if (!hasCheckedAuth) {
+      hasCheckedAuth = true;
+      if (!authState.isAuthenticated) {
+        goto('/login');
+      }
     }
   });
 
   // Watch for auth state changes
-  $: {
-    if (!authState.isAuthenticated && typeof window !== 'undefined') {
+  $effect(() => {
+    if (!authState.isAuthenticated && typeof window !== 'undefined' && hasCheckedAuth) {
       goto('/login');
     }
-  }
+  });
 </script>
 
 {#if authState.isAuthenticated}

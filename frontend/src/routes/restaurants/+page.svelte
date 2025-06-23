@@ -6,6 +6,7 @@
   import RestaurantHeader from "$lib/components/restaurants/RestaurantHeader.svelte";
   import SearchAndFilters from "$lib/components/restaurants/SearchAndFilters.svelte";
   import RestaurantList from "$lib/components/restaurants/RestaurantList.svelte";
+  import CreateRestaurantModal from "$lib/components/restaurants/CreateRestaurantModal.svelte";
 
   interface Restaurant {
     id: string;
@@ -21,48 +22,57 @@
     updated_at: string;
   }
 
-  let loading = true;
-  let error = "";
-  let restaurants: Restaurant[] = [];
-  let searchQuery = "";
-  let statusFilter = "all"; // 'all', 'active', 'inactive'
-  let sortBy = "name"; // 'name', 'created_at', 'status'
-  let viewMode = "grid"; // 'grid', 'list'
+  let loading = $state(true);
+  let error = $state("");
+  let restaurants = $state<Restaurant[]>([]);
+  let searchQuery = $state("");
+  let statusFilter = $state("all"); // 'all', 'active', 'inactive'
+  let sortBy = $state("name"); // 'name', 'created_at', 'status'
+  let viewMode = $state<"grid" | "list">("grid");
+  let showCreateModal = $state(false);
 
-  $: filteredRestaurants = restaurants
-    .filter((restaurant) => {
-      const matchesSearch =
-        restaurant.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        restaurant.description
-          ?.toLowerCase()
-          .includes(searchQuery.toLowerCase()) ||
-        restaurant.email?.toLowerCase().includes(searchQuery.toLowerCase());
-      const matchesStatus =
-        statusFilter === "all" || restaurant.status === statusFilter;
-      return matchesSearch && matchesStatus;
-    })
-    .sort((a, b) => {
-      switch (sortBy) {
-        case "created_at":
-          return (
-            new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-          );
-        case "status":
-          return a.status.localeCompare(b.status);
-        default:
-          return a.name.localeCompare(b.name);
-      }
-    });
+  let filteredRestaurants = $derived(
+    restaurants
+      .filter((restaurant) => {
+        const matchesSearch =
+          restaurant.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          restaurant.description
+            ?.toLowerCase()
+            .includes(searchQuery.toLowerCase()) ||
+          restaurant.email?.toLowerCase().includes(searchQuery.toLowerCase());
+        const matchesStatus =
+          statusFilter === "all" || restaurant.status === statusFilter;
+        return matchesSearch && matchesStatus;
+      })
+      .sort((a, b) => {
+        switch (sortBy) {
+          case "created_at":
+            return (
+              new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+            );
+          case "status":
+            return a.status.localeCompare(b.status);
+          default:
+            return a.name.localeCompare(b.name);
+        }
+      })
+  );
 
-  $: authState = $auth;
+  let authState = $derived($auth);
+  let hasInitialized = $state(false);
 
-  onMount(async () => {
+  // Handle authentication and initial load
+  $effect(() => {
     if (!authState.isAuthenticated) {
       goto("/login");
       return;
     }
-
-    await loadRestaurants();
+    
+    // Only load restaurants once when authenticated
+    if (authState.isAuthenticated && !hasInitialized) {
+      hasInitialized = true;
+      loadRestaurants();
+    }
   });
 
   async function loadRestaurants() {
@@ -127,7 +137,17 @@
   }
 
   function handleAddRestaurant() {
-    goto('/restaurants/new');
+    showCreateModal = true;
+  }
+
+  function handleCloseModal() {
+    showCreateModal = false;
+  }
+
+  function handleRestaurantCreated(event: CustomEvent) {
+    const newRestaurant = event.detail;
+    // Add to the beginning of the array for immediate visibility
+    restaurants = [newRestaurant, ...restaurants];
   }
 
   function handleClearFilters() {
@@ -191,6 +211,7 @@
     {restaurants}
     {loading}
     bind:viewMode
+    onaddrestaurant={handleAddRestaurant}
   />
 
   <!-- Search and Filters -->
@@ -200,7 +221,7 @@
     bind:sortBy
     totalRestaurants={restaurants.length}
     filteredCount={filteredRestaurants.length}
-    on:filtersChanged={handleFiltersChanged}
+    onfilterschanged={handleFiltersChanged}
   />
 
   {#if error}
@@ -242,4 +263,11 @@
     />
   {/if}
 </div>
+
+<!-- Create Restaurant Modal -->
+<CreateRestaurantModal
+  bind:isOpen={showCreateModal}
+  onclose={handleCloseModal}
+  onrestaurantcreated={handleRestaurantCreated}
+/>
 

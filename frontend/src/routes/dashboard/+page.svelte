@@ -27,27 +27,28 @@
     created_at: string;
   }
 
-  let loading = true;
-  let error = '';
-  let stats: DashboardStats = {
+  let loading = $state(true);
+  let error = $state('');
+  let stats = $state<DashboardStats>({
     totalFeedback: 0,
     averageRating: 0,
     feedbackToday: 0,
     activeQRCodes: 0,
     recentFeedbackCount: 0
-  };
-  let recentFeedback: RecentFeedback[] = [];
+  });
+  let recentFeedback = $state<RecentFeedback[]>([]);
+  let hasInitialized = $state(false);
 
-  $: authState = $auth;
+  let authState = $derived($auth);
 
-  onMount(async () => {
+  $effect(() => {
     // Check if user is authenticated
-    if (!authState.isAuthenticated) {
+    if (authState.isAuthenticated && !hasInitialized) {
+      hasInitialized = true;
+      loadDashboardData();
+    } else if (!authState.isAuthenticated) {
       goto('/login');
-      return;
     }
-
-    await loadDashboardData();
   });
 
   async function loadDashboardData() {

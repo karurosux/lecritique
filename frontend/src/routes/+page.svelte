@@ -4,9 +4,9 @@
   import { goto } from '$app/navigation';
   import { onMount } from 'svelte';
 
-  $: authState = $auth;
+  let authState = $derived($auth);
 
-  onMount(() => {
+  $effect(() => {
     // Redirect authenticated users to dashboard
     if (authState.isAuthenticated) {
       goto('/dashboard');

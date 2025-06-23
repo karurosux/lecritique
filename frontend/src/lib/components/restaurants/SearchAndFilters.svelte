@@ -1,65 +1,72 @@
 <script lang="ts">
   import { Card, SearchInput, Select, FilterChip } from '$lib/components/ui';
-  import { createEventDispatcher } from 'svelte';
 
-  export let searchQuery = '';
-  export let statusFilter = 'all';
-  export let sortBy = 'name';
-  export let totalRestaurants = 0;
-  export let filteredCount = 0;
-
-  const dispatch = createEventDispatcher();
+  let {
+    searchQuery = $bindable(''),
+    statusFilter = $bindable('all'),
+    sortBy = $bindable('name'),
+    totalRestaurants = 0,
+    filteredCount = 0,
+    onfilterschanged = (filters: any) => {}
+  }: {
+    searchQuery?: string;
+    statusFilter?: string;
+    sortBy?: string;
+    totalRestaurants?: number;
+    filteredCount?: number;
+    onfilterschanged?: (filters: any) => void;
+  } = $props();
 
   function clearAllFilters() {
     searchQuery = '';
     statusFilter = 'all';
     sortBy = 'name';
-    dispatch('filtersChanged', { searchQuery, statusFilter, sortBy });
+    onfilterschanged({ searchQuery, statusFilter, sortBy });
   }
 
   function removeSearchFilter() {
     searchQuery = '';
-    dispatch('filtersChanged', { searchQuery, statusFilter, sortBy });
+    onfilterschanged({ searchQuery, statusFilter, sortBy });
   }
 
   function removeStatusFilter() {
     statusFilter = 'all';
-    dispatch('filtersChanged', { searchQuery, statusFilter, sortBy });
+    onfilterschanged({ searchQuery, statusFilter, sortBy });
   }
 
   function removeSortFilter() {
     sortBy = 'name';
-    dispatch('filtersChanged', { searchQuery, statusFilter, sortBy });
+    onfilterschanged({ searchQuery, statusFilter, sortBy });
   }
 
   function handleSearchInput(event: CustomEvent) {
     searchQuery = event.detail.value;
-    dispatch('filtersChanged', { searchQuery, statusFilter, sortBy });
+    onfilterschanged({ searchQuery, statusFilter, sortBy });
   }
 
   function handleStatusChange(event: CustomEvent) {
     statusFilter = event.detail.value;
-    dispatch('filtersChanged', { searchQuery, statusFilter, sortBy });
+    onfilterschanged({ searchQuery, statusFilter, sortBy });
   }
 
   function handleSortChange(event: CustomEvent) {
     sortBy = event.detail.value;
-    dispatch('filtersChanged', { searchQuery, statusFilter, sortBy });
+    onfilterschanged({ searchQuery, statusFilter, sortBy });
   }
 
-  $: statusOptions = [
+  const statusOptions = [
     { value: 'all', label: 'All Status' },
     { value: 'active', label: 'Active Only' },
     { value: 'inactive', label: 'Inactive Only' }
   ];
 
-  $: sortOptions = [
+  const sortOptions = [
     { value: 'name', label: 'Sort by Name' },
     { value: 'created_at', label: 'Sort by Date' },
     { value: 'status', label: 'Sort by Status' }
   ];
 
-  $: hasActiveFilters = searchQuery || statusFilter !== 'all' || sortBy !== 'name';
+  let hasActiveFilters = $derived(searchQuery || statusFilter !== 'all' || sortBy !== 'name');
 </script>
 
 <Card variant="glass" class="mb-4">

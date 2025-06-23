@@ -1,8 +1,18 @@
 <script lang="ts">
-  export let size: 'sm' | 'md' | 'lg' | 'xl' = 'md';
-  export let variant: 'default' | 'white' | 'dark' = 'default';
-  export let showText = true;
-  export let className = '';
+  let {
+    size = 'md',
+    variant = 'default',
+    showText = true,
+    ...restProps
+  }: {
+    size?: 'sm' | 'md' | 'lg' | 'xl';
+    variant?: 'default' | 'white' | 'dark';
+    showText?: boolean;
+    class?: string;
+    [key: string]: any;
+  } = $props();
+  
+  let className = restProps.class || '';
 
   const sizes = {
     sm: { icon: 'h-6 w-6', text: 'text-sm' },
@@ -29,8 +39,8 @@
     }
   };
 
-  $: currentSize = sizes[size];
-  $: currentVariant = variants[variant];
+  let currentSize = $derived(sizes[size]);
+  let currentVariant = $derived(variants[variant]);
 </script>
 
 <div class="flex items-center space-x-3 {className}">

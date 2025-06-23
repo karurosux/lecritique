@@ -2,18 +2,38 @@
   type InputType = 'text' | 'email' | 'password' | 'number' | 'tel' | 'url' | 'search';
   type InputVariant = 'default' | 'filled' | 'glass';
 
-  export let type: InputType = 'text';
-  export let variant: InputVariant = 'default';
-  export let value = '';
-  export let placeholder = '';
-  export let disabled = false;
-  export let required = false;
-  export let error = '';
-  export let label = '';
-  export let id = '';
-  export let icon = '';
+  let {
+    type = 'text',
+    variant = 'default',
+    value = $bindable(''),
+    placeholder = '',
+    disabled = false,
+    required = false,
+    error = '',
+    label = '',
+    id = '',
+    icon = '',
+    oninput = undefined,
+    onkeydown = undefined,
+    ...restProps
+  }: {
+    type?: InputType;
+    variant?: InputVariant;
+    value?: string;
+    placeholder?: string;
+    disabled?: boolean;
+    required?: boolean;
+    error?: string;
+    label?: string;
+    id?: string;
+    icon?: string;
+    oninput?: ((event: Event) => void) | undefined;
+    onkeydown?: ((event: KeyboardEvent) => void) | undefined;
+    class?: string;
+    [key: string]: any;
+  } = $props();
   
-  let focused = false;
+  let focused = $state(false);
 
   const variantClasses = {
     default: 'bg-white border-2 border-gray-200 focus:border-blue-500 focus:bg-white',
@@ -21,7 +41,7 @@
     glass: 'bg-white/50 backdrop-blur-xl border-2 border-white/20 focus:border-blue-500 focus:bg-white/80'
   };
 
-  $: inputClasses = `
+  let inputClasses = $derived(`
     block w-full rounded-xl px-4 py-3 text-gray-900 placeholder-gray-500 
     transition-all duration-300 ease-out
     focus:outline-none focus:ring-4 focus:ring-blue-500/20 focus:scale-[1.02]
@@ -29,7 +49,7 @@
     ${variantClasses[variant]}
     ${error ? 'border-red-400 focus:border-red-500 focus:ring-red-500/20' : ''}
     ${icon ? 'pl-12' : ''}
-  `;
+  `);
 
   function handleFocus() {
     focused = true;
@@ -67,10 +87,10 @@
       {required}
       bind:value
       class={inputClasses}
-      on:input
-      on:focus={handleFocus}
-      on:blur={handleBlur}
-      on:keydown
+      oninput={oninput}
+      onfocus={handleFocus}
+      onblur={handleBlur}
+      onkeydown={onkeydown}
     />
     
     {#if focused && !error}
