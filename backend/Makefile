@@ -55,6 +55,12 @@ deps:
 	@go mod download
 	@go mod tidy
 
+# Install migrate CLI tool
+install-migrate:
+	@echo "Installing golang-migrate..."
+	@go install -tags 'postgres' github.com/golang-migrate/migrate/v4/cmd/migrate@latest
+	@echo "migrate installed successfully!"
+
 # Generate Swagger documentation
 swagger:
 	@echo "Generating Swagger documentation..."

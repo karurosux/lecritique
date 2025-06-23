@@ -53,10 +53,25 @@
       const api = getApiClient();
       const response = await api.api.v1PublicQrDetail(code);
       
-      if (response.data.success && response.data.data) {
-        qrData = response.data.data as QRValidationData;
+      // Handle different response formats
+      if (response.data) {
+        // Check if response has success/data structure
+        if ('success' in response.data && response.data.success && response.data.data) {
+          qrData = response.data.data as QRValidationData;
+        } else if ('valid' in response.data) {
+          // Direct response format
+          qrData = response.data as QRValidationData;
+        } else {
+          // Fallback: assume the response is the data directly
+          qrData = {
+            valid: true,
+            restaurant: response.data.restaurant,
+            location: response.data.location,
+            qr_code: response.data.qr_code || { id: '', code: code, label: '', type: 'general' }
+          };
+        }
         
-        if (!qrData.valid) {
+        if (qrData && !qrData.valid) {
           error = 'This QR code is invalid or has expired';
         }
       } else {
@@ -77,7 +92,11 @@
 
   function handleGiveFeedback() {
     if (qrData?.restaurant?.id) {
-      goto(`/feedback?restaurant=${qrData.restaurant.id}&qr=${code}`);
+      let url = `/feedback?restaurant=${qrData.restaurant.id}&qr=${code}`;
+      if (qrData?.location?.id) {
+        url += `&location=${qrData.location.id}`;
+      }
+      goto(url);
     }
   }
 </script>

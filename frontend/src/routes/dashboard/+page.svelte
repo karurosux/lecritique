@@ -10,17 +10,21 @@
     averageRating: number;
     feedbackToday: number;
     activeQRCodes: number;
-    topRatedDish?: string;
+    topRatedDish?: {
+      name: string;
+      rating: number;
+    };
     recentFeedbackCount: number;
   }
 
   interface RecentFeedback {
     id: string;
-    customerEmail?: string;
+    customer_email?: string;
     rating: number;
     comment?: string;
-    dishName?: string;
-    createdAt: string;
+    dish_name?: string;
+    restaurant_name?: string;
+    created_at: string;
   }
 
   let loading = true;
@@ -65,8 +69,9 @@
           const firstRestaurant = restaurants[0];
           
           // Get QR codes and analytics for the first restaurant
-          const [qrCodesResponse] = await Promise.all([
-            api.api.v1RestaurantsQrCodesList(firstRestaurant.id!)
+          const [qrCodesResponse, analyticsResponse] = await Promise.all([
+            api.api.v1RestaurantsQrCodesList(firstRestaurant.id!),
+            api.api.v1AnalyticsRestaurantsDetail(firstRestaurant.id!)
           ]);
           
           // Calculate stats
@@ -74,16 +79,36 @@
             ? qrCodesResponse.data.data.filter(qr => qr.is_active).length 
             : 0;
           
+          // Parse analytics data
+          const analyticsData = analyticsResponse.data;
+          const totalFeedback = analyticsData?.total_feedback || 0;
+          const averageRating = analyticsData?.average_rating || 0;
+          const feedbackToday = analyticsData?.feedback_today || 0;
+          const topDish = analyticsData?.top_dishes?.[0];
+          const recentFeedbackData = analyticsData?.recent_feedback || [];
+          
           stats = {
-            totalFeedback: 0, // Would need feedback endpoint
-            averageRating: 0, // Would need analytics endpoint
-            feedbackToday: 0, // Would need analytics endpoint
+            totalFeedback,
+            averageRating,
+            feedbackToday,
             activeQRCodes,
-            topRatedDish: undefined, // Would need analytics endpoint
-            recentFeedbackCount: 0
+            topRatedDish: topDish ? {
+              name: topDish.name,
+              rating: topDish.average_rating
+            } : undefined,
+            recentFeedbackCount: recentFeedbackData.length
           };
           
-          recentFeedback = []; // Would load from feedback endpoint
+          // Map recent feedback
+          recentFeedback = recentFeedbackData.slice(0, 5).map((fb: any) => ({
+            id: fb.id,
+            customer_email: fb.customer_email,
+            rating: fb.rating,
+            comment: fb.comment,
+            dish_name: fb.dish_name,
+            restaurant_name: firstRestaurant.name,
+            created_at: fb.created_at
+          }));
         } else {
           // No restaurants yet
           stats = {
@@ -120,8 +145,12 @@
   }
 
   function formatDate(dateString: string): string {
-    const date = new Date(dateString);
-    return date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    try {
+      const date = new Date(dateString);
+      return date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    } catch {
+      return dateString;
+    }
   }
 
   function renderStars(rating: number): string {
@@ -150,13 +179,13 @@
           <p class="text-gray-600">Welcome back! Here's an overview of your restaurant's feedback.</p>
         </div>
         <div class="flex space-x-3">
-          <Button variant="outline" on:click={() => goto('/qr-codes')}>
+          <Button variant="outline" on:click={() => goto('/restaurants')}>
             <svg class="h-4 w-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
             </svg>
-            Generate QR
+            Manage Restaurants
           </Button>
-          <Button on:click={() => goto('/feedback-analytics')}>
+          <Button on:click={() => goto('/analytics')}>
             View Analytics
           </Button>
           <Button variant="outline" on:click={handleLogout}>
@@ -284,21 +313,14 @@
                 Manage Restaurants
               </Button>
               
-              <Button variant="outline" class="w-full justify-start" on:click={() => goto('/dishes')}>
+              <Button variant="outline" class="w-full justify-start" on:click={() => goto('/feedback/manage')}>
                 <svg class="h-4 w-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 3H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17M17 13v4a2 2 0 01-2 2H9a2 2 0 01-2-2v-4m8 0V9a2 2 0 00-2-2H9a2 2 0 00-2 2v4.01" />
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
                 </svg>
-                Manage Dishes
+                Manage Feedback
               </Button>
               
-              <Button variant="outline" class="w-full justify-start" on:click={() => goto('/qr-codes')}>
-                <svg class="h-4 w-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-                </svg>
-                Generate QR Codes
-              </Button>
-              
-              <Button variant="outline" class="w-full justify-start" on:click={() => goto('/feedback-analytics')}>
+              <Button variant="outline" class="w-full justify-start" on:click={() => goto('/analytics')}>
                 <svg class="h-4 w-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                 </svg>
@@ -314,7 +336,8 @@
                   </svg>
                   <div>
                     <p class="text-sm font-medium text-green-800">Top Rated Dish</p>
-                    <p class="text-sm text-green-700">{stats.topRatedDish}</p>
+                    <p class="text-sm text-green-700">{stats.topRatedDish.name}</p>
+                    <p class="text-xs text-green-600">{renderStars(Math.round(stats.topRatedDish.rating))}</p>
                   </div>
                 </div>
               </div>
@@ -330,7 +353,7 @@
                 <h3 class="text-lg font-medium text-gray-900">Recent Feedback</h3>
                 <p class="text-sm text-gray-600">Latest customer reviews and ratings</p>
               </div>
-              <Button variant="outline" size="sm" on:click={() => goto('/feedback')}>
+              <Button variant="outline" size="sm" on:click={() => goto('/feedback/manage')}>
                 View All
               </Button>
             </div>
@@ -343,9 +366,9 @@
                       <div class="flex items-center space-x-2 mb-1">
                         <span class="text-lg {getRatingColor(feedback.rating)}">{renderStars(feedback.rating)}</span>
                         <span class="text-sm text-gray-500">{feedback.rating}/5</span>
-                        {#if feedback.dishName}
+                        {#if feedback.dish_name}
                           <span class="text-sm text-gray-400">•</span>
-                          <span class="text-sm font-medium text-gray-700">{feedback.dishName}</span>
+                          <span class="text-sm font-medium text-gray-700">{feedback.dish_name}</span>
                         {/if}
                       </div>
                       
@@ -354,9 +377,9 @@
                       {/if}
                       
                       <div class="flex items-center text-xs text-gray-500">
-                        <span>{formatDate(feedback.createdAt)}</span>
-                        {#if feedback.customerEmail}
-                          <span class="ml-2">• {feedback.customerEmail}</span>
+                        <span>{formatDate(feedback.created_at)}</span>
+                        {#if feedback.customer_email}
+                          <span class="ml-2">• {feedback.customer_email}</span>
                         {:else}
                           <span class="ml-2">• Anonymous</span>
                         {/if}

@@ -4,19 +4,8 @@
   import { goto } from '$app/navigation';
   import { Card, Button, Input, Rating } from '$lib/components/ui';
   import { getApiClient, handleApiError } from '$lib/api/client';
-
-  // Question types based on the backend
-  type QuestionType = 'rating' | 'scale' | 'single_choice' | 'multiple_choice' | 'yes_no' | 'text';
-
-  interface Question {
-    id: string;
-    text: string;
-    type: QuestionType;
-    required: boolean;
-    options?: string[];
-    min_value?: number;
-    max_value?: number;
-  }
+  import { questionnaireStore, currentQuestionnaire, questionnaireLoading, questionnaireError } from '$lib/stores/questionnaire';
+  import type { Question } from '$lib/stores/questionnaire';
 
   interface FeedbackData {
     restaurant_id: string;
@@ -28,10 +17,10 @@
   }
 
   // State variables
-  let loading = true;
   let submitting = false;
   let error = '';
   let restaurantId = '';
+  let locationId = '';
   let dishId = '';
   let qrCode = '';
   let restaurantName = '';
@@ -43,48 +32,15 @@
   let comment = '';
   let customerEmail = '';
   
-  // For now, using sample questions until questionnaire API is implemented
-  let questions: Question[] = [
-    {
-      id: 'q1',
-      text: 'How would you rate the taste?',
-      type: 'rating',
-      required: true,
-      min_value: 1,
-      max_value: 5
-    },
-    {
-      id: 'q2',
-      text: 'How was the service speed?',
-      type: 'rating',
-      required: true,
-      min_value: 1,
-      max_value: 5
-    },
-    {
-      id: 'q3',
-      text: 'Was the food served at the right temperature?',
-      type: 'single_choice',
-      required: true,
-      options: ['Too cold', 'Just right', 'Too hot']
-    },
-    {
-      id: 'q4',
-      text: 'Would you recommend this to a friend?',
-      type: 'yes_no',
-      required: true
-    },
-    {
-      id: 'q5',
-      text: 'Any additional comments?',
-      type: 'text',
-      required: false
-    }
-  ];
+  // Get questions from store
+  $: questions = $currentQuestionnaire?.questions || [];
+  $: loading = $questionnaireLoading;
+  $: questionnaireErrorMsg = $questionnaireError;
 
   // Get URL parameters
   $: {
     restaurantId = $page.url.searchParams.get('restaurant') || '';
+    locationId = $page.url.searchParams.get('location') || '';
     dishId = $page.url.searchParams.get('dish') || '';
     qrCode = $page.url.searchParams.get('qr') || '';
   }
@@ -92,22 +48,32 @@
   onMount(async () => {
     if (!restaurantId) {
       error = 'Restaurant information is missing';
-      loading = false;
       return;
     }
     
-    // Initialize rating responses to 0
-    questions.forEach(question => {
-      if (question.type === 'rating') {
-        responses[question.id] = 0;
-      }
-    });
+    // Fetch questionnaire
+    await questionnaireStore.fetchQuestionnaire(restaurantId, locationId);
     
-    // In a real implementation, we would load the questionnaire and restaurant/dish info
-    // For now, using placeholder data
-    restaurantName = 'Demo Restaurant';
-    dishName = dishId ? 'Sample Dish' : '';
-    loading = false;
+    // Initialize responses based on fetched questions
+    if ($currentQuestionnaire) {
+      $currentQuestionnaire.questions.forEach(question => {
+        if (question.type === 'rating' || question.type === 'scale') {
+          responses[question.id] = 0;
+        } else if (question.type === 'multiple_choice') {
+          responses[question.id] = [];
+        }
+      });
+    }
+    
+    // Fetch restaurant info if needed
+    try {
+      const api = getApiClient();
+      // For now, using placeholder data
+      restaurantName = 'Demo Restaurant';
+      dishName = dishId ? 'Sample Dish' : '';
+    } catch (err) {
+      console.error('Error fetching restaurant info:', err);
+    }
   });
 
   function handleRatingClick(value: number) {
@@ -127,9 +93,24 @@
 
     // Check required questions
     for (const question of questions) {
-      if (question.required && !responses[question.id]) {
-        error = `Please answer: ${question.text}`;
-        return false;
+      if (question.required) {
+        const response = responses[question.id];
+        
+        if (question.type === 'multiple_choice') {
+          if (!response || response.length === 0) {
+            error = `Please answer: ${question.text}`;
+            return false;
+          }
+        } else if (question.type === 'rating' || question.type === 'scale') {
+          if (!response || response === 0) {
+            error = `Please answer: ${question.text}`;
+            return false;
+          }
+        } else if (!response && response !== false) {
+          // For yes/no, false is a valid response
+          error = `Please answer: ${question.text}`;
+          return false;
+        }
       }
     }
 
@@ -259,6 +240,22 @@
                   size="md"
                 />
 
+              {:else if question.type === 'scale'}
+                <div>
+                  <input
+                    type="range"
+                    min={question.min_value || 1}
+                    max={question.max_value || 10}
+                    bind:value={responses[question.id]}
+                    class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                  />
+                  <div class="flex justify-between text-xs text-gray-600 mt-1">
+                    <span>{question.min_label || question.min_value || 1}</span>
+                    <span class="font-medium text-blue-600">{responses[question.id] || 0}</span>
+                    <span>{question.max_label || question.max_value || 10}</span>
+                  </div>
+                </div>
+
               {:else if question.type === 'single_choice' && question.options}
                 <div class="space-y-2">
                   {#each question.options as option}
@@ -266,12 +263,36 @@
                       <input
                         type="radio"
                         name="question_{question.id}"
-                        value={option}
-                        checked={responses[question.id] === option}
-                        on:change={() => handleQuestionResponse(question.id, option)}
+                        value={option.value || option.text}
+                        checked={responses[question.id] === (option.value || option.text)}
+                        on:change={() => handleQuestionResponse(question.id, option.value || option.text)}
                         class="h-4 w-4 text-blue-600 focus:ring-blue-500"
                       />
-                      <span class="ml-2 text-gray-700">{option}</span>
+                      <span class="ml-2 text-gray-700">{option.text}</span>
+                    </label>
+                  {/each}
+                </div>
+
+              {:else if question.type === 'multiple_choice' && question.options}
+                <div class="space-y-2">
+                  {#each question.options as option}
+                    <label class="flex items-center">
+                      <input
+                        type="checkbox"
+                        value={option.value || option.text}
+                        checked={responses[question.id]?.includes(option.value || option.text)}
+                        on:change={(e) => {
+                          const target = e.target as HTMLInputElement;
+                          const value = option.value || option.text;
+                          if (target.checked) {
+                            responses[question.id] = [...(responses[question.id] || []), value];
+                          } else {
+                            responses[question.id] = responses[question.id].filter((v: any) => v !== value);
+                          }
+                        }}
+                        class="h-4 w-4 text-blue-600 rounded focus:ring-blue-500"
+                      />
+                      <span class="ml-2 text-gray-700">{option.text}</span>
                     </label>
                   {/each}
                 </div>
