@@ -74,7 +74,7 @@
 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
   {#if loading}
     {#each Array(5) as _}
-      <Card variant="glass">
+      <Card variant="default" class="opacity-50">
         <div class="animate-pulse">
           <div class="flex items-center justify-between mb-4">
             <div class="h-10 w-10 bg-gray-200 rounded-xl"></div>
@@ -86,10 +86,9 @@
       </Card>
     {/each}
   {:else if analyticsData}
-    {#each summaryCards as card}
-      <Card variant="glass" class="group hover:shadow-lg transition-all duration-300">
-        <div class="relative overflow-hidden">
-          <div class="absolute inset-0 bg-gradient-to-br {card.colorClass} opacity-0 group-hover:opacity-5 transition-opacity duration-300"></div>
+    {#each summaryCards as card, index}
+      <Card variant="default" hover interactive class="group transform transition-all duration-300 animate-fade-in-up" style="animation-delay: {index * 100}ms">
+        <div class="relative">
           <div class="relative z-10">
             <div class="flex items-center justify-between mb-4">
               <div class="{card.bgClass} p-2.5 rounded-xl group-hover:scale-110 transition-transform duration-300">
@@ -108,8 +107,25 @@
               {/if}
             </div>
           </div>
-        </div>
       </Card>
     {/each}
   {/if}
 </div>
+
+<style>
+  @keyframes fade-in-up {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .animate-fade-in-up {
+    animation: fade-in-up 0.6s ease-out forwards;
+    opacity: 0;
+  }
+</style>

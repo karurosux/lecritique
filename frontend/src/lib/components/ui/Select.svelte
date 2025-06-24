@@ -43,11 +43,11 @@
   }
 </script>
 
-<div class="relative {className}">
+<div class="relative inline-block {minWidth} {className}">
   <select
     bind:value
     onchange={handleChange}
-    class="appearance-none {sizeClasses[size]} border border-gray-200 rounded-xl bg-white/50 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer {minWidth}"
+    class="appearance-none w-full {sizeClasses[size]} border border-gray-200 rounded-xl bg-white/50 backdrop-blur-sm shadow-sm hover:shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent cursor-pointer transition-all duration-200"
   >
     {#each options as option}
       <option value={option.value}>{option.label}</option>

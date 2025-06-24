@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { Card } from '$lib/components/ui';
+  import { Card, Select } from '$lib/components/ui';
 
   interface Restaurant {
     id: string;
@@ -24,57 +24,40 @@
   let selectedRestaurantName = $derived(
     restaurants.find(r => r.id === selectedRestaurant)?.name || 'Select Restaurant'
   );
-
-  function handleRestaurantChange(e: Event) {
-    const target = e.target as HTMLSelectElement;
-    selectedRestaurant = target.value;
-    onrestaurantchange();
-  }
-
-  function handleTimeframeChange(e: Event) {
-    const target = e.target as HTMLSelectElement;
-    selectedTimeframe = target.value;
-    ontimeframechange();
-  }
 </script>
 
-<Card variant="glass" class="mb-6">
+<Card variant="default" hover interactive class="mb-6 group transform transition-all duration-300 animate-fade-in-up">
   <div class="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
     <div class="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
       <!-- Restaurant Selector -->
       <div class="space-y-1">
-        <label for="restaurant-select" class="text-xs font-medium text-gray-500 uppercase tracking-wider">
+        <label class="text-xs font-medium text-gray-500 uppercase tracking-wider">
           Restaurant
         </label>
-        <select
-          id="restaurant-select"
+        <Select
           bind:value={selectedRestaurant}
-          onchange={handleRestaurantChange}
-          class="px-4 py-2 pr-10 border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent cursor-pointer shadow-sm hover:shadow-md transition-all duration-200 text-gray-700 font-medium min-w-[200px]"
-        >
-          {#each restaurants as restaurant}
-            <option value={restaurant.id}>{restaurant.name}</option>
-          {/each}
-        </select>
+          options={restaurants.map(r => ({ value: r.id, label: r.name }))}
+          onchange={() => onrestaurantchange()}
+          minWidth="min-w-[200px]"
+        />
       </div>
 
       <!-- Timeframe Selector -->
       <div class="space-y-1">
-        <label for="timeframe-select" class="text-xs font-medium text-gray-500 uppercase tracking-wider">
+        <label class="text-xs font-medium text-gray-500 uppercase tracking-wider">
           Time Period
         </label>
-        <select
-          id="timeframe-select"
+        <Select
           bind:value={selectedTimeframe}
-          onchange={handleTimeframeChange}
-          class="px-4 py-2 pr-10 border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent cursor-pointer shadow-sm hover:shadow-md transition-all duration-200 text-gray-700 font-medium"
-        >
-          <option value="1d">Last 24 hours</option>
-          <option value="7d">Last 7 days</option>
-          <option value="30d">Last 30 days</option>
-          <option value="90d">Last 90 days</option>
-          <option value="1y">Last year</option>
-        </select>
+          options={[
+            { value: '1d', label: 'Last 24 hours' },
+            { value: '7d', label: 'Last 7 days' },
+            { value: '30d', label: 'Last 30 days' },
+            { value: '90d', label: 'Last 90 days' },
+            { value: '1y', label: 'Last year' }
+          ]}
+          onchange={() => ontimeframechange()}
+        />
       </div>
     </div>
 
@@ -107,3 +90,21 @@
     </div>
   </div>
 </Card>
+
+<style>
+  @keyframes fade-in-up {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .animate-fade-in-up {
+    animation: fade-in-up 0.6s ease-out forwards;
+    opacity: 0;
+  }
+</style>

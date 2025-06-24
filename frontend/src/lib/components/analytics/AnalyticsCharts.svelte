@@ -44,7 +44,7 @@
 <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
   {#if loading}
     {#each Array(2) as _}
-      <Card variant="glass">
+      <Card variant="default" class="opacity-50">
         <div class="animate-pulse">
           <div class="h-5 bg-gray-200 rounded w-1/3 mb-2"></div>
           <div class="h-3 bg-gray-200 rounded w-1/2 mb-6"></div>
@@ -62,7 +62,7 @@
     {/each}
   {:else if analyticsData}
     <!-- Rating Distribution -->
-    <Card variant="glass" class="hover:shadow-lg transition-all duration-300">
+    <Card variant="default" hover interactive class="group transform transition-all duration-300 animate-fade-in-up" style="animation-delay: 100ms">
       <div class="mb-6">
         <h3 class="text-lg font-semibold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
           Rating Distribution
@@ -98,7 +98,7 @@
     </Card>
 
     <!-- Top Performing Dishes -->
-    <Card variant="glass" class="hover:shadow-lg transition-all duration-300">
+    <Card variant="default" hover interactive class="group transform transition-all duration-300 animate-fade-in-up" style="animation-delay: 200ms">
       <div class="mb-6">
         <h3 class="text-lg font-semibold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
           Top Performing Dishes
@@ -110,7 +110,7 @@
         {#each analyticsData.top_dishes.slice(0, 5) as dish, index}
           <div class="group flex items-center justify-between p-3 rounded-xl hover:bg-gray-50 transition-all duration-200">
             <div class="flex items-center space-x-3">
-              <div class="flex items-center justify-center w-10 h-10 bg-gradient-to-br from-purple-100 to-pink-100 rounded-xl text-sm font-semibold text-purple-700 group-hover:scale-110 transition-transform duration-200">
+              <div class="flex items-center justify-center w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-600 rounded-xl text-sm font-semibold text-white shadow-lg shadow-purple-500/25 group-hover:scale-110 transition-transform duration-200">
                 {index + 1}
               </div>
               <div>
@@ -145,3 +145,21 @@
     </Card>
   {/if}
 </div>
+
+<style>
+  @keyframes fade-in-up {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .animate-fade-in-up {
+    animation: fade-in-up 0.6s ease-out forwards;
+    opacity: 0;
+  }
+</style>

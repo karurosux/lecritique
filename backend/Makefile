@@ -1,4 +1,4 @@
-.PHONY: build run test clean migrate-up migrate-down migrate-create docker-build docker-up docker-down swagger generate-frontend-api seed seed-force
+.PHONY: build run test clean migrate-up migrate-down migrate-create docker-build docker-up docker-down swagger generate-frontend-api seed seed-force setup
 
 # Variables
 APP_NAME=lecritique
@@ -80,3 +80,7 @@ seed:
 seed-force:
 	@echo "Force recreating default test user..."
 	@go run cmd/seed/main.go --force
+
+# Setup development environment
+setup:
+	@./setup-dev.sh

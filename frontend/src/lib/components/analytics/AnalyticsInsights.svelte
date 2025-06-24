@@ -67,7 +67,7 @@
   });
 </script>
 
-<Card variant="glass" class="hover:shadow-lg transition-all duration-300">
+<Card variant="default" hover interactive class="group transform transition-all duration-300 animate-fade-in-up">
   <div class="mb-6">
     <h3 class="text-lg font-semibold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
       Key Insights
@@ -109,3 +109,21 @@
     {/if}
   </div>
 </Card>
+
+<style>
+  @keyframes fade-in-up {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .animate-fade-in-up {
+    animation: fade-in-up 0.6s ease-out forwards;
+    opacity: 0;
+  }
+</style>
