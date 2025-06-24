@@ -171,8 +171,17 @@ function createAuthStore() {
       // Clear security data
       api.setSecurityData(null);
 
-      // Reset store
-      set(initialState);
+      // Reset store to clean initial state
+      set({
+        user: null,
+        token: null,
+        isAuthenticated: false,
+        isLoading: false,
+        error: null
+      });
+      
+      // Return a promise to ensure async completion
+      return Promise.resolve();
     },
 
     async refreshToken() {

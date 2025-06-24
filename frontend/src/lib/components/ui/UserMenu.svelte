@@ -15,10 +15,13 @@
     showMenu = false;
   }
 
-  function handleLogout() {
-    auth.logout();
-    goto('/login');
+  async function handleLogout() {
     closeMenu();
+    await auth.logout();
+    // Small delay to ensure auth state is propagated
+    await new Promise(resolve => setTimeout(resolve, 100));
+    // Use replace to ensure we don't keep the current page in history
+    await goto('/login', { replaceState: true });
   }
 
   function handleProfile() {
