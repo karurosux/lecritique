@@ -104,17 +104,23 @@
     isLoading = true;
     
     try {
-      const api = getApiClient();
-      const response = await api.api.v1AuthDeactivateCreate();
+      // TODO: Uncomment when API endpoints are available
+      // const api = getApiClient();
+      // const response = await api.api.v1AuthDeactivateCreate();
       
-      if (response.data.data?.deactivation_date) {
-        deactivationDate = new Date(response.data.data.deactivation_date);
-        onSuccess?.(`Your account will be deactivated on ${deactivationDate.toLocaleDateString()}. You can cancel this request by logging in before this date.`);
-        
-        // Show the deactivation info instead of logging out immediately
-        showDeactivateConfirm = false;
-        deactivateConfirmText = '';
-      }
+      // Temporary: Show success message and trigger logout
+      const futureDate = new Date();
+      futureDate.setDate(futureDate.getDate() + 15);
+      deactivationDate = futureDate;
+      
+      onSuccess?.(`Your account will be deactivated on ${deactivationDate.toLocaleDateString()}. You can cancel this request by logging in before this date.`);
+      
+      // Show the deactivation info instead of logging out immediately
+      showDeactivateConfirm = false;
+      deactivateConfirmText = '';
+      
+      // Call the onDeactivate callback to handle logout
+      onDeactivate?.();
     } catch (error) {
       const errorMessage = handleApiError(error);
       onError?.(errorMessage);
@@ -127,9 +133,11 @@
     isLoading = true;
     
     try {
-      const api = getApiClient();
-      await api.api.v1AuthCancelDeactivationCreate();
+      // TODO: Uncomment when API endpoints are available
+      // const api = getApiClient();
+      // await api.api.v1AuthCancelDeactivationCreate();
       
+      // Temporary: Just clear the deactivation date
       deactivationDate = null;
       onSuccess?.('Account deactivation cancelled successfully.');
     } catch (error) {

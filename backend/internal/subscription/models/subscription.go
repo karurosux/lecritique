@@ -44,20 +44,57 @@ type SubscriptionPlan struct {
 	Interval    string      `gorm:"default:'month'" json:"interval"`
 	Features    PlanFeatures `gorm:"type:jsonb" json:"features"`
 	IsActive    bool        `gorm:"default:true" json:"is_active"`
+	IsVisible   bool        `gorm:"default:true" json:"is_visible"`
+	TrialDays   int         `gorm:"default:0" json:"trial_days"`
 	StripePriceID string    `json:"-"`
 }
 
+// PlanFeatures uses generic maps for flexibility
 type PlanFeatures struct {
-	MaxRestaurants          int  `json:"max_restaurants"`
-	MaxLocationsPerRestaurant int  `json:"max_locations_per_restaurant"`
-	MaxQRCodesPerLocation   int  `json:"max_qr_codes_per_location"`
-	MaxFeedbacksPerMonth    int  `json:"max_feedbacks_per_month"`
-	MaxTeamMembers          int  `json:"max_team_members"`
-	AdvancedAnalytics       bool `json:"advanced_analytics"`
-	CustomBranding          bool `json:"custom_branding"`
-	APIAccess               bool `json:"api_access"`
-	PrioritySupport         bool `json:"priority_support"`
+	Limits map[string]int64        `json:"limits"`
+	Flags  map[string]bool         `json:"flags"`
+	Custom map[string]interface{}  `json:"custom,omitempty"`
 }
+
+// Helper methods for type-safe access
+func (pf PlanFeatures) GetLimit(key string) int64 {
+	if pf.Limits == nil {
+		return 0
+	}
+	return pf.Limits[key]
+}
+
+func (pf PlanFeatures) GetFlag(key string) bool {
+	if pf.Flags == nil {
+		return false
+	}
+	return pf.Flags[key]
+}
+
+func (pf PlanFeatures) IsUnlimited(key string) bool {
+	return pf.GetLimit(key) == -1
+}
+
+// Common limit keys as constants for type safety
+const (
+	LimitRestaurants          = "max_restaurants"
+	LimitLocationsPerRestaurant = "max_locations_per_restaurant"
+	LimitQRCodesPerLocation   = "max_qr_codes_per_location"
+	LimitFeedbacksPerMonth    = "max_feedbacks_per_month"
+	LimitTeamMembers          = "max_team_members"
+	LimitStorageGB            = "max_storage_gb"
+	LimitAPICallsPerHour      = "max_api_calls_per_hour"
+)
+
+// Common feature flags
+const (
+	FlagAdvancedAnalytics = "advanced_analytics"
+	FlagCustomBranding    = "custom_branding"
+	FlagAPIAccess         = "api_access"
+	FlagPrioritySupport   = "priority_support"
+	FlagWhiteLabel        = "white_label"
+	FlagCustomDomain      = "custom_domain"
+)
 
 // GORM Scanner/Valuer interfaces for JSONB
 func (pf PlanFeatures) Value() (driver.Value, error) {
@@ -80,8 +117,9 @@ func (s *Subscription) IsActive() bool {
 }
 
 func (s *Subscription) CanAddRestaurant(currentCount int) bool {
-	if s.Plan.Features.MaxRestaurants == -1 {
+	limit := s.Plan.Features.GetLimit(LimitRestaurants)
+	if limit == -1 {
 		return true
 	}
-	return currentCount < s.Plan.Features.MaxRestaurants
+	return int64(currentCount) < limit
 }

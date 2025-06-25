@@ -8,6 +8,7 @@ import (
 	restaurantRepos "github.com/lecritique/api/internal/restaurant/repositories"
 	"github.com/lecritique/api/internal/shared/errors"
 	sharedRepos "github.com/lecritique/api/internal/shared/repositories"
+	subscriptionModels "github.com/lecritique/api/internal/subscription/models"
 	subscriptionRepos "github.com/lecritique/api/internal/subscription/repositories"
 )
 
@@ -52,7 +53,7 @@ func (s *restaurantService) Create(ctx context.Context, accountID uuid.UUID, res
 			402,
 			map[string]interface{}{
 				"current_count": currentCount,
-				"max_allowed":   subscription.Plan.Features.MaxRestaurants,
+				"max_allowed":   subscription.Plan.Features.GetLimit(subscriptionModels.LimitRestaurants),
 			})
 	}
 

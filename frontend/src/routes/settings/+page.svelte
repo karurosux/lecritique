@@ -1,6 +1,7 @@
 <script lang="ts">
   import { auth } from '$lib/stores/auth';
   import { Card } from '$lib/components/ui';
+  import { goto } from '$app/navigation';
   
   // Import icons from lucide-svelte
   import { 
@@ -50,6 +51,15 @@
 
   async function handleDeactivation() {
     showSuccess('Account deactivation scheduled. Your account will be deactivated in 15 days. You can cancel this anytime by logging in or from your account settings.');
+    
+    // Log the user out after scheduling deactivation
+    setTimeout(async () => {
+      await auth.logout();
+      // Small delay to ensure auth state is propagated
+      await new Promise(resolve => setTimeout(resolve, 100));
+      // Redirect to login page
+      await goto('/login', { replaceState: true });
+    }, 3000); // Give user time to read the message
   }
 
   const tabs = [
@@ -135,9 +145,7 @@
 
           {:else if activeTab === 'subscription'}
             <SubscriptionSettings 
-              currentPlan="professional"
-              onUpgrade={(plan) => showSuccess(`Upgrade to ${plan} initiated`)}
-              onDowngrade={(plan) => showSuccess(`Downgrade to ${plan} initiated`)}
+              onError={showError}
             />
 
           {:else if activeTab === 'billing'}

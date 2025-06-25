@@ -18,10 +18,11 @@ type Config struct {
 }
 
 type AppConfig struct {
-	Name string
-	Env  string
-	Port string
-	URL  string
+	Name        string
+	Env         string
+	Port        string
+	URL         string
+	FrontendURL string
 }
 
 type DatabaseConfig struct {
@@ -67,6 +68,7 @@ func Load() (*Config, error) {
 	viper.SetDefault("APP_ENV", "development")
 	viper.SetDefault("APP_PORT", "8080")
 	viper.SetDefault("APP_URL", "http://localhost:8080")
+	viper.SetDefault("FRONTEND_URL", "http://localhost:5173")
 	viper.SetDefault("DB_HOST", "localhost")
 	viper.SetDefault("DB_PORT", "5432")
 	viper.SetDefault("DB_SSLMODE", "disable")
@@ -98,10 +100,11 @@ func Load() (*Config, error) {
 
 	config := &Config{
 		App: AppConfig{
-			Name: viper.GetString("APP_NAME"),
-			Env:  viper.GetString("APP_ENV"),
-			Port: viper.GetString("APP_PORT"),
-			URL:  viper.GetString("APP_URL"),
+			Name:        viper.GetString("APP_NAME"),
+			Env:         viper.GetString("APP_ENV"),
+			Port:        viper.GetString("APP_PORT"),
+			URL:         viper.GetString("APP_URL"),
+			FrontendURL: viper.GetString("FRONTEND_URL"),
 		},
 		Database: DatabaseConfig{
 			Host:     viper.GetString("DB_HOST"),
