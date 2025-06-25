@@ -88,6 +88,11 @@
   let current = $derived($currentPlan);
   let limits = $derived($planLimits);
   let plans = $derived(subscriptionData.plans || []);
+  
+  // Check if current plan is custom (not in visible plans list)
+  let isCustomPlan = $derived(
+    current && plans.length > 0 && !plans.find(p => p.id === current.id)
+  );
 </script>
 
 <div>
@@ -101,13 +106,41 @@
       <Loader2 class="h-8 w-8 animate-spin text-gray-400" />
     </div>
   {:else if subscriptionData.subscription}
+    <!-- Custom Plan Notice -->
+    {#if isCustomPlan}
+      <div class="mb-6 bg-amber-50 border border-amber-200 rounded-lg p-4">
+        <div class="flex">
+          <div class="flex-shrink-0">
+            <svg class="h-5 w-5 text-amber-400" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm0-2a6 6 0 100-12 6 6 0 000 12zm0-10a1 1 0 011 1v4a1 1 0 11-2 0V7a1 1 0 011-1zm0 8a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd" />
+            </svg>
+          </div>
+          <div class="ml-3">
+            <h3 class="text-sm font-medium text-amber-800">Custom Plan</h3>
+            <p class="mt-1 text-sm text-amber-700">
+              You are currently on a custom plan tailored specifically for your organization. 
+              To make any changes to your subscription, please contact our support team at 
+              <a href="mailto:support@lecritique.com" class="font-medium underline">support@lecritique.com</a>.
+            </p>
+          </div>
+        </div>
+      </div>
+    {/if}
+    
     <!-- Current Plan -->
     <div class="mb-8">
       <div class="bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl p-6 text-white">
         <div class="flex items-start justify-between">
           <div>
             <h3 class="text-sm font-medium text-blue-100">Current Plan</h3>
-            <p class="mt-1 text-2xl font-bold">{current?.name || 'Unknown'}</p>
+            <div class="flex items-center gap-2 mt-1">
+              <p class="text-2xl font-bold">{current?.name || 'Unknown'}</p>
+              {#if isCustomPlan}
+                <span class="bg-amber-400 text-amber-900 text-xs font-semibold px-2 py-1 rounded-full">
+                  CUSTOM
+                </span>
+              {/if}
+            </div>
             <p class="mt-2 text-sm text-blue-100">
               {formatPrice(current?.price || 0)}/{current?.interval || 'month'}
             </p>
@@ -154,10 +187,11 @@
     </div>
 
     <!-- Available Plans -->
-    <div class="space-y-4">
-      <h3 class="text-lg font-medium text-gray-900">Available Plans</h3>
-      
-      <div class="grid gap-4 md:grid-cols-3">
+    {#if !isCustomPlan}
+      <div class="space-y-4">
+        <h3 class="text-lg font-medium text-gray-900">Available Plans</h3>
+        
+        <div class="grid gap-4 md:grid-cols-3">
         {#each plans as plan}
           {@const isCurrent = plan.id === current?.id}
           <div class="relative">
@@ -214,8 +248,9 @@
             </Card>
           </div>
         {/each}
+        </div>
       </div>
-    </div>
+    {/if}
   {:else}
     <!-- No Subscription -->
     <Card variant="glass" class="p-8 text-center">

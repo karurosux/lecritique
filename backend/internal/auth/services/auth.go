@@ -3,6 +3,7 @@ package services
 import (
 	"context"
 	"log"
+	"net/http"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -28,6 +29,7 @@ type AuthService interface {
 	RequestDeactivation(ctx context.Context, accountID uuid.UUID) error
 	CancelDeactivation(ctx context.Context, accountID uuid.UUID) error
 	ProcessPendingDeactivations(ctx context.Context) error
+	UpdateProfile(ctx context.Context, accountID uuid.UUID, updates map[string]interface{}) (*models.Account, error)
 }
 
 type authService struct {
@@ -514,4 +516,33 @@ func (s *authService) ProcessPendingDeactivations(ctx context.Context) error {
 	}
 
 	return nil
+}
+
+func (s *authService) UpdateProfile(ctx context.Context, accountID uuid.UUID, updates map[string]interface{}) (*models.Account, error) {
+	// Validate that we have at least one update
+	if len(updates) == 0 {
+		return nil, errors.New("BAD_REQUEST", "No updates provided", http.StatusBadRequest)
+	}
+
+	// Get the account first
+	account, err := s.accountRepo.FindByID(ctx, accountID)
+	if err != nil {
+		return nil, err
+	}
+
+	// Update the account fields manually
+	if companyName, ok := updates["company_name"].(string); ok {
+		account.CompanyName = companyName
+	}
+	if phone, ok := updates["phone"].(string); ok {
+		account.Phone = phone
+	}
+
+	// Save the updated account
+	err = s.accountRepo.Update(ctx, account)
+	if err != nil {
+		return nil, err
+	}
+
+	return account, nil
 }

@@ -43,6 +43,7 @@ func RegisterRoutes(v1 *echo.Group, db *gorm.DB, cfg *config.Config) services.Au
 	authProtected.POST("/change-email", authHandler.ChangeEmail)
 	authProtected.POST("/deactivate", authHandler.RequestDeactivation)
 	authProtected.POST("/cancel-deactivation", authHandler.CancelDeactivation)
+	authProtected.PUT("/profile", authHandler.UpdateProfile)
 	
 	return authService
 }

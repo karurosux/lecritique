@@ -7,6 +7,17 @@ definitions:
       token:
         type: string
     type: object
+  handlers.CardDetailsResponse:
+    properties:
+      brand:
+        type: string
+      exp_month:
+        type: integer
+      exp_year:
+        type: integer
+      last4:
+        type: string
+    type: object
   handlers.ChangeEmailRequest:
     properties:
       new_email:
@@ -14,12 +25,33 @@ definitions:
     required:
     - new_email
     type: object
+  handlers.CheckoutResponse:
+    properties:
+      checkout_url:
+        type: string
+      session_id:
+        type: string
+    type: object
+  handlers.CompleteCheckoutRequest:
+    properties:
+      session_id:
+        type: string
+    required:
+    - session_id
+    type: object
   handlers.ConfirmEmailChangeRequest:
     properties:
       token:
         type: string
     required:
     - token
+    type: object
+  handlers.CreateCheckoutRequest:
+    properties:
+      plan_id:
+        type: string
+    required:
+    - plan_id
     type: object
   handlers.CreateDishRequest:
     properties:
@@ -91,6 +123,29 @@ definitions:
       success:
         type: boolean
     type: object
+  handlers.InvoiceResponse:
+    properties:
+      amount_due:
+        type: integer
+      amount_paid:
+        type: integer
+      created_at:
+        type: string
+      currency:
+        type: string
+      hosted_invoice_url:
+        type: string
+      id:
+        type: string
+      invoice_pdf:
+        type: string
+      number:
+        type: string
+      paid_at:
+        type: string
+      status:
+        type: string
+    type: object
   handlers.LoginRequest:
     properties:
       email:
@@ -107,6 +162,22 @@ definitions:
         type: string
     required:
     - email
+    type: object
+  handlers.PaymentMethodResponse:
+    properties:
+      card:
+        $ref: '#/definitions/handlers.CardDetailsResponse'
+      id:
+        type: string
+      is_default:
+        type: boolean
+      type:
+        type: string
+    type: object
+  handlers.PortalResponse:
+    properties:
+      portal_url:
+        type: string
     type: object
   handlers.QRCodeListResponse:
     properties:
@@ -142,11 +213,34 @@ definitions:
     - new_password
     - token
     type: object
+  handlers.SetDefaultPaymentRequest:
+    properties:
+      payment_method_id:
+        type: string
+    required:
+    - payment_method_id
+    type: object
+  handlers.UpdateProfileRequest:
+    properties:
+      company_name:
+        minLength: 1
+        type: string
+      first_name:
+        minLength: 1
+        type: string
+      last_name:
+        minLength: 1
+        type: string
+      phone:
+        type: string
+    type: object
   models.Account:
     properties:
       company_name:
         type: string
       created_at:
+        type: string
+      deactivation_requested_at:
         type: string
       email:
         type: string
@@ -219,24 +313,17 @@ definitions:
     - RoleViewer
   models.PlanFeatures:
     properties:
-      advanced_analytics:
-        type: boolean
-      api_access:
-        type: boolean
-      custom_branding:
-        type: boolean
-      max_feedbacks_per_month:
-        type: integer
-      max_locations_per_restaurant:
-        type: integer
-      max_qr_codes_per_location:
-        type: integer
-      max_restaurants:
-        type: integer
-      max_team_members:
-        type: integer
-      priority_support:
-        type: boolean
+      custom:
+        additionalProperties: true
+        type: object
+      flags:
+        additionalProperties:
+          type: boolean
+        type: object
+      limits:
+        additionalProperties:
+          type: integer
+        type: object
     type: object
   models.QRCode:
     properties:
@@ -373,10 +460,14 @@ definitions:
         type: string
       is_active:
         type: boolean
+      is_visible:
+        type: boolean
       name:
         type: string
       price:
         type: number
+      trial_days:
+        type: integer
       updated_at:
         type: string
     type: object
@@ -605,6 +696,38 @@ paths:
       summary: Get restaurant analytics
       tags:
       - analytics
+  /api/v1/auth/cancel-deactivation:
+    post:
+      consumes:
+      - application/json
+      description: Cancel a pending account deactivation request
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  additionalProperties:
+                    type: string
+                  type: object
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - ApiKeyAuth: []
+      summary: Cancel account deactivation
+      tags:
+      - auth
   /api/v1/auth/change-email:
     post:
       consumes:
@@ -677,6 +800,37 @@ paths:
       summary: Confirm email change
       tags:
       - auth
+  /api/v1/auth/deactivate:
+    post:
+      consumes:
+      - application/json
+      description: Request to deactivate the account with a 15-day grace period
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  additionalProperties: true
+                  type: object
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - ApiKeyAuth: []
+      summary: Request account deactivation
+      tags:
+      - auth
   /api/v1/auth/forgot-password:
     post:
       consumes:
@@ -743,6 +897,47 @@ paths:
           schema:
             $ref: '#/definitions/response.Response'
       summary: Login to account
+      tags:
+      - auth
+  /api/v1/auth/profile:
+    put:
+      consumes:
+      - application/json
+      description: Update user profile information including company name and personal
+        details
+      parameters:
+      - description: Profile update data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.UpdateProfileRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data: {}
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: Update user profile
       tags:
       - auth
   /api/v1/auth/refresh:
@@ -1090,6 +1285,203 @@ paths:
       summary: Update a dish
       tags:
       - dishes
+  /api/v1/payment/checkout:
+    post:
+      consumes:
+      - application/json
+      description: Create a payment checkout session for a subscription plan
+      parameters:
+      - description: Checkout request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.CreateCheckoutRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/handlers.CheckoutResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: Create a checkout session
+      tags:
+      - payment
+  /api/v1/payment/checkout/complete:
+    post:
+      consumes:
+      - application/json
+      description: Complete a checkout session after payment
+      parameters:
+      - description: Complete checkout request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.CompleteCheckoutRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: Complete a checkout session
+      tags:
+      - payment
+  /api/v1/payment/invoices:
+    get:
+      description: Get user's invoice history
+      parameters:
+      - default: 10
+        description: Limit number of invoices
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/handlers.InvoiceResponse'
+                  type: array
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: Get invoices
+      tags:
+      - payment
+  /api/v1/payment/methods:
+    get:
+      description: Get list of user's payment methods
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/handlers.PaymentMethodResponse'
+                  type: array
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: List payment methods
+      tags:
+      - payment
+  /api/v1/payment/methods/default:
+    post:
+      consumes:
+      - application/json
+      description: Set a payment method as default
+      parameters:
+      - description: Set default payment request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.SetDefaultPaymentRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: Set default payment method
+      tags:
+      - payment
+  /api/v1/payment/portal:
+    post:
+      description: Create a customer portal session for self-service subscription
+        management
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/handlers.PortalResponse'
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: Create customer portal session
+      tags:
+      - payment
+  /api/v1/payment/webhook:
+    post:
+      consumes:
+      - application/json
+      description: Handle webhook events from payment provider
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: Handle payment webhook
+      tags:
+      - payment
   /api/v1/plans:
     get:
       consumes:

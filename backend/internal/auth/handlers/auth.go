@@ -427,3 +427,62 @@ func (h *AuthHandler) CancelDeactivation(c echo.Context) error {
 		"message": "Account deactivation request has been cancelled.",
 	})
 }
+
+type UpdateProfileRequest struct {
+	CompanyName string `json:"company_name,omitempty" validate:"omitempty,min=1"`
+	Phone       string `json:"phone,omitempty" validate:"omitempty"`
+	FirstName   string `json:"first_name,omitempty" validate:"omitempty,min=1"`
+	LastName    string `json:"last_name,omitempty" validate:"omitempty,min=1"`
+}
+
+// UpdateProfile godoc
+// @Summary Update user profile
+// @Description Update user profile information including company name and personal details
+// @Tags auth
+// @Accept json
+// @Produce json
+// @Param request body UpdateProfileRequest true "Profile update data"
+// @Success 200 {object} response.Response{data=interface{}}
+// @Failure 400 {object} response.Response
+// @Failure 401 {object} response.Response
+// @Failure 500 {object} response.Response
+// @Router /api/v1/auth/profile [put]
+// @Security BearerAuth
+func (h *AuthHandler) UpdateProfile(c echo.Context) error {
+	ctx := c.Request().Context()
+	
+	// Get account ID from context (set by auth middleware)
+	accountID, ok := c.Get("account_id").(uuid.UUID)
+	if !ok {
+		return response.Error(c, errors.ErrUnauthorized)
+	}
+
+	var req UpdateProfileRequest
+	if err := c.Bind(&req); err != nil {
+		return response.Error(c, errors.New("BAD_REQUEST", "Invalid request", http.StatusBadRequest))
+	}
+
+	if err := h.validator.Validate(&req); err != nil {
+		return response.Error(c, err)
+	}
+
+	// Update account fields
+	updates := make(map[string]interface{})
+	if req.CompanyName != "" {
+		updates["company_name"] = req.CompanyName
+	}
+	if req.Phone != "" {
+		updates["phone"] = req.Phone
+	}
+
+	// Note: FirstName and LastName would be updated on the User model
+	// This requires fetching the user associated with the account
+	// For now, we'll just update Account fields
+
+	updatedAccount, err := h.authService.UpdateProfile(ctx, accountID, updates)
+	if err != nil {
+		return response.Error(c, err)
+	}
+
+	return response.Success(c, updatedAccount)
+}

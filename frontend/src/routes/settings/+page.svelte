@@ -5,7 +5,8 @@
   
   // Import icons from lucide-svelte
   import { 
-    User, 
+    User,
+    Users, 
     DollarSign, 
     FileText, 
     CreditCard, 
@@ -16,7 +17,9 @@
   
   // Import settings components
   import { 
-    AccountSettings, 
+    GeneralSettings,
+    AccountSettings,
+    TeamSettings, 
     SubscriptionSettings, 
     BillingHistory, 
     PaymentMethods 
@@ -26,7 +29,7 @@
   let user = $derived(authState.user);
 
   // Tab state
-  let activeTab = $state('account');
+  let activeTab = $state('general');
 
   // Message states
   let successMessage = $state('');
@@ -63,7 +66,9 @@
   }
 
   const tabs = [
+    { id: 'general', label: 'General', icon: Settings },
     { id: 'account', label: 'Account', icon: User },
+    { id: 'team', label: 'Team', icon: Users },
     { id: 'subscription', label: 'Subscription', icon: DollarSign },
     { id: 'billing', label: 'Billing History', icon: FileText },
     { id: 'payment', label: 'Payment', icon: CreditCard }
@@ -135,12 +140,24 @@
       <!-- Tab Content -->
       <div class="lg:col-span-3">
         <Card variant="glass" class="p-6">
-          {#if activeTab === 'account'}
+          {#if activeTab === 'general'}
+            <GeneralSettings 
+              onSuccess={showSuccess}
+              onError={showError}
+            />
+            
+          {:else if activeTab === 'account'}
             <AccountSettings 
               user={user}
               onSuccess={showSuccess}
               onError={showError}
               onDeactivate={handleDeactivation}
+            />
+            
+          {:else if activeTab === 'team'}
+            <TeamSettings 
+              onSuccess={showSuccess}
+              onError={showError}
             />
 
           {:else if activeTab === 'subscription'}

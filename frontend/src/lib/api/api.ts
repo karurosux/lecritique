@@ -39,12 +39,32 @@ export interface HandlersAuthResponse {
   token?: string;
 }
 
+export interface HandlersCardDetailsResponse {
+  brand?: string;
+  exp_month?: number;
+  exp_year?: number;
+  last4?: string;
+}
+
 export interface HandlersChangeEmailRequest {
   new_email: string;
 }
 
+export interface HandlersCheckoutResponse {
+  checkout_url?: string;
+  session_id?: string;
+}
+
+export interface HandlersCompleteCheckoutRequest {
+  session_id: string;
+}
+
 export interface HandlersConfirmEmailChangeRequest {
   token: string;
+}
+
+export interface HandlersCreateCheckoutRequest {
+  plan_id: string;
 }
 
 export interface HandlersCreateDishRequest {
@@ -84,6 +104,19 @@ export interface HandlersGenerateQRCodeResponse {
   success?: boolean;
 }
 
+export interface HandlersInvoiceResponse {
+  amount_due?: number;
+  amount_paid?: number;
+  created_at?: string;
+  currency?: string;
+  hosted_invoice_url?: string;
+  id?: string;
+  invoice_pdf?: string;
+  number?: string;
+  paid_at?: string;
+  status?: string;
+}
+
 export interface HandlersLoginRequest {
   email: string;
   password: string;
@@ -91,6 +124,17 @@ export interface HandlersLoginRequest {
 
 export interface HandlersPasswordResetRequest {
   email: string;
+}
+
+export interface HandlersPaymentMethodResponse {
+  card?: HandlersCardDetailsResponse;
+  id?: string;
+  is_default?: boolean;
+  type?: string;
+}
+
+export interface HandlersPortalResponse {
+  portal_url?: string;
 }
 
 export interface HandlersQRCodeListResponse {
@@ -111,9 +155,24 @@ export interface HandlersResetPasswordRequest {
   token: string;
 }
 
+export interface HandlersSetDefaultPaymentRequest {
+  payment_method_id: string;
+}
+
+export interface HandlersUpdateProfileRequest {
+  /** @minLength 1 */
+  company_name?: string;
+  /** @minLength 1 */
+  first_name?: string;
+  /** @minLength 1 */
+  last_name?: string;
+  phone?: string;
+}
+
 export interface ModelsAccount {
   company_name?: string;
   created_at?: string;
+  deactivation_requested_at?: string;
   email?: string;
   email_verified?: boolean;
   email_verified_at?: string;
@@ -149,15 +208,9 @@ export interface ModelsLocation {
 }
 
 export interface ModelsPlanFeatures {
-  advanced_analytics?: boolean;
-  api_access?: boolean;
-  custom_branding?: boolean;
-  max_feedbacks_per_month?: number;
-  max_locations_per_restaurant?: number;
-  max_qr_codes_per_location?: number;
-  max_restaurants?: number;
-  max_team_members?: number;
-  priority_support?: boolean;
+  custom?: Record<string, any>;
+  flags?: Record<string, boolean>;
+  limits?: Record<string, number>;
 }
 
 export interface ModelsQRCode {
@@ -226,8 +279,10 @@ export interface ModelsSubscriptionPlan {
   id?: string;
   interval?: string;
   is_active?: boolean;
+  is_visible?: boolean;
   name?: string;
   price?: number;
+  trial_days?: number;
   updated_at?: string;
 }
 
@@ -537,6 +592,30 @@ export class Api<
       }),
 
     /**
+     * @description Cancel a pending account deactivation request
+     *
+     * @tags auth
+     * @name V1AuthCancelDeactivationCreate
+     * @summary Cancel account deactivation
+     * @request POST:/api/v1/auth/cancel-deactivation
+     * @secure
+     */
+    v1AuthCancelDeactivationCreate: (params: RequestParams = {}) =>
+      this.request<
+        ResponseResponse & {
+          data?: Record<string, string>;
+        },
+        ResponseResponse
+      >({
+        path: `/api/v1/auth/cancel-deactivation`,
+        method: "POST",
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
      * @description Request to change the account email address
      *
      * @tags auth
@@ -591,6 +670,30 @@ export class Api<
       }),
 
     /**
+     * @description Request to deactivate the account with a 15-day grace period
+     *
+     * @tags auth
+     * @name V1AuthDeactivateCreate
+     * @summary Request account deactivation
+     * @request POST:/api/v1/auth/deactivate
+     * @secure
+     */
+    v1AuthDeactivateCreate: (params: RequestParams = {}) =>
+      this.request<
+        ResponseResponse & {
+          data?: Record<string, any>;
+        },
+        ResponseResponse
+      >({
+        path: `/api/v1/auth/deactivate`,
+        method: "POST",
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
      * @description Send password reset email to the specified email address
      *
      * @tags auth
@@ -637,6 +740,34 @@ export class Api<
         path: `/api/v1/auth/login`,
         method: "POST",
         body: request,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description Update user profile information including company name and personal details
+     *
+     * @tags auth
+     * @name V1AuthProfileUpdate
+     * @summary Update user profile
+     * @request PUT:/api/v1/auth/profile
+     * @secure
+     */
+    v1AuthProfileUpdate: (
+      request: HandlersUpdateProfileRequest,
+      params: RequestParams = {},
+    ) =>
+      this.request<
+        ResponseResponse & {
+          data?: any;
+        },
+        ResponseResponse
+      >({
+        path: `/api/v1/auth/profile`,
+        method: "PUT",
+        body: request,
+        secure: true,
         type: ContentType.Json,
         format: "json",
         ...params,
@@ -871,6 +1002,174 @@ export class Api<
         path: `/api/v1/dishes/${id}`,
         method: "DELETE",
         secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description Create a payment checkout session for a subscription plan
+     *
+     * @tags payment
+     * @name V1PaymentCheckoutCreate
+     * @summary Create a checkout session
+     * @request POST:/api/v1/payment/checkout
+     * @secure
+     */
+    v1PaymentCheckoutCreate: (
+      request: HandlersCreateCheckoutRequest,
+      params: RequestParams = {},
+    ) =>
+      this.request<
+        ResponseResponse & {
+          data?: HandlersCheckoutResponse;
+        },
+        ResponseResponse
+      >({
+        path: `/api/v1/payment/checkout`,
+        method: "POST",
+        body: request,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description Complete a checkout session after payment
+     *
+     * @tags payment
+     * @name V1PaymentCheckoutCompleteCreate
+     * @summary Complete a checkout session
+     * @request POST:/api/v1/payment/checkout/complete
+     */
+    v1PaymentCheckoutCompleteCreate: (
+      request: HandlersCompleteCheckoutRequest,
+      params: RequestParams = {},
+    ) =>
+      this.request<ResponseResponse, ResponseResponse>({
+        path: `/api/v1/payment/checkout/complete`,
+        method: "POST",
+        body: request,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description Get user's invoice history
+     *
+     * @tags payment
+     * @name V1PaymentInvoicesList
+     * @summary Get invoices
+     * @request GET:/api/v1/payment/invoices
+     * @secure
+     */
+    v1PaymentInvoicesList: (
+      query?: {
+        /**
+         * Limit number of invoices
+         * @default 10
+         */
+        limit?: number;
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<
+        ResponseResponse & {
+          data?: HandlersInvoiceResponse[];
+        },
+        ResponseResponse
+      >({
+        path: `/api/v1/payment/invoices`,
+        method: "GET",
+        query: query,
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description Get list of user's payment methods
+     *
+     * @tags payment
+     * @name V1PaymentMethodsList
+     * @summary List payment methods
+     * @request GET:/api/v1/payment/methods
+     * @secure
+     */
+    v1PaymentMethodsList: (params: RequestParams = {}) =>
+      this.request<
+        ResponseResponse & {
+          data?: HandlersPaymentMethodResponse[];
+        },
+        ResponseResponse
+      >({
+        path: `/api/v1/payment/methods`,
+        method: "GET",
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description Set a payment method as default
+     *
+     * @tags payment
+     * @name V1PaymentMethodsDefaultCreate
+     * @summary Set default payment method
+     * @request POST:/api/v1/payment/methods/default
+     * @secure
+     */
+    v1PaymentMethodsDefaultCreate: (
+      request: HandlersSetDefaultPaymentRequest,
+      params: RequestParams = {},
+    ) =>
+      this.request<ResponseResponse, ResponseResponse>({
+        path: `/api/v1/payment/methods/default`,
+        method: "POST",
+        body: request,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description Create a customer portal session for self-service subscription management
+     *
+     * @tags payment
+     * @name V1PaymentPortalCreate
+     * @summary Create customer portal session
+     * @request POST:/api/v1/payment/portal
+     * @secure
+     */
+    v1PaymentPortalCreate: (params: RequestParams = {}) =>
+      this.request<
+        ResponseResponse & {
+          data?: HandlersPortalResponse;
+        },
+        ResponseResponse
+      >({
+        path: `/api/v1/payment/portal`,
+        method: "POST",
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description Handle webhook events from payment provider
+     *
+     * @tags payment
+     * @name V1PaymentWebhookCreate
+     * @summary Handle payment webhook
+     * @request POST:/api/v1/payment/webhook
+     */
+    v1PaymentWebhookCreate: (params: RequestParams = {}) =>
+      this.request<ResponseResponse, ResponseResponse>({
+        path: `/api/v1/payment/webhook`,
+        method: "POST",
         type: ContentType.Json,
         format: "json",
         ...params,

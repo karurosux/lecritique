@@ -6,6 +6,7 @@ export interface User {
   id: string;
   email: string;
   company_name: string;
+  phone?: string;
   email_verified: boolean;
   deactivation_requested_at?: string | null;
 }
@@ -93,6 +94,7 @@ function createAuthStore() {
               id: account.id,
               email: account.email,
               company_name: account.company_name,
+              phone: account.phone,
               email_verified: account.email_verified,
               deactivation_requested_at: account.deactivation_requested_at
             };
@@ -252,6 +254,18 @@ function createAuthStore() {
         }));
       } catch (error) {
         console.error('Failed to update token:', error);
+      }
+    },
+
+    updateUser(updatedUser: User) {
+      update(state => ({
+        ...state,
+        user: updatedUser
+      }));
+      
+      // Update stored user
+      if (browser) {
+        localStorage.setItem('auth_user', JSON.stringify(updatedUser));
       }
     },
 
