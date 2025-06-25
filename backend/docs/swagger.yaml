@@ -7,6 +7,20 @@ definitions:
       token:
         type: string
     type: object
+  handlers.ChangeEmailRequest:
+    properties:
+      new_email:
+        type: string
+    required:
+    - new_email
+    type: object
+  handlers.ConfirmEmailChangeRequest:
+    properties:
+      token:
+        type: string
+    required:
+    - token
+    type: object
   handlers.CreateDishRequest:
     properties:
       category:
@@ -591,6 +605,78 @@ paths:
       summary: Get restaurant analytics
       tags:
       - analytics
+  /api/v1/auth/change-email:
+    post:
+      consumes:
+      - application/json
+      description: Request to change the account email address
+      parameters:
+      - description: New email address
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.ChangeEmailRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  additionalProperties:
+                    type: string
+                  type: object
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - ApiKeyAuth: []
+      summary: Request email change
+      tags:
+      - auth
+  /api/v1/auth/confirm-email-change:
+    post:
+      consumes:
+      - application/json
+      description: Confirm email change using the token sent to the new email
+      parameters:
+      - description: Email change token
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.ConfirmEmailChangeRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  additionalProperties:
+                    type: string
+                  type: object
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: Confirm email change
+      tags:
+      - auth
   /api/v1/auth/forgot-password:
     post:
       consumes:

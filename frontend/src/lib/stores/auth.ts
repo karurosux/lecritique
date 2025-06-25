@@ -7,6 +7,7 @@ export interface User {
   email: string;
   company_name: string;
   email_verified: boolean;
+  deactivation_requested_at?: string | null;
 }
 
 export interface AuthState {
@@ -92,7 +93,8 @@ function createAuthStore() {
               id: account.id,
               email: account.email,
               company_name: account.company_name,
-              email_verified: account.email_verified
+              email_verified: account.email_verified,
+              deactivation_requested_at: account.deactivation_requested_at
             };
 
             // Store in localStorage
@@ -217,6 +219,40 @@ function createAuthStore() {
 
     clearError() {
       update(state => ({ ...state, error: null }));
+    },
+
+    updateToken(newToken: string) {
+      // Validate the token first
+      try {
+        const payload = JSON.parse(atob(newToken.split('.')[1]));
+        
+        // Update stored token
+        if (browser) {
+          localStorage.setItem('auth_token', newToken);
+          
+          // Update user info from token if email changed
+          const storedUser = localStorage.getItem('auth_user');
+          if (storedUser && payload.email) {
+            const user = JSON.parse(storedUser);
+            user.email = payload.email;
+            localStorage.setItem('auth_user', JSON.stringify(user));
+          }
+        }
+
+        // Update security data
+        api.setSecurityData(newToken);
+
+        update(state => ({
+          ...state,
+          token: newToken,
+          user: state.user ? {
+            ...state.user,
+            email: payload.email || state.user.email
+          } : null
+        }));
+      } catch (error) {
+        console.error('Failed to update token:', error);
+      }
     },
 
     // Expose API client for authenticated requests

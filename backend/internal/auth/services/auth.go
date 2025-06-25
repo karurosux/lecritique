@@ -2,6 +2,7 @@ package services
 
 import (
 	"context"
+	"log"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -22,6 +23,11 @@ type AuthService interface {
 	VerifyEmail(ctx context.Context, token string) error
 	SendPasswordReset(ctx context.Context, email string) error
 	ResetPassword(ctx context.Context, token, newPassword string) error
+	RequestEmailChange(ctx context.Context, accountID uuid.UUID, newEmail string) (string, error)
+	ConfirmEmailChange(ctx context.Context, token string) (string, error)
+	RequestDeactivation(ctx context.Context, accountID uuid.UUID) error
+	CancelDeactivation(ctx context.Context, accountID uuid.UUID) error
+	ProcessPendingDeactivations(ctx context.Context) error
 }
 
 type authService struct {
@@ -88,6 +94,15 @@ func (s *authService) Login(ctx context.Context, email, password string) (string
 	// Check if account is active
 	if !account.IsActive {
 		return "", nil, errors.ErrUnauthorized
+	}
+
+	// If account has pending deactivation, cancel it
+	if account.IsPendingDeactivation() {
+		account.DeactivationRequestedAt = nil
+		if err := s.accountRepo.Update(ctx, account); err != nil {
+			// Log error but don't fail login
+			log.Printf("Failed to cancel deactivation for account %s: %v", account.ID, err)
+		}
 	}
 
 	// Generate token
@@ -276,4 +291,227 @@ func (s *authService) ResetPassword(ctx context.Context, token, newPassword stri
 
 	// Mark token as used
 	return s.tokenRepo.MarkAsUsed(ctx, resetToken.ID)
+}
+
+func (s *authService) RequestEmailChange(ctx context.Context, accountID uuid.UUID, newEmail string) (string, error) {
+	// Check if new email is already in use
+	existingAccount, _ := s.accountRepo.FindByEmail(ctx, newEmail)
+	if existingAccount != nil {
+		return "", errors.NewWithDetails("EMAIL_EXISTS", "Email already in use", 400, nil)
+	}
+
+	// Get current account
+	account, err := s.accountRepo.FindByID(ctx, accountID)
+	if err != nil {
+		return "", err
+	}
+
+	// Check if new email is same as current
+	if account.Email == newEmail {
+		return "", errors.NewWithDetails("SAME_EMAIL", "New email must be different from current email", 400, nil)
+	}
+
+	// In development mode without SMTP, change email immediately
+	if s.config.IsDevMode() && !s.config.IsSMTPConfigured() {
+		oldEmail := account.Email
+		
+		// Update email directly
+		account.Email = newEmail
+		account.EmailVerified = true
+		now := time.Now()
+		account.EmailVerifiedAt = &now
+
+		// Save account
+		if err := s.accountRepo.Update(ctx, account); err != nil {
+			return "", err
+		}
+
+		// Generate new JWT token with updated email
+		newToken, err := s.generateToken(account)
+		if err != nil {
+			return "", err
+		}
+
+		// Log the change
+		log.Printf("DEV MODE: Email changed directly from %s to %s for account %s", oldEmail, newEmail, accountID)
+		
+		return newToken, nil
+	}
+
+	// Production mode or SMTP configured - use token verification
+	// Generate token
+	token, err := models.GenerateToken()
+	if err != nil {
+		return "", err
+	}
+
+	// Create email change token (24 hour expiry)
+	changeToken := &models.VerificationToken{
+		AccountID: accountID,
+		Token:     token,
+		Type:      models.TokenTypeEmailChange,
+		ExpiresAt: time.Now().Add(24 * time.Hour),
+		NewEmail:  newEmail,
+	}
+
+	// Save token
+	if err := s.tokenRepo.Create(ctx, changeToken); err != nil {
+		return "", err
+	}
+
+	// Send verification email to new address
+	if err := s.emailService.SendEmailChangeVerification(ctx, newEmail, token); err != nil {
+		return "", err
+	}
+
+	return "", nil
+}
+
+func (s *authService) ConfirmEmailChange(ctx context.Context, token string) (string, error) {
+	// Find token
+	changeToken, err := s.tokenRepo.FindByToken(ctx, token)
+	if err != nil {
+		return "", errors.NewWithDetails("INVALID_TOKEN", "Invalid or expired token", 400, nil)
+	}
+
+	// Check if token is valid
+	if !changeToken.IsValid() {
+		return "", errors.NewWithDetails("INVALID_TOKEN", "Invalid or expired token", 400, nil)
+	}
+
+	// Check token type
+	if changeToken.Type != models.TokenTypeEmailChange {
+		return "", errors.NewWithDetails("INVALID_TOKEN", "Invalid token type", 400, nil)
+	}
+
+	// Check if new email is still available
+	existingAccount, _ := s.accountRepo.FindByEmail(ctx, changeToken.NewEmail)
+	if existingAccount != nil {
+		return "", errors.NewWithDetails("EMAIL_EXISTS", "Email is no longer available", 400, nil)
+	}
+
+	// Get account
+	account, err := s.accountRepo.FindByID(ctx, changeToken.AccountID)
+	if err != nil {
+		return "", err
+	}
+
+	// Update email
+	account.Email = changeToken.NewEmail
+	account.EmailVerified = true
+	now := time.Now()
+	account.EmailVerifiedAt = &now
+
+	// Save account
+	if err := s.accountRepo.Update(ctx, account); err != nil {
+		return "", err
+	}
+
+	// Mark token as used
+	if err := s.tokenRepo.MarkAsUsed(ctx, changeToken.ID); err != nil {
+		return "", err
+	}
+
+	// Generate new JWT token with updated email
+	newToken, err := s.generateToken(account)
+	if err != nil {
+		return "", err
+	}
+
+	return newToken, nil
+}
+
+func (s *authService) RequestDeactivation(ctx context.Context, accountID uuid.UUID) error {
+	// Find account
+	account, err := s.accountRepo.FindByID(ctx, accountID)
+	if err != nil {
+		return errors.ErrNotFound
+	}
+
+	// Check if already has pending deactivation
+	if account.IsPendingDeactivation() {
+		return errors.NewWithDetails("DEACTIVATION_EXISTS", "Account already has a pending deactivation request", 400, nil)
+	}
+
+	// Set deactivation request timestamp
+	now := time.Now()
+	account.DeactivationRequestedAt = &now
+
+	// Update account
+	if err := s.accountRepo.Update(ctx, account); err != nil {
+		return err
+	}
+
+	// Send notification email
+	deactivationDate := account.GetDeactivationDate()
+	if deactivationDate != nil {
+		err = s.emailService.SendDeactivationRequest(ctx, account.Email, deactivationDate.Format("January 2, 2006"))
+		if err != nil {
+			// Log error but don't fail the deactivation request
+			log.Printf("Failed to send deactivation email for account %s: %v", account.ID, err)
+		}
+	}
+
+	return nil
+}
+
+func (s *authService) CancelDeactivation(ctx context.Context, accountID uuid.UUID) error {
+	// Find account
+	account, err := s.accountRepo.FindByID(ctx, accountID)
+	if err != nil {
+		return errors.ErrNotFound
+	}
+
+	// Check if has pending deactivation
+	if !account.IsPendingDeactivation() {
+		return errors.NewWithDetails("NO_DEACTIVATION", "No pending deactivation request found", 400, nil)
+	}
+
+	// Clear deactivation request
+	account.DeactivationRequestedAt = nil
+
+	// Update account
+	if err := s.accountRepo.Update(ctx, account); err != nil {
+		return err
+	}
+
+	// Send confirmation email
+	err = s.emailService.SendDeactivationCancelled(ctx, account.Email)
+	if err != nil {
+		// Log error but don't fail the cancellation
+		log.Printf("Failed to send deactivation cancellation email for account %s: %v", account.ID, err)
+	}
+
+	return nil
+}
+
+func (s *authService) ProcessPendingDeactivations(ctx context.Context) error {
+	// Find all accounts that should be deactivated
+	accounts, err := s.accountRepo.FindAccountsPendingDeactivation(ctx)
+	if err != nil {
+		return err
+	}
+
+	for _, account := range accounts {
+		if account.ShouldBeDeactivated() {
+			// Deactivate the account
+			account.IsActive = false
+			account.DeactivationRequestedAt = nil
+
+			if err := s.accountRepo.Update(ctx, &account); err != nil {
+				log.Printf("Failed to deactivate account %s: %v", account.ID, err)
+				continue
+			}
+
+			// Send final notification
+			err = s.emailService.SendAccountDeactivated(ctx, account.Email)
+			if err != nil {
+				log.Printf("Failed to send deactivation completion email for account %s: %v", account.ID, err)
+			}
+
+			log.Printf("Successfully deactivated account %s", account.ID)
+		}
+	}
+
+	return nil
 }

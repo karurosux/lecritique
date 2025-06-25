@@ -20,6 +20,7 @@ type AccountRepository interface {
 	Delete(ctx context.Context, id uuid.UUID) error
 	CountRestaurants(ctx context.Context, accountID uuid.UUID) (int64, error)
 	UpdateEmailVerification(ctx context.Context, accountID uuid.UUID, verified bool) error
+	FindAccountsPendingDeactivation(ctx context.Context) ([]models.Account, error)
 }
 
 type accountRepository struct {
@@ -65,4 +66,15 @@ func (r *accountRepository) UpdateEmailVerification(ctx context.Context, account
 		Where("id = ?", accountID).
 		Updates(updates).Error
 	return err
+}
+
+func (r *accountRepository) FindAccountsPendingDeactivation(ctx context.Context) ([]models.Account, error) {
+	var accounts []models.Account
+	err := r.DB.WithContext(ctx).
+		Where("deactivation_requested_at IS NOT NULL AND is_active = ?", true).
+		Find(&accounts).Error
+	if err != nil {
+		return nil, err
+	}
+	return accounts, nil
 }

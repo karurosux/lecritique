@@ -12,9 +12,11 @@ import (
 	"github.com/lecritique/api/internal/shared/config"
 	"github.com/lecritique/api/internal/shared/logger"
 	sharedMiddleware "github.com/lecritique/api/internal/shared/middleware"
+	"github.com/lecritique/api/internal/shared/cron"
 	
 	// Domain handlers for route registration
 	authHandlers "github.com/lecritique/api/internal/auth/handlers"
+	authServices "github.com/lecritique/api/internal/auth/services"
 	feedbackHandlers "github.com/lecritique/api/internal/feedback/handlers"
 	menuHandlers "github.com/lecritique/api/internal/menu/handlers"
 	restaurantHandlers "github.com/lecritique/api/internal/restaurant/handlers"
@@ -24,6 +26,7 @@ import (
 	
 	"github.com/sirupsen/logrus"
 	"gorm.io/gorm"
+	cronLib "github.com/robfig/cron/v3"
 	
 	echoSwagger "github.com/swaggo/echo-swagger"
 )
@@ -32,6 +35,8 @@ type Server struct {
 	echo   *echo.Echo
 	config *config.Config
 	db     *gorm.DB
+	cron   *cronLib.Cron
+	authService authServices.AuthService
 }
 
 func New(cfg *config.Config, db *gorm.DB) *Server {
@@ -61,6 +66,9 @@ func New(cfg *config.Config, db *gorm.DB) *Server {
 	// Setup routes
 	s.setupRoutes()
 	
+	// Setup cron jobs
+	s.setupCronJobs()
+	
 	return s
 }
 
@@ -89,6 +97,9 @@ func (s *Server) setupRoutes() {
 	// Register domain routes
 	authService := authHandlers.RegisterRoutes(v1, s.db, s.config)
 	
+	// Store authService for cron jobs
+	s.authService = authService
+	
 	// Public and protected route groups
 	public := v1.Group("/public")
 	protected := v1.Group("")
@@ -100,6 +111,16 @@ func (s *Server) setupRoutes() {
 	qrcodeHandlers.RegisterRoutes(protected, s.db, authService)
 	analyticsHandlers.RegisterRoutes(protected, s.db, authService)
 	subscriptionHandlers.RegisterRoutes(v1, s.db, authService)
+}
+
+func (s *Server) setupCronJobs() {
+	// Setup deactivation cron job
+	if s.authService != nil {
+		s.cron = cron.SetupDeactivationCron(s.authService)
+		logger.Info("Cron jobs initialized", logrus.Fields{
+			"job": "account_deactivation",
+		})
+	}
 }
 
 // HealthCheck godoc
@@ -249,6 +270,12 @@ func (s *Server) Start() error {
 		s.echo.Debug = true
 	}
 	
+	// Start cron jobs
+	if s.cron != nil {
+		s.cron.Start()
+		logger.Info("Cron scheduler started", nil)
+	}
+	
 	logger.Info("Server starting", logrus.Fields{
 		"name":        s.config.App.Name,
 		"address":     addr,
@@ -260,5 +287,11 @@ func (s *Server) Start() error {
 }
 
 func (s *Server) Shutdown(ctx context.Context) error {
+	// Stop cron jobs
+	if s.cron != nil {
+		s.cron.Stop()
+		logger.Info("Cron scheduler stopped", nil)
+	}
+	
 	return s.echo.Shutdown(ctx)
 }

@@ -176,6 +176,127 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/v1/auth/change-email": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Request to change the account email address",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Request email change",
+                "parameters": [
+                    {
+                        "description": "New email address",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ChangeEmailRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "additionalProperties": {
+                                                "type": "string"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/auth/confirm-email-change": {
+            "post": {
+                "description": "Confirm email change using the token sent to the new email",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Confirm email change",
+                "parameters": [
+                    {
+                        "description": "Email change token",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ConfirmEmailChangeRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "additionalProperties": {
+                                                "type": "string"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
         "/api/v1/auth/forgot-password": {
             "post": {
                 "description": "Send password reset email to the specified email address",
@@ -2012,6 +2133,28 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "account": {},
+                "token": {
+                    "type": "string"
+                }
+            }
+        },
+        "handlers.ChangeEmailRequest": {
+            "type": "object",
+            "required": [
+                "new_email"
+            ],
+            "properties": {
+                "new_email": {
+                    "type": "string"
+                }
+            }
+        },
+        "handlers.ConfirmEmailChangeRequest": {
+            "type": "object",
+            "required": [
+                "token"
+            ],
+            "properties": {
                 "token": {
                     "type": "string"
                 }

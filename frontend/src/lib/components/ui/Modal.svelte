@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { onMount } from 'svelte';
+  
   let {
     isOpen = $bindable(false),
     open = $bindable(false), // Backward compatibility
@@ -27,6 +29,8 @@
     xl: 'max-w-4xl'
   };
   
+  let modalElement: HTMLDivElement | null = null;
+  
   function closeModal() {
     isOpen = false;
     open = false;
@@ -44,11 +48,25 @@
       closeModal();
     }
   }
+  
+  // Move modal to document body when it opens
+  $effect(() => {
+    if (modalOpen && modalElement) {
+      document.body.appendChild(modalElement);
+      
+      return () => {
+        if (modalElement && modalElement.parentNode) {
+          modalElement.parentNode.removeChild(modalElement);
+        }
+      };
+    }
+  });
 </script>
 
 {#if modalOpen}
   <div 
-    class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50"
+    bind:this={modalElement}
+    class="fixed inset-0 z-[9999] flex items-center justify-center bg-black bg-opacity-50"
     onclick={handleBackdropClick}
     onkeydown={handleKeydown}
     role="dialog"
@@ -82,3 +100,9 @@
     </div>
   </div>
 {/if}
+
+<style>
+  :global(body:has(.fixed[role="dialog"])) {
+    overflow: hidden;
+  }
+</style>

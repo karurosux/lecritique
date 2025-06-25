@@ -10,17 +10,18 @@ import (
 
 type Account struct {
 	models.BaseModel
-	Email            string        `gorm:"uniqueIndex;not null" json:"email"`
-	PasswordHash     string        `gorm:"not null" json:"-"`
-	CompanyName      string        `gorm:"not null" json:"company_name"`
-	Phone            string        `json:"phone"`
-	IsActive         bool          `gorm:"default:true" json:"is_active"`
-	EmailVerified    bool          `gorm:"default:false" json:"email_verified"`
-	EmailVerifiedAt  *time.Time    `json:"email_verified_at"`
-	SubscriptionID   *uuid.UUID    `json:"subscription_id"`
+	Email                   string        `gorm:"uniqueIndex;not null" json:"email"`
+	PasswordHash            string        `gorm:"not null" json:"-"`
+	CompanyName             string        `gorm:"not null" json:"company_name"`
+	Phone                   string        `json:"phone"`
+	IsActive                bool          `gorm:"default:true" json:"is_active"`
+	EmailVerified           bool          `gorm:"default:false" json:"email_verified"`
+	EmailVerifiedAt         *time.Time    `json:"email_verified_at"`
+	DeactivationRequestedAt *time.Time    `json:"deactivation_requested_at"`
+	SubscriptionID          *uuid.UUID    `json:"subscription_id"`
 	// Subscription     *Subscription `json:"subscription,omitempty"` // TODO: Add when subscription domain is ready
 	// Restaurants      []Restaurant  `json:"restaurants,omitempty"`  // TODO: Add when restaurant domain is ready
-	TeamMembers      []TeamMember  `json:"team_members,omitempty"`
+	TeamMembers             []TeamMember  `json:"team_members,omitempty"`
 }
 
 func (a *Account) SetPassword(password string) error {
@@ -35,6 +36,28 @@ func (a *Account) SetPassword(password string) error {
 func (a *Account) CheckPassword(password string) bool {
 	err := bcrypt.CompareHashAndPassword([]byte(a.PasswordHash), []byte(password))
 	return err == nil
+}
+
+// IsPendingDeactivation checks if the account has a pending deactivation request
+func (a *Account) IsPendingDeactivation() bool {
+	return a.DeactivationRequestedAt != nil
+}
+
+// GetDeactivationDate returns the date when the account will be deactivated (15 days after request)
+func (a *Account) GetDeactivationDate() *time.Time {
+	if a.DeactivationRequestedAt == nil {
+		return nil
+	}
+	deactivationDate := a.DeactivationRequestedAt.Add(15 * 24 * time.Hour)
+	return &deactivationDate
+}
+
+// ShouldBeDeactivated checks if the account should be deactivated (15 days have passed)
+func (a *Account) ShouldBeDeactivated() bool {
+	if a.DeactivationRequestedAt == nil {
+		return false
+	}
+	return time.Now().After(a.DeactivationRequestedAt.Add(15 * 24 * time.Hour))
 }
 
 type TeamMember struct {

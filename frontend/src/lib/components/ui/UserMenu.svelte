@@ -24,14 +24,10 @@
     await goto('/login', { replaceState: true });
   }
 
-  function handleProfile() {
-    // Navigate to profile page when implemented
-    closeMenu();
-  }
 
   function handleSettings() {
-    // Navigate to settings page when implemented
     closeMenu();
+    goto('/settings');
   }
 
   // Generate avatar from email
@@ -143,17 +139,6 @@
         </div>
 
         <div class="py-2">
-          <button
-            type="button"
-            class="w-full flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-gray-50/80 transition-colors duration-150 cursor-pointer"
-            onclick={handleProfile}
-          >
-            <svg class="h-5 w-5 mr-3 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-            </svg>
-            Profile
-          </button>
-          
           <button
             type="button"
             class="w-full flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-gray-50/80 transition-colors duration-150 cursor-pointer"

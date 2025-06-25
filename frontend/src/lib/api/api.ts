@@ -39,6 +39,14 @@ export interface HandlersAuthResponse {
   token?: string;
 }
 
+export interface HandlersChangeEmailRequest {
+  new_email: string;
+}
+
+export interface HandlersConfirmEmailChangeRequest {
+  token: string;
+}
+
 export interface HandlersCreateDishRequest {
   category?: string;
   currency?: string;
@@ -523,6 +531,60 @@ export class Api<
         path: `/api/v1/analytics/restaurants/${restaurantId}`,
         method: "GET",
         secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description Request to change the account email address
+     *
+     * @tags auth
+     * @name V1AuthChangeEmailCreate
+     * @summary Request email change
+     * @request POST:/api/v1/auth/change-email
+     * @secure
+     */
+    v1AuthChangeEmailCreate: (
+      request: HandlersChangeEmailRequest,
+      params: RequestParams = {},
+    ) =>
+      this.request<
+        ResponseResponse & {
+          data?: Record<string, string>;
+        },
+        ResponseResponse
+      >({
+        path: `/api/v1/auth/change-email`,
+        method: "POST",
+        body: request,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description Confirm email change using the token sent to the new email
+     *
+     * @tags auth
+     * @name V1AuthConfirmEmailChangeCreate
+     * @summary Confirm email change
+     * @request POST:/api/v1/auth/confirm-email-change
+     */
+    v1AuthConfirmEmailChangeCreate: (
+      request: HandlersConfirmEmailChangeRequest,
+      params: RequestParams = {},
+    ) =>
+      this.request<
+        ResponseResponse & {
+          data?: Record<string, string>;
+        },
+        ResponseResponse
+      >({
+        path: `/api/v1/auth/confirm-email-change`,
+        method: "POST",
+        body: request,
         type: ContentType.Json,
         format: "json",
         ...params,

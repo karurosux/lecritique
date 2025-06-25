@@ -15,6 +15,7 @@ const (
 	TokenTypeEmailVerification TokenType = "EMAIL_VERIFICATION"
 	TokenTypePasswordReset     TokenType = "PASSWORD_RESET"
 	TokenTypeTeamInvite        TokenType = "TEAM_INVITE"
+	TokenTypeEmailChange       TokenType = "EMAIL_CHANGE"
 )
 
 type VerificationToken struct {
@@ -25,6 +26,7 @@ type VerificationToken struct {
 	Type      TokenType  `gorm:"not null" json:"type"`
 	ExpiresAt time.Time  `gorm:"not null" json:"expires_at"`
 	UsedAt    *time.Time `json:"used_at"`
+	NewEmail  string     `json:"new_email,omitempty"` // Used for email change tokens
 }
 
 // GenerateToken creates a secure random token
