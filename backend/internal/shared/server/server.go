@@ -111,6 +111,7 @@ func (s *Server) setupRoutes() {
 	qrcodeHandlers.RegisterRoutes(protected, s.db, authService)
 	analyticsHandlers.RegisterRoutes(protected, s.db, authService)
 	subscriptionHandlers.RegisterRoutes(v1, s.db, authService)
+	authHandlers.RegisterTeamRoutes(v1, s.db, s.config, authService)
 }
 
 func (s *Server) setupCronJobs() {

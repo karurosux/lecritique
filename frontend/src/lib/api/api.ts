@@ -34,6 +34,10 @@ export enum ModelsMemberRole {
 
 export type GithubComLecritiqueApiInternalMenuModelsDish = object;
 
+export interface HandlersAcceptInviteRequest {
+  token: string;
+}
+
 export interface HandlersAuthResponse {
   account?: any;
   token?: string;
@@ -104,6 +108,11 @@ export interface HandlersGenerateQRCodeResponse {
   success?: boolean;
 }
 
+export interface HandlersInviteMemberRequest {
+  email: string;
+  role: "ADMIN" | "MANAGER" | "VIEWER";
+}
+
 export interface HandlersInvoiceResponse {
   amount_due?: number;
   amount_paid?: number;
@@ -167,6 +176,10 @@ export interface HandlersUpdateProfileRequest {
   /** @minLength 1 */
   last_name?: string;
   phone?: string;
+}
+
+export interface HandlersUpdateRoleRequest {
+  role: "ADMIN" | "MANAGER" | "VIEWER";
 }
 
 export interface ModelsAccount {
@@ -1538,6 +1551,137 @@ export class Api<
         path: `/api/v1/restaurants/${restaurantId}/qr-codes`,
         method: "POST",
         body: qr_code,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description Accept a team invitation using the invitation token
+     *
+     * @tags team
+     * @name V1TeamAcceptInviteCreate
+     * @summary Accept team invitation
+     * @request POST:/api/v1/team/accept-invite
+     */
+    v1TeamAcceptInviteCreate: (
+      request: HandlersAcceptInviteRequest,
+      params: RequestParams = {},
+    ) =>
+      this.request<
+        ResponseResponse & {
+          data?: Record<string, string>;
+        },
+        ResponseResponse
+      >({
+        path: `/api/v1/team/accept-invite`,
+        method: "POST",
+        body: request,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description Get all team members for the account
+     *
+     * @tags team
+     * @name V1TeamMembersList
+     * @summary List team members
+     * @request GET:/api/v1/team/members
+     * @secure
+     */
+    v1TeamMembersList: (params: RequestParams = {}) =>
+      this.request<
+        ResponseResponse & {
+          data?: ModelsTeamMember[];
+        },
+        ResponseResponse
+      >({
+        path: `/api/v1/team/members`,
+        method: "GET",
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description Invite a new team member to the account
+     *
+     * @tags team
+     * @name V1TeamMembersInviteCreate
+     * @summary Invite team member
+     * @request POST:/api/v1/team/members/invite
+     * @secure
+     */
+    v1TeamMembersInviteCreate: (
+      request: HandlersInviteMemberRequest,
+      params: RequestParams = {},
+    ) =>
+      this.request<
+        ResponseResponse & {
+          data?: ModelsTeamMember;
+        },
+        ResponseResponse
+      >({
+        path: `/api/v1/team/members/invite`,
+        method: "POST",
+        body: request,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description Remove a team member from the account
+     *
+     * @tags team
+     * @name V1TeamMembersDelete
+     * @summary Remove team member
+     * @request DELETE:/api/v1/team/members/{id}
+     * @secure
+     */
+    v1TeamMembersDelete: (id: string, params: RequestParams = {}) =>
+      this.request<
+        ResponseResponse & {
+          data?: Record<string, string>;
+        },
+        ResponseResponse
+      >({
+        path: `/api/v1/team/members/${id}`,
+        method: "DELETE",
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description Update the role of a team member
+     *
+     * @tags team
+     * @name V1TeamMembersRoleUpdate
+     * @summary Update team member role
+     * @request PUT:/api/v1/team/members/{id}/role
+     * @secure
+     */
+    v1TeamMembersRoleUpdate: (
+      id: string,
+      request: HandlersUpdateRoleRequest,
+      params: RequestParams = {},
+    ) =>
+      this.request<
+        ResponseResponse & {
+          data?: Record<string, string>;
+        },
+        ResponseResponse
+      >({
+        path: `/api/v1/team/members/${id}/role`,
+        method: "PUT",
+        body: request,
         secure: true,
         type: ContentType.Json,
         format: "json",

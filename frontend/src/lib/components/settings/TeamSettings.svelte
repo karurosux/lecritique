@@ -13,7 +13,7 @@
 		Loader2
 	} from 'lucide-svelte';
 	import { auth } from '$lib/stores/auth';
-	import type { ModelsMemberRole } from '$lib/api/api';
+	import type { ModelsTeamMember } from '$lib/api/api';
 
 	interface Props {
 		onSuccess?: (message: string) => void;
@@ -24,53 +24,43 @@
 
 	// Component state
 	let loading = $state(false);
-	let teamMembers = $state<any[]>([]);
+	let teamMembers = $state<ModelsTeamMember[]>([]);
 	let showInviteModal = $state(false);
 	let inviteEmail = $state('');
-	let inviteRole = $state<ModelsMemberRole>('VIEWER');
+	let inviteRole = $state<string>('VIEWER');
 	let inviting = $state(false);
 	let removingMemberId = $state<string | null>(null);
 
-	// Mock data for now - will be replaced with API calls
+	// Load team members when component mounts and user is authenticated
 	$effect(() => {
-		loadTeamMembers();
+		if ($auth.isAuthenticated) {
+			loadTeamMembers();
+		}
+	});
+	
+	// Debug logging
+	$effect(() => {
+		console.log('Team members:', teamMembers);
+		console.log('Current user email:', $auth.user?.email);
+		console.log('Current user role:', currentUserRole);
+		console.log('Can manage team:', canManageTeam);
 	});
 
 	async function loadTeamMembers() {
 		loading = true;
 		try {
-			// TODO: Replace with actual API call
-			// const api = auth.getApi();
-			// const response = await api.api.v1TeamMembersList();
+			// Get API instance from auth store
+			const api = auth.getApi();
 			
-			// Mock data for demonstration
-			teamMembers = [
-				{
-					id: '1',
-					user: {
-						id: '1',
-						email: 'owner@example.com',
-						first_name: 'John',
-						last_name: 'Doe'
-					},
-					role: 'OWNER',
-					invited_at: '2024-01-01T00:00:00Z',
-					accepted_at: '2024-01-01T00:00:00Z'
-				},
-				{
-					id: '2',
-					user: {
-						id: '2',
-						email: 'admin@example.com',
-						first_name: 'Jane',
-						last_name: 'Smith'
-					},
-					role: 'ADMIN',
-					invited_at: '2024-01-15T00:00:00Z',
-					accepted_at: '2024-01-16T00:00:00Z'
-				}
-			];
+			const response = await api.api.v1TeamMembersList();
+			
+			if (response.data.success && response.data.data) {
+				teamMembers = response.data.data as ModelsTeamMember[];
+			} else {
+				throw new Error('Failed to load team members');
+			}
 		} catch (error) {
+			console.error('Error loading team members:', error);
 			onError?.('Failed to load team members');
 		} finally {
 			loading = false;
@@ -82,22 +72,28 @@
 		
 		inviting = true;
 		try {
-			// TODO: Replace with actual API call
-			// const api = auth.getApi();
-			// await api.api.v1TeamMembersInviteCreate({
-			//   email: inviteEmail,
-			//   role: inviteRole
-			// });
+			// Get API instance from auth store
+			const api = auth.getApi();
 			
-			onSuccess?.(`Invitation sent to ${inviteEmail}`);
-			showInviteModal = false;
-			inviteEmail = '';
-			inviteRole = 'VIEWER';
+			const response = await api.api.v1TeamMembersInviteCreate({
+				email: inviteEmail,
+				role: inviteRole
+			});
 			
-			// Reload team members
-			await loadTeamMembers();
-		} catch (error) {
-			onError?.('Failed to send invitation');
+			if (response.data.success) {
+				onSuccess?.(`Invitation sent to ${inviteEmail}`);
+				showInviteModal = false;
+				inviteEmail = '';
+				inviteRole = 'VIEWER';
+				
+				// Reload team members
+				await loadTeamMembers();
+			} else {
+				throw new Error('Failed to send invitation');
+			}
+		} catch (error: any) {
+			const errorMessage = error.response?.data?.error?.message || 'Failed to send invitation';
+			onError?.(errorMessage);
 		} finally {
 			inviting = false;
 		}
@@ -108,16 +104,22 @@
 		
 		removingMemberId = memberId;
 		try {
-			// TODO: Replace with actual API call
-			// const api = auth.getApi();
-			// await api.api.v1TeamMembersDelete(memberId);
+			// Get API instance from auth store
+			const api = auth.getApi();
 			
-			onSuccess?.('Team member removed successfully');
+			const response = await api.api.v1TeamMembersDelete(memberId);
 			
-			// Reload team members
-			await loadTeamMembers();
-		} catch (error) {
-			onError?.('Failed to remove team member');
+			if (response.data.success) {
+				onSuccess?.('Team member removed successfully');
+				
+				// Reload team members
+				await loadTeamMembers();
+			} else {
+				throw new Error('Failed to remove team member');
+			}
+		} catch (error: any) {
+			const errorMessage = error.response?.data?.error?.message || 'Failed to remove team member';
+			onError?.(errorMessage);
 		} finally {
 			removingMemberId = null;
 		}
@@ -125,16 +127,22 @@
 
 	async function updateRole(memberId: string, newRole: ModelsMemberRole) {
 		try {
-			// TODO: Replace with actual API call
-			// const api = auth.getApi();
-			// await api.api.v1TeamMembersUpdateRole(memberId, { role: newRole });
+			// Get API instance from auth store
+			const api = auth.getApi();
 			
-			onSuccess?.('Role updated successfully');
+			const response = await api.api.v1TeamMembersRoleUpdate(memberId, { role: newRole });
 			
-			// Reload team members
-			await loadTeamMembers();
-		} catch (error) {
-			onError?.('Failed to update role');
+			if (response.data.success) {
+				onSuccess?.('Role updated successfully');
+				
+				// Reload team members
+				await loadTeamMembers();
+			} else {
+				throw new Error('Failed to update role');
+			}
+		} catch (error: any) {
+			const errorMessage = error.response?.data?.error?.message || 'Failed to update role';
+			onError?.(errorMessage);
 		}
 	}
 
@@ -181,7 +189,7 @@
 
 	// Get user's role
 	let currentUserRole = $derived(
-		teamMembers.find(m => m.user.email === $auth.user?.email)?.role || 'VIEWER'
+		teamMembers.find(m => m.user?.email === $auth.user?.email)?.role || 'VIEWER'
 	);
 
 	// Check if user can manage team
@@ -217,26 +225,26 @@
 	{:else}
 		<div class="space-y-4">
 			{#each teamMembers as member}
-				{@const RoleIcon = getRoleIcon(member.role)}
+				{@const RoleIcon = getRoleIcon(member.role || '')}
 				<div class="bg-white border border-gray-200 rounded-lg p-4">
 					<div class="flex items-center justify-between">
 						<div class="flex items-center space-x-4">
 							<div class="h-10 w-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-semibold">
-								{member.user.first_name ? member.user.first_name[0] : member.user.email[0].toUpperCase()}
+								{member.user?.first_name ? member.user.first_name[0] : member.user?.email?.[0]?.toUpperCase() || '?'}
 							</div>
 							<div>
 								<div class="flex items-center gap-2">
 									<p class="font-medium text-gray-900">
-										{member.user.first_name && member.user.last_name
+										{member.user?.first_name && member.user?.last_name
 											? `${member.user.first_name} ${member.user.last_name}`
-											: member.user.email}
+											: member.user?.email || 'Unknown'}
 									</p>
-									<span class={`inline-flex items-center gap-1 px-2 py-1 text-xs font-medium rounded-full ${getRoleBadgeClass(member.role)}`}>
+									<span class={`inline-flex items-center gap-1 px-2 py-1 text-xs font-medium rounded-full ${getRoleBadgeClass(member.role || '')}`}>
 										<RoleIcon class="h-3 w-3" />
-										{member.role}
+										{member.role?.replace('Role', '') || 'Unknown'}
 									</span>
 								</div>
-								<p class="text-sm text-gray-500">{member.user.email}</p>
+								<p class="text-sm text-gray-500">{member.user?.email || ''}</p>
 							</div>
 						</div>
 						
@@ -246,7 +254,7 @@
 									{member.accepted_at ? 'Joined' : 'Invited'}
 								</p>
 								<p class="text-xs font-medium text-gray-700">
-									{formatDate(member.accepted_at || member.invited_at)}
+									{formatDate(member.accepted_at || member.invited_at || '')}
 								</p>
 							</div>
 							
@@ -255,7 +263,7 @@
 									<select
 										class="text-sm border-gray-300 rounded-md"
 										value={member.role}
-										onchange={(e) => updateRole(member.id, e.currentTarget.value)}
+										onchange={(e) => updateRole(member.id || '', e.currentTarget.value)}
 										disabled={!canManageTeam}
 									>
 										<option value="ADMIN">Admin</option>
@@ -266,7 +274,7 @@
 									<Button
 										variant="ghost"
 										size="sm"
-										onclick={() => removeMember(member.id)}
+										onclick={() => removeMember(member.id || '')}
 										disabled={removingMemberId === member.id}
 									>
 										{#if removingMemberId === member.id}

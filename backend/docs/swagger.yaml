@@ -1,6 +1,13 @@
 definitions:
   github_com_lecritique_api_internal_menu_models.Dish:
     type: object
+  handlers.AcceptInviteRequest:
+    properties:
+      token:
+        type: string
+    required:
+    - token
+    type: object
   handlers.AuthResponse:
     properties:
       account: {}
@@ -123,6 +130,21 @@ definitions:
       success:
         type: boolean
     type: object
+  handlers.InviteMemberRequest:
+    properties:
+      email:
+        type: string
+      role:
+        allOf:
+        - $ref: '#/definitions/models.MemberRole'
+        enum:
+        - ADMIN
+        - MANAGER
+        - VIEWER
+    required:
+    - email
+    - role
+    type: object
   handlers.InvoiceResponse:
     properties:
       amount_due:
@@ -233,6 +255,18 @@ definitions:
         type: string
       phone:
         type: string
+    type: object
+  handlers.UpdateRoleRequest:
+    properties:
+      role:
+        allOf:
+        - $ref: '#/definitions/models.MemberRole'
+        enum:
+        - ADMIN
+        - MANAGER
+        - VIEWER
+    required:
+    - role
     type: object
   models.Account:
     properties:
@@ -2058,6 +2092,234 @@ paths:
       summary: Generate QR code
       tags:
       - qr-codes
+  /api/v1/team/accept-invite:
+    post:
+      consumes:
+      - application/json
+      description: Accept a team invitation using the invitation token
+      parameters:
+      - description: Invitation token
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.AcceptInviteRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  additionalProperties:
+                    type: string
+                  type: object
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: Accept team invitation
+      tags:
+      - team
+  /api/v1/team/members:
+    get:
+      consumes:
+      - application/json
+      description: Get all team members for the account
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/models.TeamMember'
+                  type: array
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: List team members
+      tags:
+      - team
+  /api/v1/team/members/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Remove a team member from the account
+      parameters:
+      - description: Member ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  additionalProperties:
+                    type: string
+                  type: object
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: Remove team member
+      tags:
+      - team
+  /api/v1/team/members/{id}/role:
+    put:
+      consumes:
+      - application/json
+      description: Update the role of a team member
+      parameters:
+      - description: Member ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: New role
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.UpdateRoleRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  additionalProperties:
+                    type: string
+                  type: object
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: Update team member role
+      tags:
+      - team
+  /api/v1/team/members/invite:
+    post:
+      consumes:
+      - application/json
+      description: Invite a new team member to the account
+      parameters:
+      - description: Invitation details
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.InviteMemberRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/models.TeamMember'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: Invite team member
+      tags:
+      - team
   /api/v1/user/can-create-restaurant:
     get:
       consumes:
