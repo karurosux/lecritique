@@ -78,7 +78,17 @@
 {/if}
 
 <div
-  class="min-h-screen bg-gradient-to-br from-gray-100 via-gray-200/50 to-gray-300/70"
+  class="min-h-screen bg-gradient-to-br from-blue-50/50 via-purple-50/30 to-pink-50/50 relative"
 >
-  <slot />
+  <!-- Animated background gradients -->
+  <div class="absolute inset-0 overflow-hidden">
+    <div class="absolute -top-40 -right-40 w-80 h-80 bg-purple-300 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob"></div>
+    <div class="absolute -bottom-40 -left-40 w-80 h-80 bg-blue-300 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000"></div>
+    <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-pink-300 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-4000"></div>
+  </div>
+  
+  <!-- Content -->
+  <div class="relative">
+    <slot />
+  </div>
 </div>

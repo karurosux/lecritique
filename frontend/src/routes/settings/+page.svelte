@@ -81,7 +81,7 @@
   <meta name="description" content="Manage your LeCritique account settings and preferences" />
 </svelte:head>
 
-<div class="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50 p-4 sm:p-6 lg:p-8">
+<div class="min-h-screen p-4 sm:p-6 lg:p-8">
   <div class="mx-auto max-w-6xl">
     <!-- Header -->
     <div class="mb-8">
