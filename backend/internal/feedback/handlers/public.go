@@ -1,8 +1,6 @@
 package handlers
 
 import (
-	"net/http"
-
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	feedbackModels "github.com/lecritique/api/internal/feedback/models"
@@ -10,7 +8,9 @@ import (
 	feedbackServices "github.com/lecritique/api/internal/feedback/services"
 	menuRepos "github.com/lecritique/api/internal/menu/repositories"
 	qrcodeServices "github.com/lecritique/api/internal/qrcode/services"
+	"github.com/lecritique/api/internal/shared/errors"
 	"github.com/lecritique/api/internal/shared/logger"
+	"github.com/lecritique/api/internal/shared/response"
 	"github.com/sirupsen/logrus"
 )
 
@@ -50,15 +50,15 @@ func (h *PublicHandler) ValidateQRCode(c echo.Context) error {
 	ctx := c.Request().Context()
 	code := c.Param("code")
 	if code == "" {
-		return echo.NewHTTPError(http.StatusBadRequest, "Invalid request")
+		return response.Error(c, errors.BadRequest("QR code parameter is required"))
 	}
 
 	qrCode, err := h.qrCodeService.GetByCode(ctx, code)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusNotFound, "QR code not found")
+		return response.Error(c, errors.NotFound("QR code"))
 	}
 
-	return c.JSON(http.StatusOK, map[string]interface{}{"success": true, "data": qrCode})
+	return response.Success(c, qrCode)
 }
 
 // GetRestaurantMenu gets public restaurant menu
@@ -76,17 +76,14 @@ func (h *PublicHandler) GetRestaurantMenu(c echo.Context) error {
 	idStr := c.Param("id")
 	id, err := uuid.Parse(idStr)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, "Invalid request")
+		return response.Error(c, errors.ErrInvalidUUID)
 	}
 
 	// Implementation would get restaurant menu
 	// For now, return placeholder
-	return c.JSON(http.StatusOK, map[string]interface{}{
-		"success": true,
-		"data": map[string]interface{}{
-			"restaurant_id": id,
-			"message":       "Menu endpoint - to be implemented",
-		},
+	return response.Success(c, map[string]interface{}{
+		"restaurant_id": id,
+		"message":       "Menu endpoint - to be implemented",
 	})
 }
 
@@ -108,23 +105,20 @@ func (h *PublicHandler) GetQuestionnaire(c echo.Context) error {
 
 	restaurantID, err := uuid.Parse(restaurantIDStr)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, "Invalid request")
+		return response.Error(c, errors.BadRequest("Invalid restaurant ID format"))
 	}
 
 	dishID, err := uuid.Parse(dishIDStr)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, "Invalid request")
+		return response.Error(c, errors.BadRequest("Invalid dish ID format"))
 	}
 
 	// Implementation would get questionnaire
 	// For now, return placeholder
-	return c.JSON(http.StatusOK, map[string]interface{}{
-		"success": true,
-		"data": map[string]interface{}{
-			"restaurant_id": restaurantID,
-			"dish_id":       dishID,
-			"message":       "Questionnaire endpoint - to be implemented",
-		},
+	return response.Success(c, map[string]interface{}{
+		"restaurant_id": restaurantID,
+		"dish_id":       dishID,
+		"message":       "Questionnaire endpoint - to be implemented",
 	})
 }
 
@@ -143,20 +137,17 @@ func (h *PublicHandler) SubmitFeedback(c echo.Context) error {
 	ctx := c.Request().Context()
 	var feedback feedbackModels.Feedback
 	if err := c.Bind(&feedback); err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, "Invalid request")
+		return response.Error(c, errors.BadRequest("Invalid feedback data provided"))
 	}
 
 	if err := h.feedbackService.Submit(ctx, &feedback); err != nil {
 		logger.Error("Failed to submit feedback", err, logrus.Fields{
 			"feedback": feedback,
 		})
-		return echo.NewHTTPError(http.StatusInternalServerError, "Failed to submit feedback")
+		return response.Error(c, errors.Internal("Failed to process feedback submission"))
 	}
 
-	return c.JSON(http.StatusOK, map[string]interface{}{
-		"success": true,
-		"data": map[string]string{
-			"message": "Feedback submitted successfully",
-		},
+	return response.Success(c, map[string]string{
+		"message": "Thank you for your feedback!",
 	})
 }

@@ -52,11 +52,11 @@ func (h *DishHandler) Create(c echo.Context) error {
 
 	var req CreateDishRequest
 	if err := c.Bind(&req); err != nil {
-		return response.Error(c, errors.ErrBadRequest)
+		return response.Error(c, errors.BadRequest("Invalid dish data provided"))
 	}
 
 	if err := h.validator.Validate(req); err != nil {
-		return response.Error(c, errors.NewWithDetails("VALIDATION_ERROR", "Validation failed", http.StatusBadRequest, h.validator.FormatErrors(err)))
+		return response.Error(c, errors.NewWithDetails("VALIDATION_ERROR", "Please check the provided dish information", http.StatusBadRequest, h.validator.FormatErrors(err)))
 	}
 
 	dish := &models.Dish{
@@ -98,10 +98,10 @@ func (h *DishHandler) Create(c echo.Context) error {
 func (h *DishHandler) GetByRestaurant(c echo.Context) error {
 	ctx := c.Request().Context()
 	accountID := c.Get("account_id").(uuid.UUID)
-	
+
 	restaurantID, err := uuid.Parse(c.Param("restaurantId"))
 	if err != nil {
-		return response.Error(c, errors.ErrBadRequest)
+		return response.Error(c, errors.ErrInvalidUUID)
 	}
 
 	dishes, err := h.dishService.GetByRestaurantID(ctx, accountID, restaurantID)
@@ -129,10 +129,10 @@ func (h *DishHandler) GetByRestaurant(c echo.Context) error {
 func (h *DishHandler) GetByID(c echo.Context) error {
 	ctx := c.Request().Context()
 	accountID := c.Get("account_id").(uuid.UUID)
-	
+
 	dishID, err := uuid.Parse(c.Param("id"))
 	if err != nil {
-		return response.Error(c, errors.ErrBadRequest)
+		return response.Error(c, errors.ErrInvalidUUID)
 	}
 
 	dish, err := h.dishService.GetByID(ctx, accountID, dishID)
@@ -161,15 +161,15 @@ func (h *DishHandler) GetByID(c echo.Context) error {
 func (h *DishHandler) Update(c echo.Context) error {
 	ctx := c.Request().Context()
 	accountID := c.Get("account_id").(uuid.UUID)
-	
+
 	dishID, err := uuid.Parse(c.Param("id"))
 	if err != nil {
-		return response.Error(c, errors.ErrBadRequest)
+		return response.Error(c, errors.ErrInvalidUUID)
 	}
 
 	var updates map[string]interface{}
 	if err := c.Bind(&updates); err != nil {
-		return response.Error(c, errors.ErrBadRequest)
+		return response.Error(c, errors.BadRequest("Invalid update data provided"))
 	}
 
 	if err := h.dishService.Update(ctx, accountID, dishID, updates); err != nil {
@@ -198,10 +198,10 @@ func (h *DishHandler) Update(c echo.Context) error {
 func (h *DishHandler) Delete(c echo.Context) error {
 	ctx := c.Request().Context()
 	accountID := c.Get("account_id").(uuid.UUID)
-	
+
 	dishID, err := uuid.Parse(c.Param("id"))
 	if err != nil {
-		return response.Error(c, errors.ErrBadRequest)
+		return response.Error(c, errors.ErrInvalidUUID)
 	}
 
 	if err := h.dishService.Delete(ctx, accountID, dishID); err != nil {

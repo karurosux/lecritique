@@ -94,12 +94,12 @@ func (h *TeamMemberHandler) InviteMember(c echo.Context) error {
 	// Check user role - only owners and admins can invite
 	userRole, ok := c.Get("user_role").(string)
 	if !ok || (userRole != string(models.RoleOwner) && userRole != string(models.RoleAdmin)) {
-		return response.Error(c, errors.New("FORBIDDEN", "Only owners and admins can invite team members", http.StatusForbidden))
+		return response.Error(c, errors.Forbidden("invite team members"))
 	}
 
 	var req InviteMemberRequest
 	if err := c.Bind(&req); err != nil {
-		return response.Error(c, errors.New("BAD_REQUEST", "Invalid request", http.StatusBadRequest))
+		return response.Error(c, errors.BadRequest("Invalid invitation data provided"))
 	}
 
 	if err := h.validator.Validate(&req); err != nil {
@@ -145,17 +145,17 @@ func (h *TeamMemberHandler) UpdateRole(c echo.Context) error {
 	// Check user role - only owners and admins can update roles
 	userRole, ok := c.Get("user_role").(string)
 	if !ok || (userRole != string(models.RoleOwner) && userRole != string(models.RoleAdmin)) {
-		return response.Error(c, errors.New("FORBIDDEN", "Only owners and admins can update team member roles", http.StatusForbidden))
+		return response.Error(c, errors.Forbidden("update team member roles"))
 	}
 
 	memberID, err := uuid.Parse(c.Param("id"))
 	if err != nil {
-		return response.Error(c, errors.New("BAD_REQUEST", "Invalid member ID", http.StatusBadRequest))
+		return response.Error(c, errors.ErrInvalidUUID)
 	}
 
 	var req UpdateRoleRequest
 	if err := c.Bind(&req); err != nil {
-		return response.Error(c, errors.New("BAD_REQUEST", "Invalid request", http.StatusBadRequest))
+		return response.Error(c, errors.BadRequest("Invalid role update data provided"))
 	}
 
 	if err := h.validator.Validate(&req); err != nil {
@@ -196,12 +196,12 @@ func (h *TeamMemberHandler) RemoveMember(c echo.Context) error {
 	// Check user role - only owners and admins can remove members
 	userRole, ok := c.Get("user_role").(string)
 	if !ok || (userRole != string(models.RoleOwner) && userRole != string(models.RoleAdmin)) {
-		return response.Error(c, errors.New("FORBIDDEN", "Only owners and admins can remove team members", http.StatusForbidden))
+		return response.Error(c, errors.Forbidden("remove team members"))
 	}
 
 	memberID, err := uuid.Parse(c.Param("id"))
 	if err != nil {
-		return response.Error(c, errors.New("BAD_REQUEST", "Invalid member ID", http.StatusBadRequest))
+		return response.Error(c, errors.ErrInvalidUUID)
 	}
 
 	if err := h.teamMemberService.RemoveMember(ctx, accountID, memberID); err != nil {
@@ -230,7 +230,7 @@ func (h *TeamMemberHandler) AcceptInvitation(c echo.Context) error {
 	
 	var req AcceptInviteRequest
 	if err := c.Bind(&req); err != nil {
-		return response.Error(c, errors.New("BAD_REQUEST", "Invalid request", http.StatusBadRequest))
+		return response.Error(c, errors.BadRequest("Invalid invitation token data"))
 	}
 
 	if err := h.validator.Validate(&req); err != nil {
