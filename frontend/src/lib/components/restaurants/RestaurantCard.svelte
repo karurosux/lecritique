@@ -171,7 +171,7 @@
       </span>
       <div class="opacity-0 group-hover:opacity-100 transition-opacity duration-200">
         <Button size="sm" variant="outline" onclick={(e) => { e.stopPropagation(); handleViewDetails(); }}>
-          View Dishes
+          Open
         </Button>
       </div>
     </div>
@@ -279,7 +279,7 @@
           </svg>
         </button>
         <Button size="sm" variant="outline" onclick={(e) => { e.stopPropagation(); handleViewDetails(); }}>
-          Dishes
+          Open
         </Button>
       </div>
     </div>
