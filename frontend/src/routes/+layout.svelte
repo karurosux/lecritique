@@ -4,6 +4,8 @@
   import { auth } from "$lib/stores/auth";
   import "../app.css";
 
+  let { children } = $props();
+
   let isAuthPage = $derived(
     $page.route?.id?.includes("login") || $page.route?.id?.includes("register"),
   );
@@ -89,6 +91,6 @@
   
   <!-- Content -->
   <div class="relative">
-    <slot />
+    {@render children()}
   </div>
 </div>

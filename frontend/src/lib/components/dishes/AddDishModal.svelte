@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { Modal, Button, Input, Card } from '$lib/components/ui';
+  import { Modal, Button, Input, Card, Select } from '$lib/components/ui';
 
   interface Dish {
     id: string;
@@ -128,55 +128,43 @@
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
       <!-- Dish Name -->
       <div class="md:col-span-2">
-        <label for="dish-name" class="block text-sm font-semibold text-gray-700 mb-2">
-          Dish Name <span class="text-red-500">*</span>
-        </label>
         <Input
           id="dish-name"
           type="text"
+          label="Dish Name"
           placeholder="Enter dish name"
           bind:value={formData.name}
           disabled={loading}
           required
           variant="default"
-          class="w-full"
         />
       </div>
 
       <!-- Description -->
       <div class="md:col-span-2">
-        <label for="dish-description" class="block text-sm font-semibold text-gray-700 mb-2">
-          Description
-        </label>
-        <textarea
+        <Input
           id="dish-description"
-          rows="3"
-          class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl bg-white focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 transition-all duration-300 resize-none disabled:opacity-50"
+          type="text"
+          label="Description"
           placeholder="Brief description of the dish..."
           bind:value={formData.description}
           disabled={loading}
-        ></textarea>
+          variant="default"
+        />
       </div>
 
       <!-- Price -->
       <div>
-        <label for="dish-price" class="block text-sm font-semibold text-gray-700 mb-2">
-          Price <span class="text-red-500">*</span>
-        </label>
-        <div class="relative">
-          <span class="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-500 text-lg font-medium">$</span>
-          <input
-            id="dish-price"
-            type="number"
-            step="0.01"
-            min="0"
-            class="w-full pl-8 pr-4 py-3 border-2 border-gray-200 rounded-xl bg-white focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 transition-all duration-300 disabled:opacity-50"
-            placeholder="0.00"
-            bind:value={formData.price}
-            required
-            disabled={loading}
-          />
-        </div>
+        <Input
+          id="dish-price"
+          type="number"
+          label="Price"
+          placeholder="0.00"
+          bind:value={formData.price}
+          required
+          disabled={loading}
+          variant="default"
+        />
       </div>
 
       <!-- Category -->
@@ -184,37 +172,26 @@
         <label for="dish-category" class="block text-sm font-semibold text-gray-700 mb-2">
           Category <span class="text-red-500">*</span>
         </label>
-        <select
-          id="dish-category"
-          class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl bg-white focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 transition-all duration-300 cursor-pointer disabled:opacity-50"
+        <Select
           bind:value={formData.category}
-          required
-          disabled={loading}
-        >
-          <option value="">Select category</option>
-          {#each dishCategories as category}
-            <option value={category}>{category}</option>
-          {/each}
-        </select>
+          options={[
+            { value: '', label: 'Select category' },
+            ...dishCategories.map(cat => ({ value: cat, label: cat }))
+          ]}
+        />
       </div>
 
       <!-- Preparation Time -->
       <div>
-        <label for="dish-prep-time" class="block text-sm font-semibold text-gray-700 mb-2">
-          Preparation Time
-        </label>
-        <div class="relative">
-          <input
-            id="dish-prep-time"
-            type="number"
-            min="0"
-            class="w-full px-4 py-3 pr-16 border-2 border-gray-200 rounded-xl bg-white focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 transition-all duration-300 disabled:opacity-50"
-            placeholder="0"
-            bind:value={formData.preparation_time}
-            disabled={loading}
-          />
-          <span class="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-500 text-sm">minutes</span>
-        </div>
+        <Input
+          id="dish-prep-time"
+          type="number"
+          label="Preparation Time (minutes)"
+          placeholder="0"
+          bind:value={formData.preparation_time}
+          disabled={loading}
+          variant="default"
+        />
       </div>
 
       <!-- Availability -->
@@ -236,17 +213,14 @@
 
     <!-- Allergens -->
     <div>
-      <label for="dish-allergens" class="block text-sm font-semibold text-gray-700 mb-2">
-        Allergens
-      </label>
       <Input
         id="dish-allergens"
         type="text"
+        label="Allergens"
         placeholder="e.g., gluten, dairy, nuts (comma-separated)"
         bind:value={formData.allergens}
         disabled={loading}
         variant="default"
-        class="w-full"
       />
       <p class="text-xs text-gray-500 mt-2 flex items-center">
         <svg class="h-3 w-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">

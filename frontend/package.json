@@ -29,7 +29,10 @@
 	},
 	"dependencies": {
 		"@tailwindcss/postcss": "^4.1.10",
+		"@types/qrcode": "^1.5.5",
 		"axios": "^1.10.0",
-		"lucide-svelte": "^0.523.0"
+		"lucide-svelte": "^0.523.0",
+		"qrcode": "^1.5.4",
+		"svelte-sonner": "^1.0.5"
 	}
 }

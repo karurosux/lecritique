@@ -29,7 +29,7 @@
     xl: 'max-w-4xl'
   };
   
-  let modalElement: HTMLDivElement | null = null;
+  let modalElement = $state<HTMLDivElement | null>(null);
   
   function closeModal() {
     isOpen = false;

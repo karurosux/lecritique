@@ -102,6 +102,22 @@
       handleSubmit();
     }
   }
+
+  // Bind keyboard shortcut on mount
+  import { onMount, onDestroy } from 'svelte';
+  import { browser } from '$app/environment';
+  
+  onMount(() => {
+    if (browser) {
+      window.addEventListener('keydown', handleKeyDown);
+    }
+  });
+  
+  onDestroy(() => {
+    if (browser) {
+      window.removeEventListener('keydown', handleKeyDown);
+    }
+  });
 </script>
 
 <Modal bind:isOpen title="Add New Restaurant" size="lg" onclose={handleClose}>
@@ -118,7 +134,7 @@
       </Card>
     {/if}
 
-    <form onsubmit={handleSubmit} onkeydown={handleKeyDown}>
+    <form onsubmit={handleSubmit}>
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         <!-- Restaurant Name -->
         <div class="md:col-span-2">

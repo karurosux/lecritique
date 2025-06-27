@@ -39,6 +39,7 @@ LeCritique is a SaaS platform that enables restaurants to collect detailed, dish
 
 ### Tech Stack
 
+- **Web Front End**: Sveltekit with Svelte 5
 - **Backend**: Go 1.21+ with Echo framework
 - **Database**: PostgreSQL with GORM ORM
 - **Cache**: Redis for session management

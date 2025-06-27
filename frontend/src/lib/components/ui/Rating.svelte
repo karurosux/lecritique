@@ -40,6 +40,7 @@
       class="focus:outline-none transition-transform {!readonly ? 'hover:scale-110 cursor-pointer' : 'cursor-default'}"
       onclick={() => handleClick(star.index)}
       disabled={readonly}
+      aria-label="Rate {star.index} out of {max} stars"
     >
       <svg
         class="{sizes[size]} {star.filled ? 'text-yellow-400 fill-current' : 'text-gray-300'}"

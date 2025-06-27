@@ -23,7 +23,7 @@
   const variantClasses = {
     default: 'bg-white rounded-xl border border-gray-300 shadow-lg shadow-gray-900/10 backdrop-blur-sm',
     elevated: 'bg-white rounded-2xl shadow-xl shadow-gray-900/15 border border-gray-200',
-    glass: 'bg-white/95 backdrop-blur-xl rounded-2xl border border-gray-200/60 shadow-xl shadow-gray-900/20',
+    glass: 'bg-white/70 backdrop-blur-md rounded-2xl border border-white/30 shadow-lg shadow-gray-900/10',
     gradient: 'bg-gradient-to-br from-white to-gray-50 rounded-2xl border border-gray-300/70 shadow-xl shadow-blue-500/15',
     minimal: 'bg-gray-50 rounded-xl border border-gray-300 shadow-md shadow-gray-900/8'
   };

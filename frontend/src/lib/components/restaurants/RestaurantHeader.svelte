@@ -64,7 +64,8 @@
       <div class="flex items-center bg-white rounded-xl border border-gray-200 p-1 shadow-sm">
         <button
           class="p-2 rounded-lg transition-all duration-200 {viewMode === 'grid' ? 'bg-blue-100 text-blue-600' : 'text-gray-500 hover:text-gray-700'}"
-          on:click={() => viewMode = 'grid'}
+          onclick={() => viewMode = 'grid'}
+          aria-label="Grid view"
         >
           <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
@@ -72,7 +73,8 @@
         </button>
         <button
           class="p-2 rounded-lg transition-all duration-200 {viewMode === 'list' ? 'bg-blue-100 text-blue-600' : 'text-gray-500 hover:text-gray-700'}"
-          on:click={() => viewMode = 'list'}
+          onclick={() => viewMode = 'list'}
+          aria-label="List view"
         >
           <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16" />
