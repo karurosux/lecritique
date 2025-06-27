@@ -15,7 +15,7 @@ import (
 )
 
 type QRCodeService interface {
-	Generate(ctx context.Context, accountID uuid.UUID, restaurantID uuid.UUID, qrType models.QRCodeType, label string) (*models.QRCode, error)
+	Generate(ctx context.Context, accountID uuid.UUID, restaurantID uuid.UUID, qrType models.QRCodeType, label string, location *string) (*models.QRCode, error)
 	GetByCode(ctx context.Context, code string) (*models.QRCode, error)
 	GetByRestaurantID(ctx context.Context, accountID uuid.UUID, restaurantID uuid.UUID) ([]models.QRCode, error)
 	Delete(ctx context.Context, accountID uuid.UUID, qrCodeID uuid.UUID) error
@@ -34,7 +34,7 @@ func NewQRCodeService(qrCodeRepo qrcodeRepos.QRCodeRepository, restaurantRepo re
 	}
 }
 
-func (s *qrCodeService) Generate(ctx context.Context, accountID uuid.UUID, restaurantID uuid.UUID, qrType models.QRCodeType, label string) (*models.QRCode, error) {
+func (s *qrCodeService) Generate(ctx context.Context, accountID uuid.UUID, restaurantID uuid.UUID, qrType models.QRCodeType, label string, location *string) (*models.QRCode, error) {
 	// Verify restaurant ownership
 	restaurant, err := s.restaurantRepo.FindByID(ctx, restaurantID)
 	if err != nil {
@@ -57,6 +57,7 @@ func (s *qrCodeService) Generate(ctx context.Context, accountID uuid.UUID, resta
 		Code:         code,
 		Type:         qrType,
 		Label:        label,
+		Location:     location,
 		IsActive:     true,
 	}
 

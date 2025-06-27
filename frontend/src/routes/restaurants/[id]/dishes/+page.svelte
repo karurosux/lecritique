@@ -6,7 +6,8 @@
 	import AddDishModal from '$lib/components/dishes/AddDishModal.svelte';
 	import { getApiClient } from '$lib/api';
 	import { toast } from 'svelte-sonner';
-	import { invalidateAll } from '$app/navigation';
+	import { onMount } from 'svelte';
+	import { page } from '$app/stores';
 
 	let { data }: { data: PageData } = $props();
 
@@ -16,10 +17,53 @@
 	let categoryFilter = $state('all');
 	let availabilityFilter = $state('all');
 	let sortBy = $state('name');
+	let dishes = $state(data.dishes || []);
+	let loading = $state(false);
 
-	// Get restaurant and dishes from layout/page data
+	// Get restaurant from layout/page data
 	let restaurant = $derived(data.restaurant);
-	let dishes = $derived(data.dishes || []);
+	let restaurantId = $derived($page.params.id);
+
+	// Fetch dishes when restaurant becomes available
+	onMount(async () => {
+		if (!dishes.length && restaurant) {
+			await fetchDishes();
+		}
+	});
+
+	// Watch for restaurant changes and fetch data
+	$effect(async () => {
+		if (restaurant && !dishes.length) {
+			await fetchDishes();
+		}
+	});
+
+	async function fetchDishes() {
+		try {
+			loading = true;
+			const api = getApiClient();
+			const response = await api.api.v1RestaurantsDishesList(restaurantId);
+			
+			if (response.data.success && response.data.data) {
+				dishes = response.data.data.map((dish: any) => ({
+					id: dish.id || '',
+					name: dish.name || '',
+					description: dish.description || '',
+					price: dish.price || 0,
+					category: dish.category || 'Uncategorized',
+					is_available: dish.is_available !== false,
+					allergens: dish.allergens || [],
+					preparation_time: dish.preparation_time || 0,
+					created_at: dish.created_at || '',
+					updated_at: dish.updated_at || ''
+				}));
+			}
+		} catch (error) {
+			console.error('Error loading dishes:', error);
+		} finally {
+			loading = false;
+		}
+	}
 
 	// Get unique categories
 	let categories = $derived(
@@ -76,7 +120,7 @@
 			const api = getApiClient();
 			await api.api.v1DishesDelete(dish.id);
 			toast.success('Dish deleted successfully');
-			await invalidateAll();
+			await fetchDishes();
 		} catch (error) {
 			toast.error('Failed to delete dish');
 			console.error(error);
@@ -91,7 +135,7 @@
 				is_available: !dish.is_available
 			});
 			toast.success(`${dish.name} ${dish.is_available ? 'disabled' : 'enabled'}`);
-			await invalidateAll();
+			await fetchDishes();
 		} catch (error) {
 			toast.error('Failed to update dish availability');
 			console.error(error);
@@ -100,10 +144,23 @@
 </script>
 
 <svelte:head>
-	<title>Menu - {restaurant.name} | LeCritique</title>
+	<title>Menu - {restaurant?.name || 'Restaurant'} | LeCritique</title>
 </svelte:head>
 
-<div class="space-y-6">
+{#if !restaurant}
+	<div class="space-y-6">
+		<div class="text-center">
+			<p class="text-gray-600">Loading restaurant...</p>
+		</div>
+	</div>
+{:else}
+	<div class="space-y-6">
+		<!-- Loading State -->
+		{#if loading}
+			<div class="text-center">
+				<p class="text-gray-600">Loading dishes...</p>
+			</div>
+		{:else}
 	<!-- Search and Filters -->
 	<Card variant="glass">
 		<div class="flex flex-wrap gap-4 items-end">
@@ -184,19 +241,23 @@
 			{/each}
 		</div>
 	{/if}
+	{/if}
 </div>
+{/if}
 
 <!-- Add/Edit Dish Modal -->
-<AddDishModal
-	bind:isOpen={showAddDishModal}
-	editingDish={editingDish}
-	onclose={() => {
-		showAddDishModal = false;
-		editingDish = null;
-	}}
-	onsave={() => {
-		showAddDishModal = false;
-		editingDish = null;
-		invalidateAll();
-	}}
-/>
+{#if restaurant}
+	<AddDishModal
+		bind:isOpen={showAddDishModal}
+		editingDish={editingDish}
+		onclose={() => {
+			showAddDishModal = false;
+			editingDish = null;
+		}}
+		onsave={() => {
+			showAddDishModal = false;
+			editingDish = null;
+			fetchDishes();
+		}}
+	/>
+{/if}

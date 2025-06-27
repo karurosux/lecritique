@@ -1,9 +1,23 @@
 import type { LayoutLoad } from './$types';
-import { getApiClient } from '$lib/api';
-import { error } from '@sveltejs/kit';
+import { getApiClient, isAuthenticated, getAuthToken } from '$lib/api';
+import { error, redirect } from '@sveltejs/kit';
+import { browser } from '$app/environment';
 
 export const load: LayoutLoad = async ({ params, parent }) => {
 	await parent();
+
+	// On server, skip authentication check and defer to client
+	if (!browser) {
+		return {
+			restaurant: null,
+			restaurantId: params.id
+		};
+	}
+
+	// Check authentication on client side
+	if (!isAuthenticated() || !getAuthToken()) {
+		throw redirect(302, '/auth/login');
+	}
 
 	try {
 		const api = getApiClient();

@@ -1,9 +1,16 @@
 import type { PageLoad } from './$types';
 import { getApiClient } from '$lib/api';
-import { error } from '@sveltejs/kit';
+import { browser } from '$app/environment';
 
 export const load: PageLoad = async ({ params, parent }) => {
 	const { restaurant } = await parent();
+
+	// On server, return empty dishes and defer to client
+	if (!browser || !restaurant) {
+		return {
+			dishes: []
+		};
+	}
 
 	try {
 		// Fetch dishes for this restaurant

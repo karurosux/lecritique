@@ -1,22 +1,48 @@
 <script lang="ts">
 	import type { LayoutData } from './$types';
 	import { page } from '$app/stores';
-	import { ArrowLeft, Store, UtensilsCrossed, QrCode, Settings } from 'lucide-svelte';
+	import { ArrowLeft, Store, UtensilsCrossed, QrCode } from 'lucide-svelte';
 	import { Button } from '$lib/components/ui';
 	import { goto } from '$app/navigation';
+	import { getApiClient, isAuthenticated } from '$lib/api';
+	import { browser } from '$app/environment';
+	import { onMount } from 'svelte';
 
 	let { data }: { data: LayoutData } = $props();
 
 	let currentPath = $derived($page.url.pathname);
 	let restaurantId = $derived(data.restaurantId);
+	let restaurant = $state(data.restaurant);
+	let loading = $state(!restaurant && browser);
 
 	const navItems = [
 		{ href: `/restaurants/${restaurantId}/dishes`, label: 'Menu', icon: UtensilsCrossed },
-		{ href: `/restaurants/${restaurantId}/qr-codes`, label: 'QR Codes', icon: QrCode },
-		{ href: `/restaurants/${restaurantId}/edit`, label: 'Settings', icon: Settings }
+		{ href: `/restaurants/${restaurantId}/qr-codes`, label: 'QR Codes', icon: QrCode }
 	];
 
 	let activeItem = $derived(navItems.find(item => currentPath === item.href) || navItems[0]);
+
+	// Fetch restaurant data on client if not available
+	onMount(async () => {
+		if (!restaurant && isAuthenticated()) {
+			try {
+				loading = true;
+				const api = getApiClient();
+				const response = await api.api.v1RestaurantsDetail(restaurantId);
+				
+				if (response.data.success && response.data.data) {
+					restaurant = response.data.data;
+				}
+			} catch (error) {
+				console.error('Error loading restaurant:', error);
+				goto('/restaurants');
+			} finally {
+				loading = false;
+			}
+		} else if (!restaurant) {
+			loading = false;
+		}
+	});
 </script>
 
 <div class="min-h-screen bg-gradient-to-br from-blue-50/50 via-purple-50/30 to-pink-50/50 relative">
@@ -45,7 +71,13 @@
 							<Store class="h-5 w-5 text-white" />
 						</div>
 						<h1 class="text-2xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
-							{data.restaurant.name}
+							{#if loading}
+								Loading...
+							{:else if restaurant}
+								{restaurant.name}
+							{:else}
+								Restaurant
+							{/if}
 						</h1>
 					</div>
 				</div>

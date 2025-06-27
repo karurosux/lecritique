@@ -3174,6 +3174,10 @@ const docTemplate = `{
                     "maxLength": 100,
                     "minLength": 1
                 },
+                "location": {
+                    "type": "string",
+                    "maxLength": 200
+                },
                 "restaurant_id": {
                     "type": "string"
                 },
@@ -3572,9 +3576,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "location": {
-                    "$ref": "#/definitions/models.Location"
-                },
-                "location_id": {
+                    "description": "Free text location description",
                     "type": "string"
                 },
                 "restaurant": {

@@ -16,16 +16,7 @@
 
 	let loading = $state(false);
 	let label = $state('');
-	let type = $state(ModelsQRCodeType.QRCodeTypeTable);
-	let locationId = $state('');
-
-	const qrTypes = [
-		{ value: ModelsQRCodeType.QRCodeTypeTable, label: 'Table', description: 'For dine-in customers at specific tables' },
-		{ value: ModelsQRCodeType.QRCodeTypeLocation, label: 'Location', description: 'For specific areas in your restaurant' },
-		{ value: ModelsQRCodeType.QRCodeTypeTakeaway, label: 'Takeaway', description: 'For takeout orders' },
-		{ value: ModelsQRCodeType.QRCodeTypeDelivery, label: 'Delivery', description: 'For delivery orders' },
-		{ value: ModelsQRCodeType.QRCodeTypeGeneral, label: 'General', description: 'For general use' }
-	];
+	let location = $state('');
 
 	async function handleSubmit() {
 		if (!label.trim()) {
@@ -38,8 +29,9 @@
 		try {
 			const payload = {
 				label: label.trim(),
-				type,
-				location_id: locationId || undefined
+				restaurant_id: restaurantId,
+				type: "general" as const, // Default to general type
+				location: location.trim() || undefined
 			};
 
 			const api = getApiClient();
@@ -80,26 +72,16 @@
 		</div>
 
 		<div class="space-y-2">
-			<label for="type" class="block text-sm font-medium text-gray-700">Type</label>
-			<Select 
-				bind:value={type}
-				options={qrTypes.map(t => ({ value: t.value, label: t.label }))}
+			<label for="location" class="block text-sm font-medium text-gray-700">Location (Optional)</label>
+			<Input
+				id="location"
+				bind:value={location}
+				placeholder="e.g., Table 5, Main Bar, Patio, Front Counter"
 			/>
+			<p class="text-sm text-gray-500">
+				Describe where this QR code will be placed
+			</p>
 		</div>
-
-		{#if type === ModelsQRCodeType.QRCodeTypeLocation}
-			<div class="space-y-2">
-				<label for="location" class="block text-sm font-medium text-gray-700">Location ID (Optional)</label>
-				<Input
-					id="location"
-					bind:value={locationId}
-					placeholder="Enter location ID"
-				/>
-				<p class="text-sm text-gray-500">
-					Associate this QR code with a specific location
-				</p>
-			</div>
-		{/if}
 
 		<div class="rounded-lg bg-gray-50 p-4">
 			<h4 class="font-medium mb-2">How it works</h4>

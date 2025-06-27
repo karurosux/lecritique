@@ -33,7 +33,7 @@ func NewQRCodeRepository(db *gorm.DB) QRCodeRepository {
 
 func (r *qrCodeRepository) FindByCode(ctx context.Context, code string) (*models.QRCode, error) {
 	var qrCode models.QRCode
-	err := r.DB.WithContext(ctx).Preload("Restaurant").Preload("Location").
+	err := r.DB.WithContext(ctx).Preload("Restaurant").
 		Where("code = ?", code).First(&qrCode).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -46,7 +46,7 @@ func (r *qrCodeRepository) FindByCode(ctx context.Context, code string) (*models
 
 func (r *qrCodeRepository) FindByRestaurantID(ctx context.Context, restaurantID uuid.UUID) ([]models.QRCode, error) {
 	var qrCodes []models.QRCode
-	err := r.DB.WithContext(ctx).Preload("Location").
+	err := r.DB.WithContext(ctx).
 		Where("restaurant_id = ?", restaurantID).
 		Order("created_at DESC").
 		Find(&qrCodes).Error

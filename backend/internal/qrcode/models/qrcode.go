@@ -12,8 +12,7 @@ type QRCode struct {
 	sharedModels.BaseModel
 	RestaurantID uuid.UUID   `gorm:"not null" json:"restaurant_id"`
 	Restaurant   restaurantModels.Restaurant  `json:"restaurant,omitempty"`
-	LocationID   *uuid.UUID  `json:"location_id"`
-	Location     *restaurantModels.Location   `json:"location,omitempty"`
+	Location     *string     `json:"location"` // Free text location description
 	Code         string      `gorm:"uniqueIndex;not null" json:"code"`
 	Label        string      `json:"label"` // e.g., "Table 1", "Entrance", etc.
 	Type         QRCodeType  `gorm:"not null" json:"type"`

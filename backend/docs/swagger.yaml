@@ -107,6 +107,9 @@ definitions:
         maxLength: 100
         minLength: 1
         type: string
+      location:
+        maxLength: 200
+        type: string
       restaurant_id:
         type: string
       type:
@@ -377,8 +380,7 @@ definitions:
       last_scanned_at:
         type: string
       location:
-        $ref: '#/definitions/models.Location'
-      location_id:
+        description: Free text location description
         type: string
       restaurant:
         $ref: '#/definitions/models.Restaurant'

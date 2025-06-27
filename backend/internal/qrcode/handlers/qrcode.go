@@ -8,16 +8,19 @@ import (
 	"github.com/lecritique/api/internal/qrcode/models"
 	"github.com/lecritique/api/internal/qrcode/services"
 	"github.com/lecritique/api/internal/shared/logger"
+	"github.com/lecritique/api/internal/shared/validator"
 	"github.com/sirupsen/logrus"
 )
 
 type QRCodeHandler struct {
 	qrCodeService services.QRCodeService
+	validator     *validator.Validator
 }
 
 func NewQRCodeHandler(qrCodeService services.QRCodeService) *QRCodeHandler {
 	return &QRCodeHandler{
 		qrCodeService: qrCodeService,
+		validator:     validator.New(),
 	}
 }
 
@@ -25,6 +28,7 @@ type GenerateQRCodeRequest struct {
 	RestaurantID uuid.UUID          `json:"restaurant_id" validate:"required"`
 	Type         models.QRCodeType  `json:"type" validate:"required,oneof=table location takeaway delivery general"`
 	Label        string             `json:"label" validate:"required,min=1,max=100"`
+	Location     *string            `json:"location" validate:"omitempty,max=200"`
 }
 
 type GenerateQRCodeResponse struct {
@@ -53,7 +57,7 @@ func (h *QRCodeHandler) Generate(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, "Invalid request body")
 	}
 
-	if err := c.Validate(&req); err != nil {
+	if err := h.validator.Validate(req); err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 
@@ -62,7 +66,7 @@ func (h *QRCodeHandler) Generate(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusUnauthorized, "Invalid authentication")
 	}
 
-	qrCode, err := h.qrCodeService.Generate(ctx, accountID, req.RestaurantID, req.Type, req.Label)
+	qrCode, err := h.qrCodeService.Generate(ctx, accountID, req.RestaurantID, req.Type, req.Label, req.Location)
 	if err != nil {
 		logger.Error("Failed to generate QR code", err, logrus.Fields{
 			"account_id":    accountID,

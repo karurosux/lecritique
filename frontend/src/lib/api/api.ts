@@ -99,6 +99,8 @@ export interface HandlersGenerateQRCodeRequest {
    * @maxLength 100
    */
   label: string;
+  /** @maxLength 200 */
+  location?: string;
   restaurant_id: string;
   type: "table" | "location" | "takeaway" | "delivery" | "general";
 }
@@ -235,8 +237,8 @@ export interface ModelsQRCode {
   /** e.g., "Table 1", "Entrance", etc. */
   label?: string;
   last_scanned_at?: string;
-  location?: ModelsLocation;
-  location_id?: string;
+  /** Free text location description */
+  location?: string;
   restaurant?: ModelsRestaurant;
   restaurant_id?: string;
   scans_count?: number;
