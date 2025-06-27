@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { PageData } from './$types';
-	import { Button, Card } from '$lib/components/ui';
+	import { Button, Card, QRCode } from '$lib/components/ui';
 	import { Plus, QrCode, Download, Trash2, Eye, EyeOff } from 'lucide-svelte';
 	// Badge component not available, will use span with styling
 	import CreateQRCodeModal from '$lib/components/qr-codes/CreateQRCodeModal.svelte';
@@ -62,6 +62,12 @@
 		if (!date) return 'Never';
 		return new Date(date).toLocaleDateString();
 	}
+
+	function getFeedbackUrl(qrCode: typeof data.qrCodes[0]) {
+		// TODO: Update with actual domain
+		const baseUrl = 'https://lecritique.com';
+		return `${baseUrl}/feedback/${qrCode.code}`;
+	}
 </script>
 
 <svelte:head>
@@ -70,14 +76,23 @@
 
 <div class="space-y-6">
 	<!-- Header -->
-	<div class="flex items-center justify-between">
-		<div>
-			<h1 class="text-2xl font-bold">QR Codes</h1>
-			<p class="text-muted-foreground">
-				Manage QR codes for {restaurant.name}
-			</p>
+	<div class="flex items-center justify-between mb-8">
+		<div class="space-y-3">
+			<div class="flex items-center space-x-3">
+				<div class="h-12 w-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg shadow-blue-500/25">
+					<QrCode class="h-6 w-6 text-white" />
+				</div>
+				<div>
+					<h1 class="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
+						QR Codes
+					</h1>
+					<p class="text-gray-600 font-medium">
+						Manage QR codes for {restaurant.name}
+					</p>
+				</div>
+			</div>
 		</div>
-		<Button on:click={() => (showCreateModal = true)} class="gap-2">
+		<Button onclick={() => (showCreateModal = true)} variant="gradient" size="lg" class="gap-2">
 			<Plus class="h-4 w-4" />
 			Create QR Code
 		</Button>
@@ -85,81 +100,73 @@
 
 	<!-- QR Codes Grid -->
 	{#if data.qrCodes.length === 0}
-		<Card class="p-12 text-center">
-			<QrCode class="mx-auto h-12 w-12 text-muted-foreground mb-4" />
-			<h3 class="text-lg font-semibold mb-2">No QR codes yet</h3>
-			<p class="text-muted-foreground mb-4">
-				Create your first QR code to start collecting feedback
+		<Card variant="glass" class="p-12 text-center">
+			<div class="w-24 h-24 mx-auto bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center mb-6 shadow-lg shadow-blue-500/25">
+				<QrCode class="h-12 w-12 text-white" />
+			</div>
+			<h3 class="text-xl font-bold mb-2 bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">No QR codes yet</h3>
+			<p class="text-gray-600 mb-6 max-w-md mx-auto">
+				Create your first QR code to start collecting feedback from customers
 			</p>
-			<Button on:click={() => (showCreateModal = true)} variant="default">
+			<Button onclick={() => (showCreateModal = true)} variant="gradient" size="lg">
 				<Plus class="mr-2 h-4 w-4" />
-				Create QR Code
+				Create First QR Code
 			</Button>
 		</Card>
 	{:else}
-		<div class="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+		<div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
 			{#each data.qrCodes as qrCode}
-				<Card class="p-6">
+				<Card variant="glass" class="p-6 hover:shadow-xl transition-all duration-300">
+					<!-- Header with QR Info -->
 					<div class="flex items-start justify-between mb-4">
-						<div class="flex items-center gap-3">
-							<div class="p-2 bg-primary/10 rounded-lg">
-								<QrCode class="h-6 w-6 text-primary" />
-							</div>
-							<div>
-								<h3 class="font-semibold">{qrCode.label}</h3>
-								<p class="text-sm text-muted-foreground">
-									{qrCode.code}
-								</p>
-							</div>
+						<div>
+							<h3 class="text-lg font-bold text-gray-900">{qrCode.label}</h3>
+							<p class="text-sm text-gray-600 font-mono mt-1">{qrCode.code}</p>
 						</div>
-						<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {qrTypeColors[qrCode.type] || 'bg-gray-100 text-gray-800'}">
+						<span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold {qrTypeColors[qrCode.type] || 'bg-gray-100 text-gray-800'}">
 							{qrCode.type}
 						</span>
 					</div>
 
+					<!-- Stats -->
 					<div class="space-y-2 mb-4">
-						<div class="flex justify-between text-sm">
-							<span class="text-muted-foreground">Status</span>
-							<span class="flex items-center gap-1">
+						<div class="flex justify-between items-center">
+							<span class="text-sm text-gray-600">Status</span>
+							<span class="flex items-center gap-2">
 								{#if qrCode.is_active}
 									<span class="h-2 w-2 bg-green-500 rounded-full"></span>
-									Active
+									<span class="text-sm font-semibold text-green-700">Active</span>
 								{:else}
 									<span class="h-2 w-2 bg-gray-400 rounded-full"></span>
-									Inactive
+									<span class="text-sm font-semibold text-gray-700">Inactive</span>
 								{/if}
 							</span>
 						</div>
-						<div class="flex justify-between text-sm">
-							<span class="text-muted-foreground">Scans</span>
-							<span>{qrCode.scans_count || 0}</span>
+						<div class="flex justify-between items-center">
+							<span class="text-sm text-gray-600">Total Scans</span>
+							<span class="text-sm font-bold text-gray-900">{qrCode.scans_count || 0}</span>
 						</div>
-						<div class="flex justify-between text-sm">
-							<span class="text-muted-foreground">Last scan</span>
-							<span>{formatDate(qrCode.last_scanned_at)}</span>
+						<div class="flex justify-between items-center">
+							<span class="text-sm text-gray-600">Last Scan</span>
+							<span class="text-sm font-semibold text-gray-900">{formatDate(qrCode.last_scanned_at)}</span>
 						</div>
-						{#if qrCode.location_id}
-							<div class="flex justify-between text-sm">
-								<span class="text-muted-foreground">Location</span>
-								<span>Location {qrCode.location_id}</span>
-							</div>
-						{/if}
 					</div>
 
+					<!-- Actions -->
 					<div class="flex gap-2">
 						<Button
-							variant="outline"
+							variant="gradient"
 							size="sm"
 							class="flex-1"
-							on:click={() => showQRCode(qrCode)}
+							onclick={() => showQRCode(qrCode)}
 						>
-							<Eye class="h-4 w-4" />
+							<Download class="h-4 w-4 mr-1" />
+							Download
 						</Button>
 						<Button
 							variant="outline"
 							size="sm"
-							class="flex-1"
-							on:click={() => handleToggleActive(qrCode)}
+							onclick={() => handleToggleActive(qrCode)}
 						>
 							{#if qrCode.is_active}
 								<EyeOff class="h-4 w-4" />
@@ -170,8 +177,7 @@
 						<Button
 							variant="outline"
 							size="sm"
-							class="flex-1"
-							on:click={() => handleDelete(qrCode)}
+							onclick={() => handleDelete(qrCode)}
 						>
 							<Trash2 class="h-4 w-4" />
 						</Button>
