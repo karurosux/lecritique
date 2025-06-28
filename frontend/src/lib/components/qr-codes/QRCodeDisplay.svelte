@@ -5,6 +5,7 @@
 	import { toast } from 'svelte-sonner';
 	import QRCode from 'qrcode';
 	import { browser } from '$app/environment';
+	import logoImage from '../../../assets/logo.png';
 
 	let {
 		qrCode,
@@ -80,73 +81,87 @@
 			return;
 		}
 
-		const html = `
-			<!DOCTYPE html>
-			<html>
-			<head>
-				<title>QR Code - ${qrCode.label}</title>
-				<style>
-					body {
-						font-family: system-ui, -apple-system, sans-serif;
-						display: flex;
-						flex-direction: column;
-						align-items: center;
-						justify-content: center;
-						min-height: 100vh;
-						margin: 0;
-						padding: 20px;
-					}
-					.container {
-						text-align: center;
-						border: 2px solid #000;
-						padding: 40px;
-						border-radius: 8px;
-					}
-					h1 {
-						margin: 0 0 10px 0;
-						font-size: 24px;
-					}
-					h2 {
-						margin: 0 0 20px 0;
-						font-size: 20px;
-						font-weight: normal;
-					}
-					.qr-code {
-						margin: 20px 0;
-					}
-					.label {
-						font-size: 18px;
-						font-weight: bold;
-						margin-top: 20px;
-					}
-					.instructions {
-						margin-top: 20px;
-						font-size: 14px;
-						color: #666;
-					}
-					@media print {
-						body {
-							min-height: auto;
-						}
-					}
-				</style>
-			</head>
-			<body>
-				<div class="container">
-					<h1>${restaurantName}</h1>
-					<h2>Scan to leave feedback</h2>
-					<img class="qr-code" src="${qrDataUrl}" alt="QR Code" width="300" height="300">
-					<div class="label">${qrCode.label}</div>
-					<div class="instructions">
-						Scan this QR code with your phone camera<br>
-						to share your dining experience
-					</div>
-				</div>
-			</body>
-			</html>
-		`;
-
-		printWindow.document.write(html);
+		// Build the print document
+		printWindow.document.write('<!DOCTYPE html>');
+		printWindow.document.write('<html><head>');
+		printWindow.document.write('<title>QR Codes - ' + qrCode.label + '</title>');
+		
+		// Write styles directly to avoid preprocessor issues
+		printWindow.document.write('<sty' + 'le>');
+		printWindow.document.write('* { box-sizing: border-box; }');
+		printWindow.document.write('body { font-family: system-ui, -apple-system, sans-serif; margin: 0; padding: 20px; }');
+		printWindow.document.write('.page { max-width: 8.5in; margin: 0 auto; }');
+		printWindow.document.write('.instructions-header { text-align: center; margin-bottom: 30px; padding: 20px; background: #f5f5f5; border-radius: 8px; }');
+		printWindow.document.write('.instructions-header h1 { margin: 0 0 10px 0; font-size: 24px; }');
+		printWindow.document.write('.instructions-header p { margin: 5px 0; color: #666; font-size: 14px; }');
+		printWindow.document.write('.section { margin: 20px 0; }');
+		printWindow.document.write('.qr-group { display: flex; justify-content: center; align-items: flex-start; flex-wrap: wrap; gap: 0; }');
+		printWindow.document.write('.qr-item { text-align: center; border: 1px dashed rgba(100, 100, 100, 0.5); padding: 15px; position: relative; }');
+		printWindow.document.write('.qr-item + .qr-item { border-left: 1px dashed rgba(100, 100, 100, 0.5); }');
+		printWindow.document.write('.qr-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0; justify-content: center; }');
+		printWindow.document.write('.qr-grid .qr-item:nth-child(1), .qr-grid .qr-item:nth-child(2) { border-bottom: 1px dashed rgba(100, 100, 100, 0.5); }');
+		printWindow.document.write('.qr-grid .qr-item:nth-child(2), .qr-grid .qr-item:nth-child(4) { border-left: 1px dashed rgba(100, 100, 100, 0.5); }');
+		printWindow.document.write('.qr-item img { display: block; margin: 0 auto; }');
+		printWindow.document.write('.qr-item .logo { height: 30px; margin-bottom: 10px; }');
+		printWindow.document.write('.qr-item h3 { margin: 10px 0 5px 0; font-size: 14px; }');
+		printWindow.document.write('.qr-item .label { font-size: 12px; font-weight: bold; margin: 5px 0; }');
+		printWindow.document.write('.qr-item .use-case { font-size: 10px; color: #666; }');
+		printWindow.document.write('.cut-line { border: 0; height: 0; border-top: 1px dashed #999; margin: 0; }');
+		printWindow.document.write('@media print { body { padding: 0; } @page { margin: 0.5in; } }');
+		printWindow.document.write('</sty' + 'le>');
+		
+		printWindow.document.write('</head><body>');
+		printWindow.document.write('<div class="page">');
+		
+		// Instructions header
+		printWindow.document.write('<div class="instructions-header">');
+		printWindow.document.write('<h1>' + restaurantName + ' - QR Code Sheet</h1>');
+		printWindow.document.write('<p>Cut along the dashed lines to separate individual QR code cards</p>');
+		printWindow.document.write('<p>All QR codes lead to the same feedback form for: <strong>' + qrCode.label + '</strong></p>');
+		printWindow.document.write('</div>');
+		
+		// Large format section
+		printWindow.document.write('<div class="section">');
+		printWindow.document.write('<div class="qr-group">');
+		printWindow.document.write('<div class="qr-item">');
+		printWindow.document.write('<img class="logo" src="' + logoImage + '" alt="LeCritique Logo">');
+		printWindow.document.write('<img src="' + qrDataUrl + '" alt="QR Code" width="200" height="200">');
+		printWindow.document.write('<h3>' + restaurantName + '</h3>');
+		printWindow.document.write('<div class="label">' + qrCode.label + '</div>');
+		printWindow.document.write('<div class="use-case">Scan to leave feedback</div>');
+		printWindow.document.write('</div>');
+		printWindow.document.write('</div>');
+		printWindow.document.write('</div>');
+		
+		// Medium format section
+		printWindow.document.write('<div class="section">');
+		printWindow.document.write('<div class="qr-group">');
+		for (let i = 0; i < 2; i++) {
+			printWindow.document.write('<div class="qr-item">');
+			printWindow.document.write('<img class="logo" src="' + logoImage + '" alt="LeCritique Logo">');
+			printWindow.document.write('<img src="' + qrDataUrl + '" alt="QR Code" width="120" height="120">');
+			printWindow.document.write('<div class="label">' + qrCode.label + '</div>');
+			printWindow.document.write('<div class="use-case">Share your experience</div>');
+			printWindow.document.write('</div>');
+		}
+		printWindow.document.write('</div>');
+		printWindow.document.write('</div>');
+		
+		// Small format section (2x2 grid)
+		printWindow.document.write('<div class="section">');
+		printWindow.document.write('<div class="qr-grid">');
+		for (let i = 0; i < 4; i++) {
+			printWindow.document.write('<div class="qr-item">');
+			printWindow.document.write('<img src="' + qrDataUrl + '" alt="QR Code" width="80" height="80">');
+			printWindow.document.write('<div class="use-case" style="font-size: 9px;">Feedback: ' + qrCode.label + '</div>');
+			printWindow.document.write('</div>');
+		}
+		printWindow.document.write('</div>');
+		printWindow.document.write('</div>');
+		
+		printWindow.document.write('</div>');
+		printWindow.document.write('</body></html>');
+		
 		printWindow.document.close();
 		printWindow.onload = () => {
 			printWindow.print();
@@ -164,11 +179,6 @@
 	onclose={handleClose}
 >
 	<div class="space-y-4">
-		<!-- QR Code Display -->
-		<div class="flex justify-center p-8 bg-white rounded-lg border">
-			<canvas bind:this={canvas} class="max-w-full"></canvas>
-		</div>
-
 		<!-- QR Code Info -->
 		<div class="space-y-2 text-sm">
 			<div class="flex justify-between">

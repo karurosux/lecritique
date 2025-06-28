@@ -29,5 +29,6 @@ func RegisterRoutes(protected *echo.Group, db *gorm.DB, authService authServices
 	
 	qrCodes := protected.Group("/qr-codes")
 	qrCodes.Use(middleware.JWTAuth(authService))
+	qrCodes.PATCH("/:id", qrCodeHandler.Update)
 	qrCodes.DELETE("/:id", qrCodeHandler.Delete)
 }

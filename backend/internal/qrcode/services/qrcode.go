@@ -14,10 +14,17 @@ import (
 	sharedRepos "github.com/lecritique/api/internal/shared/repositories"
 )
 
+type UpdateQRCodeRequest struct {
+	IsActive *bool   `json:"is_active"`
+	Label    *string `json:"label"`
+	Location *string `json:"location"`
+}
+
 type QRCodeService interface {
 	Generate(ctx context.Context, accountID uuid.UUID, restaurantID uuid.UUID, qrType models.QRCodeType, label string, location *string) (*models.QRCode, error)
 	GetByCode(ctx context.Context, code string) (*models.QRCode, error)
 	GetByRestaurantID(ctx context.Context, accountID uuid.UUID, restaurantID uuid.UUID) ([]models.QRCode, error)
+	Update(ctx context.Context, accountID uuid.UUID, qrCodeID uuid.UUID, updateReq *UpdateQRCodeRequest) (*models.QRCode, error)
 	Delete(ctx context.Context, accountID uuid.UUID, qrCodeID uuid.UUID) error
 	RecordScan(ctx context.Context, code string) error
 }
@@ -93,6 +100,44 @@ func (s *qrCodeService) GetByRestaurantID(ctx context.Context, accountID uuid.UU
 	}
 
 	return s.qrCodeRepo.FindByRestaurantID(ctx, restaurantID)
+}
+
+func (s *qrCodeService) Update(ctx context.Context, accountID uuid.UUID, qrCodeID uuid.UUID, updateReq *UpdateQRCodeRequest) (*models.QRCode, error) {
+	// Get QR code
+	qrCode, err := s.qrCodeRepo.FindByID(ctx, qrCodeID)
+	if err != nil {
+		return nil, err
+	}
+
+	// Verify ownership
+	restaurant, err := s.restaurantRepo.FindByID(ctx, qrCode.RestaurantID)
+	if err != nil {
+		return nil, err
+	}
+
+	if restaurant.AccountID != accountID {
+		return nil, sharedRepos.ErrRecordNotFound
+	}
+
+	// Update fields if provided
+	if updateReq.IsActive != nil {
+		qrCode.IsActive = *updateReq.IsActive
+	}
+	if updateReq.Label != nil {
+		qrCode.Label = *updateReq.Label
+	}
+	if updateReq.Location != nil {
+		qrCode.Location = updateReq.Location
+	}
+
+	qrCode.UpdatedAt = time.Now()
+
+	// Save to repository
+	if err := s.qrCodeRepo.Update(ctx, qrCode); err != nil {
+		return nil, err
+	}
+
+	return qrCode, nil
 }
 
 func (s *qrCodeService) Delete(ctx context.Context, accountID uuid.UUID, qrCodeID uuid.UUID) error {

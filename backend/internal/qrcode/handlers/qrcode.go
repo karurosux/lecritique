@@ -168,3 +168,73 @@ func (h *QRCodeHandler) Delete(c echo.Context) error {
 		"message": "QR code deleted successfully",
 	})
 }
+
+type UpdateQRCodeRequest struct {
+	IsActive *bool   `json:"is_active"`
+	Label    *string `json:"label" validate:"omitempty,min=1,max=100"`
+	Location *string `json:"location" validate:"omitempty,max=200"`
+}
+
+type UpdateQRCodeResponse struct {
+	Success bool           `json:"success"`
+	Data    *models.QRCode `json:"data"`
+}
+
+// Update updates a QR code
+// @Summary Update QR code
+// @Description Update QR code details like active status, label, or location
+// @Tags qr-codes
+// @Accept json
+// @Produce json
+// @Security ApiKeyAuth
+// @Param id path string true "QR Code ID"
+// @Param qr_code body UpdateQRCodeRequest true "QR code update information"
+// @Success 200 {object} UpdateQRCodeResponse
+// @Failure 400 {object} response.Response
+// @Failure 401 {object} response.Response
+// @Failure 404 {object} response.Response
+// @Failure 500 {object} response.Response
+// @Router /api/v1/qr-codes/{id} [patch]
+func (h *QRCodeHandler) Update(c echo.Context) error {
+	ctx := c.Request().Context()
+	
+	qrCodeID, err := uuid.Parse(c.Param("id"))
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, "Invalid QR code ID")
+	}
+
+	accountID, ok := c.Get("account_id").(uuid.UUID)
+	if !ok {
+		return echo.NewHTTPError(http.StatusUnauthorized, "Invalid authentication")
+	}
+
+	var req UpdateQRCodeRequest
+	if err := c.Bind(&req); err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, "Invalid request body")
+	}
+
+	if err := h.validator.Validate(&req); err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+	}
+
+	// Convert handler request to service request format
+	serviceReq := &services.UpdateQRCodeRequest{
+		IsActive: req.IsActive,
+		Label:    req.Label,
+		Location: req.Location,
+	}
+
+	updatedQRCode, err := h.qrCodeService.Update(ctx, accountID, qrCodeID, serviceReq)
+	if err != nil {
+		logger.Error("Failed to update QR code", err, logrus.Fields{
+			"account_id": accountID,
+			"qr_code_id": qrCodeID,
+		})
+		return echo.NewHTTPError(http.StatusInternalServerError, "Failed to update QR code")
+	}
+
+	return c.JSON(http.StatusOK, UpdateQRCodeResponse{
+		Success: true,
+		Data:    updatedQRCode,
+	})
+}

@@ -8,7 +8,7 @@
 	import { getApiClient } from '$lib/api';
 	import { toast } from 'svelte-sonner';
 	import { invalidateAll } from '$app/navigation';
-	import { ModelsQRCodeType } from '$lib/api/api';
+	import { ModelsQRCodeType, ContentType } from '$lib/api/api';
 	import { onMount } from 'svelte';
 	import { page } from '$app/stores';
 
@@ -80,8 +80,23 @@
 
 	async function handleToggleActive(qrCode: typeof qrCodes[0]) {
 		try {
-			// TODO: Add toggle active endpoint to API
-			toast.info('Toggle active functionality coming soon');
+			const api = getApiClient();
+			await api.request({
+				path: `/api/v1/qr-codes/${qrCode.id}`,
+				method: 'PATCH',
+				secure: true,
+				type: ContentType.Json,
+				body: {
+					is_active: !qrCode.is_active
+				},
+				format: 'json'
+			});
+
+			// Update local state
+			qrCode.is_active = !qrCode.is_active;
+			qrCodes = [...qrCodes]; // Trigger reactivity
+
+			toast.success(`QR code ${qrCode.is_active ? 'activated' : 'deactivated'}`);
 		} catch (error) {
 			toast.error('Failed to update QR code status');
 			console.error(error);
