@@ -16,7 +16,7 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 
 	// Check authentication on client side
 	if (!isAuthenticated() || !getAuthToken()) {
-		throw redirect(302, '/auth/login');
+		throw redirect(302, '/login');
 	}
 
 	try {

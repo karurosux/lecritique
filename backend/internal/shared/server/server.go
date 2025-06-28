@@ -105,7 +105,7 @@ func (s *Server) setupRoutes() {
 	protected := v1.Group("")
 	
 	// Register all routes
-	feedbackHandlers.RegisterRoutes(public, protected, s.db, authService)
+	feedbackHandlers.RegisterRoutes(public, protected, s.db, authService, s.config)
 	restaurantHandlers.RegisterRoutes(protected, s.db, authService)
 	menuHandlers.RegisterRoutes(protected, s.db, authService)
 	qrcodeHandlers.RegisterRoutes(protected, s.db, authService)

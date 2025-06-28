@@ -15,6 +15,7 @@ type Config struct {
 	JWT      JWTConfig
 	Stripe   StripeConfig
 	SMTP     *SMTPConfig
+	AI       AIConfig
 }
 
 type AppConfig struct {
@@ -59,6 +60,12 @@ type SMTPConfig struct {
 	From     string
 }
 
+type AIConfig struct {
+	Provider string // "openai", "anthropic", or "gemini"
+	APIKey   string
+	Model    string
+}
+
 func Load() (*Config, error) {
 	// Load .env file
 	_ = godotenv.Load()
@@ -76,6 +83,8 @@ func Load() (*Config, error) {
 	viper.SetDefault("REDIS_PORT", "6379")
 	viper.SetDefault("REDIS_DB", 0)
 	viper.SetDefault("JWT_EXPIRATION", "24h")
+	viper.SetDefault("AI_PROVIDER", "anthropic")
+	viper.SetDefault("AI_MODEL", "claude-3-haiku-20240307")
 
 	// Read from environment
 	viper.AutomaticEnv()
@@ -129,6 +138,11 @@ func Load() (*Config, error) {
 			WebhookSecret: viper.GetString("STRIPE_WEBHOOK_SECRET"),
 		},
 		SMTP: smtpConfig,
+		AI: AIConfig{
+			Provider: viper.GetString("AI_PROVIDER"),
+			APIKey:   viper.GetString("AI_API_KEY"),
+			Model:    viper.GetString("AI_MODEL"),
+		},
 	}
 
 	return config, nil

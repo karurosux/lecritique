@@ -20,6 +20,7 @@
 	let canvas: HTMLCanvasElement;
 	let qrDataUrl = $state('');
 	let copied = $state(false);
+	let showPrintOptions = $state(false);
 
 	const qrUrl = browser ? `${window.location.origin}/qr/${qrCode.code}` : `/qr/${qrCode.code}`;
 
@@ -170,6 +171,129 @@
 			};
 		};
 	}
+
+	function handlePrintTentCard() {
+		if (!browser) return;
+		
+		const printWindow = window.open('', '_blank');
+		if (!printWindow) {
+			toast.error('Please allow popups to print');
+			return;
+		}
+
+		// Build the QR stand print document
+		printWindow.document.write('<!DOCTYPE html>');
+		printWindow.document.write('<html><head>');
+		printWindow.document.write('<title>QR Display Stand - ' + qrCode.label + '</title>');
+		
+		// Write styles
+		printWindow.document.write('<sty' + 'le>');
+		printWindow.document.write('* { margin: 0; padding: 0; box-sizing: border-box; }');
+		printWindow.document.write('body { font-family: "Inter", sans-serif; background: white; padding: 20mm; }');
+		printWindow.document.write('.page-title { text-align: center; font-size: 24px; font-weight: bold; margin-bottom: 20px; color: #333; }');
+		printWindow.document.write('.legend { background: #f9f9f9; border: 1px solid #ddd; padding: 15px; margin-bottom: 20px; border-radius: 8px; }');
+		printWindow.document.write('.legend h3 { margin-bottom: 10px; color: #333; }');
+		printWindow.document.write('.legend-items { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }');
+		printWindow.document.write('.legend-item { display: flex; align-items: center; gap: 10px; }');
+		printWindow.document.write('.legend-line { width: 30px; height: 3px; }');
+		printWindow.document.write('.cut-line-legend { background: #000; }');
+		printWindow.document.write('.valley-fold-legend { background: repeating-linear-gradient(to right, #0066cc 0, #0066cc 5px, transparent 5px, transparent 10px); height: 2px; }');
+		printWindow.document.write('.svg-container { text-align: center; margin: 20px 0; }');
+		printWindow.document.write('.template-svg { max-width: 100%; height: auto; border: 1px solid #ccc; }');
+		printWindow.document.write('.instructions { background: #f5f5f5; padding: 20px; border-radius: 8px; margin-top: 30px; }');
+		printWindow.document.write('.instructions h3 { color: #555; margin: 15px 0 8px 0; }');
+		printWindow.document.write('.instructions ol { margin-left: 20px; margin-bottom: 15px; }');
+		printWindow.document.write('.instructions li { margin-bottom: 5px; line-height: 1.4; }');
+		printWindow.document.write('@page { size: A4; margin: 20mm; }');
+		printWindow.document.write('@media print { body { background: white; padding: 0; } }');
+		printWindow.document.write('</sty' + 'le>');
+		
+		printWindow.document.write('</head><body>');
+		
+		printWindow.document.write('<h1 class="page-title">QR Display Stand Template</h1>');
+		
+		printWindow.document.write('<div class="legend">');
+		printWindow.document.write('<h3>Legend</h3>');
+		printWindow.document.write('<div class="legend-items">');
+		printWindow.document.write('<div class="legend-item"><div class="legend-line cut-line-legend"></div><span>Cut line - Cut with scissors</span></div>');
+		printWindow.document.write('<div class="legend-item"><div class="legend-line valley-fold-legend"></div><span>Valley fold - Fold toward you</span></div>');
+		printWindow.document.write('</div></div>');
+
+		printWindow.document.write('<div class="svg-container">');
+		printWindow.document.write('<svg class="template-svg" viewBox="0 0 600 400" xmlns="http://www.w3.org/2000/svg">');
+		
+		// Main display card
+		printWindow.document.write('<rect x="100" y="50" width="180" height="220" fill="white" stroke="black" stroke-width="3"/>');
+		
+		// LeCritique logo
+		printWindow.document.write('<image x="125" y="70" width="130" height="32" href="' + logoImage + '"/>');
+		
+		// Restaurant name
+		printWindow.document.write('<text x="190" y="120" text-anchor="middle" font-size="16" font-weight="bold" fill="#333">' + restaurantName + '</text>');
+		
+		// QR code
+		printWindow.document.write('<image x="125" y="130" width="130" height="130" href="' + qrDataUrl + '"/>');
+		
+		// QR Code label
+		printWindow.document.write('<text x="190" y="280" text-anchor="middle" font-size="14" font-weight="bold" fill="#000">' + qrCode.label + '</text>');
+		
+		// Location
+		if (qrCode.location) {
+			printWindow.document.write('<text x="190" y="295" text-anchor="middle" font-size="11" fill="#666">' + qrCode.location + '</text>');
+		}
+		
+		// Back support panel (extends from the side)
+		printWindow.document.write('<rect x="280" y="100" width="100" height="120" fill="#f5f5f5" stroke="black" stroke-width="2"/>');
+		printWindow.document.write('<text x="330" y="165" text-anchor="middle" font-size="10" fill="#999">BACK SUPPORT</text>');
+		
+		// Base panel (extends from bottom)
+		printWindow.document.write('<rect x="100" y="270" width="180" height="60" fill="#e8e8e8" stroke="black" stroke-width="2"/>');
+		printWindow.document.write('<text x="190" y="305" text-anchor="middle" font-size="10" fill="#666">BASE</text>');
+		
+		// Fold lines
+		printWindow.document.write('<line x1="280" y1="100" x2="280" y2="220" stroke="#0066cc" stroke-width="2" stroke-dasharray="6,6"/>');
+		printWindow.document.write('<line x1="100" y1="270" x2="280" y2="270" stroke="#0066cc" stroke-width="2" stroke-dasharray="6,6"/>');
+		
+		// Instructions
+		printWindow.document.write('<text x="420" y="100" font-size="12" font-weight="bold">Simple Assembly:</text>');
+		printWindow.document.write('<text x="420" y="120" font-size="10">1. Cut along black lines</text>');
+		printWindow.document.write('<text x="420" y="135" font-size="10">2. Fold back support 90°</text>');
+		printWindow.document.write('<text x="420" y="150" font-size="10">3. Fold base under 90°</text>');
+		printWindow.document.write('<text x="420" y="165" font-size="10">4. Creates inclined stand</text>');
+		
+		// Simple diagram
+		printWindow.document.write('<rect x="440" y="180" width="60" height="50" fill="white" stroke="#333" stroke-width="2"/>');
+		printWindow.document.write('<polygon points="440,180 460,170 460,220 440,230" fill="#f0f0f0" stroke="#333" stroke-width="1"/>');
+		printWindow.document.write('<rect x="440" y="230" width="60" height="10" fill="#e0e0e0" stroke="#333" stroke-width="1"/>');
+		printWindow.document.write('<text x="420" y="260" font-size="9" fill="#666">L-shaped stand</text>');
+		
+		printWindow.document.write('</svg></div>');
+
+		printWindow.document.write('<div class="instructions">');
+		printWindow.document.write('<h3>L-Shaped Stand Assembly:</h3>');
+		printWindow.document.write('<ol>');
+		printWindow.document.write('<li><strong>Cut:</strong> Cut along all solid black lines</li>');
+		printWindow.document.write('<li><strong>Fold back support:</strong> Fold the side panel 90° backward to create the support</li>');
+		printWindow.document.write('<li><strong>Fold base:</strong> Fold the bottom panel 90° under to create the base</li>');
+		printWindow.document.write('<li><strong>Done:</strong> The L-shape creates a stable inclined stand</li>');
+		printWindow.document.write('</ol>');
+		
+		printWindow.document.write('<p style="margin-top: 15px; font-style: italic; color: #666;">');
+		printWindow.document.write('Simple L-shaped design: front displays QR code, back provides support, base provides stability and incline.');
+		printWindow.document.write('</p>');
+		printWindow.document.write('</div>');
+		
+		printWindow.document.write('</body></html>');
+		
+		printWindow.document.close();
+		printWindow.onload = () => {
+			printWindow.print();
+			printWindow.onafterprint = () => {
+				printWindow.close();
+			};
+		};
+		showPrintOptions = false;
+	}
 </script>
 
 <Modal 
@@ -221,14 +345,39 @@
 				<Download class="mr-2 h-4 w-4" />
 				Download
 			</Button>
-			<Button
-				variant="outline"
-				class="flex-1"
-				onclick={handlePrint}
-			>
-				<Printer class="mr-2 h-4 w-4" />
-				Print
-			</Button>
+			<div class="relative flex-1">
+				<Button
+					variant="outline"
+					class="w-full"
+					onclick={(e) => {
+						e.stopPropagation();
+						showPrintOptions = !showPrintOptions;
+					}}
+				>
+					<Printer class="mr-2 h-4 w-4" />
+					Print
+				</Button>
+				
+				{#if showPrintOptions}
+					<!-- svelte-ignore a11y_click_events_have_key_events a11y_no_static_element_interactions -->
+					<div 
+						class="fixed inset-0 z-10" 
+						onclick={() => showPrintOptions = false}
+					></div>
+					<div class="absolute top-full mt-2 w-full bg-white border rounded-lg shadow-lg z-20">
+						<button
+							class="w-full px-4 py-2 text-left hover:bg-gray-50 rounded-lg text-sm"
+							onclick={(e) => {
+								e.stopPropagation();
+								handlePrint();
+							}}
+						>
+							<div class="font-medium">Print Cards</div>
+							<div class="text-gray-500 text-xs">Multiple sizes with cut guides</div>
+						</button>
+					</div>
+				{/if}
+			</div>
 		</div>
 
 		<!-- Instructions -->

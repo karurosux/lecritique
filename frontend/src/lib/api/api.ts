@@ -17,6 +17,15 @@ export enum ModelsSubscriptionStatus {
   SubscriptionExpired = "SubscriptionExpired",
 }
 
+export enum ModelsQuestionType {
+  QuestionTypeRating = "QuestionTypeRating",
+  QuestionTypeScale = "QuestionTypeScale",
+  QuestionTypeMultiChoice = "QuestionTypeMultiChoice",
+  QuestionTypeSingleChoice = "QuestionTypeSingleChoice",
+  QuestionTypeText = "QuestionTypeText",
+  QuestionTypeYesNo = "QuestionTypeYesNo",
+}
+
 export enum ModelsQRCodeType {
   QRCodeTypeTable = "QRCodeTypeTable",
   QRCodeTypeLocation = "QRCodeTypeLocation",
@@ -180,6 +189,22 @@ export interface HandlersUpdateProfileRequest {
   phone?: string;
 }
 
+export interface HandlersUpdateQRCodeRequest {
+  is_active?: boolean;
+  /**
+   * @minLength 1
+   * @maxLength 100
+   */
+  label?: string;
+  /** @maxLength 200 */
+  location?: string;
+}
+
+export interface HandlersUpdateQRCodeResponse {
+  data?: ModelsQRCode;
+  success?: boolean;
+}
+
 export interface HandlersUpdateRoleRequest {
   role: "ADMIN" | "MANAGER" | "VIEWER";
 }
@@ -203,7 +228,30 @@ export interface ModelsAccount {
   updated_at?: string;
 }
 
+export interface ModelsCreateQuestionnaireRequest {
+  description?: string;
+  dish_id?: string;
+  is_default?: boolean;
+  name: string;
+}
+
 export type ModelsFeedback = object;
+
+export interface ModelsGenerateQuestionnaireRequest {
+  description?: string;
+  is_default?: boolean;
+  name: string;
+}
+
+export interface ModelsGeneratedQuestion {
+  max_label?: string;
+  max_value?: number;
+  min_label?: string;
+  min_value?: number;
+  options?: string[];
+  text?: string;
+  type?: ModelsQuestionType;
+}
 
 export interface ModelsLocation {
   address?: string;
@@ -243,6 +291,38 @@ export interface ModelsQRCode {
   restaurant_id?: string;
   scans_count?: number;
   type?: ModelsQRCodeType;
+  updated_at?: string;
+}
+
+export interface ModelsQuestion {
+  created_at?: string;
+  display_order?: number;
+  id?: string;
+  is_required?: boolean;
+  max_label?: string;
+  max_value?: number;
+  min_label?: string;
+  min_value?: number;
+  options?: string[];
+  questionnaire?: ModelsQuestionnaire;
+  questionnaire_id?: string;
+  text?: string;
+  type?: ModelsQuestionType;
+  updated_at?: string;
+}
+
+export interface ModelsQuestionnaire {
+  created_at?: string;
+  description?: string;
+  dish?: GithubComLecritiqueApiInternalMenuModelsDish;
+  dish_id?: string;
+  id?: string;
+  is_active?: boolean;
+  is_default?: boolean;
+  name?: string;
+  questions?: ModelsQuestion[];
+  restaurant?: ModelsRestaurant;
+  restaurant_id?: string;
   updated_at?: string;
 }
 
@@ -561,6 +641,59 @@ export class Api<
       this.request<Record<string, any>, any>({
         path: `/api/health`,
         method: "GET",
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description Generate AI questions and create a complete questionnaire for a dish
+     *
+     * @tags questionnaires, ai
+     * @name V1AiGenerateQuestionnaireCreate
+     * @summary Generate and save AI questionnaire
+     * @request POST:/api/v1/ai/generate-questionnaire/{dishId}
+     * @secure
+     */
+    v1AiGenerateQuestionnaireCreate: (
+      dishId: string,
+      questionnaire: ModelsGenerateQuestionnaireRequest,
+      params: RequestParams = {},
+    ) =>
+      this.request<
+        ResponseResponse & {
+          data?: ModelsQuestionnaire;
+        },
+        ResponseResponse
+      >({
+        path: `/api/v1/ai/generate-questionnaire/${dishId}`,
+        method: "POST",
+        body: questionnaire,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description Generate AI-powered questions for a specific dish
+     *
+     * @tags questionnaires, ai
+     * @name V1AiGenerateQuestionsCreate
+     * @summary Generate AI questions
+     * @request POST:/api/v1/ai/generate-questions/{dishId}
+     * @secure
+     */
+    v1AiGenerateQuestionsCreate: (dishId: string, params: RequestParams = {}) =>
+      this.request<
+        ResponseResponse & {
+          data?: ModelsGeneratedQuestion[];
+        },
+        ResponseResponse
+      >({
+        path: `/api/v1/ai/generate-questions/${dishId}`,
+        method: "POST",
+        secure: true,
+        type: ContentType.Json,
         format: "json",
         ...params,
       }),
@@ -1308,6 +1441,30 @@ export class Api<
       }),
 
     /**
+     * @description Update QR code details like active status, label, or location
+     *
+     * @tags qr-codes
+     * @name V1QrCodesPartialUpdate
+     * @summary Update QR code
+     * @request PATCH:/api/v1/qr-codes/{id}
+     * @secure
+     */
+    v1QrCodesPartialUpdate: (
+      id: string,
+      qr_code: HandlersUpdateQRCodeRequest,
+      params: RequestParams = {},
+    ) =>
+      this.request<HandlersUpdateQRCodeResponse, ResponseResponse>({
+        path: `/api/v1/qr-codes/${id}`,
+        method: "PATCH",
+        body: qr_code,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
      * @description Get all restaurants for the authenticated account
      *
      * @tags restaurants
@@ -1553,6 +1710,143 @@ export class Api<
         path: `/api/v1/restaurants/${restaurantId}/qr-codes`,
         method: "POST",
         body: qr_code,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description Get all questionnaires for a restaurant
+     *
+     * @tags questionnaires
+     * @name V1RestaurantsQuestionnairesList
+     * @summary List questionnaires
+     * @request GET:/api/v1/restaurants/{restaurantId}/questionnaires
+     * @secure
+     */
+    v1RestaurantsQuestionnairesList: (
+      restaurantId: string,
+      params: RequestParams = {},
+    ) =>
+      this.request<
+        ResponseResponse & {
+          data?: ModelsQuestionnaire[];
+        },
+        ResponseResponse
+      >({
+        path: `/api/v1/restaurants/${restaurantId}/questionnaires`,
+        method: "GET",
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description Create a new questionnaire for a restaurant
+     *
+     * @tags questionnaires
+     * @name V1RestaurantsQuestionnairesCreate
+     * @summary Create questionnaire
+     * @request POST:/api/v1/restaurants/{restaurantId}/questionnaires
+     * @secure
+     */
+    v1RestaurantsQuestionnairesCreate: (
+      restaurantId: string,
+      questionnaire: ModelsCreateQuestionnaireRequest,
+      params: RequestParams = {},
+    ) =>
+      this.request<
+        ResponseResponse & {
+          data?: ModelsQuestionnaire;
+        },
+        ResponseResponse
+      >({
+        path: `/api/v1/restaurants/${restaurantId}/questionnaires`,
+        method: "POST",
+        body: questionnaire,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description Get a specific questionnaire by ID
+     *
+     * @tags questionnaires
+     * @name V1RestaurantsQuestionnairesDetail
+     * @summary Get questionnaire
+     * @request GET:/api/v1/restaurants/{restaurantId}/questionnaires/{id}
+     * @secure
+     */
+    v1RestaurantsQuestionnairesDetail: (
+      restaurantId: string,
+      id: string,
+      params: RequestParams = {},
+    ) =>
+      this.request<
+        ResponseResponse & {
+          data?: ModelsQuestionnaire;
+        },
+        ResponseResponse
+      >({
+        path: `/api/v1/restaurants/${restaurantId}/questionnaires/${id}`,
+        method: "GET",
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description Update an existing questionnaire
+     *
+     * @tags questionnaires
+     * @name V1RestaurantsQuestionnairesUpdate
+     * @summary Update questionnaire
+     * @request PUT:/api/v1/restaurants/{restaurantId}/questionnaires/{id}
+     * @secure
+     */
+    v1RestaurantsQuestionnairesUpdate: (
+      restaurantId: string,
+      id: string,
+      questionnaire: ModelsQuestionnaire,
+      params: RequestParams = {},
+    ) =>
+      this.request<
+        ResponseResponse & {
+          data?: ModelsQuestionnaire;
+        },
+        ResponseResponse
+      >({
+        path: `/api/v1/restaurants/${restaurantId}/questionnaires/${id}`,
+        method: "PUT",
+        body: questionnaire,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description Delete a questionnaire
+     *
+     * @tags questionnaires
+     * @name V1RestaurantsQuestionnairesDelete
+     * @summary Delete questionnaire
+     * @request DELETE:/api/v1/restaurants/{restaurantId}/questionnaires/{id}
+     * @secure
+     */
+    v1RestaurantsQuestionnairesDelete: (
+      restaurantId: string,
+      id: string,
+      params: RequestParams = {},
+    ) =>
+      this.request<ResponseResponse, ResponseResponse>({
+        path: `/api/v1/restaurants/${restaurantId}/questionnaires/${id}`,
+        method: "DELETE",
         secure: true,
         type: ContentType.Json,
         format: "json",

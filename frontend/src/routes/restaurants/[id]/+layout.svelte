@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { LayoutData } from './$types';
 	import { page } from '$app/stores';
-	import { ArrowLeft, Store, UtensilsCrossed, QrCode } from 'lucide-svelte';
+	import { ArrowLeft, Store, UtensilsCrossed, QrCode, FileText } from 'lucide-svelte';
 	import { Button } from '$lib/components/ui';
 	import { goto } from '$app/navigation';
 	import { getApiClient, isAuthenticated } from '$lib/api';
@@ -17,6 +17,7 @@
 
 	const navItems = [
 		{ href: `/restaurants/${restaurantId}/dishes`, label: 'Menu', icon: UtensilsCrossed },
+		{ href: `/restaurants/${restaurantId}/questionnaires`, label: 'Questionnaires', icon: FileText },
 		{ href: `/restaurants/${restaurantId}/qr-codes`, label: 'QR Codes', icon: QrCode }
 	];
 

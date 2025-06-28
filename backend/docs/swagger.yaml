@@ -259,6 +259,25 @@ definitions:
       phone:
         type: string
     type: object
+  handlers.UpdateQRCodeRequest:
+    properties:
+      is_active:
+        type: boolean
+      label:
+        maxLength: 100
+        minLength: 1
+        type: string
+      location:
+        maxLength: 200
+        type: string
+    type: object
+  handlers.UpdateQRCodeResponse:
+    properties:
+      data:
+        $ref: '#/definitions/models.QRCode'
+      success:
+        type: boolean
+    type: object
   handlers.UpdateRoleRequest:
     properties:
       role:
@@ -303,7 +322,50 @@ definitions:
       updated_at:
         type: string
     type: object
+  models.CreateQuestionnaireRequest:
+    properties:
+      description:
+        type: string
+      dish_id:
+        type: string
+      is_default:
+        type: boolean
+      name:
+        type: string
+    required:
+    - name
+    type: object
   models.Feedback:
+    type: object
+  models.GenerateQuestionnaireRequest:
+    properties:
+      description:
+        type: string
+      is_default:
+        type: boolean
+      name:
+        type: string
+    required:
+    - name
+    type: object
+  models.GeneratedQuestion:
+    properties:
+      max_label:
+        type: string
+      max_value:
+        type: integer
+      min_label:
+        type: string
+      min_value:
+        type: integer
+      options:
+        items:
+          type: string
+        type: array
+      text:
+        type: string
+      type:
+        $ref: '#/definitions/models.QuestionType'
     type: object
   models.Location:
     properties:
@@ -407,6 +469,91 @@ definitions:
     - QRCodeTypeTakeaway
     - QRCodeTypeDelivery
     - QRCodeTypeGeneral
+  models.Question:
+    properties:
+      created_at:
+        type: string
+      display_order:
+        type: integer
+      id:
+        type: string
+      is_required:
+        type: boolean
+      max_label:
+        type: string
+      max_value:
+        type: integer
+      min_label:
+        type: string
+      min_value:
+        type: integer
+      options:
+        items:
+          type: string
+        type: array
+      questionnaire:
+        $ref: '#/definitions/models.Questionnaire'
+      questionnaire_id:
+        type: string
+      text:
+        type: string
+      type:
+        $ref: '#/definitions/models.QuestionType'
+      updated_at:
+        type: string
+    type: object
+  models.QuestionType:
+    enum:
+    - rating
+    - scale
+    - multi_choice
+    - single_choice
+    - text
+    - yes_no
+    type: string
+    x-enum-comments:
+      QuestionTypeMultiChoice: Multiple choice
+      QuestionTypeRating: 1-5 stars
+      QuestionTypeScale: 1-10 scale
+      QuestionTypeSingleChoice: Single choice
+      QuestionTypeText: Free text
+      QuestionTypeYesNo: Yes/No
+    x-enum-varnames:
+    - QuestionTypeRating
+    - QuestionTypeScale
+    - QuestionTypeMultiChoice
+    - QuestionTypeSingleChoice
+    - QuestionTypeText
+    - QuestionTypeYesNo
+  models.Questionnaire:
+    properties:
+      created_at:
+        type: string
+      description:
+        type: string
+      dish:
+        $ref: '#/definitions/github_com_lecritique_api_internal_menu_models.Dish'
+      dish_id:
+        type: string
+      id:
+        type: string
+      is_active:
+        type: boolean
+      is_default:
+        type: boolean
+      name:
+        type: string
+      questions:
+        items:
+          $ref: '#/definitions/models.Question'
+        type: array
+      restaurant:
+        $ref: '#/definitions/models.Restaurant'
+      restaurant_id:
+        type: string
+      updated_at:
+        type: string
+    type: object
   models.Restaurant:
     properties:
       account_id:
@@ -642,6 +789,105 @@ paths:
       summary: Health check
       tags:
       - system
+  /api/v1/ai/generate-questionnaire/{dishId}:
+    post:
+      consumes:
+      - application/json
+      description: Generate AI questions and create a complete questionnaire for a
+        dish
+      parameters:
+      - description: Dish ID
+        in: path
+        name: dishId
+        required: true
+        type: string
+      - description: Questionnaire generation data
+        in: body
+        name: questionnaire
+        required: true
+        schema:
+          $ref: '#/definitions/models.GenerateQuestionnaireRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/models.Questionnaire'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - Bearer: []
+      summary: Generate and save AI questionnaire
+      tags:
+      - questionnaires
+      - ai
+  /api/v1/ai/generate-questions/{dishId}:
+    post:
+      consumes:
+      - application/json
+      description: Generate AI-powered questions for a specific dish
+      parameters:
+      - description: Dish ID
+        in: path
+        name: dishId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/models.GeneratedQuestion'
+                  type: array
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - Bearer: []
+      summary: Generate AI questions
+      tags:
+      - questionnaires
+      - ai
   /api/v1/analytics/dishes/{dishId}:
     get:
       consumes:
@@ -1707,6 +1953,50 @@ paths:
       summary: Delete QR code
       tags:
       - qr-codes
+    patch:
+      consumes:
+      - application/json
+      description: Update QR code details like active status, label, or location
+      parameters:
+      - description: QR Code ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: QR code update information
+        in: body
+        name: qr_code
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.UpdateQRCodeRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.UpdateQRCodeResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - ApiKeyAuth: []
+      summary: Update QR code
+      tags:
+      - qr-codes
   /api/v1/restaurants:
     get:
       description: Get all restaurants for the authenticated account
@@ -2094,6 +2384,223 @@ paths:
       summary: Generate QR code
       tags:
       - qr-codes
+  /api/v1/restaurants/{restaurantId}/questionnaires:
+    get:
+      consumes:
+      - application/json
+      description: Get all questionnaires for a restaurant
+      parameters:
+      - description: Restaurant ID
+        in: path
+        name: restaurantId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/models.Questionnaire'
+                  type: array
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - Bearer: []
+      summary: List questionnaires
+      tags:
+      - questionnaires
+    post:
+      consumes:
+      - application/json
+      description: Create a new questionnaire for a restaurant
+      parameters:
+      - description: Restaurant ID
+        in: path
+        name: restaurantId
+        required: true
+        type: string
+      - description: Questionnaire data
+        in: body
+        name: questionnaire
+        required: true
+        schema:
+          $ref: '#/definitions/models.CreateQuestionnaireRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/models.Questionnaire'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - Bearer: []
+      summary: Create questionnaire
+      tags:
+      - questionnaires
+  /api/v1/restaurants/{restaurantId}/questionnaires/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete a questionnaire
+      parameters:
+      - description: Restaurant ID
+        in: path
+        name: restaurantId
+        required: true
+        type: string
+      - description: Questionnaire ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - Bearer: []
+      summary: Delete questionnaire
+      tags:
+      - questionnaires
+    get:
+      consumes:
+      - application/json
+      description: Get a specific questionnaire by ID
+      parameters:
+      - description: Restaurant ID
+        in: path
+        name: restaurantId
+        required: true
+        type: string
+      - description: Questionnaire ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/models.Questionnaire'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - Bearer: []
+      summary: Get questionnaire
+      tags:
+      - questionnaires
+    put:
+      consumes:
+      - application/json
+      description: Update an existing questionnaire
+      parameters:
+      - description: Restaurant ID
+        in: path
+        name: restaurantId
+        required: true
+        type: string
+      - description: Questionnaire ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Questionnaire data
+        in: body
+        name: questionnaire
+        required: true
+        schema:
+          $ref: '#/definitions/models.Questionnaire'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/models.Questionnaire'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - Bearer: []
+      summary: Update questionnaire
+      tags:
+      - questionnaires
   /api/v1/team/accept-invite:
     post:
       consumes:

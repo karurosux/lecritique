@@ -29,7 +29,7 @@ type Question struct {
 	Type            QuestionType  `gorm:"not null" json:"type"`
 	IsRequired      bool          `gorm:"default:true" json:"is_required"`
 	DisplayOrder    int           `gorm:"default:0" json:"display_order"`
-	Options         pq.StringArray `gorm:"type:text[]" json:"options"`
+	Options         pq.StringArray `gorm:"type:text[]" json:"options" swaggertype:"array,string"`
 	MinValue        *int          `json:"min_value"`
 	MaxValue        *int          `json:"max_value"`
 	MinLabel        string        `json:"min_label"`
@@ -54,11 +54,42 @@ type QuestionTemplate struct {
 	Description  string        `json:"description"`
 	Text         string        `gorm:"not null" json:"text"`
 	Type         QuestionType  `gorm:"not null" json:"type"`
-	Options      pq.StringArray `gorm:"type:text[]" json:"options"`
+	Options      pq.StringArray `gorm:"type:text[]" json:"options" swaggertype:"array,string"`
 	MinValue     *int          `json:"min_value"`
 	MaxValue     *int          `json:"max_value"`
 	MinLabel     string        `json:"min_label"`
 	MaxLabel     string        `json:"max_label"`
-	Tags         pq.StringArray `gorm:"type:text[]" json:"tags"`
+	Tags         pq.StringArray `gorm:"type:text[]" json:"tags" swaggertype:"array,string"`
 	IsActive     bool          `gorm:"default:true" json:"is_active"`
+}
+
+// Request/Response models for API
+type CreateQuestionnaireRequest struct {
+	Name        string     `json:"name" binding:"required"`
+	Description string     `json:"description"`
+	DishID      *uuid.UUID `json:"dish_id"`
+	IsDefault   bool       `json:"is_default"`
+}
+
+type UpdateQuestionnaireRequest struct {
+	Name        string `json:"name"`
+	Description string `json:"description"`
+	IsDefault   bool   `json:"is_default"`
+	IsActive    bool   `json:"is_active"`
+}
+
+type GenerateQuestionnaireRequest struct {
+	Name        string `json:"name" binding:"required"`
+	Description string `json:"description"`
+	IsDefault   bool   `json:"is_default"`
+}
+
+type GeneratedQuestion struct {
+	Text     string         `json:"text"`
+	Type     QuestionType   `json:"type"`
+	Options  pq.StringArray `json:"options,omitempty" swaggertype:"array,string"`
+	MinValue *int           `json:"min_value,omitempty"`
+	MaxValue *int           `json:"max_value,omitempty"`
+	MinLabel string         `json:"min_label,omitempty"`
+	MaxLabel string         `json:"max_label,omitempty"`
 }
