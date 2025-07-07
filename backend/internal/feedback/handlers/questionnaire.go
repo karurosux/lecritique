@@ -210,6 +210,19 @@ func (h *QuestionnaireHandler) DeleteQuestionnaire(c echo.Context) error {
 }
 
 // AddQuestion adds a question to a questionnaire
+// @Summary Add a question to a questionnaire
+// @Description Add a new question to an existing questionnaire
+// @Tags questionnaires
+// @Accept json
+// @Produce json
+// @Param id path string true "Questionnaire ID"
+// @Param question body models.Question true "Question data"
+// @Success 201 {object} map[string]interface{} "Question added successfully"
+// @Failure 400 {object} map[string]interface{} "Invalid request"
+// @Failure 401 {object} map[string]interface{} "Unauthorized"
+// @Failure 500 {object} map[string]interface{} "Server error"
+// @Router /restaurants/{restaurantId}/questionnaires/{id}/questions [post]
+// @Security BearerAuth
 func (h *QuestionnaireHandler) AddQuestion(c echo.Context) error {
 	accountID, ok := c.Get("account_id").(uuid.UUID)
 	if !ok {
@@ -238,6 +251,20 @@ func (h *QuestionnaireHandler) AddQuestion(c echo.Context) error {
 }
 
 // UpdateQuestion updates a question
+// @Summary Update a question
+// @Description Update an existing question in a questionnaire
+// @Tags questionnaires
+// @Accept json
+// @Produce json
+// @Param id path string true "Questionnaire ID"
+// @Param questionId path string true "Question ID"
+// @Param question body models.Question true "Question data"
+// @Success 200 {object} map[string]interface{} "Question updated successfully"
+// @Failure 400 {object} map[string]interface{} "Invalid request"
+// @Failure 401 {object} map[string]interface{} "Unauthorized"
+// @Failure 500 {object} map[string]interface{} "Server error"
+// @Router /restaurants/{restaurantId}/questionnaires/{id}/questions/{questionId} [put]
+// @Security BearerAuth
 func (h *QuestionnaireHandler) UpdateQuestion(c echo.Context) error {
 	accountID, ok := c.Get("account_id").(uuid.UUID)
 	if !ok {
@@ -266,6 +293,19 @@ func (h *QuestionnaireHandler) UpdateQuestion(c echo.Context) error {
 }
 
 // DeleteQuestion deletes a question
+// @Summary Delete a question
+// @Description Delete a question from a questionnaire
+// @Tags questionnaires
+// @Accept json
+// @Produce json
+// @Param id path string true "Questionnaire ID"
+// @Param questionId path string true "Question ID"
+// @Success 200 {object} map[string]interface{} "Question deleted successfully"
+// @Failure 400 {object} map[string]interface{} "Invalid request"
+// @Failure 401 {object} map[string]interface{} "Unauthorized"
+// @Failure 500 {object} map[string]interface{} "Server error"
+// @Router /restaurants/{restaurantId}/questionnaires/{id}/questions/{questionId} [delete]
+// @Security BearerAuth
 func (h *QuestionnaireHandler) DeleteQuestion(c echo.Context) error {
 	accountID, ok := c.Get("account_id").(uuid.UUID)
 	if !ok {
@@ -287,6 +327,19 @@ func (h *QuestionnaireHandler) DeleteQuestion(c echo.Context) error {
 }
 
 // ReorderQuestions reorders questions in a questionnaire
+// @Summary Reorder questions
+// @Description Reorder questions in a questionnaire
+// @Tags questionnaires
+// @Accept json
+// @Produce json
+// @Param id path string true "Questionnaire ID"
+// @Param order body []uuid.UUID true "Question IDs in new order"
+// @Success 200 {object} map[string]interface{} "Questions reordered successfully"
+// @Failure 400 {object} map[string]interface{} "Invalid request"
+// @Failure 401 {object} map[string]interface{} "Unauthorized"
+// @Failure 500 {object} map[string]interface{} "Server error"
+// @Router /restaurants/{restaurantId}/questionnaires/{id}/reorder [post]
+// @Security BearerAuth
 func (h *QuestionnaireHandler) ReorderQuestions(c echo.Context) error {
 	accountID, ok := c.Get("account_id").(uuid.UUID)
 	if !ok {

@@ -8,6 +8,8 @@
 	import { toast } from 'svelte-sonner';
 	import { onMount } from 'svelte';
 	import { page } from '$app/stores';
+	import { goto } from '$app/navigation';
+	import { QuestionnaireApi } from '$lib/api/questionnaire';
 
 	let { data }: { data: PageData } = $props();
 
@@ -19,6 +21,7 @@
 	let sortBy = $state('name');
 	let dishes = $state(data.dishes || []);
 	let loading = $state(false);
+	let questionnaires = $state<any[]>([]);
 
 	// Get restaurant from layout/page data
 	let restaurant = $derived(data.restaurant);
@@ -28,6 +31,9 @@
 	onMount(async () => {
 		if (!dishes.length && restaurant) {
 			await fetchDishes();
+		}
+		if (restaurant) {
+			await fetchQuestionnaires();
 		}
 	});
 
@@ -67,7 +73,7 @@
 
 	// Get unique categories
 	let categories = $derived(
-		dishes.reduce((cats: string[], dish: any) => {
+		dishesWithQuestionnaires.reduce((cats: string[], dish: any) => {
 			if (dish.category && !cats.includes(dish.category)) {
 				cats.push(dish.category);
 			}
@@ -77,7 +83,7 @@
 
 	// Filter and sort dishes
 	let filteredDishes = $derived(
-		dishes
+		dishesWithQuestionnaires
 			.filter((dish: any) => {
 				const matchesSearch = dish.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
 					dish.description?.toLowerCase().includes(searchQuery.toLowerCase());
@@ -141,6 +147,30 @@
 			console.error(error);
 		}
 	}
+
+	function handleManageQuestionnaire(dish: any) {
+		// Navigate to questionnaire page with dish ID
+		goto(`/restaurants/${restaurantId}/questionnaires?dishId=${dish.id}&dishName=${encodeURIComponent(dish.name)}`);
+	}
+	
+	async function fetchQuestionnaires() {
+		try {
+			questionnaires = await QuestionnaireApi.listQuestionnaires(restaurantId);
+		} catch (error) {
+			console.error('Failed to fetch questionnaires:', error);
+		}
+	}
+	
+	// Enhance dishes with questionnaire information
+	let dishesWithQuestionnaires = $derived(
+		dishes.map(dish => {
+			const hasQuestionnaire = questionnaires.some(q => q.dish_id === dish.id);
+			return {
+				...dish,
+				has_questionnaire: hasQuestionnaire
+			};
+		})
+	);
 </script>
 
 <svelte:head>
@@ -214,15 +244,15 @@
 				<Plus class="h-8 w-8 text-gray-400" />
 			</div>
 			<h3 class="text-lg font-semibold mb-2">
-				{dishes.length === 0 ? 'No dishes yet' : 'No dishes match your filters'}
+				{dishesWithQuestionnaires.length === 0 ? 'No dishes yet' : 'No dishes match your filters'}
 			</h3>
 			<p class="text-gray-500 mb-4">
-				{dishes.length === 0 
+				{dishesWithQuestionnaires.length === 0 
 					? 'Start building your menu by adding your first dish'
 					: 'Try adjusting your search or filters'
 				}
 			</p>
-			{#if dishes.length === 0}
+			{#if dishesWithQuestionnaires.length === 0}
 				<Button onclick={handleAddDish}>
 					<Plus class="mr-2 h-4 w-4" />
 					Add First Dish
@@ -234,9 +264,10 @@
 			{#each filteredDishes as dish (dish.id)}
 				<DishCard
 					{dish}
-					onEdit={() => handleEditDish(dish)}
-					onDelete={() => handleDeleteDish(dish)}
-					onToggleAvailability={() => handleToggleAvailability(dish)}
+					onedit={() => handleEditDish(dish)}
+					ondelete={() => handleDeleteDish(dish)}
+					ontoggleavailability={() => handleToggleAvailability(dish)}
+					ongeneratequestionnaire={() => handleManageQuestionnaire(dish)}
 				/>
 			{/each}
 		</div>
@@ -254,10 +285,11 @@
 			showAddDishModal = false;
 			editingDish = null;
 		}}
-		onsave={() => {
+		onsave={async () => {
 			showAddDishModal = false;
 			editingDish = null;
-			fetchDishes();
+			await fetchDishes();
+			await fetchQuestionnaires();
 		}}
 	/>
 {/if}

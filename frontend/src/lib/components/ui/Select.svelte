@@ -43,7 +43,7 @@
   }
 </script>
 
-<div class="relative inline-block {minWidth} {className}">
+<div class="relative {className}">
   <select
     bind:value
     onchange={handleChange}

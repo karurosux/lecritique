@@ -4,7 +4,8 @@ import type {
   ModelsCreateQuestionnaireRequest,
   ModelsGenerateQuestionnaireRequest,
   ModelsGeneratedQuestion,
-  ModelsQuestionType
+  ModelsQuestionType,
+  ModelsQuestion
 } from './api';
 
 // Re-export types for easy access
@@ -13,6 +14,7 @@ export type CreateQuestionnaireRequest = ModelsCreateQuestionnaireRequest;
 export type GenerateQuestionnaireRequest = ModelsGenerateQuestionnaireRequest;
 export type GeneratedQuestion = ModelsGeneratedQuestion;
 export type QuestionType = ModelsQuestionType;
+export type Question = ModelsQuestion;
 
 // Use the generated API client
 export class QuestionnaireApi {
@@ -93,6 +95,45 @@ export class QuestionnaireApi {
     }
   }
 
-  // Note: Question management methods (add, update, delete, reorder) are not yet implemented
-  // in the generated API. These would need additional swagger annotations in the backend.
+  // Add a question to a questionnaire
+  static async addQuestion(restaurantId: string, questionnaireId: string, question: Question): Promise<Question> {
+    try {
+      const api = getApiClient();
+      const response = await api.restaurants.questionnairesQuestionsCreate(questionnaireId, restaurantId, question);
+      return response.data.data!;
+    } catch (error) {
+      throw new Error(handleApiError(error));
+    }
+  }
+
+  // Update a question
+  static async updateQuestion(restaurantId: string, questionnaireId: string, questionId: string, question: Question): Promise<Question> {
+    try {
+      const api = getApiClient();
+      const response = await api.restaurants.questionnairesQuestionsUpdate(questionnaireId, questionId, restaurantId, question);
+      return response.data.data!;
+    } catch (error) {
+      throw new Error(handleApiError(error));
+    }
+  }
+
+  // Delete a question
+  static async deleteQuestion(restaurantId: string, questionnaireId: string, questionId: string): Promise<void> {
+    try {
+      const api = getApiClient();
+      await api.restaurants.questionnairesQuestionsDelete(questionnaireId, questionId, restaurantId);
+    } catch (error) {
+      throw new Error(handleApiError(error));
+    }
+  }
+
+  // Reorder questions
+  static async reorderQuestions(restaurantId: string, questionnaireId: string, questionIds: string[]): Promise<void> {
+    try {
+      const api = getApiClient();
+      await api.restaurants.questionnairesReorderCreate(questionnaireId, restaurantId, questionIds);
+    } catch (error) {
+      throw new Error(handleApiError(error));
+    }
+  }
 }

@@ -9,6 +9,8 @@
   import type { Questionnaire } from '$lib/stores/questionnaires';
 
   $: restaurantId = $page.params.id;
+  $: dishId = $page.url.searchParams.get('dishId');
+  $: dishName = $page.url.searchParams.get('dishName');
   
   // UI state
   let showBuilder = false;
@@ -18,6 +20,11 @@
   onMount(() => {
     if (restaurantId) {
       questionnaireStore.loadQuestionnaires(restaurantId);
+    }
+    
+    // If we have a dishId, open the builder immediately
+    if (dishId) {
+      createNew();
     }
   });
 
@@ -58,11 +65,21 @@
     showBuilder = false;
     editingQuestionnaire = null;
     questionnaireStore.loadQuestionnaires(restaurantId);
+    
+    // Clear URL params if we came from a dish
+    if (dishId) {
+      goto(`/restaurants/${restaurantId}/questionnaires`, { replaceState: true });
+    }
   }
 
   function handleBuilderCancelled() {
     showBuilder = false;
     editingQuestionnaire = null;
+    
+    // Clear URL params if we came from a dish
+    if (dishId) {
+      goto(`/restaurants/${restaurantId}/questionnaires`, { replaceState: true });
+    }
   }
 
   function getQuestionnaireType(questionnaire: Questionnaire) {
@@ -81,7 +98,7 @@
 {#if showBuilder}
   <QuestionnaireBuilder
     {restaurantId}
-    dishId={editingQuestionnaire?.dish_id || null}
+    dishId={editingQuestionnaire?.dish_id || dishId}
     initialData={editingQuestionnaire}
     on:saved={handleQuestionnaireSaved}
     on:cancelled={handleBuilderCancelled}

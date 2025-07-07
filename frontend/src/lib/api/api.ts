@@ -2079,4 +2079,105 @@ export class Api<
         ...params,
       }),
   };
+  restaurants = {
+    /**
+     * @description Add a new question to an existing questionnaire
+     *
+     * @tags questionnaires
+     * @name QuestionnairesQuestionsCreate
+     * @summary Add a question to a questionnaire
+     * @request POST:/restaurants/{restaurantId}/questionnaires/{id}/questions
+     * @secure
+     */
+    questionnairesQuestionsCreate: (
+      id: string,
+      restaurantId: string,
+      question: ModelsQuestion,
+      params: RequestParams = {},
+    ) =>
+      this.request<Record<string, any>, Record<string, any>>({
+        path: `/restaurants/${restaurantId}/questionnaires/${id}/questions`,
+        method: "POST",
+        body: question,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description Update an existing question in a questionnaire
+     *
+     * @tags questionnaires
+     * @name QuestionnairesQuestionsUpdate
+     * @summary Update a question
+     * @request PUT:/restaurants/{restaurantId}/questionnaires/{id}/questions/{questionId}
+     * @secure
+     */
+    questionnairesQuestionsUpdate: (
+      id: string,
+      questionId: string,
+      restaurantId: string,
+      question: ModelsQuestion,
+      params: RequestParams = {},
+    ) =>
+      this.request<Record<string, any>, Record<string, any>>({
+        path: `/restaurants/${restaurantId}/questionnaires/${id}/questions/${questionId}`,
+        method: "PUT",
+        body: question,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description Delete a question from a questionnaire
+     *
+     * @tags questionnaires
+     * @name QuestionnairesQuestionsDelete
+     * @summary Delete a question
+     * @request DELETE:/restaurants/{restaurantId}/questionnaires/{id}/questions/{questionId}
+     * @secure
+     */
+    questionnairesQuestionsDelete: (
+      id: string,
+      questionId: string,
+      restaurantId: string,
+      params: RequestParams = {},
+    ) =>
+      this.request<Record<string, any>, Record<string, any>>({
+        path: `/restaurants/${restaurantId}/questionnaires/${id}/questions/${questionId}`,
+        method: "DELETE",
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description Reorder questions in a questionnaire
+     *
+     * @tags questionnaires
+     * @name QuestionnairesReorderCreate
+     * @summary Reorder questions
+     * @request POST:/restaurants/{restaurantId}/questionnaires/{id}/reorder
+     * @secure
+     */
+    questionnairesReorderCreate: (
+      id: string,
+      restaurantId: string,
+      order: string[],
+      params: RequestParams = {},
+    ) =>
+      this.request<Record<string, any>, Record<string, any>>({
+        path: `/restaurants/${restaurantId}/questionnaires/${id}/reorder`,
+        method: "POST",
+        body: order,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+  };
 }

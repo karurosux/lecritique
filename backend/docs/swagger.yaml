@@ -2963,6 +2963,191 @@ paths:
       summary: Create a new subscription
       tags:
       - subscription
+  /restaurants/{restaurantId}/questionnaires/{id}/questions:
+    post:
+      consumes:
+      - application/json
+      description: Add a new question to an existing questionnaire
+      parameters:
+      - description: Questionnaire ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Question data
+        in: body
+        name: question
+        required: true
+        schema:
+          $ref: '#/definitions/models.Question'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Question added successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid request
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Server error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Add a question to a questionnaire
+      tags:
+      - questionnaires
+  /restaurants/{restaurantId}/questionnaires/{id}/questions/{questionId}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete a question from a questionnaire
+      parameters:
+      - description: Questionnaire ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Question ID
+        in: path
+        name: questionId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Question deleted successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid request
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Server error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Delete a question
+      tags:
+      - questionnaires
+    put:
+      consumes:
+      - application/json
+      description: Update an existing question in a questionnaire
+      parameters:
+      - description: Questionnaire ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Question ID
+        in: path
+        name: questionId
+        required: true
+        type: string
+      - description: Question data
+        in: body
+        name: question
+        required: true
+        schema:
+          $ref: '#/definitions/models.Question'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Question updated successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid request
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Server error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Update a question
+      tags:
+      - questionnaires
+  /restaurants/{restaurantId}/questionnaires/{id}/reorder:
+    post:
+      consumes:
+      - application/json
+      description: Reorder questions in a questionnaire
+      parameters:
+      - description: Questionnaire ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Question IDs in new order
+        in: body
+        name: order
+        required: true
+        schema:
+          items:
+            type: string
+          type: array
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Questions reordered successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid request
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Server error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Reorder questions
+      tags:
+      - questionnaires
 securityDefinitions:
   BearerAuth:
     description: Type "Bearer" followed by a space and JWT token.
