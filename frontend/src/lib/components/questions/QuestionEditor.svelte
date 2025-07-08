@@ -1,7 +1,7 @@
 <script lang="ts">
   import { createEventDispatcher } from 'svelte';
   import type { Question } from '$lib/stores/questions';
-  import { Button, Input, Card, Select } from '$lib/components/ui';
+  import { Button, Input, Card, Select, Modal } from '$lib/components/ui';
   import { Plus, Trash2, X, Star, BarChart3, CheckSquare, Circle, MessageSquare, ToggleLeft } from 'lucide-svelte';
 
   export let question: Question;
@@ -97,21 +97,13 @@
   }
 </script>
 
-<div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-  <Card class="w-full max-w-2xl max-h-[90vh] overflow-y-auto m-4">
-    <div class="p-6">
-      <div class="flex items-center justify-between mb-6">
-        <h3 class="text-xl font-semibold text-gray-900">{question.text ? 'Edit' : 'Add'} Question</h3>
-        <button
-          onclick={cancel}
-          class="p-1 rounded-lg hover:bg-gray-100 transition-colors"
-          type="button"
-        >
-          <X class="h-5 w-5 text-gray-500" />
-        </button>
-      </div>
-
-      <div class="space-y-6">
+<Modal 
+  isOpen={true}
+  title="{question.text ? 'Edit' : 'Add'} Question"
+  size="lg"
+  onclose={cancel}
+>
+  <div class="space-y-6">
         <!-- Question Text -->
         <div>
           <label for="question-text" class="block text-sm font-medium text-gray-700 mb-2">
@@ -317,23 +309,21 @@
           </div>
           </div>
         </Card>
-      </div>
+  </div>
 
-      <!-- Actions -->
-      <div class="flex items-center justify-end space-x-4 pt-6 border-t border-gray-200">
-        <Button onclick={cancel} variant="outline">
-          Cancel
-        </Button>
-        <Button
-          onclick={save}
-          disabled={!localQuestion.text.trim() || 
-                   (['multi_choice', 'single_choice'].includes(localQuestion.type) && options.filter(o => o.trim()).length < 2)}
-          variant="gradient"
-          class="min-w-32 shadow-lg"
-        >
-          {question.text ? 'Save Changes' : 'Add Question'}
-        </Button>
-      </div>
-    </div>
-  </Card>
-</div>
+  <!-- Actions -->
+  <div class="mt-6 pt-6 border-t border-gray-200 flex items-center justify-end space-x-3">
+    <Button onclick={cancel} variant="outline">
+      Cancel
+    </Button>
+    <Button
+      onclick={save}
+      disabled={!localQuestion.text.trim() || 
+               (['multi_choice', 'single_choice'].includes(localQuestion.type) && options.filter(o => o.trim()).length < 2)}
+      variant="gradient"
+      class="min-w-32"
+    >
+      {question.text ? 'Save Changes' : 'Add Question'}
+    </Button>
+  </div>
+</Modal>

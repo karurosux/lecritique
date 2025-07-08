@@ -66,14 +66,14 @@
 {#if modalOpen}
   <div 
     bind:this={modalElement}
-    class="fixed inset-0 z-[9999] flex items-center justify-center bg-black bg-opacity-50"
+    class="fixed inset-0 z-[9999] flex items-center justify-center bg-black/30 backdrop-blur-sm transition-all duration-200"
     onclick={handleBackdropClick}
     onkeydown={handleKeydown}
     role="dialog"
     aria-modal="true"
     tabindex="-1"
   >
-    <div class="relative bg-white rounded-lg shadow-xl {sizeClasses[size]} w-full mx-4 max-h-screen overflow-y-auto">
+    <div class="relative bg-white rounded-lg shadow-xl {sizeClasses[size]} w-full mx-4 max-h-screen overflow-y-auto animate-modal-enter">
       {#if title || showClose}
         <div class="flex items-center justify-between p-4 border-b border-gray-200">
           {#if title}
@@ -104,5 +104,20 @@
 <style>
   :global(body:has(.fixed[role="dialog"])) {
     overflow: hidden;
+  }
+  
+  @keyframes modal-enter {
+    from {
+      opacity: 0;
+      transform: scale(0.95) translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1) translateY(0);
+    }
+  }
+  
+  :global(.animate-modal-enter) {
+    animation: modal-enter 0.2s ease-out;
   }
 </style>

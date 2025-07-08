@@ -3,6 +3,7 @@
 	import { getApiClient } from '$lib/api';
 	import { toast } from 'svelte-sonner';
 	import { ModelsQRCodeType } from '$lib/api/api';
+	import { Loader2 } from 'lucide-svelte';
 
 	let {
 		restaurantId,
@@ -93,12 +94,17 @@
 			</ol>
 		</div>
 
-		<div class="flex justify-end gap-2">
+		<div class="mt-6 pt-6 border-t border-gray-200 flex justify-end space-x-3">
 			<Button onclick={handleClose} variant="outline">
 				Cancel
 			</Button>
-			<Button type="submit" disabled={loading}>
-				{loading ? 'Creating...' : 'Create QR Code'}
+			<Button type="submit" disabled={loading} variant="gradient">
+				{#if loading}
+					<Loader2 class="w-4 h-4 mr-2 animate-spin" />
+					Creating...
+				{:else}
+					Create QR Code
+				{/if}
 			</Button>
 		</div>
 	</form>
