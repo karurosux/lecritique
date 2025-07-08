@@ -2,7 +2,7 @@
   import { createEventDispatcher } from 'svelte';
   import type { Question } from '$lib/stores/questionnaires';
   import { Button, Input, Card, Select } from '$lib/components/ui';
-  import { Plus, Trash2, X } from 'lucide-svelte';
+  import { Plus, Trash2, X, Star, BarChart3, CheckSquare, Circle, MessageSquare, ToggleLeft } from 'lucide-svelte';
 
   export let question: Question;
 
@@ -15,12 +15,12 @@
 
   // Question type definitions
   const questionTypes = [
-    { value: 'rating', label: 'Star Rating (1-5 stars)', icon: '⭐' },
-    { value: 'scale', label: 'Scale (1-10 with labels)', icon: '📊' },
-    { value: 'multi_choice', label: 'Multiple Choice', icon: '☑️' },
-    { value: 'single_choice', label: 'Single Choice', icon: '🔘' },
-    { value: 'text', label: 'Text Input', icon: '💬' },
-    { value: 'yes_no', label: 'Yes/No', icon: '✅' }
+    { value: 'rating', label: 'Star Rating (1-5 stars)' },
+    { value: 'scale', label: 'Scale (1-10 with labels)' },
+    { value: 'multi_choice', label: 'Multiple Choice' },
+    { value: 'single_choice', label: 'Single Choice' },
+    { value: 'text', label: 'Text Input' },
+    { value: 'yes_no', label: 'Yes/No' }
   ];
 
   function addOption() {
@@ -43,9 +43,8 @@
     };
   }
 
-  function handleTypeChange(event: Event) {
-    const target = event.target as HTMLSelectElement;
-    const newType = target.value;
+  function handleTypeChange(event: Event | { target: { value: string } }) {
+    const newType = 'target' in event ? (event.target as any).value : event;
     localQuestion.type = newType as Question['type'];
     
     // Reset type-specific fields
@@ -102,41 +101,47 @@
   <Card class="w-full max-w-2xl max-h-[90vh] overflow-y-auto m-4">
     <div class="p-6">
       <div class="flex items-center justify-between mb-6">
-        <h3 class="text-lg font-medium">Edit Question</h3>
-        <Button onclick={cancel} variant="secondary">
-          <X class="h-4 w-4" />
-        </Button>
+        <h3 class="text-xl font-semibold text-gray-900">{question.text ? 'Edit' : 'Add'} Question</h3>
+        <button
+          onclick={cancel}
+          class="p-1 rounded-lg hover:bg-gray-100 transition-colors"
+          type="button"
+        >
+          <X class="h-5 w-5 text-gray-500" />
+        </button>
       </div>
 
       <div class="space-y-6">
         <!-- Question Text -->
         <div>
-          <label for="question-text" class="block text-sm font-medium text-gray-700 mb-1">Question Text *</label>
+          <label for="question-text" class="block text-sm font-medium text-gray-700 mb-2">
+            Question Text <span class="text-red-500">*</span>
+          </label>
           <textarea
             id="question-text"
             bind:value={localQuestion.text}
-            placeholder="Enter your question here..."
-            rows="2"
-            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            placeholder="What would you like to ask your customers?"
+            rows="3"
+            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
             required
           ></textarea>
         </div>
 
         <!-- Question Type -->
         <div>
-          <label for="question-type" class="block text-sm font-medium text-gray-700 mb-1">Question Type *</label>
-          <select
+          <label for="question-type" class="block text-sm font-medium text-gray-700 mb-2">
+            Question Type <span class="text-red-500">*</span>
+          </label>
+          <Select
             id="question-type"
-            bind:value={localQuestion.type}
-            on:change={handleTypeChange}
-            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            {#each questionTypes as type}
-              <option value={type.value}>
-                {type.icon} {type.label}
-              </option>
-            {/each}
-          </select>
+            value={localQuestion.type}
+            options={questionTypes}
+            onchange={(value) => {
+              localQuestion.type = value;
+              handleTypeChange({ target: { value } });
+            }}
+            placeholder="Select question type"
+          />
         </div>
 
         <!-- Required Toggle -->
@@ -152,8 +157,9 @@
 
         <!-- Type-specific configuration -->
         {#if localQuestion.type === 'scale'}
-          <div class="space-y-4 p-4 border rounded-lg bg-gray-50">
-            <h4 class="font-medium">Scale Configuration</h4>
+          <Card variant="minimal">
+            <div class="p-4 space-y-4">
+              <h4 class="text-sm font-medium text-gray-900">Scale Configuration</h4>
             
             <div class="grid grid-cols-2 gap-4">
               <div>
@@ -196,12 +202,14 @@
                 />
               </div>
             </div>
-          </div>
+            </div>
+          </Card>
         {/if}
 
         {#if ['multi_choice', 'single_choice'].includes(localQuestion.type)}
-          <div class="space-y-4 p-4 border rounded-lg bg-gray-50">
-            <h4 class="font-medium">
+          <Card variant="minimal">
+            <div class="p-4 space-y-4">
+              <h4 class="text-sm font-medium text-gray-900">
               {localQuestion.type === 'multi_choice' ? 'Multiple Choice' : 'Single Choice'} Options
             </h4>
             
@@ -216,10 +224,10 @@
                   />
                   <Button
                     onclick={() => removeOption(index)}
-                    variant="secondary"
-                    class="text-red-600 hover:text-red-700"
+                    variant="outline"
+                    class="p-2"
                   >
-                    <Trash2 class="h-4 w-4" />
+                    <Trash2 class="h-4 w-4 text-red-600" />
                   </Button>
                 </div>
               {/each}
@@ -232,7 +240,7 @@
                 placeholder="Add new option..."
                 on:keydown={(e) => e.key === 'Enter' && addOption()}
               />
-              <Button onclick={addOption} disabled={!newOption.trim()} variant="secondary">
+              <Button onclick={addOption} disabled={!newOption.trim()} variant="gradient" class="px-3">
                 <Plus class="h-4 w-4" />
               </Button>
             </div>
@@ -242,12 +250,14 @@
                 Add at least two options for this question type.
               </p>
             {/if}
-          </div>
+            </div>
+          </Card>
         {/if}
 
         <!-- Preview -->
-        <div class="space-y-2 p-4 border rounded-lg bg-gray-50">
-          <h4 class="font-medium">Preview</h4>
+        <Card>
+          <div class="p-4 space-y-2">
+            <h4 class="text-sm font-medium text-gray-900">Preview</h4>
           <div class="space-y-2">
             <p class="font-medium">
               {localQuestion.text || 'Question text will appear here...'}
@@ -259,7 +269,7 @@
             {#if localQuestion.type === 'rating'}
               <div class="flex gap-1">
                 {#each Array(5) as _, i}
-                  <span class="text-2xl text-yellow-400">⭐</span>
+                  <Star class="h-6 w-6 text-yellow-400 fill-yellow-400" />
                 {/each}
               </div>
             {:else if localQuestion.type === 'scale'}
@@ -291,7 +301,7 @@
                 {/each}
               </div>
             {:else if localQuestion.type === 'text'}
-              <textarea class="w-full p-2 border rounded" rows="3" placeholder="Text input area..."></textarea>
+              <textarea class="w-full p-2 border border-gray-300 rounded-lg" rows="3" placeholder="Customer's response will appear here..."></textarea>
             {:else if localQuestion.type === 'yes_no'}
               <div class="flex gap-4">
                 <label class="flex items-center gap-2">
@@ -305,21 +315,24 @@
               </div>
             {/if}
           </div>
-        </div>
+          </div>
+        </Card>
+      </div>
 
-        <!-- Actions -->
-        <div class="flex justify-end gap-3 pt-4 border-t">
-          <Button onclick={cancel} variant="secondary">
-            Cancel
-          </Button>
-          <Button
-            onclick={save}
-            disabled={!localQuestion.text.trim() || 
-                     (['multi_choice', 'single_choice'].includes(localQuestion.type) && options.filter(o => o.trim()).length < 2)}
-          >
-            Save Question
-          </Button>
-        </div>
+      <!-- Actions -->
+      <div class="flex items-center justify-end space-x-4 pt-6 border-t border-gray-200">
+        <Button onclick={cancel} variant="outline">
+          Cancel
+        </Button>
+        <Button
+          onclick={save}
+          disabled={!localQuestion.text.trim() || 
+                   (['multi_choice', 'single_choice'].includes(localQuestion.type) && options.filter(o => o.trim()).length < 2)}
+          variant="gradient"
+          class="min-w-32 shadow-lg"
+        >
+          {question.text ? 'Update' : 'Add'} Question
+        </Button>
       </div>
     </div>
   </Card>

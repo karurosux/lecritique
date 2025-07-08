@@ -4,6 +4,7 @@
     options = [],
     size = 'md',
     minWidth = 'min-w-32',
+    placeholder = '',
     onchange = (value: string) => {},
     ...restProps
   }: {
@@ -11,6 +12,7 @@
     options?: Array<{ value: string; label: string }>;
     size?: 'sm' | 'md' | 'lg';
     minWidth?: string;
+    placeholder?: string;
     onchange?: (value: string) => void;
     class?: string;
     [key: string]: any;
@@ -47,8 +49,12 @@
   <select
     bind:value
     onchange={handleChange}
-    class="appearance-none w-full {sizeClasses[size]} border border-gray-200 rounded-xl bg-white/50 backdrop-blur-sm shadow-sm hover:shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent cursor-pointer transition-all duration-200"
+    class="appearance-none w-full {sizeClasses[size]} border border-gray-200 rounded-xl bg-white/50 backdrop-blur-sm shadow-sm hover:shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent cursor-pointer transition-all duration-200 {!value ? 'text-gray-400' : ''}"
+    {...restProps}
   >
+    {#if placeholder && !value}
+      <option value="" disabled selected>{placeholder}</option>
+    {/if}
     {#each options as option}
       <option value={option.value}>{option.label}</option>
     {/each}

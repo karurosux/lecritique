@@ -23,17 +23,17 @@ type Questionnaire struct {
 
 type Question struct {
 	sharedModels.BaseModel
-	QuestionnaireID uuid.UUID     `gorm:"not null" json:"questionnaire_id"`
-	Questionnaire   Questionnaire `json:"questionnaire,omitempty"`
-	Text            string        `gorm:"not null" json:"text"`
-	Type            QuestionType  `gorm:"not null" json:"type"`
-	IsRequired      bool          `gorm:"default:true" json:"is_required"`
-	DisplayOrder    int           `gorm:"default:0" json:"display_order"`
-	Options         pq.StringArray `gorm:"type:text[]" json:"options" swaggertype:"array,string"`
-	MinValue        *int          `json:"min_value"`
-	MaxValue        *int          `json:"max_value"`
-	MinLabel        string        `json:"min_label"`
-	MaxLabel        string        `json:"max_label"`
+	DishID       uuid.UUID        `gorm:"not null;index" json:"dish_id"`
+	Dish         *menuModels.Dish `json:"dish,omitempty"`
+	Text         string           `gorm:"not null" json:"text"`
+	Type         QuestionType     `gorm:"not null" json:"type"`
+	IsRequired   bool             `gorm:"default:true" json:"is_required"`
+	DisplayOrder int              `gorm:"default:0" json:"display_order"`
+	Options      pq.StringArray   `gorm:"type:text[]" json:"options" swaggertype:"array,string"`
+	MinValue     *int             `json:"min_value"`
+	MaxValue     *int             `json:"max_value"`
+	MinLabel     string           `json:"min_label"`
+	MaxLabel     string           `json:"max_label"`
 }
 
 type QuestionType string
@@ -92,4 +92,27 @@ type GeneratedQuestion struct {
 	MaxValue *int           `json:"max_value,omitempty"`
 	MinLabel string         `json:"min_label,omitempty"`
 	MaxLabel string         `json:"max_label,omitempty"`
+}
+
+// Request/Response models for Questions
+type CreateQuestionRequest struct {
+	Text         string         `json:"text" binding:"required"`
+	Type         QuestionType   `json:"type" binding:"required"`
+	IsRequired   bool           `json:"is_required"`
+	Options      pq.StringArray `json:"options,omitempty" swaggertype:"array,string"`
+	MinValue     *int           `json:"min_value,omitempty"`
+	MaxValue     *int           `json:"max_value,omitempty"`
+	MinLabel     string         `json:"min_label,omitempty"`
+	MaxLabel     string         `json:"max_label,omitempty"`
+}
+
+type UpdateQuestionRequest struct {
+	Text         string         `json:"text"`
+	Type         QuestionType   `json:"type"`
+	IsRequired   bool           `json:"is_required"`
+	Options      pq.StringArray `json:"options,omitempty" swaggertype:"array,string"`
+	MinValue     *int           `json:"min_value,omitempty"`
+	MaxValue     *int           `json:"max_value,omitempty"`
+	MinLabel     string         `json:"min_label,omitempty"`
+	MaxLabel     string         `json:"max_label,omitempty"`
 }

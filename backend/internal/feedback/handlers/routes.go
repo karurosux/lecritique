@@ -19,6 +19,7 @@ func RegisterRoutes(public *echo.Group, protected *echo.Group, db *gorm.DB, auth
 	// Initialize repositories
 	feedbackRepo := repositories.NewFeedbackRepository(db)
 	questionnaireRepo := repositories.NewQuestionnaireRepository(db)
+	questionRepo := repositories.NewQuestionRepository(db)
 	qrCodeRepo := qrcodeRepos.NewQRCodeRepository(db)
 	restaurantRepo := restaurantRepos.NewRestaurantRepository(db)
 	dishRepo := menuRepos.NewDishRepository(db)
@@ -27,17 +28,20 @@ func RegisterRoutes(public *echo.Group, protected *echo.Group, db *gorm.DB, auth
 	qrCodeService := qrcodeServices.NewQRCodeService(qrCodeRepo, restaurantRepo)
 	feedbackService := services.NewFeedbackService(feedbackRepo, restaurantRepo, qrCodeRepo)
 	questionnaireService, _ := services.NewQuestionnaireService(db, cfg)
+	questionService := services.NewQuestionService(questionRepo, dishRepo, restaurantRepo)
 	dishService := menuServices.NewDishService(dishRepo, restaurantRepo)
 	
 	// Initialize handlers
-	publicHandler := NewPublicHandler(qrCodeService, feedbackService, dishRepo, questionnaireRepo)
+	publicHandler := NewPublicHandler(qrCodeService, feedbackService, dishRepo, questionnaireRepo, questionRepo)
 	feedbackHandler := NewFeedbackHandler(feedbackService)
 	questionnaireHandler := NewQuestionnaireHandler(questionnaireService, dishService)
+	questionHandler := NewQuestionHandler(questionService)
 	
 	// Public feedback routes (no auth required)
 	public.GET("/qr/:code", publicHandler.ValidateQRCode)
 	public.GET("/restaurant/:id/menu", publicHandler.GetRestaurantMenu)
 	public.GET("/questionnaire/:restaurantId/:dishId", publicHandler.GetQuestionnaire)
+	public.GET("/restaurant/:restaurantId/dishes/:dishId/questions", publicHandler.GetDishQuestions)
 	public.POST("/feedback", publicHandler.SubmitFeedback)
 	
 	// Protected feedback routes (requires auth)
@@ -59,6 +63,21 @@ func RegisterRoutes(public *echo.Group, protected *echo.Group, db *gorm.DB, auth
 	questionnaires.DELETE("/:id/questions/:questionId", questionnaireHandler.DeleteQuestion)
 	questionnaires.POST("/:id/reorder", questionnaireHandler.ReorderQuestions)
 	
+	// Question routes (new simplified structure)
+	dishRoutes := protected.Group("/restaurants/:restaurantId/dishes/:dishId")
+	dishRoutes.Use(middleware.JWTAuth(authService))
+	dishRoutes.POST("/questions", questionHandler.CreateQuestion)
+	dishRoutes.GET("/questions", questionHandler.GetQuestionsByDish)
+	dishRoutes.GET("/questions/:questionId", questionHandler.GetQuestion)
+	dishRoutes.PUT("/questions/:questionId", questionHandler.UpdateQuestion)
+	dishRoutes.DELETE("/questions/:questionId", questionHandler.DeleteQuestion)
+	dishRoutes.POST("/questions/reorder", questionHandler.ReorderQuestions)
+
+	// Bulk question routes
+	restaurantQuestionRoutes := protected.Group("/restaurants/:restaurantId")
+	restaurantQuestionRoutes.Use(middleware.JWTAuth(authService))
+	restaurantQuestionRoutes.GET("/questions/dishes-with-questions", questionHandler.GetDishesWithQuestions)
+
 	// AI question generation routes
 	aiRoutes := protected.Group("/ai")
 	aiRoutes.Use(middleware.JWTAuth(authService))

@@ -9,3 +9,4 @@ export { default as SearchInput } from './SearchInput.svelte';
 export { default as Select } from './Select.svelte';
 export { default as FilterChip } from './FilterChip.svelte';
 export { default as QRCode } from './QRCode.svelte';
+export { default as ConfirmDialog } from './ConfirmDialog.svelte';

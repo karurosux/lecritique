@@ -19,6 +19,7 @@ type PublicHandler struct {
 	feedbackService   feedbackServices.FeedbackService
 	dishRepo          menuRepos.DishRepository
 	questionnaireRepo feedbackRepos.QuestionnaireRepository
+	questionRepo      feedbackRepos.QuestionRepository
 }
 
 func NewPublicHandler(
@@ -26,12 +27,14 @@ func NewPublicHandler(
 	feedbackService feedbackServices.FeedbackService,
 	dishRepo menuRepos.DishRepository,
 	questionnaireRepo feedbackRepos.QuestionnaireRepository,
+	questionRepo feedbackRepos.QuestionRepository,
 ) *PublicHandler {
 	return &PublicHandler{
 		qrCodeService:     qrCodeService,
 		feedbackService:   feedbackService,
 		dishRepo:          dishRepo,
 		questionnaireRepo: questionnaireRepo,
+		questionRepo:      questionRepo,
 	}
 }
 
@@ -149,5 +152,46 @@ func (h *PublicHandler) SubmitFeedback(c echo.Context) error {
 
 	return response.Success(c, map[string]string{
 		"message": "Thank you for your feedback!",
+	})
+}
+
+// GetDishQuestions gets questions for a specific dish (public endpoint)
+// @Summary Get questions for a dish
+// @Description Get all feedback questions for a specific dish (public access for customer feedback)
+// @Tags public
+// @Produce json
+// @Param restaurantId path string true "Restaurant ID"
+// @Param dishId path string true "Dish ID"
+// @Success 200 {object} map[string]interface{} "Questions retrieved successfully"
+// @Failure 400 {object} response.Response "Invalid request"
+// @Failure 404 {object} response.Response "Dish not found"
+// @Failure 500 {object} response.Response "Server error"
+// @Router /restaurant/{restaurantId}/dishes/{dishId}/questions [get]
+func (h *PublicHandler) GetDishQuestions(c echo.Context) error {
+	ctx := c.Request().Context()
+
+	dishID, err := uuid.Parse(c.Param("dishId"))
+	if err != nil {
+		return response.Error(c, errors.BadRequest("Invalid dish ID"))
+	}
+
+	// Verify dish exists
+	dish, err := h.dishRepo.FindByID(ctx, dishID)
+	if err != nil {
+		return response.Error(c, errors.NotFound("Dish not found"))
+	}
+
+	// Get questions for this dish
+	questions, err := h.questionRepo.GetQuestionsByDishID(ctx, dishID)
+	if err != nil {
+		logger.Error("Failed to get questions for dish", err, logrus.Fields{
+			"dish_id": dishID,
+		})
+		return response.Error(c, errors.Internal("Failed to get questions"))
+	}
+
+	return response.Success(c, map[string]interface{}{
+		"dish":      dish,
+		"questions": questions,
 	})
 }

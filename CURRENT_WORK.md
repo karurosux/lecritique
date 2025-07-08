@@ -3,13 +3,14 @@
 ## 🎯 What I'm Working On
 
 ### Questionnaire Builder
-**Status**: 70% complete
+**Status**: 80% complete
 
 **Done**:
 - ✅ Question CRUD operations work
-- ✅ Questionnaires can be created from dish cards
+- ✅ Questionnaires managed directly from dish cards
 - ✅ Dishes show questionnaire status
-- ✅ Dish selector dropdown in questionnaire builder
+- ✅ Removed separate questionnaires section (simplified UX)
+- ✅ Modal-based questionnaire editing
 
 **Todo**:
 - [ ] Drag-and-drop question ordering

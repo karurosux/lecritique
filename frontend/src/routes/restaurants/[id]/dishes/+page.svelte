@@ -9,7 +9,7 @@
 	import { onMount } from 'svelte';
 	import { page } from '$app/stores';
 	import { goto } from '$app/navigation';
-	import { QuestionnaireApi } from '$lib/api/questionnaire';
+	import { QuestionApi } from '$lib/api/question';
 
 	let { data }: { data: PageData } = $props();
 
@@ -21,7 +21,7 @@
 	let sortBy = $state('name');
 	let dishes = $state(data.dishes || []);
 	let loading = $state(false);
-	let questionnaires = $state<any[]>([]);
+	let dishesWithQuestions = $state<string[]>([]);
 
 	// Get restaurant from layout/page data
 	let restaurant = $derived(data.restaurant);
@@ -33,7 +33,7 @@
 			await fetchDishes();
 		}
 		if (restaurant) {
-			await fetchQuestionnaires();
+			await fetchDishesWithQuestions();
 		}
 	});
 
@@ -70,6 +70,17 @@
 			loading = false;
 		}
 	}
+	
+	// Enhance dishes with questions information
+	let dishesWithQuestionnaires = $derived(
+		dishes.map(dish => {
+			const hasQuestions = dishesWithQuestions.includes(dish.id);
+			return {
+				...dish,
+				has_questionnaire: hasQuestions
+			};
+		})
+	);
 
 	// Get unique categories
 	let categories = $derived(
@@ -148,29 +159,22 @@
 		}
 	}
 
-	function handleManageQuestionnaire(dish: any) {
-		// Navigate to questionnaire page with dish ID
-		goto(`/restaurants/${restaurantId}/questionnaires?dishId=${dish.id}&dishName=${encodeURIComponent(dish.name)}`);
+	async function handleManageQuestionnaire(dish: any) {
+		// Navigate to questionnaire page
+		goto(`/restaurants/${restaurantId}/questionnaire/${dish.id}`);
 	}
 	
-	async function fetchQuestionnaires() {
+
+	async function fetchDishesWithQuestions() {
 		try {
-			questionnaires = await QuestionnaireApi.listQuestionnaires(restaurantId);
+			const api = getApiClient();
+			const response = await api.api.v1RestaurantsQuestionsDishesWithQuestionsList(restaurantId);
+			dishesWithQuestions = response.data.data || [];
+			console.log('Dishes with questions:', dishesWithQuestions);
 		} catch (error) {
-			console.error('Failed to fetch questionnaires:', error);
+			console.error('Failed to fetch dishes with questions:', error);
 		}
 	}
-	
-	// Enhance dishes with questionnaire information
-	let dishesWithQuestionnaires = $derived(
-		dishes.map(dish => {
-			const hasQuestionnaire = questionnaires.some(q => q.dish_id === dish.id);
-			return {
-				...dish,
-				has_questionnaire: hasQuestionnaire
-			};
-		})
-	);
 </script>
 
 <svelte:head>
@@ -289,7 +293,7 @@
 			showAddDishModal = false;
 			editingDish = null;
 			await fetchDishes();
-			await fetchQuestionnaires();
 		}}
 	/>
 {/if}
+

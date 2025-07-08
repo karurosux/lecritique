@@ -322,6 +322,30 @@ definitions:
       updated_at:
         type: string
     type: object
+  models.CreateQuestionRequest:
+    properties:
+      is_required:
+        type: boolean
+      max_label:
+        type: string
+      max_value:
+        type: integer
+      min_label:
+        type: string
+      min_value:
+        type: integer
+      options:
+        items:
+          type: string
+        type: array
+      text:
+        type: string
+      type:
+        $ref: '#/definitions/models.QuestionType'
+    required:
+    - text
+    - type
+    type: object
   models.CreateQuestionnaireRequest:
     properties:
       description:
@@ -473,6 +497,10 @@ definitions:
     properties:
       created_at:
         type: string
+      dish:
+        $ref: '#/definitions/github_com_lecritique_api_internal_menu_models.Dish'
+      dish_id:
+        type: string
       display_order:
         type: integer
       id:
@@ -491,10 +519,6 @@ definitions:
         items:
           type: string
         type: array
-      questionnaire:
-        $ref: '#/definitions/models.Questionnaire'
-      questionnaire_id:
-        type: string
       text:
         type: string
       type:
@@ -690,6 +714,27 @@ definitions:
         $ref: '#/definitions/models.User'
       user_id:
         type: string
+    type: object
+  models.UpdateQuestionRequest:
+    properties:
+      is_required:
+        type: boolean
+      max_label:
+        type: string
+      max_value:
+        type: integer
+      min_label:
+        type: string
+      min_value:
+        type: integer
+      options:
+        items:
+          type: string
+        type: array
+      text:
+        type: string
+      type:
+        $ref: '#/definitions/models.QuestionType'
     type: object
   models.User:
     properties:
@@ -2270,6 +2315,356 @@ paths:
       summary: Get dishes by restaurant
       tags:
       - dishes
+  /api/v1/restaurants/{restaurantId}/dishes/{dishId}/questions:
+    get:
+      description: Get all feedback questions for a specific dish
+      parameters:
+      - description: Restaurant ID
+        in: path
+        name: restaurantId
+        required: true
+        type: string
+      - description: Dish ID
+        in: path
+        name: dishId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Questions retrieved successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid request
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: Access denied
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Dish not found
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Server error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get questions for a dish
+      tags:
+      - questions
+    post:
+      consumes:
+      - application/json
+      description: Add a new feedback question to a specific dish
+      parameters:
+      - description: Restaurant ID
+        in: path
+        name: restaurantId
+        required: true
+        type: string
+      - description: Dish ID
+        in: path
+        name: dishId
+        required: true
+        type: string
+      - description: Question data
+        in: body
+        name: question
+        required: true
+        schema:
+          $ref: '#/definitions/models.CreateQuestionRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Question created successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid request
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: Access denied
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Dish not found
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Server error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Add a question to a dish
+      tags:
+      - questions
+  /api/v1/restaurants/{restaurantId}/dishes/{dishId}/questions/{questionId}:
+    delete:
+      description: Delete a feedback question from a dish
+      parameters:
+      - description: Restaurant ID
+        in: path
+        name: restaurantId
+        required: true
+        type: string
+      - description: Dish ID
+        in: path
+        name: dishId
+        required: true
+        type: string
+      - description: Question ID
+        in: path
+        name: questionId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Question deleted successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid request
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: Access denied
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Question not found
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Server error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Delete a question
+      tags:
+      - questions
+    get:
+      description: Get details of a specific question
+      parameters:
+      - description: Restaurant ID
+        in: path
+        name: restaurantId
+        required: true
+        type: string
+      - description: Dish ID
+        in: path
+        name: dishId
+        required: true
+        type: string
+      - description: Question ID
+        in: path
+        name: questionId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Question retrieved successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid request
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: Access denied
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Question not found
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Server error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get a specific question
+      tags:
+      - questions
+    put:
+      consumes:
+      - application/json
+      description: Update an existing question for a dish
+      parameters:
+      - description: Restaurant ID
+        in: path
+        name: restaurantId
+        required: true
+        type: string
+      - description: Dish ID
+        in: path
+        name: dishId
+        required: true
+        type: string
+      - description: Question ID
+        in: path
+        name: questionId
+        required: true
+        type: string
+      - description: Question data
+        in: body
+        name: question
+        required: true
+        schema:
+          $ref: '#/definitions/models.UpdateQuestionRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Question updated successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid request
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: Access denied
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Question not found
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Server error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Update a question
+      tags:
+      - questions
+  /api/v1/restaurants/{restaurantId}/dishes/{dishId}/questions/reorder:
+    post:
+      consumes:
+      - application/json
+      description: Reorder questions for a specific dish
+      parameters:
+      - description: Restaurant ID
+        in: path
+        name: restaurantId
+        required: true
+        type: string
+      - description: Dish ID
+        in: path
+        name: dishId
+        required: true
+        type: string
+      - description: Question IDs in new order
+        in: body
+        name: order
+        required: true
+        schema:
+          items:
+            type: string
+          type: array
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Questions reordered successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid request
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: Access denied
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Dish not found
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Server error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Reorder questions
+      tags:
+      - questions
   /api/v1/restaurants/{restaurantId}/feedback:
     get:
       consumes:
@@ -2601,6 +2996,48 @@ paths:
       summary: Update questionnaire
       tags:
       - questionnaires
+  /api/v1/restaurants/{restaurantId}/questions/dishes-with-questions:
+    get:
+      description: Get list of dish IDs that have questions for a restaurant
+      parameters:
+      - description: Restaurant ID
+        in: path
+        name: restaurantId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Dishes with questions retrieved successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid request
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: Access denied
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Server error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get dishes that have questions
+      tags:
+      - questions
   /api/v1/team/accept-invite:
     post:
       consumes:
@@ -2963,6 +3400,44 @@ paths:
       summary: Create a new subscription
       tags:
       - subscription
+  /restaurant/{restaurantId}/dishes/{dishId}/questions:
+    get:
+      description: Get all feedback questions for a specific dish (public access for
+        customer feedback)
+      parameters:
+      - description: Restaurant ID
+        in: path
+        name: restaurantId
+        required: true
+        type: string
+      - description: Dish ID
+        in: path
+        name: dishId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Questions retrieved successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "404":
+          description: Dish not found
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: Get questions for a dish
+      tags:
+      - public
   /restaurants/{restaurantId}/questionnaires/{id}/questions:
     post:
       consumes:

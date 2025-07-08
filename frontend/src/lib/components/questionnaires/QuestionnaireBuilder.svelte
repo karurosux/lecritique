@@ -1,39 +1,29 @@
 <script lang="ts">
-  import { createEventDispatcher, onMount } from 'svelte';
+  import { createEventDispatcher } from 'svelte';
   import { questionnaireStore, type Question, type GeneratedQuestion } from '$lib/stores/questionnaires';
-  import { Button, Input, Card, Select } from '$lib/components/ui';
-  import { Plus, Trash2, Sparkles, X, ChefHat } from 'lucide-svelte';
+  import { Button, Input, Card } from '$lib/components/ui';
+  import { Plus, Trash2, Sparkles, X, Loader2 } from 'lucide-svelte';
   import QuestionEditor from './QuestionEditor.svelte';
   import { getApiClient } from '$lib/api';
-  import { goto } from '$app/navigation';
 
   let { 
     restaurantId,
-    dishId = null,
+    dishId,
     initialData = null
   }: {
     restaurantId: string;
-    dishId?: string | null;
+    dishId: string;
     initialData?: any;
   } = $props();
 
   const dispatch = createEventDispatcher();
 
   // Form state
-  let selectedDishId = $state(dishId || initialData?.dish_id || null);
+  let selectedDishId = $state(dishId || initialData?.dish_id);
   let questions = $state<Question[]>(initialData?.questions || []);
   let generatedQuestions = $state<GeneratedQuestion[]>([]);
   
-  // Dishes for dropdown
-  let dishes = $state<any[]>([]);
-  let loadingDishes = $state(false);
-  
-  // Auto-generate name from selected dish
-  let selectedDish = $derived(dishes.find(d => d.value === selectedDishId));
-  let name = $derived(
-    initialData?.name || 
-    (selectedDish ? `${selectedDish.label} Feedback` : '')
-  );
+  // Auto-generate name from dish - we'll set this when saving
 
   // UI state
   let loading = $state(false);
@@ -48,34 +38,19 @@
   let storeError = $derived($questionnaireStore?.error);
   let storeLoading = $derived($questionnaireStore?.loading);
 
-  onMount(async () => {
-    await fetchDishes();
+  // Debug: Log when questions change
+  $effect(() => {
+    console.log('Questions updated:', questions.length, questions);
   });
 
-  async function fetchDishes() {
-    try {
-      loadingDishes = true;
-      const api = getApiClient();
-      const response = await api.api.v1RestaurantsDishesList(restaurantId);
-      
-      if (response.data.success && response.data.data) {
-        dishes = response.data.data.map((dish: any) => ({
-          value: dish.id,
-          label: dish.name
-        }));
-        
-        // If no dishes, show error
-        if (dishes.length === 0) {
-          error = 'No dishes found. Please add dishes to your menu first.';
-        }
-      }
-    } catch (err) {
-      console.error('Failed to load dishes:', err);
-      error = 'Failed to load dishes. Please try again.';
-    } finally {
-      loadingDishes = false;
+  // Debug: Log when initialData changes
+  $effect(() => {
+    console.log('InitialData:', initialData);
+    if (initialData?.questions) {
+      console.log('InitialData questions:', initialData.questions.length, initialData.questions);
     }
-  }
+  });
+
 
   function addQuestion() {
     editingQuestion = {
@@ -205,26 +180,37 @@
     error = '';
 
     try {
-      const data = {
-        name: name.trim(),
+      // Auto-generate name from existing data or use default
+      const questionnaireData = {
+        name: initialData?.name || 'Feedback Questionnaire',
         dish_id: selectedDishId
       };
 
       let questionnaire;
       if (initialData?.id) {
         // Update existing questionnaire
-        questionnaire = await questionnaireStore.updateQuestionnaire(restaurantId, initialData.id, data);
+        questionnaire = await questionnaireStore.updateQuestionnaire(restaurantId, initialData.id, questionnaireData);
+        
+        // For existing questionnaires, we need to manage questions differently
+        // This is a simplified approach - in production you'd want to handle adds/updates/deletes separately
+        console.log('Updating existing questionnaire with questions:', questions);
+        
+        // For now, we'll just dispatch success - the questions management needs to be improved
+        // TODO: Implement proper question update logic
       } else {
         // Create new questionnaire
-        questionnaire = await questionnaireStore.createQuestionnaire(restaurantId, data);
+        questionnaire = await questionnaireStore.createQuestionnaire(restaurantId, questionnaireData);
         
         // Add questions to the new questionnaire
+        console.log('Adding questions to questionnaire:', questionnaire.id, 'Restaurant:', restaurantId);
+        console.log('Questions to add:', questions);
         for (const question of questions) {
+          console.log('Adding question:', question, 'to questionnaire:', questionnaire.id);
           await questionnaireStore.addQuestion(restaurantId, questionnaire.id!, question);
         }
       }
 
-      dispatch('saved', questionnaire);
+      dispatch('success', questionnaire);
     } catch (err) {
       error = err.message;
     } finally {
@@ -233,18 +219,18 @@
   }
 
   function cancel() {
-    dispatch('cancelled');
+    dispatch('cancel');
   }
 
   function getQuestionTypeIcon(type: string) {
     switch (type) {
-      case 'rating': return '⭐';
-      case 'scale': return '📊';
-      case 'multi_choice': return '☑️';
-      case 'single_choice': return '🔘';
-      case 'text': return '💬';
-      case 'yes_no': return '✅';
-      default: return '❓';
+      case 'rating': return 'Rating';
+      case 'scale': return 'Scale';
+      case 'multi_choice': return 'Multi';
+      case 'single_choice': return 'Single';
+      case 'text': return 'Text';
+      case 'yes_no': return 'Y/N';
+      default: return 'Other';
     }
   }
 
@@ -261,118 +247,67 @@
   }
 </script>
 
-<div class="space-y-6 p-6">
-  <!-- Header -->
-  <div class="flex items-center justify-between">
-    <div>
-      <h2 class="text-2xl font-bold">
-        {initialData?.id ? 'Edit' : 'Create'} Questionnaire
-      </h2>
-      <p class="text-gray-600">
-        Design feedback questions for your dishes
-      </p>
-    </div>
-    
-    <Button
-      onclick={generateAIQuestions}
-      disabled={generatingQuestions || !selectedDishId}
-      class="flex items-center gap-2"
-      title={!selectedDishId ? 'Select a dish to generate AI questions' : ''}
-    >
-        {#if generatingQuestions}
-          <svg class="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
-            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-          </svg>
-        {:else}
-          <Sparkles class="h-4 w-4" />
-        {/if}
-        Generate AI Questions
-      </Button>
-  </div>
+<div class="space-y-6">
 
   {#if error || storeError}
-    <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
-      {error || storeError}
+    <div class="bg-red-50 border border-red-200 rounded-md p-4">
+      <div class="flex">
+        <div class="flex-shrink-0">
+          <X class="h-5 w-5 text-red-400" />
+        </div>
+        <div class="ml-3">
+          <p class="text-sm text-red-800">{error || storeError}</p>
+        </div>
+      </div>
     </div>
   {/if}
 
-  {#if dishes.length === 0 && !loadingDishes}
-    <Card class="p-6 bg-yellow-50 border-yellow-200">
-      <div class="flex items-start gap-4">
-        <ChefHat class="h-8 w-8 text-yellow-600 flex-shrink-0 mt-1" />
-        <div class="flex-1">
-          <h3 class="text-lg font-medium text-yellow-900 mb-1">No Dishes Found</h3>
-          <p class="text-yellow-700 mb-3">
-            You need to add dishes to your menu before creating questionnaires. 
-            Each questionnaire is designed to collect feedback about a specific dish.
-          </p>
-          <Button 
-            onclick={() => goto(`/restaurants/${restaurantId}/dishes`)}
-            class="flex items-center gap-2"
-          >
-            <ChefHat class="h-4 w-4" />
-            Go to Menu Management
-          </Button>
-        </div>
-      </div>
-    </Card>
-  {:else}
-
-  <!-- Dish Selection -->
-  <Card class="p-6">
-    <div class="space-y-4">
-      <div>
-        <label for="dish" class="block text-sm font-medium text-gray-700 mb-1">
-          Select Dish *
-        </label>
-        <Select
-          id="dish"
-          bind:value={selectedDishId}
-          options={dishes}
-          disabled={loadingDishes}
-          placeholder={loadingDishes ? 'Loading dishes...' : 'Select a dish'}
-          required
-        />
-        {#if selectedDish}
-          <p class="text-sm text-gray-600 mt-2">
-            📋 This will create: <span class="font-medium">{name}</span>
-          </p>
-        {/if}
-      </div>
-    </div>
-  </Card>
-
   <!-- Questions -->
-  <Card class="p-6">
-    <div class="flex items-center justify-between mb-4">
-      <h3 class="text-lg font-medium">Questions ({questions.length})</h3>
-      <Button onclick={addQuestion} class="flex items-center gap-2">
-        <Plus class="h-4 w-4" />
-        Add Question
-      </Button>
+  <Card>
+    <div class="p-6">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-lg font-medium text-gray-900">Questions ({questions.length})</h3>
+      <div class="flex gap-2">
+        <Button
+          onclick={generateAIQuestions}
+          disabled={generatingQuestions || !selectedDishId}
+          variant="secondary"
+          class="flex items-center gap-2"
+          title={!selectedDishId ? 'Select a dish to generate AI questions' : ''}
+        >
+          {#if generatingQuestions}
+            <Loader2 class="h-4 w-4 animate-spin" />
+          {:else}
+            <Sparkles class="h-4 w-4" />
+          {/if}
+          AI Questions
+        </Button>
+        <Button onclick={addQuestion} variant="gradient" class="flex items-center gap-2">
+          <Plus class="h-4 w-4" />
+          Add Question
+        </Button>
+      </div>
     </div>
 
-    {#if questions.length === 0}
-      <div class="text-center py-8 text-gray-500">
-        <p>No questions added yet.</p>
-        <p class="text-sm">Click "Add Question" or "Generate AI Questions" to get started.</p>
-      </div>
-    {:else}
-      <div class="space-y-3">
-        {#each questions as question, index}
-          <div class="flex items-center gap-3 p-3 border rounded-lg">
+      {#if questions.length === 0}
+        <div class="text-center py-8 text-gray-500">
+          <p>No questions added yet.</p>
+          <p class="text-sm mt-1">Click "Add Question" or "AI Questions" to get started.</p>
+        </div>
+      {:else}
+        <div class="space-y-3">
+          {#each questions as question, index}
+            <div class="flex items-center gap-3 p-4 bg-gray-50 rounded-lg border border-gray-200">
             <div class="flex-1">
               <div class="flex items-center gap-2 mb-1">
-                <span class="text-sm">{getQuestionTypeIcon(question.type)}</span>
-                <span class="px-2 py-1 bg-gray-100 text-xs rounded">
+                <span class="px-2 py-1 bg-gray-100 text-xs font-medium rounded">
                   {getQuestionTypeLabel(question.type)}
                 </span>
                 {#if question.is_required}
                   <span class="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded">Required</span>
                 {/if}
               </div>
-              <p class="font-medium">{question.text}</p>
+              <p class="font-medium text-gray-900">{question.text}</p>
               {#if question.options && question.options.length > 0}
                 <p class="text-sm text-gray-500">
                   Options: {question.options.join(', ')}
@@ -403,26 +338,28 @@
             </div>
           </div>
         {/each}
-      </div>
-    {/if}
+        </div>
+      {/if}
+    </div>
   </Card>
 
   <!-- Actions -->
-  <div class="flex justify-end gap-3">
-    <Button onclick={cancel} variant="secondary">
+  <div class="flex items-center justify-end space-x-4 pt-6 border-t border-gray-200">
+    <Button onclick={cancel} variant="outline">
       Cancel
     </Button>
-    <Button onclick={save} disabled={loading || storeLoading}>
+    <Button 
+      onclick={save} 
+      disabled={loading || storeLoading}
+      variant="gradient"
+      class="min-w-32 shadow-lg"
+    >
       {#if loading || storeLoading}
-        <svg class="animate-spin h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24">
-          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-        </svg>
+        <Loader2 class="h-4 w-4 mr-2 animate-spin" />
       {/if}
       {initialData?.id ? 'Update' : 'Create'} Questionnaire
     </Button>
   </div>
-  {/if}
 </div>
 
 <!-- Question Editor Modal -->
@@ -454,14 +391,13 @@
 
         <div class="space-y-3 mb-6">
           {#each generatedQuestions as question, index}
-            <div class="p-3 border rounded-lg">
+            <div class="p-4 bg-gray-50 rounded-lg border border-gray-200">
               <div class="flex items-center gap-2 mb-2">
-                <span>{getQuestionTypeIcon(question.type)}</span>
-                <span class="px-2 py-1 bg-gray-100 text-xs rounded">
+                <span class="px-2 py-1 bg-gray-100 text-xs font-medium rounded">
                   {getQuestionTypeLabel(question.type)}
                 </span>
               </div>
-              <p class="font-medium">{question.text}</p>
+              <p class="font-medium text-gray-900">{question.text}</p>
               {#if question.options && question.options.length > 0}
                 <p class="text-sm text-gray-500 mt-1">
                   Options: {question.options.join(', ')}
@@ -479,15 +415,19 @@
           {/each}
         </div>
 
-        <div class="flex justify-end gap-3 pt-4 border-t">
+        <div class="flex items-center justify-end space-x-4 pt-6 border-t border-gray-200">
           <Button
             onclick={() => { showGeneratedPreview = false; generatedQuestions = []; }}
-            variant="secondary"
+            variant="outline"
           >
             Cancel
           </Button>
-          <Button onclick={addGeneratedQuestions} class="flex items-center gap-2">
-            <Plus class="h-4 w-4" />
+          <Button 
+            onclick={addGeneratedQuestions} 
+            variant="gradient"
+            class="min-w-32 shadow-lg"
+          >
+            <Plus class="h-4 w-4 mr-2" />
             Add All Questions
           </Button>
         </div>

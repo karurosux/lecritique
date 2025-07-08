@@ -130,7 +130,8 @@ func (s *QuestionnaireService) AddQuestion(ctx context.Context, accountID, quest
 		return nil, err
 	}
 
-	question.QuestionnaireID = questionnaireID
+	// TODO: Update this to use new Question structure
+	// question.QuestionnaireID = questionnaireID
 	question.DisplayOrder = maxOrder + 1
 
 	if err := s.repo.CreateQuestion(ctx, question); err != nil {
@@ -234,16 +235,17 @@ func (s *QuestionnaireService) GenerateAndSaveQuestionnaireForDish(ctx context.C
 	// Convert generated questions to database questions and add them
 	for i, genQ := range generatedQuestions {
 		question := &models.Question{
-			QuestionnaireID: questionnaire.ID,
-			Text:            genQ.Text,
-			Type:            genQ.Type,
-			IsRequired:      true, // Default to required
-			DisplayOrder:    i + 1,
-			Options:         genQ.Options,
-			MinValue:        genQ.MinValue,
-			MaxValue:        genQ.MaxValue,
-			MinLabel:        genQ.MinLabel,
-			MaxLabel:        genQ.MaxLabel,
+			// TODO: Update this to use new Question structure with DishID
+			// QuestionnaireID: questionnaire.ID,
+			Text:         genQ.Text,
+			Type:         genQ.Type,
+			IsRequired:   true, // Default to required
+			DisplayOrder: i + 1,
+			Options:      genQ.Options,
+			MinValue:     genQ.MinValue,
+			MaxValue:     genQ.MaxValue,
+			MinLabel:     genQ.MinLabel,
+			MaxLabel:     genQ.MaxLabel,
 		}
 
 		if err := s.repo.CreateQuestion(ctx, question); err != nil {

@@ -9,7 +9,6 @@ LeCritique is a SaaS platform for restaurants to collect dish-specific feedback 
 - **Key Libraries**: Stripe (payments), AI providers (Anthropic/OpenAI/Gemini)
 
 ## 📁 Key Directories
-```
 backend/
 ├── internal/
 │   ├── auth/          # Authentication & teams
@@ -27,7 +26,6 @@ frontend/
 │   │   ├── components/# Reusable components
 │   │   └── stores/    # Svelte stores
 │   └── routes/        # SvelteKit pages
-```
 
 ## 🚨 Important Notes
 
@@ -38,6 +36,8 @@ frontend/
 4. **Subscription Limits**: Check limits before allowing actions
 5. **UUID Keys**: All IDs are UUIDs, not integers
 6. **UI Components**: Always use ui components in lib, if it does not exists and is a dumb component, create it
+7. **Endpoint Updates**: Whenever updating backend endpoints, regenerate client and types
+8. **Documentation**: Always document endpoints for swagger documentation
 
 ### Current Architecture
 - Domain-Driven Design with clear module separation
@@ -77,3 +77,7 @@ When working on LeCritique:
 
 ### Design Guidelines
 - Lets keep the same kind of design styles and rules all time
+- Lets always use lucide icons in UI, no random SVG as possible
+
+### Development Guidelines
+- When adding elements, if its a root element, we should add an identifier class that allows you to identify the components, for example if its a user list the class "user-list" would be ideal
