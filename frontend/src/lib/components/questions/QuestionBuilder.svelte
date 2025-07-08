@@ -2,7 +2,7 @@
   import { createEventDispatcher, onMount } from 'svelte';
   import { questionStore, type Question } from '$lib/stores/questions';
   import { Button, Input, Card, ConfirmDialog } from '$lib/components/ui';
-  import { Plus, Trash2, Edit2, Loader2, Sparkles } from 'lucide-svelte';
+  import { Plus, Trash2, Edit2, Loader2, Sparkles, GripVertical } from 'lucide-svelte';
   import QuestionEditor from './QuestionEditor.svelte';
   import { QuestionApi } from '$lib/api/question';
   import { toast } from 'svelte-sonner';
@@ -27,6 +27,9 @@
   let aiGenerating = $state(false);
   let showDeleteConfirm = $state(false);
   let questionToDelete = $state<Question | null>(null);
+  let draggingIndex = $state<number | null>(null);
+  let dragOverIndex = $state<number | null>(null);
+  let reordering = $state(false);
 
   // Subscribe to store
   let storeError = $derived($questionStore?.error);
@@ -178,6 +181,66 @@
     }
   }
 
+  // Drag and drop handlers
+  function handleDragStart(e: DragEvent, index: number) {
+    draggingIndex = index;
+    if (e.dataTransfer) {
+      e.dataTransfer.effectAllowed = 'move';
+    }
+  }
+
+  function handleDragOver(e: DragEvent, index: number) {
+    e.preventDefault();
+    if (e.dataTransfer) {
+      e.dataTransfer.dropEffect = 'move';
+    }
+    dragOverIndex = index;
+  }
+
+  function handleDragLeave() {
+    dragOverIndex = null;
+  }
+
+  async function handleDrop(e: DragEvent, dropIndex: number) {
+    e.preventDefault();
+    
+    if (draggingIndex === null || draggingIndex === dropIndex) {
+      draggingIndex = null;
+      dragOverIndex = null;
+      return;
+    }
+
+    // Reorder the questions array
+    const newQuestions = [...questions];
+    const [draggedQuestion] = newQuestions.splice(draggingIndex, 1);
+    newQuestions.splice(dropIndex, 0, draggedQuestion);
+    
+    questions = newQuestions;
+    
+    // Reset drag state
+    draggingIndex = null;
+    dragOverIndex = null;
+    
+    // Save the new order to the backend
+    await saveQuestionOrder();
+  }
+
+  async function saveQuestionOrder() {
+    try {
+      reordering = true;
+      const questionIds = questions.map(q => q.id!);
+      await questionStore.reorderQuestions(restaurantId, dishId, questionIds);
+      toast.success('Question order updated');
+    } catch (err) {
+      error = err.message;
+      toast.error('Failed to update question order');
+      // Reload questions to restore original order
+      await loadQuestions();
+    } finally {
+      reordering = false;
+    }
+  }
+
 </script>
 
 <div class="question-builder space-y-6">
@@ -226,7 +289,7 @@
           </div>
           <Button 
             onclick={addQuestion} 
-            disabled={aiGenerating}
+            disabled={aiGenerating || reordering}
             variant="gradient" 
             class="flex items-center gap-2"
           >
@@ -244,7 +307,17 @@
       {:else}
         <div class="space-y-3">
           {#each questions as question, index}
-            <div class="flex items-center gap-3 p-4 bg-gray-50 rounded-lg border border-gray-200">
+            <div 
+              class="flex items-center gap-3 p-4 bg-gray-50 rounded-lg border border-gray-200 transition-all duration-200 {draggingIndex === index ? 'opacity-50' : ''} {dragOverIndex === index ? 'border-blue-400 border-2' : ''}"
+              draggable="true"
+              ondragstart={(e) => handleDragStart(e, index)}
+              ondragover={(e) => handleDragOver(e, index)}
+              ondragleave={handleDragLeave}
+              ondrop={(e) => handleDrop(e, index)}
+            >
+              <div class="cursor-move" class:opacity-50={aiGenerating || reordering}>
+                <GripVertical class="h-5 w-5 text-gray-400" />
+              </div>
               <div class="flex-1">
                 <div class="flex items-center gap-2 mb-1">
                   <span class="px-2 py-1 bg-gray-100 text-xs font-medium rounded">
@@ -269,7 +342,7 @@
               <div class="flex items-center gap-2">
                 <Button 
                   onclick={() => editQuestion(question, index)}
-                  disabled={aiGenerating}
+                  disabled={aiGenerating || reordering}
                   variant="ghost" 
                   size="sm"
                   class="p-2"
@@ -278,7 +351,7 @@
                 </Button>
                 <Button 
                   onclick={() => handleDeleteQuestion(question)}
-                  disabled={aiGenerating}
+                  disabled={aiGenerating || reordering}
                   variant="ghost" 
                   size="sm"
                   class="p-2 text-red-600 hover:text-red-700"
