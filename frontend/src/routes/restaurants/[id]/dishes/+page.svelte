@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { PageData } from './$types';
-	import { Button, Card, Input, Select } from '$lib/components/ui';
+	import { Button, Card, Input, Select, ConfirmDialog } from '$lib/components/ui';
 	import { Plus } from 'lucide-svelte';
 	import DishCard from '$lib/components/dishes/DishCard.svelte';
 	import AddDishModal from '$lib/components/dishes/AddDishModal.svelte';
@@ -22,6 +22,8 @@
 	let dishes = $state(data.dishes || []);
 	let loading = $state(false);
 	let dishesWithQuestions = $state<string[]>([]);
+	let showDeleteConfirm = $state(false);
+	let deletingDish = $state<any>(null);
 
 	// Get restaurant from layout/page data
 	let restaurant = $derived(data.restaurant);
@@ -129,19 +131,30 @@
 	}
 
 	async function handleDeleteDish(dish: any) {
-		if (!confirm(`Are you sure you want to delete "${dish.name}"?`)) {
-			return;
-		}
+		deletingDish = dish;
+		showDeleteConfirm = true;
+	}
+
+	async function confirmDeleteDish() {
+		if (!deletingDish) return;
 
 		try {
 			const api = getApiClient();
-			await api.api.v1DishesDelete(dish.id);
+			await api.api.v1DishesDelete(deletingDish.id);
 			toast.success('Dish deleted successfully');
 			await fetchDishes();
 		} catch (error) {
 			toast.error('Failed to delete dish');
 			console.error(error);
+		} finally {
+			showDeleteConfirm = false;
+			deletingDish = null;
 		}
+	}
+
+	function cancelDeleteDish() {
+		showDeleteConfirm = false;
+		deletingDish = null;
 	}
 
 	async function handleToggleAvailability(dish: any) {
@@ -318,4 +331,16 @@
 		}}
 	/>
 {/if}
+
+<!-- Delete Confirmation Dialog -->
+<ConfirmDialog
+	isOpen={showDeleteConfirm}
+	title="Delete Dish"
+	message={`Are you sure you want to delete "${deletingDish?.name}"? This action cannot be undone.`}
+	confirmText="Delete"
+	cancelText="Cancel"
+	variant="danger"
+	onConfirm={confirmDeleteDish}
+	onCancel={cancelDeleteDish}
+/>
 

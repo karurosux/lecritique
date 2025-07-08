@@ -8,6 +8,7 @@
   import RestaurantList from "$lib/components/restaurants/RestaurantList.svelte";
   import CreateRestaurantModal from "$lib/components/restaurants/CreateRestaurantModal.svelte";
   import EditRestaurantModal from "$lib/components/restaurants/EditRestaurantModal.svelte";
+  import { ConfirmDialog, Card, Button } from "$lib/components/ui";
 
   interface Restaurant {
     id: string;
@@ -33,6 +34,8 @@
   let showCreateModal = $state(false);
   let showEditModal = $state(false);
   let editingRestaurant = $state<Restaurant | null>(null);
+  let showDeleteConfirm = $state(false);
+  let deletingRestaurant = $state<Restaurant | null>(null);
   let canCreateRestaurant = $state(false);
   let checkingPermissions = $state(true);
   let permissionReason = $state("");
@@ -175,7 +178,8 @@
 
   function handleRestaurantDelete(event: CustomEvent) {
     const restaurant = event.detail;
-    deleteRestaurant(restaurant);
+    deletingRestaurant = restaurant;
+    showDeleteConfirm = true;
   }
 
   function handleAddRestaurant() {
@@ -195,6 +199,19 @@
     showEditModal = false;
     editingRestaurant = null;
     loadRestaurants(); // Refresh the restaurant list
+  }
+
+  function handleDeleteConfirm() {
+    if (deletingRestaurant) {
+      deleteRestaurant(deletingRestaurant);
+    }
+    showDeleteConfirm = false;
+    deletingRestaurant = null;
+  }
+
+  function handleDeleteCancel() {
+    showDeleteConfirm = false;
+    deletingRestaurant = null;
   }
 
   function handleRestaurantCreated(event: CustomEvent) {
@@ -231,14 +248,6 @@
   }
 
   async function deleteRestaurant(restaurant: Restaurant) {
-    if (
-      !confirm(
-        `Are you sure you want to delete "${restaurant.name}"? This action cannot be undone.`,
-      )
-    ) {
-      return;
-    }
-
     try {
       const api = getApiClient();
 
@@ -335,4 +344,16 @@
     onupdated={handleRestaurantUpdated}
   />
 {/if}
+
+<!-- Delete Confirmation Dialog -->
+<ConfirmDialog
+  isOpen={showDeleteConfirm}
+  title="Delete Restaurant"
+  message={`Are you sure you want to delete "${deletingRestaurant?.name}"? This action cannot be undone.`}
+  confirmText="Delete"
+  cancelText="Cancel"
+  variant="danger"
+  onConfirm={handleDeleteConfirm}
+  onCancel={handleDeleteCancel}
+/>
 
