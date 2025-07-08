@@ -19,6 +19,7 @@
 	let showQRCodeDisplay = $state(false);
 	let qrCodes = $state(data.qrCodes);
 	let loading = $state(false);
+	let clickOrigin = $state<{ x: number; y: number } | null>(null);
 	
 	// Get restaurant from parent layout
 	let restaurant = $derived(data.restaurant);
@@ -62,8 +63,13 @@
 		[ModelsQRCodeType.QRCodeTypeGeneral]: 'bg-gray-100 text-gray-800'
 	};
 
-	async function handleDelete(qrCode: typeof qrCodes[0]) {
+	async function handleDelete(qrCode: typeof qrCodes[0], event?: MouseEvent) {
+		if (event) {
+			clickOrigin = { x: event.clientX, y: event.clientY };
+		}
+		
 		if (!confirm(`Are you sure you want to delete QR code "${qrCode.label}"?`)) {
+			clickOrigin = null;
 			return;
 		}
 
@@ -75,6 +81,8 @@
 		} catch (error) {
 			toast.error('Failed to delete QR code');
 			console.error(error);
+		} finally {
+			clickOrigin = null;
 		}
 	}
 
@@ -103,7 +111,10 @@
 		}
 	}
 
-	function showQRCode(qrCode: typeof qrCodes[0]) {
+	function showQRCode(qrCode: typeof qrCodes[0], event?: MouseEvent) {
+		if (event) {
+			clickOrigin = { x: event.clientX, y: event.clientY };
+		}
 		selectedQRCode = qrCode;
 		showQRCodeDisplay = true;
 	}
@@ -149,7 +160,7 @@
 					</div>
 				</div>
 			</div>
-			<Button onclick={() => (showCreateModal = true)} variant="gradient" size="lg" class="gap-2">
+			<Button onclick={(e) => { clickOrigin = { x: e.clientX, y: e.clientY }; showCreateModal = true; }} variant="gradient" size="lg" class="gap-2">
 				<Plus class="h-4 w-4" />
 				Create QR Code
 			</Button>
@@ -170,7 +181,7 @@
 			<p class="text-gray-600 mb-6 max-w-md mx-auto">
 				Create your first QR code to start collecting feedback from customers
 			</p>
-			<Button onclick={() => (showCreateModal = true)} variant="gradient" size="lg">
+			<Button onclick={(e) => { clickOrigin = { x: e.clientX, y: e.clientY }; showCreateModal = true; }} variant="gradient" size="lg">
 				<Plus class="mr-2 h-4 w-4" />
 				Create First QR Code
 			</Button>
@@ -222,7 +233,7 @@
 							variant="gradient"
 							size="sm"
 							class="flex-1"
-							onclick={() => showQRCode(qrCode)}
+							onclick={(e) => showQRCode(qrCode, e)}
 						>
 							<Download class="h-4 w-4 mr-1" />
 							Download
@@ -241,7 +252,7 @@
 						<Button
 							variant="outline"
 							size="sm"
-							onclick={() => handleDelete(qrCode)}
+							onclick={(e) => handleDelete(qrCode, e)}
 						>
 							<Trash2 class="h-4 w-4" />
 						</Button>
@@ -257,9 +268,11 @@
 {#if showCreateModal && restaurant}
 	<CreateQRCodeModal
 		restaurantId={restaurant.id}
-		onclose={() => (showCreateModal = false)}
+		{clickOrigin}
+		onclose={() => { showCreateModal = false; clickOrigin = null; }}
 		oncreated={() => {
 			showCreateModal = false;
+			clickOrigin = null;
 			fetchQRCodes();
 		}}
 	/>
@@ -270,9 +283,11 @@
 	<QRCodeDisplay
 		qrCode={selectedQRCode}
 		restaurantName={restaurant.name}
+		{clickOrigin}
 		onclose={() => {
 			showQRCodeDisplay = false;
 			selectedQRCode = null;
+			clickOrigin = null;
 		}}
 	/>
 {/if}

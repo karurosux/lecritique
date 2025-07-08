@@ -24,6 +24,7 @@
 	let dishesWithQuestions = $state<string[]>([]);
 	let showDeleteConfirm = $state(false);
 	let deletingDish = $state<any>(null);
+	let clickOrigin = $state<{ x: number; y: number } | null>(null);
 
 	// Get restaurant from layout/page data
 	let restaurant = $derived(data.restaurant);
@@ -120,17 +121,26 @@
 			})
 	);
 
-	async function handleAddDish() {
+	async function handleAddDish(event?: MouseEvent) {
+		if (event) {
+			clickOrigin = { x: event.clientX, y: event.clientY };
+		}
 		editingDish = null;
 		showAddDishModal = true;
 	}
 
-	async function handleEditDish(dish: any) {
+	async function handleEditDish(dish: any, event?: MouseEvent) {
+		if (event) {
+			clickOrigin = { x: event.clientX, y: event.clientY };
+		}
 		editingDish = dish;
 		showAddDishModal = true;
 	}
 
-	async function handleDeleteDish(dish: any) {
+	async function handleDeleteDish(dish: any, event?: MouseEvent) {
+		if (event) {
+			clickOrigin = { x: event.clientX, y: event.clientY };
+		}
 		deletingDish = dish;
 		showDeleteConfirm = true;
 	}
@@ -149,12 +159,14 @@
 		} finally {
 			showDeleteConfirm = false;
 			deletingDish = null;
+			clickOrigin = null;
 		}
 	}
 
 	function cancelDeleteDish() {
 		showDeleteConfirm = false;
 		deletingDish = null;
+		clickOrigin = null;
 	}
 
 	async function handleToggleAvailability(dish: any) {
@@ -281,8 +293,8 @@
 			{#each filteredDishes as dish (dish.id)}
 				<DishCard
 					{dish}
-					onedit={() => handleEditDish(dish)}
-					ondelete={() => handleDeleteDish(dish)}
+					onedit={handleEditDish}
+					ondelete={handleDeleteDish}
 					ontoggleavailability={() => handleToggleAvailability(dish)}
 					ongeneratequestionnaire={() => handleManageQuestionnaire(dish)}
 				/>
@@ -298,9 +310,11 @@
 	<AddDishModal
 		bind:isOpen={showAddDishModal}
 		editingDish={editingDish}
+		{clickOrigin}
 		onclose={() => {
 			showAddDishModal = false;
 			editingDish = null;
+			clickOrigin = null;
 		}}
 		onsave={async (dishData) => {
 			try {
@@ -340,6 +354,7 @@
 	confirmText="Delete"
 	cancelText="Cancel"
 	variant="danger"
+	{clickOrigin}
 	onConfirm={confirmDeleteDish}
 	onCancel={cancelDeleteDish}
 />

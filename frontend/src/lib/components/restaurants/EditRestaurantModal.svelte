@@ -16,10 +16,12 @@
 
   let {
     restaurant,
+    clickOrigin = null,
     onclose,
     onupdated
   }: {
     restaurant: any;
+    clickOrigin?: { x: number; y: number } | null;
     onclose: () => void;
     onupdated: () => void;
   } = $props();
@@ -143,6 +145,7 @@
 <Modal 
   isOpen={true}
   title="Edit Restaurant"
+  {clickOrigin}
   size="lg"
   onclose={handleClose}
 >

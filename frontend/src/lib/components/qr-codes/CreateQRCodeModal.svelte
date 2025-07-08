@@ -7,10 +7,12 @@
 
 	let {
 		restaurantId,
+		clickOrigin = null,
 		onclose,
 		oncreated
 	}: {
 		restaurantId: string;
+		clickOrigin?: { x: number; y: number } | null;
 		onclose: () => void;
 		oncreated: () => void;
 	} = $props();
@@ -55,6 +57,7 @@
 <Modal 
 	isOpen={true} 
 	title="Create QR Code"
+	{clickOrigin}
 	size="lg"
 	onclose={handleClose}
 >

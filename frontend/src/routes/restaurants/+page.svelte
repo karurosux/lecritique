@@ -39,6 +39,7 @@
   let canCreateRestaurant = $state(false);
   let checkingPermissions = $state(true);
   let permissionReason = $state("");
+  let clickOrigin = $state<{ x: number; y: number } | null>(null);
 
   let filteredRestaurants = $derived(
     restaurants
@@ -166,7 +167,10 @@
   }
 
   function handleRestaurantEdit(event: CustomEvent) {
-    const restaurant = event.detail;
+    const { restaurant, event: mouseEvent } = event.detail;
+    if (mouseEvent) {
+      clickOrigin = { x: mouseEvent.clientX, y: mouseEvent.clientY };
+    }
     editingRestaurant = restaurant;
     showEditModal = true;
   }
@@ -177,7 +181,10 @@
   }
 
   function handleRestaurantDelete(event: CustomEvent) {
-    const restaurant = event.detail;
+    const { restaurant, event: mouseEvent } = event.detail;
+    if (mouseEvent) {
+      clickOrigin = { x: mouseEvent.clientX, y: mouseEvent.clientY };
+    }
     deletingRestaurant = restaurant;
     showDeleteConfirm = true;
   }
@@ -193,11 +200,13 @@
   function handleCloseEditModal() {
     showEditModal = false;
     editingRestaurant = null;
+    clickOrigin = null;
   }
 
   function handleRestaurantUpdated() {
     showEditModal = false;
     editingRestaurant = null;
+    clickOrigin = null;
     loadRestaurants(); // Refresh the restaurant list
   }
 
@@ -207,11 +216,13 @@
     }
     showDeleteConfirm = false;
     deletingRestaurant = null;
+    clickOrigin = null;
   }
 
   function handleDeleteCancel() {
     showDeleteConfirm = false;
     deletingRestaurant = null;
+    clickOrigin = null;
   }
 
   function handleRestaurantCreated(event: CustomEvent) {
@@ -340,6 +351,7 @@
 {#if showEditModal && editingRestaurant}
   <EditRestaurantModal
     restaurant={editingRestaurant}
+    {clickOrigin}
     onclose={handleCloseEditModal}
     onupdated={handleRestaurantUpdated}
   />
@@ -353,6 +365,7 @@
   confirmText="Delete"
   cancelText="Cancel"
   variant="danger"
+  {clickOrigin}
   onConfirm={handleDeleteConfirm}
   onCancel={handleDeleteCancel}
 />

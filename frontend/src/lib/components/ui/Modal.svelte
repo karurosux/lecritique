@@ -8,6 +8,7 @@
     showClose = true,
     size = 'md',
     onclose = () => {},
+    clickOrigin = null,
     children
   }: {
     isOpen?: boolean;
@@ -16,6 +17,7 @@
     showClose?: boolean;
     size?: 'sm' | 'md' | 'lg' | 'xl';
     onclose?: () => void;
+    clickOrigin?: { x: number; y: number } | null;
     children?: any;
   } = $props();
   
@@ -30,6 +32,7 @@
   };
   
   let modalElement = $state<HTMLDivElement | null>(null);
+  let animationPhase = $state<'expanding' | 'fading' | 'showing' | 'idle'>('idle');
   
   function closeModal() {
     isOpen = false;
@@ -49,15 +52,24 @@
     }
   }
   
-  // Move modal to document body when it opens
+  // Move modal to document body when it opens and handle animation
   $effect(() => {
     if (modalOpen && modalElement) {
       document.body.appendChild(modalElement);
+      
+      // Start all animations simultaneously
+      animationPhase = 'expanding';
+      
+      // Show modal content after a short delay
+      setTimeout(() => {
+        animationPhase = 'showing';
+      }, 200);
       
       return () => {
         if (modalElement && modalElement.parentNode) {
           modalElement.parentNode.removeChild(modalElement);
         }
+        animationPhase = 'idle';
       };
     }
   });
@@ -66,14 +78,20 @@
 {#if modalOpen}
   <div 
     bind:this={modalElement}
-    class="fixed inset-0 z-[10000] flex items-center justify-center bg-gradient-to-br from-gray-100/60 to-gray-300/60 backdrop-blur-lg transition-all duration-200"
+    class="fixed inset-0 z-[10000] flex items-center justify-center transition-all duration-200"
+    class:circle-expanding={animationPhase === 'expanding'}
+    class:backdrop-fading={animationPhase === 'fading'}
+    class:backdrop-showing={animationPhase === 'showing'}
+    style={clickOrigin ? `--click-x: ${clickOrigin.x}px; --click-y: ${clickOrigin.y}px;` : ''}
     onclick={handleBackdropClick}
     onkeydown={handleKeydown}
     role="dialog"
     aria-modal="true"
     tabindex="-1"
   >
-    <div class="relative bg-white rounded-lg shadow-xl {sizeClasses[size]} w-full mx-4 max-h-screen overflow-y-auto animate-modal-enter">
+    <div class="relative bg-white rounded-lg shadow-xl {sizeClasses[size]} w-full mx-4 max-h-screen overflow-y-auto"
+         class:animate-modal-enter={animationPhase === 'showing'}
+         class:opacity-0={animationPhase !== 'showing'}>
       {#if title || showClose}
         <div class="flex items-center justify-between p-4 border-b border-gray-200">
           {#if title}
@@ -115,6 +133,45 @@
       opacity: 1;
       transform: scale(1) translateY(0);
     }
+  }
+  
+  @keyframes circle-expand {
+    from {
+      clip-path: circle(0% at var(--click-x, 50%) var(--click-y, 50%));
+      background: linear-gradient(135deg, rgb(243 244 246 / 0.3), rgb(209 213 219 / 0.3));
+      backdrop-filter: blur(4px);
+      opacity: 0;
+    }
+    to {
+      clip-path: circle(150% at var(--click-x, 50%) var(--click-y, 50%));
+      background: linear-gradient(135deg, rgb(243 244 246 / 0.6), rgb(209 213 219 / 0.6));
+      backdrop-filter: blur(16px);
+      opacity: 1;
+    }
+  }
+  
+  @keyframes backdrop-fade {
+    from {
+      background: linear-gradient(135deg, rgb(243 244 246 / 0.8), rgb(209 213 219 / 0.8));
+      backdrop-filter: blur(4px);
+    }
+    to {
+      background: linear-gradient(135deg, rgb(243 244 246 / 0.6), rgb(209 213 219 / 0.6));
+      backdrop-filter: blur(16px);
+    }
+  }
+  
+  .circle-expanding {
+    animation: circle-expand 0.4s ease-out forwards;
+  }
+  
+  .backdrop-fading {
+    animation: backdrop-fade 0.2s ease-out forwards;
+  }
+  
+  .backdrop-showing {
+    background: linear-gradient(135deg, rgb(243 244 246 / 0.6), rgb(209 213 219 / 0.6));
+    backdrop-filter: blur(16px);
   }
   
   :global(.animate-modal-enter) {

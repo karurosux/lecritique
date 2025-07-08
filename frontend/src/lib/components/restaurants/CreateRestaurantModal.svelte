@@ -4,8 +4,14 @@
 
   let { 
     isOpen = $bindable(false),
+    clickOrigin = null,
     onclose = () => {},
     onrestaurantcreated = (restaurant: any) => {}
+  }: {
+    isOpen?: boolean;
+    clickOrigin?: { x: number; y: number } | null;
+    onclose?: () => void;
+    onrestaurantcreated?: (restaurant: any) => void;
   } = $props();
 
   let formData = $state({
@@ -120,7 +126,7 @@
   });
 </script>
 
-<Modal bind:isOpen title="Add New Restaurant" size="lg" onclose={handleClose}>
+<Modal bind:isOpen title="Add New Restaurant" {clickOrigin} size="lg" onclose={handleClose}>
   <div class="space-y-6">
     <!-- Error Message -->
     {#if error}

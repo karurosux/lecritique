@@ -9,6 +9,7 @@
     confirmText = 'Confirm',
     cancelText = 'Cancel',
     variant = 'danger', // 'danger' | 'warning' | 'info'
+    clickOrigin = null,
     onConfirm = () => {},
     onCancel = () => {}
   }: {
@@ -18,6 +19,7 @@
     confirmText?: string;
     cancelText?: string;
     variant?: 'danger' | 'warning' | 'info';
+    clickOrigin?: { x: number; y: number } | null;
     onConfirm?: () => void;
     onCancel?: () => void;
   } = $props();
@@ -34,6 +36,7 @@
 <Modal 
   {isOpen}
   {title}
+  {clickOrigin}
   size="sm"
   onclose={handleCancel}
 >

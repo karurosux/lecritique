@@ -21,33 +21,33 @@
     viewMode = 'grid',
     index = 0,
     onclick = (restaurant: Restaurant) => {},
-    onedit = (restaurant: Restaurant) => {},
+    onedit = (restaurant: Restaurant, event?: MouseEvent) => {},
     ontogglestatus = (restaurant: Restaurant) => {},
-    ondelete = (restaurant: Restaurant) => {}
+    ondelete = (restaurant: Restaurant, event?: MouseEvent) => {}
   }: {
     restaurant: Restaurant;
     viewMode?: 'grid' | 'list';
     index?: number;
     onclick?: (restaurant: Restaurant) => void;
-    onedit?: (restaurant: Restaurant) => void;
+    onedit?: (restaurant: Restaurant, event?: MouseEvent) => void;
     ontogglestatus?: (restaurant: Restaurant) => void;
-    ondelete?: (restaurant: Restaurant) => void;
+    ondelete?: (restaurant: Restaurant, event?: MouseEvent) => void;
   } = $props();
 
   function handleClick() {
     onclick(restaurant);
   }
 
-  function handleEdit() {
-    onedit(restaurant);
+  function handleEdit(event?: MouseEvent) {
+    onedit(restaurant, event);
   }
 
   function handleToggleStatus() {
     ontogglestatus(restaurant);
   }
 
-  function handleDelete() {
-    ondelete(restaurant);
+  function handleDelete(event?: MouseEvent) {
+    ondelete(restaurant, event);
   }
 
   function handleViewDetails() {
@@ -102,7 +102,7 @@
       <div class="flex items-center space-x-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
         <button
           class="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-200"
-          onclick={(e) => { e.stopPropagation(); handleEdit(); }}
+          onclick={(e) => { e.stopPropagation(); handleEdit(e); }}
           aria-label="Edit restaurant"
         >
           <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -120,7 +120,7 @@
         </button>
         <button
           class="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all duration-200"
-          onclick={(e) => { e.stopPropagation(); handleDelete(); }}
+          onclick={(e) => { e.stopPropagation(); handleDelete(e); }}
           aria-label="Delete restaurant"
         >
           <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -271,7 +271,7 @@
         </button>
         <button
           class="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all duration-200"
-          onclick={(e) => { e.stopPropagation(); handleDelete(); }}
+          onclick={(e) => { e.stopPropagation(); handleDelete(e); }}
           aria-label="Delete restaurant"
         >
           <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

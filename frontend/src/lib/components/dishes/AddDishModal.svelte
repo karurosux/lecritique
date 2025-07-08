@@ -20,6 +20,7 @@
     editingDish = null,
     loading = false,
     error = '',
+    clickOrigin = null,
     onclose = () => {},
     onsave = (dishData: any) => {}
   }: {
@@ -27,6 +28,7 @@
     editingDish?: Dish | null;
     loading?: boolean;
     error?: string;
+    clickOrigin?: { x: number; y: number } | null;
     onclose?: () => void;
     onsave?: (dishData: any) => void;
   } = $props();
@@ -111,7 +113,7 @@
   );
 </script>
 
-<Modal bind:isOpen title={editingDish ? 'Edit Dish' : 'Add New Dish'} size="lg" onclose={handleClose}>
+<Modal bind:isOpen title={editingDish ? 'Edit Dish' : 'Add New Dish'} size="lg" {clickOrigin} onclose={handleClose}>
   <form onsubmit={handleSubmit} class="space-y-6">
     <!-- Error Message -->
     {#if error}

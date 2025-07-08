@@ -20,15 +20,15 @@
 
   let {
     dish,
-    onedit = (dish: Dish) => {},
+    onedit = (dish: Dish, event?: MouseEvent) => {},
     ontoggleavailability = (dish: Dish) => {},
-    ondelete = (dish: Dish) => {},
+    ondelete = (dish: Dish, event?: MouseEvent) => {},
     ongeneratequestionnaire = (dish: Dish) => {}
   }: {
     dish: Dish;
-    onedit?: (dish: Dish) => void;
+    onedit?: (dish: Dish, event?: MouseEvent) => void;
     ontoggleavailability?: (dish: Dish) => void;
-    ondelete?: (dish: Dish) => void;
+    ondelete?: (dish: Dish, event?: MouseEvent) => void;
     ongeneratequestionnaire?: (dish: Dish) => void;
   } = $props();
 
@@ -36,16 +36,16 @@
     return `$${price.toFixed(2)}`;
   }
 
-  function handleEdit() {
-    onedit(dish);
+  function handleEdit(event?: MouseEvent) {
+    onedit(dish, event);
   }
 
   function handleToggleAvailability() {
     ontoggleavailability(dish);
   }
 
-  function handleDelete() {
-    ondelete(dish);
+  function handleDelete(event?: MouseEvent) {
+    ondelete(dish, event);
   }
 
   function handleGenerateQuestionnaire() {
@@ -121,7 +121,7 @@
           <div class="absolute right-0 top-full mt-1 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50">
             <button
               class="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2 cursor-pointer"
-              onclick={(e) => { e.stopPropagation(); handleEdit(); closeDropdown(); }}
+              onclick={(e) => { e.stopPropagation(); handleEdit(e); closeDropdown(); }}
             >
               <Edit2 class="h-4 w-4 text-blue-500" />
               Edit dish
@@ -154,7 +154,7 @@
             <hr class="my-1 border-gray-200" />
             <button
               class="w-full px-4 py-2 text-left text-sm text-red-700 hover:bg-red-50 flex items-center gap-2 cursor-pointer"
-              onclick={(e) => { e.stopPropagation(); handleDelete(); closeDropdown(); }}
+              onclick={(e) => { e.stopPropagation(); handleDelete(e); closeDropdown(); }}
             >
               <Trash2 class="h-4 w-4 text-red-500" />
               Delete dish

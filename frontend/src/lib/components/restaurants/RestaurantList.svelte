@@ -26,16 +26,16 @@
     dispatch('restaurantClick', restaurant);
   }
 
-  function handleRestaurantEdit(restaurant: Restaurant) {
-    dispatch('restaurantEdit', restaurant);
+  function handleRestaurantEdit(restaurant: Restaurant, event?: MouseEvent) {
+    dispatch('restaurantEdit', { restaurant, event });
   }
 
   function handleRestaurantToggleStatus(restaurant: Restaurant) {
     dispatch('restaurantToggleStatus', restaurant);
   }
 
-  function handleRestaurantDelete(restaurant: Restaurant) {
-    dispatch('restaurantDelete', restaurant);
+  function handleRestaurantDelete(restaurant: Restaurant, event?: MouseEvent) {
+    dispatch('restaurantDelete', { restaurant, event });
   }
 </script>
 
