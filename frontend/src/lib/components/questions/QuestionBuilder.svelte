@@ -190,7 +190,16 @@
 
   <!-- Questions -->
   <Card>
-    <div class="p-6">
+    <div class="p-6 relative">
+      {#if aiGenerating}
+        <div class="absolute inset-0 bg-white bg-opacity-75 z-10 flex items-center justify-center rounded-lg">
+          <div class="text-center">
+            <Loader2 class="h-8 w-8 animate-spin mx-auto mb-4 text-blue-600" />
+            <p class="text-lg font-medium text-gray-900">Generating AI Questions...</p>
+            <p class="text-sm text-gray-500 mt-1">Please wait while we create relevant questions for your dish</p>
+          </div>
+        </div>
+      {/if}
       <div class="flex items-center justify-between mb-4">
         <h3 class="text-lg font-medium text-gray-900">Questions ({questions.length})</h3>
         <div class="flex items-center gap-2">
@@ -215,7 +224,12 @@
               </div>
             {/if}
           </div>
-          <Button onclick={addQuestion} variant="gradient" class="flex items-center gap-2">
+          <Button 
+            onclick={addQuestion} 
+            disabled={aiGenerating}
+            variant="gradient" 
+            class="flex items-center gap-2"
+          >
             <Plus class="h-4 w-4" />
             Add Question
           </Button>
@@ -255,6 +269,7 @@
               <div class="flex items-center gap-2">
                 <Button 
                   onclick={() => editQuestion(question, index)}
+                  disabled={aiGenerating}
                   variant="ghost" 
                   size="sm"
                   class="p-2"
@@ -263,6 +278,7 @@
                 </Button>
                 <Button 
                   onclick={() => handleDeleteQuestion(question)}
+                  disabled={aiGenerating}
                   variant="ghost" 
                   size="sm"
                   class="p-2 text-red-600 hover:text-red-700"

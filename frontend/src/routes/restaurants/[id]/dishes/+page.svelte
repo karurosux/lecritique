@@ -289,10 +289,32 @@
 			showAddDishModal = false;
 			editingDish = null;
 		}}
-		onsave={async () => {
-			showAddDishModal = false;
-			editingDish = null;
-			await fetchDishes();
+		onsave={async (dishData) => {
+			try {
+				const api = getApiClient();
+				if (editingDish) {
+					// Update existing dish
+					await api.api.v1DishesUpdate(editingDish.id, {
+						...dishData,
+						restaurant_id: restaurantId
+					});
+					toast.success('Dish updated successfully');
+				} else {
+					// Create new dish
+					await api.api.v1DishesCreate({
+						...dishData,
+						restaurant_id: restaurantId
+					});
+					toast.success('Dish created successfully');
+				}
+				showAddDishModal = false;
+				editingDish = null;
+				await fetchDishes();
+				await fetchDishesWithQuestions();
+			} catch (error) {
+				console.error('Error saving dish:', error);
+				toast.error('Failed to save dish');
+			}
 		}}
 	/>
 {/if}
