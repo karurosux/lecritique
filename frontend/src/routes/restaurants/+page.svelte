@@ -7,6 +7,7 @@
   import SearchAndFilters from "$lib/components/restaurants/SearchAndFilters.svelte";
   import RestaurantList from "$lib/components/restaurants/RestaurantList.svelte";
   import CreateRestaurantModal from "$lib/components/restaurants/CreateRestaurantModal.svelte";
+  import EditRestaurantModal from "$lib/components/restaurants/EditRestaurantModal.svelte";
 
   interface Restaurant {
     id: string;
@@ -30,6 +31,8 @@
   let sortBy = $state("name"); // 'name', 'created_at', 'status'
   let viewMode = $state<"grid" | "list">("grid");
   let showCreateModal = $state(false);
+  let showEditModal = $state(false);
+  let editingRestaurant = $state<Restaurant | null>(null);
   let canCreateRestaurant = $state(false);
   let checkingPermissions = $state(true);
   let permissionReason = $state("");
@@ -161,7 +164,8 @@
 
   function handleRestaurantEdit(event: CustomEvent) {
     const restaurant = event.detail;
-    goto(`/restaurants/${restaurant.id}/edit`);
+    editingRestaurant = restaurant;
+    showEditModal = true;
   }
 
   function handleRestaurantToggleStatus(event: CustomEvent) {
@@ -180,6 +184,17 @@
 
   function handleCloseModal() {
     showCreateModal = false;
+  }
+
+  function handleCloseEditModal() {
+    showEditModal = false;
+    editingRestaurant = null;
+  }
+
+  function handleRestaurantUpdated() {
+    showEditModal = false;
+    editingRestaurant = null;
+    loadRestaurants(); // Refresh the restaurant list
   }
 
   function handleRestaurantCreated(event: CustomEvent) {
@@ -311,4 +326,13 @@
   onclose={handleCloseModal}
   onrestaurantcreated={handleRestaurantCreated}
 />
+
+<!-- Edit Restaurant Modal -->
+{#if showEditModal && editingRestaurant}
+  <EditRestaurantModal
+    restaurant={editingRestaurant}
+    onclose={handleCloseEditModal}
+    onupdated={handleRestaurantUpdated}
+  />
+{/if}
 
