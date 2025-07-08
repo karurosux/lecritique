@@ -66,7 +66,7 @@
 {#if modalOpen}
   <div 
     bind:this={modalElement}
-    class="fixed inset-0 z-[9999] flex items-center justify-center bg-black/30 backdrop-blur-sm transition-all duration-200"
+    class="fixed inset-0 z-[10000] flex items-center justify-center bg-gradient-to-br from-gray-100/60 to-gray-300/60 backdrop-blur-lg transition-all duration-200"
     onclick={handleBackdropClick}
     onkeydown={handleKeydown}
     role="dialog"
