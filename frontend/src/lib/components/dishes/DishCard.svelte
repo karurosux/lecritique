@@ -1,6 +1,6 @@
 <script lang="ts">
   import { Card, Button } from '$lib/components/ui';
-  import { Edit2, Lightbulb, Eye, EyeOff, Trash2, ClipboardList, Clock, AlertTriangle } from 'lucide-svelte';
+  import { Edit2, Lightbulb, Eye, EyeOff, Trash2, ClipboardList, Clock, AlertTriangle, MoreVertical } from 'lucide-svelte';
 
   interface Dish {
     id: string;
@@ -51,7 +51,28 @@
   function handleGenerateQuestionnaire() {
     ongeneratequestionnaire(dish);
   }
+
+  let showDropdown = $state(false);
+
+  function toggleDropdown() {
+    showDropdown = !showDropdown;
+  }
+
+  function closeDropdown() {
+    showDropdown = false;
+  }
+
+  // Close dropdown when clicking outside
+  function handleClickOutside(event: MouseEvent) {
+    if (!event.target) return;
+    const target = event.target as Element;
+    if (!target.closest('.dropdown-container')) {
+      showDropdown = false;
+    }
+  }
 </script>
+
+<svelte:window on:click={handleClickOutside} />
 
 <Card 
   variant="default" 
@@ -86,43 +107,60 @@
           </div>
         </div>
       </div>
-      <div class="flex items-center space-x-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex-shrink-0">
+      <div class="relative dropdown-container flex-shrink-0">
         <button
-          class="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-200"
-          onclick={(e) => { e.stopPropagation(); handleEdit(); }}
-          title="Edit dish"
+          type="button"
+          class="p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 hover:shadow-sm hover:border hover:border-gray-200 rounded-lg transition-all duration-200 cursor-pointer {showDropdown ? 'bg-gray-100 text-gray-800 shadow-sm border border-gray-200' : ''}"
+          onclick={(e) => { e.stopPropagation(); toggleDropdown(); }}
+          title="More actions"
         >
-          <Edit2 class="h-4 w-4" />
+          <MoreVertical class="h-4 w-4" />
         </button>
-        <button
-          class="p-2 text-gray-400 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition-all duration-200 {dish.has_questionnaire ? 'text-purple-600 bg-purple-50' : ''}"
-          onclick={(e) => { e.stopPropagation(); handleGenerateQuestionnaire(); }}
-          title="{dish.has_questionnaire ? 'Manage questionnaire' : 'Create questionnaire'}"
-        >
-          {#if dish.has_questionnaire}
-            <ClipboardList class="h-4 w-4" />
-          {:else}
-            <Lightbulb class="h-4 w-4" />
-          {/if}
-        </button>
-        <button
-          class="p-2 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-lg transition-all duration-200"
-          onclick={(e) => { e.stopPropagation(); handleToggleAvailability(); }}
-          title="Toggle availability"
-        >
-          {#if dish.is_available}
-            <EyeOff class="h-4 w-4" />
-          {:else}
-            <Eye class="h-4 w-4" />
-          {/if}
-        </button>
-        <button
-          class="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all duration-200"
-          onclick={(e) => { e.stopPropagation(); handleDelete(); }}
-          title="Delete dish"
-        >
-          <Trash2 class="h-4 w-4" />
-        </button>
+        
+        {#if showDropdown}
+          <div class="absolute right-0 top-full mt-1 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50">
+            <button
+              class="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2 cursor-pointer"
+              onclick={(e) => { e.stopPropagation(); handleEdit(); closeDropdown(); }}
+            >
+              <Edit2 class="h-4 w-4 text-blue-500" />
+              Edit dish
+            </button>
+            <button
+              class="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2 cursor-pointer"
+              onclick={(e) => { e.stopPropagation(); handleGenerateQuestionnaire(); closeDropdown(); }}
+              title="{dish.has_questionnaire ? 'Manage questions' : 'Create questions'}"
+            >
+              {#if dish.has_questionnaire}
+                <ClipboardList class="h-4 w-4 text-purple-500" />
+                Questions
+              {:else}
+                <Lightbulb class="h-4 w-4 text-purple-500" />
+                Create questions
+              {/if}
+            </button>
+            <button
+              class="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2 cursor-pointer"
+              onclick={(e) => { e.stopPropagation(); handleToggleAvailability(); closeDropdown(); }}
+            >
+              {#if dish.is_available}
+                <EyeOff class="h-4 w-4 text-gray-500" />
+                Hide dish
+              {:else}
+                <Eye class="h-4 w-4 text-green-500" />
+                Show dish
+              {/if}
+            </button>
+            <hr class="my-1 border-gray-200" />
+            <button
+              class="w-full px-4 py-2 text-left text-sm text-red-700 hover:bg-red-50 flex items-center gap-2 cursor-pointer"
+              onclick={(e) => { e.stopPropagation(); handleDelete(); closeDropdown(); }}
+            >
+              <Trash2 class="h-4 w-4 text-red-500" />
+              Delete dish
+            </button>
+          </div>
+        {/if}
       </div>
     </div>
 
