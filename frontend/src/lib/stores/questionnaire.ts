@@ -130,6 +130,97 @@ function createQuestionnaireStore() {
     }
   }
 
+  async function fetchDishQuestions(restaurantId: string, dishId: string) {
+    const cacheKey = `${restaurantId}-dish-${dishId}`;
+    
+    update(state => {
+      // Check cache
+      const cached = state.cache.get(cacheKey);
+      if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
+        return {
+          ...state,
+          questionnaire: cached.data,
+          loading: false,
+          error: null
+        };
+      }
+      
+      return { ...state, loading: true, error: null };
+    });
+
+    try {
+      const api = getApiClient();
+      
+      // Fetch dish questions from the public API
+      const response = await api.api.v1PublicRestaurantDishesQuestionsDetail(restaurantId, dishId);
+      
+      if (response.data && response.data.success && response.data.data) {
+        const { dish, questions } = response.data.data;
+        
+        // Transform dish questions into questionnaire format
+        const questionnaire: Questionnaire = {
+          id: `dish-${dishId}`,
+          restaurant_id: restaurantId,
+          name: `${dish.name} Feedback`,
+          description: `Tell us about your experience with ${dish.name}`,
+          is_active: true,
+          questions: questions.map((q: any, index: number) => ({
+            id: q.id,
+            text: q.text,
+            type: q.type,
+            required: q.is_required,
+            options: q.options || [],
+            min_value: q.min_value,
+            max_value: q.max_value,
+            min_label: q.min_label,
+            max_label: q.max_label,
+            order: q.display_order || index + 1
+          }))
+        };
+
+        update(state => {
+          // Update cache
+          state.cache.set(cacheKey, {
+            data: questionnaire,
+            timestamp: Date.now()
+          });
+
+          return {
+            ...state,
+            questionnaire,
+            loading: false,
+            error: null
+          };
+        });
+
+        return questionnaire;
+      } else {
+        throw new Error('No questions found for this dish');
+      }
+    } catch (err) {
+      const errorMessage = handleApiError(err);
+      
+      // If API fails, use default questions
+      const fallbackQuestionnaire: Questionnaire = {
+        id: 'default',
+        restaurant_id: restaurantId,
+        name: 'Customer Feedback',
+        description: 'Help us improve your dining experience',
+        is_active: true,
+        questions: getDefaultQuestions()
+      };
+
+      update(state => ({
+        ...state,
+        questionnaire: fallbackQuestionnaire,
+        loading: false,
+        error: errorMessage
+      }));
+
+      return fallbackQuestionnaire;
+    }
+  }
+
   function clearCache() {
     update(state => ({
       ...state,
@@ -149,6 +240,7 @@ function createQuestionnaireStore() {
   return {
     subscribe,
     fetchQuestionnaire,
+    fetchDishQuestions,
     clearCache,
     reset
   };

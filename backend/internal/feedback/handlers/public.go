@@ -166,7 +166,7 @@ func (h *PublicHandler) SubmitFeedback(c echo.Context) error {
 // @Failure 400 {object} response.Response "Invalid request"
 // @Failure 404 {object} response.Response "Dish not found"
 // @Failure 500 {object} response.Response "Server error"
-// @Router /restaurant/{restaurantId}/dishes/{dishId}/questions [get]
+// @Router /api/v1/public/restaurant/{restaurantId}/dishes/{dishId}/questions [get]
 func (h *PublicHandler) GetDishQuestions(c echo.Context) error {
 	ctx := c.Request().Context()
 
@@ -194,4 +194,49 @@ func (h *PublicHandler) GetDishQuestions(c echo.Context) error {
 		"dish":      dish,
 		"questions": questions,
 	})
+}
+
+// GetDishesWithQuestions gets all dishes that have questions for a restaurant (public endpoint)
+// @Summary Get dishes with questions
+// @Description Get all dishes that have feedback questions for a restaurant (public access for QR code scans)
+// @Tags public
+// @Produce json
+// @Param restaurantId path string true "Restaurant ID"
+// @Success 200 {object} map[string]interface{} "Dishes with questions retrieved successfully"
+// @Failure 400 {object} response.Response "Invalid request"
+// @Failure 404 {object} response.Response "Restaurant not found"
+// @Failure 500 {object} response.Response "Server error"
+// @Router /api/v1/public/restaurant/{restaurantId}/questions/dishes-with-questions [get]
+func (h *PublicHandler) GetDishesWithQuestions(c echo.Context) error {
+	ctx := c.Request().Context()
+
+	restaurantID, err := uuid.Parse(c.Param("restaurantId"))
+	if err != nil {
+		return response.Error(c, errors.BadRequest("Invalid restaurant ID"))
+	}
+
+	// Get dishes with questions for this restaurant
+	dishIDs, err := h.questionRepo.GetDishesWithQuestions(ctx, restaurantID)
+	if err != nil {
+		logger.Error("Failed to get dishes with questions", err, logrus.Fields{
+			"restaurant_id": restaurantID,
+		})
+		return response.Error(c, errors.Internal("Failed to get dishes with questions"))
+	}
+
+	// Get full dish details for each dish ID
+	dishes := make([]interface{}, 0, len(dishIDs))
+	for _, dishID := range dishIDs {
+		dish, err := h.dishRepo.FindByID(ctx, dishID)
+		if err != nil {
+			logger.Warn("Failed to get dish details", logrus.Fields{
+				"dish_id": dishID,
+				"error":   err,
+			})
+			continue
+		}
+		dishes = append(dishes, dish)
+	}
+
+	return response.Success(c, dishes)
 }

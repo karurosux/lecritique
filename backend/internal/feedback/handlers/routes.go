@@ -42,6 +42,7 @@ func RegisterRoutes(public *echo.Group, protected *echo.Group, db *gorm.DB, auth
 	public.GET("/restaurant/:id/menu", publicHandler.GetRestaurantMenu)
 	public.GET("/questionnaire/:restaurantId/:dishId", publicHandler.GetQuestionnaire)
 	public.GET("/restaurant/:restaurantId/dishes/:dishId/questions", publicHandler.GetDishQuestions)
+	public.GET("/restaurant/:restaurantId/questions/dishes-with-questions", publicHandler.GetDishesWithQuestions)
 	public.POST("/feedback", publicHandler.SubmitFeedback)
 	
 	// Protected feedback routes (requires auth)

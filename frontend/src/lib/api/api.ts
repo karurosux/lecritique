@@ -1444,6 +1444,45 @@ export class Api<
       }),
 
     /**
+     * @description Get all feedback questions for a specific dish (public access for customer feedback)
+     *
+     * @tags public
+     * @name V1PublicRestaurantDishesQuestionsList
+     * @summary Get questions for a dish
+     * @request GET:/api/v1/public/restaurant/{restaurantId}/dishes/{dishId}/questions
+     */
+    v1PublicRestaurantDishesQuestionsList: (
+      restaurantId: string,
+      dishId: string,
+      params: RequestParams = {},
+    ) =>
+      this.request<Record<string, any>, ResponseResponse>({
+        path: `/api/v1/public/restaurant/${restaurantId}/dishes/${dishId}/questions`,
+        method: "GET",
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description Get all dishes that have feedback questions for a restaurant (public access for QR code scans)
+     *
+     * @tags public
+     * @name V1PublicRestaurantQuestionsDishesWithQuestionsList
+     * @summary Get dishes with questions
+     * @request GET:/api/v1/public/restaurant/{restaurantId}/questions/dishes-with-questions
+     */
+    v1PublicRestaurantQuestionsDishesWithQuestionsList: (
+      restaurantId: string,
+      params: RequestParams = {},
+    ) =>
+      this.request<Record<string, any>, ResponseResponse>({
+        path: `/api/v1/public/restaurant/${restaurantId}/questions/dishes-with-questions`,
+        method: "GET",
+        format: "json",
+        ...params,
+      }),
+
+    /**
      * @description Delete a QR code from the system
      *
      * @tags qr-codes
@@ -2262,27 +2301,6 @@ export class Api<
         method: "DELETE",
         secure: true,
         type: ContentType.Json,
-        format: "json",
-        ...params,
-      }),
-  };
-  restaurant = {
-    /**
-     * @description Get all feedback questions for a specific dish (public access for customer feedback)
-     *
-     * @tags public
-     * @name DishesQuestionsList
-     * @summary Get questions for a dish
-     * @request GET:/restaurant/{restaurantId}/dishes/{dishId}/questions
-     */
-    dishesQuestionsList: (
-      restaurantId: string,
-      dishId: string,
-      params: RequestParams = {},
-    ) =>
-      this.request<Record<string, any>, ResponseResponse>({
-        path: `/restaurant/${restaurantId}/dishes/${dishId}/questions`,
-        method: "GET",
         format: "json",
         ...params,
       }),

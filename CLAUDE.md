@@ -58,8 +58,8 @@ See [CURRENT_SPRINT.md](./CURRENT_SPRINT.md) for what's being worked on.
 ```bash
 # Backend
 cd backend
-make dev              # Start with hot reload
-swag init -g main.go  # Generate Swagger docs
+make dev                    # Start with hot reload
+make generate-frontend-api  # Generate Swagger docs
 
 # Frontend  
 cd frontend
@@ -81,3 +81,7 @@ When working on LeCritique:
 
 ### Development Guidelines
 - When adding elements, if its a root element, we should add an identifier class that allows you to identify the components, for example if its a user list the class "user-list" would be ideal
+
+### Deployment Guidelines
+- Dont execute apps, neither frontend or backend, user always executing it out of AI context
+

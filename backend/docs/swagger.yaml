@@ -1962,6 +1962,77 @@ paths:
       summary: Get restaurant menu
       tags:
       - public
+  /api/v1/public/restaurant/{restaurantId}/dishes/{dishId}/questions:
+    get:
+      description: Get all feedback questions for a specific dish (public access for
+        customer feedback)
+      parameters:
+      - description: Restaurant ID
+        in: path
+        name: restaurantId
+        required: true
+        type: string
+      - description: Dish ID
+        in: path
+        name: dishId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Questions retrieved successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "404":
+          description: Dish not found
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: Get questions for a dish
+      tags:
+      - public
+  /api/v1/public/restaurant/{restaurantId}/questions/dishes-with-questions:
+    get:
+      description: Get all dishes that have feedback questions for a restaurant (public
+        access for QR code scans)
+      parameters:
+      - description: Restaurant ID
+        in: path
+        name: restaurantId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Dishes with questions retrieved successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "404":
+          description: Restaurant not found
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: Get dishes with questions
+      tags:
+      - public
   /api/v1/qr-codes/{id}:
     delete:
       consumes:
@@ -3400,44 +3471,6 @@ paths:
       summary: Create a new subscription
       tags:
       - subscription
-  /restaurant/{restaurantId}/dishes/{dishId}/questions:
-    get:
-      description: Get all feedback questions for a specific dish (public access for
-        customer feedback)
-      parameters:
-      - description: Restaurant ID
-        in: path
-        name: restaurantId
-        required: true
-        type: string
-      - description: Dish ID
-        in: path
-        name: dishId
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Questions retrieved successfully
-          schema:
-            additionalProperties: true
-            type: object
-        "400":
-          description: Invalid request
-          schema:
-            $ref: '#/definitions/response.Response'
-        "404":
-          description: Dish not found
-          schema:
-            $ref: '#/definitions/response.Response'
-        "500":
-          description: Server error
-          schema:
-            $ref: '#/definitions/response.Response'
-      summary: Get questions for a dish
-      tags:
-      - public
   /restaurants/{restaurantId}/questionnaires/{id}/questions:
     post:
       consumes:

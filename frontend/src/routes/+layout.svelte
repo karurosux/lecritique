@@ -10,8 +10,12 @@
     $page.route?.id?.includes("login") || $page.route?.id?.includes("register"),
   );
 
-  // Show navbar on all non-auth pages (independent of auth loading state)
-  let showNavbar = $derived(!isAuthPage);
+  let isPublicPage = $derived(
+    $page.route?.id?.includes("qr/") || $page.route?.id?.includes("feedback"),
+  );
+
+  // Show navbar on all non-auth and non-public pages (independent of auth loading state)
+  let showNavbar = $derived(!isAuthPage && !isPublicPage);
 </script>
 
 {#if showNavbar}
