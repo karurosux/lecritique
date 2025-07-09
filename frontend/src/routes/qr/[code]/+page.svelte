@@ -266,10 +266,11 @@
     return true;
   }
 
-  async function handleSubmit() {
-    error = '';
+  async function handleSubmit(event: SubmitEvent) {
+    event.preventDefault();
     
-    if (!validateForm()) {
+    // Let native validation handle required fields
+    if (!event.currentTarget?.checkValidity()) {
       return;
     }
 
@@ -278,15 +279,28 @@
     try {
       const api = getApiClient();
       
+      // Transform responses from object to array format
+      const responseArray = Object.entries(responses).map(([questionId, answer]) => ({
+        question_id: questionId,
+        answer: answer
+      }));
+
       const feedbackData = {
         restaurant_id: qrData?.restaurant?.id,
         dish_id: selectedDish?.id,
-        qr_code: code,
-        rating: overallRating || 0, // Default to 0 if no overall rating
-        responses,
-        comment,
+        qr_code_id: qrData?.qr_code?.id,
+        overall_rating: overallRating || 0,
+        responses: responseArray,
         customer_email: customerEmail
       };
+
+      // Add comment as a separate response if provided
+      if (comment && comment.trim()) {
+        feedbackData.responses.push({
+          question_id: 'comment',
+          answer: comment
+        });
+      }
 
       await api.api.v1PublicFeedbackCreate(feedbackData as any);
       
@@ -521,7 +535,7 @@
           </div>
         {:else}
           <!-- Feedback Form -->
-          <form onsubmit={(e) => { e.preventDefault(); handleSubmit(); }} class="space-y-4">
+          <form onsubmit={handleSubmit} class="space-y-4">
             <!-- Dynamic Questions -->
             {#each [...questions].sort((a, b) => a.display_order - b.display_order) as question, index}
               <div class="bg-white rounded-3xl p-6 shadow-sm hover:shadow-md transition-shadow duration-300 relative overflow-hidden group question-{question.type}">
@@ -540,6 +554,14 @@
                   </div>
 
                   {#if question.type === 'rating'}
+                    <input 
+                      type="hidden" 
+                      name="rating_{question.id}"
+                      bind:value={responses[question.id]}
+                      required={question.is_required}
+                      min={question.is_required ? 1 : 0}
+                      max={question.max_value || 5}
+                    />
                     <Rating 
                       bind:value={responses[question.id]} 
                       max={question.max_value || 5}
@@ -550,9 +572,11 @@
                     <div class="px-3">
                       <input
                         type="range"
+                        name="scale_{question.id}"
                         min={question.min_value || 1}
                         max={question.max_value || 10}
                         bind:value={responses[question.id]}
+                        required={question.is_required}
                         class="w-full h-3 bg-gradient-to-r from-purple-200 to-pink-200 rounded-lg appearance-none cursor-pointer slider"
                         style="background: linear-gradient(to right, rgb(168 85 247) 0%, rgb(168 85 247) {((responses[question.id] - (question.min_value || 1)) / ((question.max_value || 10) - (question.min_value || 1))) * 100}%, rgb(226 232 240) {((responses[question.id] - (question.min_value || 1)) / ((question.max_value || 10) - (question.min_value || 1))) * 100}%, rgb(226 232 240) 100%)"
                       />
@@ -576,6 +600,7 @@
                             value={option}
                             checked={responses[question.id] === option}
                             onchange={() => handleQuestionResponse(question.id, option)}
+                            required={question.is_required}
                             class="h-5 w-5 text-purple-600 focus:ring-purple-500 mr-4"
                           />
                           <span class="text-gray-800 font-medium flex-1">{option}</span>
@@ -596,6 +621,7 @@
                                        : 'border-gray-200 bg-white hover:border-purple-300 hover:bg-gray-50'}">
                           <input
                             type="checkbox"
+                            name="multi_{question.id}"
                             value={option}
                             checked={isSelected}
                             onchange={(e) => {
@@ -607,6 +633,7 @@
                                 responses[question.id] = responses[question.id].filter((v: any) => v !== value);
                               }
                             }}
+                            required={question.is_required && (!responses[question.id] || responses[question.id].length === 0)}
                             class="h-5 w-5 text-purple-600 rounded focus:ring-purple-500 mr-4"
                           />
                           <span class="text-gray-800 font-medium flex-1">{option}</span>
@@ -619,6 +646,7 @@
 
                   {:else if question.type === 'yes_no'}
                     <div class="flex gap-4 px-3">
+                      <input type="hidden" name="yesno_{question.id}" bind:value={responses[question.id]} required={question.is_required} />
                       <button
                         type="button"
                         onclick={() => handleQuestionResponse(question.id, true)}
@@ -648,10 +676,12 @@
                   {:else if question.type === 'text'}
                     <div class="px-3">
                       <textarea
+                        name="text_{question.id}"
                         class="w-full px-5 py-4 border-2 border-gray-200 rounded-2xl focus:outline-none focus:border-purple-500 focus:ring-4 focus:ring-purple-100 resize-none transition-all duration-200 font-medium text-gray-800 placeholder-gray-400"
                         rows="4"
                         placeholder="Share your thoughts..."
                         maxlength="500"
+                        required={question.is_required}
                         bind:value={responses[question.id]}
                       ></textarea>
                       <div class="flex justify-between items-center mt-2 text-xs text-gray-500">
