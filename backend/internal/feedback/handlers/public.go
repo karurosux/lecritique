@@ -11,6 +11,7 @@ import (
 	"github.com/lecritique/api/internal/shared/errors"
 	"github.com/lecritique/api/internal/shared/logger"
 	"github.com/lecritique/api/internal/shared/response"
+	"github.com/lecritique/api/internal/shared/utils"
 	"github.com/sirupsen/logrus"
 )
 
@@ -59,6 +60,15 @@ func (h *PublicHandler) ValidateQRCode(c echo.Context) error {
 	qrCode, err := h.qrCodeService.GetByCode(ctx, code)
 	if err != nil {
 		return response.Error(c, errors.NotFound("QR code"))
+	}
+
+	// Record the scan event for analytics
+	if err := h.qrCodeService.RecordScan(ctx, code); err != nil {
+		logger.Error("Failed to record QR scan", err, logrus.Fields{
+			"qr_code_id": qrCode.ID,
+			"code":       code,
+		})
+		// Don't fail the request if scan recording fails
 	}
 
 	return response.Success(c, qrCode)
@@ -141,6 +151,15 @@ func (h *PublicHandler) SubmitFeedback(c echo.Context) error {
 	var feedback feedbackModels.Feedback
 	if err := c.Bind(&feedback); err != nil {
 		return response.Error(c, errors.BadRequest("Invalid feedback data provided"))
+	}
+
+	// Extract device information from request
+	deviceInfo := utils.ExtractDeviceInfo(c.Request())
+	feedback.DeviceInfo = feedbackModels.DeviceInfo{
+		UserAgent: deviceInfo.UserAgent,
+		IP:        deviceInfo.IP,
+		Platform:  deviceInfo.Platform,
+		Browser:   deviceInfo.Browser,
 	}
 
 	if err := h.feedbackService.Submit(ctx, &feedback); err != nil {

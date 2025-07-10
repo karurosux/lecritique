@@ -721,6 +721,28 @@ export class Api<
       }),
 
     /**
+     * @description Get basic analytics metrics for the dashboard including satisfaction, recommendation rate, and recent feedback
+     *
+     * @tags analytics
+     * @name V1AnalyticsDashboardDetail
+     * @summary Get dashboard metrics
+     * @request GET:/api/v1/analytics/dashboard/{restaurantId}
+     * @secure
+     */
+    v1AnalyticsDashboardDetail: (
+      restaurantId: string,
+      params: RequestParams = {},
+    ) =>
+      this.request<Record<string, any>, ResponseResponse>({
+        path: `/api/v1/analytics/dashboard/${restaurantId}`,
+        method: "GET",
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
      * @description Get detailed analytics data for a specific dish including ratings, feedback count, and recent feedback
      *
      * @tags analytics
@@ -732,6 +754,28 @@ export class Api<
     v1AnalyticsDishesDetail: (dishId: string, params: RequestParams = {}) =>
       this.request<Record<string, any>, ResponseResponse>({
         path: `/api/v1/analytics/dishes/${dishId}`,
+        method: "GET",
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description Get detailed insights for a specific dish including question-level analytics
+     *
+     * @tags analytics
+     * @name V1AnalyticsDishesInsightsList
+     * @summary Get dish insights
+     * @request GET:/api/v1/analytics/dishes/{dishId}/insights
+     * @secure
+     */
+    v1AnalyticsDishesInsightsList: (
+      dishId: string,
+      params: RequestParams = {},
+    ) =>
+      this.request<Record<string, any>, ResponseResponse>({
+        path: `/api/v1/analytics/dishes/${dishId}/insights`,
         method: "GET",
         secure: true,
         type: ContentType.Json,

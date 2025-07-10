@@ -933,6 +933,51 @@ paths:
       tags:
       - questionnaires
       - ai
+  /api/v1/analytics/dashboard/{restaurantId}:
+    get:
+      consumes:
+      - application/json
+      description: Get basic analytics metrics for the dashboard including satisfaction,
+        recommendation rate, and recent feedback
+      parameters:
+      - description: Restaurant ID
+        in: path
+        name: restaurantId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - ApiKeyAuth: []
+      summary: Get dashboard metrics
+      tags:
+      - analytics
   /api/v1/analytics/dishes/{dishId}:
     get:
       consumes:
@@ -976,6 +1021,51 @@ paths:
       security:
       - ApiKeyAuth: []
       summary: Get dish analytics
+      tags:
+      - analytics
+  /api/v1/analytics/dishes/{dishId}/insights:
+    get:
+      consumes:
+      - application/json
+      description: Get detailed insights for a specific dish including question-level
+        analytics
+      parameters:
+      - description: Dish ID
+        in: path
+        name: dishId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - ApiKeyAuth: []
+      summary: Get dish insights
       tags:
       - analytics
   /api/v1/analytics/restaurants/{restaurantId}:

@@ -4,6 +4,7 @@
   import { getApiClient, handleApiError } from '$lib/api/client';
   import { auth } from '$lib/stores/auth';
   import { goto } from '$app/navigation';
+  import { CheckCircle, Clock, Smartphone, QrCode } from 'lucide-svelte';
 
   interface DashboardStats {
     totalFeedback: number;
@@ -15,6 +16,44 @@
       rating: number;
     };
     recentFeedbackCount: number;
+  }
+
+  interface DashboardMetrics {
+    todays_feedback: number;
+    trend_vs_yesterday: number;
+    overall_satisfaction: number;
+    satisfaction_trend: string;
+    recommendation_rate: number;
+    positive_sentiment: number;
+    top_issues: Array<{
+      title: string;
+      count: number;
+      severity: string;
+      action_link: string;
+    }>;
+    best_performers: Array<{
+      dish_id: string;
+      dish_name: string;
+      score: number;
+      feedback_count: number;
+      trend: string;
+    }>;
+    needing_attention: Array<{
+      dish_id: string;
+      dish_name: string;
+      score: number;
+      feedback_count: number;
+      trend: string;
+    }>;
+    recent_feedback: Array<{
+      feedback_id: string;
+      dish_name: string;
+      customer_name: string;
+      score: number;
+      sentiment: string;
+      highlight: string;
+      created_at: string;
+    }>;
   }
 
   interface RecentFeedback {
@@ -37,6 +76,7 @@
     recentFeedbackCount: 0
   });
   let recentFeedback = $state<RecentFeedback[]>([]);
+  let dashboardMetrics = $state<DashboardMetrics | null>(null);
   let hasInitialized = $state(false);
 
   let authState = $derived($auth);
@@ -75,37 +115,62 @@
             api.api.v1AnalyticsRestaurantsDetail(firstRestaurant.id!)
           ]);
           
+          // Try to get new dashboard metrics (might not exist yet)
+          try {
+            const dashboardResponse = await api.api.v1AnalyticsDashboardDetail(firstRestaurant.id!);
+            if (dashboardResponse.data.success && dashboardResponse.data.data) {
+              dashboardMetrics = dashboardResponse.data.data;
+            }
+          } catch (err) {
+            console.log('Dashboard metrics not available yet, using legacy analytics');
+          }
+          
           // Calculate stats
           const activeQRCodes = qrCodesResponse.data.success && qrCodesResponse.data.data 
             ? qrCodesResponse.data.data.filter(qr => qr.is_active).length 
             : 0;
           
-          // Parse analytics data
-          const analyticsData = analyticsResponse.data;
+          // Parse analytics data (legacy)
+          const analyticsData = analyticsResponse.data?.data || {};
+          console.log('🔍 Analytics API Response:', analyticsResponse.data);
+          console.log('🔍 Average Rating from API:', analyticsData?.average_rating);
           const totalFeedback = analyticsData?.total_feedback || 0;
           const averageRating = analyticsData?.average_rating || 0;
           const feedbackToday = analyticsData?.feedback_today || 0;
-          const topDish = analyticsData?.top_dishes?.[0];
+          const topDish = analyticsData?.top_rated_dishes?.[0];
           const recentFeedbackData = analyticsData?.recent_feedback || [];
           
+          // Both endpoints now return 1-5 scale for ratings
+          let displayRating = dashboardMetrics?.overall_satisfaction || averageRating;
+          
+          // Clamp rating to valid 1-5 range and log if out of bounds
+          if (displayRating > 5) {
+            console.warn('Rating out of bounds (too high):', displayRating);
+            displayRating = 5;
+          } else if (displayRating < 0) {
+            console.warn('Rating out of bounds (too low):', displayRating);
+            displayRating = 0;
+          }
+
           stats = {
             totalFeedback,
-            averageRating,
-            feedbackToday,
+            averageRating: displayRating,
+            feedbackToday: dashboardMetrics?.todays_feedback || feedbackToday,
             activeQRCodes,
             topRatedDish: topDish ? {
-              name: topDish.name,
+              name: topDish.dish_name,
               rating: topDish.average_rating
             } : undefined,
-            recentFeedbackCount: recentFeedbackData.length
+            recentFeedbackCount: dashboardMetrics?.recent_feedback?.length || recentFeedbackData.length
           };
           
-          // Map recent feedback
-          recentFeedback = recentFeedbackData.slice(0, 5).map((fb: any) => ({
-            id: fb.id,
-            customer_email: fb.customer_email,
-            rating: fb.rating,
-            comment: fb.comment,
+          // Map recent feedback - prefer new dashboard metrics
+          const feedbackSource = dashboardMetrics?.recent_feedback || recentFeedbackData;
+          recentFeedback = feedbackSource.slice(0, 5).map((fb: any) => ({
+            id: fb.feedback_id || fb.id,
+            customer_email: fb.customer_name || fb.customer_email,
+            rating: fb.score || fb.rating,
+            comment: fb.highlight || fb.comment,
             dish_name: fb.dish_name,
             restaurant_name: firstRestaurant.name,
             created_at: fb.created_at
@@ -296,192 +361,180 @@
         </Card>
       </div>
 
-      <!-- Quick Actions & Recent Feedback -->
-      <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <!-- Quick Actions -->
-        <div class="lg:col-span-1">
-          <Card variant="glass" padding={false}>
-            <div class="p-6 lg:p-8 space-y-6">
-              <div class="space-y-2">
-                <h3 class="text-xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
-                  Quick Actions
-                </h3>
-                <p class="text-gray-600 font-medium">Common tasks and shortcuts</p>
+      <!-- Enhanced Analytics Section -->
+      {#if dashboardMetrics}
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+          <!-- Recommendation Rate -->
+          <Card variant="gradient" hover interactive>
+            <div class="space-y-3">
+              <div class="flex items-center justify-between">
+                <p class="text-sm font-semibold text-gray-600 uppercase tracking-wide">Completion Rate</p>
+                <div class="h-8 w-8 bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg flex items-center justify-center">
+                  <CheckCircle class="h-4 w-4 text-white" />
+                </div>
               </div>
-              
-              <div class="space-y-4">
-                <Button variant="ghost" class="w-full justify-start group hover:bg-gradient-to-r hover:from-blue-50 hover:to-purple-50" on:click={() => goto('/restaurants')}>
-                  <div class="h-10 w-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center mr-4 group-hover:scale-110 transition-transform">
-                    <svg class="h-5 w-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-4m-5 0H9m11 0a2 2 0 01-2 2H7a2 2 0 01-2-2m2-4h2.01M7 16h6M7 8h6v4H7V8z" />
-                    </svg>
-                  </div>
-                  <div class="text-left">
-                    <p class="font-semibold text-gray-900">Manage Restaurants</p>
-                    <p class="text-sm text-gray-600">Add, edit, and configure restaurants</p>
-                  </div>
-                </Button>
-                
-                <Button variant="ghost" class="w-full justify-start group hover:bg-gradient-to-r hover:from-green-50 hover:to-emerald-50" on:click={() => goto('/feedback/manage')}>
-                  <div class="h-10 w-10 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl flex items-center justify-center mr-4 group-hover:scale-110 transition-transform">
-                    <svg class="h-5 w-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                    </svg>
-                  </div>
-                  <div class="text-left">
-                    <p class="font-semibold text-gray-900">Manage Feedback</p>
-                    <p class="text-sm text-gray-600">Review and respond to feedback</p>
-                  </div>
-                </Button>
-                
-                <Button variant="ghost" class="w-full justify-start group hover:bg-gradient-to-r hover:from-purple-50 hover:to-pink-50" on:click={() => goto('/analytics')}>
-                  <div class="h-10 w-10 bg-gradient-to-br from-purple-500 to-pink-600 rounded-xl flex items-center justify-center mr-4 group-hover:scale-110 transition-transform">
-                    <svg class="h-5 w-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                    </svg>
-                  </div>
-                  <div class="text-left">
-                    <p class="font-semibold text-gray-900">View Analytics</p>
-                    <p class="text-sm text-gray-600">Detailed insights and reports</p>
-                  </div>
-                </Button>
-              </div>
+              <p class="text-2xl font-bold text-green-600">{(dashboardMetrics.completion_rate ?? 0).toFixed(1)}%</p>
+              <p class="text-sm text-gray-500">QR scans that become responses</p>
+            </div>
+          </Card>
 
-              {#if stats.topRatedDish}
-                <div class="relative p-6 bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl border border-green-200/50 shadow-lg shadow-green-500/10">
-                  <div class="absolute inset-0 bg-gradient-to-br from-green-500/5 to-emerald-500/5 rounded-2xl"></div>
-                  <div class="relative flex items-center space-x-4">
-                    <div class="h-12 w-12 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl flex items-center justify-center shadow-lg shadow-green-500/25">
-                      <svg class="h-6 w-6 text-white" fill="currentColor" viewBox="0 0 24 24">
-                        <path d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
-                      </svg>
-                    </div>
-                    <div>
-                      <p class="text-sm font-semibold text-green-800 uppercase tracking-wide">Top Rated Dish</p>
-                      <p class="font-bold text-green-900">{stats.topRatedDish.name}</p>
-                      <div class="flex items-center space-x-1 mt-1">
-                        <div class="flex text-yellow-400">
-                          {#each Array(5) as _, i}
-                            <svg class="h-3 w-3 {i < Math.round(stats.topRatedDish.rating) ? 'text-yellow-400' : 'text-gray-300'}" fill="currentColor" viewBox="0 0 24 24">
-                              <path d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
-                            </svg>
-                          {/each}
+          <!-- Positive Sentiment -->
+          <Card variant="gradient" hover interactive>
+            <div class="space-y-3">
+              <div class="flex items-center justify-between">
+                <p class="text-sm font-semibold text-gray-600 uppercase tracking-wide">Avg Response Time</p>
+                <div class="h-8 w-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
+                  <Clock class="h-4 w-4 text-white" />
+                </div>
+              </div>
+              <p class="text-2xl font-bold text-blue-600">{Math.round(dashboardMetrics.average_response_time ?? 0)} min</p>
+              <p class="text-sm text-gray-500">From scan to submission</p>
+            </div>
+          </Card>
+
+          <!-- Trend Indicator -->
+          <Card variant="gradient" hover interactive>
+            <div class="space-y-3">
+              <div class="flex items-center justify-between">
+                <p class="text-sm font-semibold text-gray-600 uppercase tracking-wide">Satisfaction Trend</p>
+                <div class="h-8 w-8 bg-gradient-to-br from-yellow-500 to-orange-600 rounded-lg flex items-center justify-center">
+                  <svg class="h-4 w-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    {#if dashboardMetrics.satisfaction_trend === 'up'}
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                    {:else if dashboardMetrics.satisfaction_trend === 'down'}
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6" />
+                    {:else}
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14" />
+                    {/if}
+                  </svg>
+                </div>
+              </div>
+              <p class="text-2xl font-bold {dashboardMetrics.satisfaction_trend === 'up' ? 'text-green-600' : dashboardMetrics.satisfaction_trend === 'down' ? 'text-red-600' : 'text-gray-600'}">
+                {dashboardMetrics.satisfaction_trend === 'up' ? 'Improving' : dashboardMetrics.satisfaction_trend === 'down' ? 'Declining' : 'Stable'}
+              </p>
+              <p class="text-sm text-gray-500">vs previous period</p>
+            </div>
+          </Card>
+        </div>
+
+        <!-- Operational Insights -->
+        {#if dashboardMetrics.device_breakdown && Object.keys(dashboardMetrics.device_breakdown).length > 0}
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+            <!-- Device Analytics -->
+            <Card variant="elevated" padding={false}>
+              <div class="p-6">
+                <h3 class="text-lg font-bold text-gray-900 mb-4">Device Analytics</h3>
+                <div class="space-y-3">
+                  {#each Object.entries(dashboardMetrics.device_breakdown || {}) as [device, count]}
+                    <div class="flex items-center justify-between p-3 bg-blue-50 rounded-lg border border-blue-200">
+                      <div class="flex items-center space-x-3">
+                        <div class="h-8 w-8 bg-blue-500 rounded-full flex items-center justify-center">
+                          <Smartphone class="h-4 w-4 text-white" />
                         </div>
-                        <span class="text-sm font-medium text-green-700">{stats.topRatedDish.rating.toFixed(1)}</span>
+                        <div>
+                          <p class="font-semibold text-blue-900">{device}</p>
+                          <p class="text-sm text-blue-600">{count} responses</p>
+                        </div>
+                      </div>
+                      <div class="text-sm font-medium text-blue-600">
+                        {((count / (dashboardMetrics.total_feedbacks || 1)) * 100).toFixed(1)}%
                       </div>
                     </div>
+                  {/each}
+                </div>
+              </div>
+            </Card>
+
+            <!-- Peak Hours -->
+            {#if dashboardMetrics.peak_hours && dashboardMetrics.peak_hours.length > 0}
+              <Card variant="elevated" padding={false}>
+                <div class="p-6">
+                  <h3 class="text-lg font-bold text-gray-900 mb-4">Peak Activity Hours</h3>
+                  <div class="space-y-3">
+                    {#each dashboardMetrics.peak_hours as hour}
+                      <div class="flex items-center justify-between p-3 bg-green-50 rounded-lg border border-green-200">
+                        <div class="flex items-center space-x-3">
+                          <div class="h-8 w-8 bg-green-500 rounded-full flex items-center justify-center">
+                            <Clock class="h-4 w-4 text-white" />
+                          </div>
+                          <div>
+                            <p class="font-semibold text-green-900">
+                              {hour === 0 ? '12 AM' : hour <= 12 ? `${hour} ${hour === 12 ? 'PM' : 'AM'}` : `${hour - 12} PM`}
+                            </p>
+                            <p class="text-sm text-green-600">High activity period</p>
+                          </div>
+                        </div>
+                      </div>
+                    {/each}
                   </div>
+                </div>
+              </Card>
+            {/if}
+          </div>
+        {/if}
+      {/if}
+
+      <!-- QR Code Performance Analytics -->
+      {#if dashboardMetrics?.qr_performance}
+        <div class="mb-8">
+          <Card variant="elevated" padding={false}>
+            <div class="p-6 lg:p-8">
+              <div class="mb-6">
+                <h3 class="text-xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
+                  QR Code Performance
+                </h3>
+                <p class="text-gray-600 font-medium">Usage and conversion analytics</p>
+              </div>
+
+              {#if dashboardMetrics.qr_performance.length > 0}
+                <div class="space-y-4">
+                  {#each dashboardMetrics.qr_performance as qr}
+                    <div class="relative group">
+                      <div class="absolute inset-0 bg-gradient-to-r from-blue-500/10 to-indigo-500/10 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                      <div class="relative bg-white/50 backdrop-blur-sm rounded-xl border border-gray-100 p-5 hover:shadow-lg hover:shadow-gray-900/5 transition-all duration-300 group-hover:border-gray-200">
+                        <div class="flex items-start justify-between mb-3">
+                          <div class="flex items-center space-x-3">
+                            <div class="h-10 w-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg">
+                              <QrCode class="h-5 w-5 text-white" />
+                            </div>
+                            <div>
+                              <p class="font-semibold text-gray-900">{qr.label || 'QR Code'}</p>
+                              <p class="text-sm text-gray-500">{qr.restaurant_name}</p>
+                              <p class="text-xs text-gray-400">{qr.location || 'No location set'}</p>
+                            </div>
+                          </div>
+                          <div class="text-right">
+                            <div class="flex flex-col items-end space-y-1">
+                              <div class="flex items-center space-x-2">
+                                <span class="text-sm text-gray-500">Scans:</span>
+                                <span class="font-bold text-blue-600">{qr.scans_count}</span>
+                              </div>
+                              <div class="flex items-center space-x-2">
+                                <span class="text-sm text-gray-500">Responses:</span>
+                                <span class="font-bold text-green-600">{qr.feedback_count}</span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        <div class="flex items-center justify-between">
+                          <span class="text-sm text-gray-600">Conversion Rate:</span>
+                          <span class="font-bold text-indigo-600">{(qr.conversion_rate || 0).toFixed(1)}%</span>
+                        </div>
+                      </div>
+                    </div>
+                  {/each}
+                </div>
+              {:else}
+                <div class="text-center py-8">
+                  <div class="h-12 w-12 bg-gray-100 rounded-xl flex items-center justify-center mx-auto mb-3">
+                    <QrCode class="h-6 w-6 text-gray-400" />
+                  </div>
+                  <p class="text-gray-500">No QR code data available</p>
                 </div>
               {/if}
             </div>
           </Card>
         </div>
-
-        <!-- Recent Feedback -->
-        <div class="lg:col-span-2">
-          <Card variant="elevated" padding={false}>
-            <div class="p-6 lg:p-8">
-              <div class="mb-6 flex justify-between items-center">
-                <div class="space-y-2">
-                  <h3 class="text-xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
-                    Recent Feedback
-                  </h3>
-                  <p class="text-gray-600 font-medium">Latest customer reviews and ratings</p>
-                </div>
-                <Button variant="gradient" size="sm" on:click={() => goto('/feedback/manage')}>
-                  <svg class="h-4 w-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-                  </svg>
-                  View All
-                </Button>
-              </div>
-
-              <div class="space-y-4 max-h-96 overflow-y-auto">
-                {#each recentFeedback as feedback}
-                  <div class="relative group">
-                    <div class="absolute inset-0 bg-gradient-to-r {feedback.rating >= 4 ? 'from-green-500/10 to-emerald-500/10' : feedback.rating >= 3 ? 'from-yellow-500/10 to-orange-500/10' : 'from-red-500/10 to-pink-500/10'} rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                    <div class="relative bg-white/50 backdrop-blur-sm rounded-xl border border-gray-100 p-5 hover:shadow-lg hover:shadow-gray-900/5 transition-all duration-300 group-hover:border-gray-200">
-                      <div class="flex items-start justify-between mb-3">
-                        <div class="flex items-center space-x-3">
-                          <div class="h-10 w-10 bg-gradient-to-br {feedback.rating >= 4 ? 'from-green-500 to-emerald-600' : feedback.rating >= 3 ? 'from-yellow-500 to-orange-600' : 'from-red-500 to-pink-600'} rounded-xl flex items-center justify-center shadow-lg">
-                            <svg class="h-5 w-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                            </svg>
-                          </div>
-                          <div>
-                            <div class="flex items-center space-x-2 mb-1">
-                              <div class="flex text-yellow-400">
-                                {#each Array(5) as _, i}
-                                  <svg class="h-4 w-4 {i < feedback.rating ? 'text-yellow-400' : 'text-gray-300'}" fill="currentColor" viewBox="0 0 24 24">
-                                    <path d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
-                                  </svg>
-                                {/each}
-                              </div>
-                              <span class="text-sm font-semibold text-gray-600">{feedback.rating}/5</span>
-                            </div>
-                            {#if feedback.dish_name}
-                              <div class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                                {feedback.dish_name}
-                              </div>
-                            {/if}
-                          </div>
-                        </div>
-                        <div class="text-xs text-gray-500 font-medium">
-                          {formatDate(feedback.created_at)}
-                        </div>
-                      </div>
-                      
-                      {#if feedback.comment}
-                        <div class="bg-gray-50/50 rounded-lg p-4 mb-3 border border-gray-100">
-                          <p class="text-gray-700 text-sm leading-relaxed">"{feedback.comment}"</p>
-                        </div>
-                      {/if}
-                      
-                      <div class="flex items-center justify-between">
-                        <div class="flex items-center space-x-2 text-xs text-gray-500">
-                          <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                          </svg>
-                          <span class="font-medium">
-                            {#if feedback.customer_email}
-                              {feedback.customer_email}
-                            {:else}
-                              Anonymous Customer
-                            {/if}
-                          </span>
-                        </div>
-                        <div class="flex items-center space-x-1 text-xs text-gray-400">
-                          <svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                          </svg>
-                          <span>Just now</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                {/each}
-
-                {#if recentFeedback.length === 0}
-                  <div class="text-center py-12">
-                    <div class="h-20 w-20 bg-gradient-to-br from-gray-100 to-gray-200 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                      <svg class="h-10 w-10 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                      </svg>
-                    </div>
-                    <h4 class="text-lg font-semibold text-gray-900 mb-2">No feedback yet</h4>
-                    <p class="text-gray-600 mb-4">Start collecting feedback by sharing your QR codes!</p>
-                    <Button variant="gradient" on:click={() => goto('/restaurants')}>
-                      <svg class="h-4 w-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-                      </svg>
-                      Get Started
-                    </Button>
-                  </div>
-                {/if}
-              </div>
-            </div>
-          </Card>
-        </div>
-      </div>
+      {/if}
     {/if}
 </div>

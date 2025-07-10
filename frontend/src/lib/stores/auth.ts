@@ -77,7 +77,7 @@ function createAuthStore() {
     api.setSecurityData(initialState.token);
   }
 
-  return {
+  const authStore = {
     subscribe,
     
     async login(credentials: HandlersLoginRequest) {
@@ -274,6 +274,28 @@ function createAuthStore() {
       return api;
     }
   };
+
+  // Add response interceptor to handle authentication errors
+  const originalRequest = api.request.bind(api);
+  api.request = async (params: any) => {
+    try {
+      return await originalRequest(params);
+    } catch (error: any) {
+      // Check for authentication errors
+      if (error.response?.status === 401 || error.response?.status === 403) {
+        // Token is invalid, logout user
+        await authStore.logout();
+        
+        // Redirect to login if we're in the browser
+        if (browser && typeof window !== 'undefined') {
+          window.location.href = '/login';
+        }
+      }
+      throw error;
+    }
+  };
+
+  return authStore;
 }
 
 export const auth = createAuthStore();
