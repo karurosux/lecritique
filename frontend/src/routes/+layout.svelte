@@ -11,7 +11,7 @@
   );
 
   let isPublicPage = $derived(
-    $page.route?.id?.includes("qr/") || $page.route?.id?.includes("feedback"),
+    $page.route?.id?.includes("qr/"),
   );
 
   // Show navbar on all non-auth and non-public pages (independent of auth loading state)

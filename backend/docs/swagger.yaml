@@ -2830,7 +2830,8 @@ paths:
     get:
       consumes:
       - application/json
-      description: Get all feedback for a specific restaurant with pagination
+      description: Get all feedback for a specific restaurant with pagination and
+        optional filters
       parameters:
       - description: Restaurant ID
         in: path
@@ -2845,6 +2846,34 @@ paths:
         in: query
         name: limit
         type: integer
+      - description: Search in comments, customer name, or email
+        in: query
+        name: search
+        type: string
+      - description: Minimum rating (1-5)
+        in: query
+        name: rating_min
+        type: integer
+      - description: Maximum rating (1-5)
+        in: query
+        name: rating_max
+        type: integer
+      - description: Start date (YYYY-MM-DD format)
+        in: query
+        name: date_from
+        type: string
+      - description: End date (YYYY-MM-DD format)
+        in: query
+        name: date_to
+        type: string
+      - description: Filter by specific dish ID
+        in: query
+        name: dish_id
+        type: string
+      - description: Filter by completion status
+        in: query
+        name: is_complete
+        type: boolean
       produces:
       - application/json
       responses:
@@ -2867,7 +2896,7 @@ paths:
             $ref: '#/definitions/response.Response'
       security:
       - ApiKeyAuth: []
-      summary: Get restaurant feedback
+      summary: Get restaurant feedback with filters
       tags:
       - feedback
   /api/v1/restaurants/{restaurantId}/qr-codes:

@@ -17,6 +17,7 @@ import (
 type FeedbackService interface {
 	Submit(ctx context.Context, feedback *models.Feedback) error
 	GetByRestaurantID(ctx context.Context, accountID uuid.UUID, restaurantID uuid.UUID, page, limit int) (*sharedModels.PageResponse[models.Feedback], error)
+	GetByRestaurantIDWithFilters(ctx context.Context, accountID uuid.UUID, restaurantID uuid.UUID, page, limit int, filters feedbackRepos.FeedbackFilter) (*sharedModels.PageResponse[models.Feedback], error)
 	GetStats(ctx context.Context, accountID uuid.UUID, restaurantID uuid.UUID) (*FeedbackStats, error)
 }
 
@@ -77,6 +78,23 @@ func (s *feedbackService) GetByRestaurantID(ctx context.Context, accountID uuid.
 		Page:  page,
 		Limit: limit,
 	})
+}
+
+func (s *feedbackService) GetByRestaurantIDWithFilters(ctx context.Context, accountID uuid.UUID, restaurantID uuid.UUID, page, limit int, filters feedbackRepos.FeedbackFilter) (*sharedModels.PageResponse[models.Feedback], error) {
+	// Verify ownership
+	restaurant, err := s.restaurantRepo.FindByID(ctx, restaurantID)
+	if err != nil {
+		return nil, err
+	}
+
+	if restaurant.AccountID != accountID {
+		return nil, sharedRepos.ErrRecordNotFound
+	}
+
+	return s.feedbackRepo.FindByRestaurantIDWithFilters(ctx, restaurantID, sharedModels.PageRequest{
+		Page:  page,
+		Limit: limit,
+	}, filters)
 }
 
 func (s *feedbackService) GetStats(ctx context.Context, accountID uuid.UUID, restaurantID uuid.UUID) (*FeedbackStats, error) {

@@ -29,24 +29,83 @@
     search?: string;
   }
 
-  let loading = true;
-  let error = '';
-  let feedback: Feedback[] = [];
-  let restaurants: any[] = [];
-  let totalCount = 0;
-  let currentPage = 1;
-  let itemsPerPage = 20;
+  let loading = $state(true);
+  let error = $state('');
+  let feedback = $state<Feedback[]>([]);
+  let restaurants = $state<any[]>([]);
+  let dishes = $state<any[]>([]);
+  let totalCount = $state(0);
+  let currentPage = $state(1);
+  let itemsPerPage = $state(20);
   
   // Filters
   let filters: FeedbackFilters = {};
-  let searchQuery = '';
-  let selectedRestaurant = '';
-  let selectedRatingMin = '1';
-  let selectedRatingMax = '5';
-  let dateFrom = '';
-  let dateTo = '';
+  let searchQuery = $state('');
+  let searchInput = $state(''); // Make it reactive for binding
+  let selectedRestaurant = $state('');
+  let selectedDish = $state('');
+  let selectedRating = $state('');
+  let dateFrom = $state('');
+  let dateTo = $state('');
 
-  $: authState = $auth;
+  // Track collapsed state for each feedback item
+  let collapsedStates = $state<Record<string, boolean>>({});
+  
+  function toggleCollapse(feedbackId: string) {
+    // If undefined, we want to set it to false (expanded) since default is true (collapsed)
+    collapsedStates[feedbackId] = collapsedStates[feedbackId] === undefined ? false : !collapsedStates[feedbackId];
+  }
+  
+  function isCollapsed(feedbackId: string): boolean {
+    // Default to collapsed (true) if not set
+    return collapsedStates[feedbackId] ?? true;
+  }
+
+  // Set default 15-day filter
+  function setDefaultDateFilter() {
+    const today = new Date();
+    const fifteenDaysAgo = new Date(today);
+    fifteenDaysAgo.setDate(today.getDate() - 15);
+    
+    dateFrom = fifteenDaysAgo.toISOString().split('T')[0];
+    dateTo = today.toISOString().split('T')[0];
+  }
+
+  let isFirstLoad = $state(true);
+  let searchTimeout: ReturnType<typeof setTimeout> | null = null;
+  
+  // Debounced search function
+  function handleSearchInput() {
+    if (!isFirstLoad) {
+      // Clear existing timeout
+      if (searchTimeout) {
+        clearTimeout(searchTimeout);
+      }
+      
+      // Set new timeout for debounced search
+      searchTimeout = setTimeout(() => {
+        searchQuery = searchInput; // Update reactive value after debounce
+        loadFeedback();
+      }, 500); // 500ms debounce
+    }
+  }
+
+  // Handle other filter changes immediately (non-search filters)
+  $effect(() => {
+    if (!isFirstLoad && (selectedRating !== undefined || selectedRestaurant !== undefined || selectedDish !== undefined || dateFrom !== undefined || dateTo !== undefined)) {
+      loadFeedback();
+    }
+  });
+
+  // Reload dishes when restaurant changes
+  $effect(() => {
+    if (!isFirstLoad && selectedRestaurant !== undefined) {
+      selectedDish = ''; // Clear dish selection when restaurant changes
+      loadDishes();
+    }
+  });
+
+  let authState = $derived($auth);
 
   onMount(async () => {
     if (!authState.isAuthenticated) {
@@ -54,8 +113,18 @@
       return;
     }
 
-    await loadRestaurants();
+    // Set default 15-day filter
+    setDefaultDateFilter();
+    
+    const loadedRestaurants = await loadRestaurants();
+    // Load dishes after restaurants are loaded
+    if (loadedRestaurants.length > 0) {
+      await loadDishes();
+    }
     await loadFeedback();
+    
+    // Enable filter changes after initial load
+    isFirstLoad = false;
   });
 
   async function loadRestaurants() {
@@ -65,9 +134,59 @@
       
       if (response.data.success && response.data.data) {
         restaurants = response.data.data;
+        return response.data.data; // Return the restaurants
       }
+      return [];
     } catch (err) {
       console.error('Error loading restaurants:', err);
+      return [];
+    }
+  }
+
+  async function loadDishes() {
+    try {
+      const api = getApiClient();
+      
+      // Make sure we have restaurants loaded first
+      if (restaurants.length === 0 && !selectedRestaurant) {
+        console.log('No restaurants loaded yet, skipping dish loading');
+        return;
+      }
+      
+      // If a restaurant is selected, load dishes for that restaurant
+      if (selectedRestaurant) {
+        const response = await api.api.v1RestaurantsDishesList(selectedRestaurant);
+        if (response.data.success && response.data.data) {
+          dishes = response.data.data;
+        }
+      } else {
+        // Load dishes from all restaurants
+        const dishPromises = restaurants.map(async (restaurant) => {
+          try {
+            const response = await api.api.v1RestaurantsDishesList(restaurant.id);
+            return response.data.data || [];
+          } catch (err) {
+            console.error(`Error loading dishes for restaurant ${restaurant.id}:`, err);
+            return [];
+          }
+        });
+        
+        const dishArrays = await Promise.all(dishPromises);
+        const allDishes = dishArrays.flat();
+        
+        // Remove duplicates by name
+        const uniqueDishes = allDishes.reduce((acc: any[], dish: any) => {
+          if (!acc.find(d => d.name === dish.name)) {
+            acc.push(dish);
+          }
+          return acc;
+        }, []);
+        
+        dishes = uniqueDishes.sort((a, b) => a.name.localeCompare(b.name));
+        console.log(`Loaded ${dishes.length} unique dishes from ${restaurants.length} restaurants`);
+      }
+    } catch (err) {
+      console.error('Error loading dishes:', err);
     }
   }
 
@@ -78,73 +197,92 @@
     try {
       const api = getApiClient();
       
-      // Build filters
-      const currentFilters: FeedbackFilters = {
-        ...(selectedRestaurant && { restaurant_id: selectedRestaurant }),
-        ...(parseInt(selectedRatingMin) > 1 && { rating_min: parseInt(selectedRatingMin) }),
-        ...(parseInt(selectedRatingMax) < 5 && { rating_max: parseInt(selectedRatingMax) }),
-        ...(dateFrom && { date_from: dateFrom }),
-        ...(dateTo && { date_to: dateTo }),
-        ...(searchQuery && { search: searchQuery })
-      };
+      if (restaurants.length === 0) {
+        feedback = [];
+        totalCount = 0;
+        loading = false;
+        return;
+      }
 
-      // For demo purposes, we'll use the analytics endpoint to get recent feedback
-      // In a real implementation, there would be a dedicated feedback list endpoint
-      if (restaurants.length > 0) {
-        const restaurantId = selectedRestaurant || restaurants[0].id;
-        const analyticsResponse = await api.api.v1AnalyticsRestaurantsDetail(restaurantId);
+      // Load feedback from all restaurants if no specific restaurant selected
+      let allFeedback: Feedback[] = [];
+      
+      if (selectedRestaurant) {
+        // Load feedback from specific restaurant with server-side filtering
+        const query: any = {};
         
-        const analyticsData = analyticsResponse.data;
-        const recentFeedbackData = analyticsData?.recent_feedback || [];
+        if (searchQuery) query.search = searchQuery;
+        if (selectedRating) {
+          query.rating_min = parseInt(selectedRating);
+          query.rating_max = parseInt(selectedRating);
+        }
+        if (selectedDish) query.dish_id = selectedDish;
+        if (dateFrom) query.date_from = dateFrom;
+        if (dateTo) query.date_to = dateTo;
         
-        // Map and filter feedback
-        let mappedFeedback = recentFeedbackData.map((fb: any) => ({
+        const feedbackResponse = await api.api.v1RestaurantsFeedbackList(selectedRestaurant, query);
+        const feedbackData = feedbackResponse.data;
+        const restaurantFeedback = feedbackData?.data || [];
+        
+        allFeedback = restaurantFeedback.map((fb: any) => ({
           id: fb.id,
           customer_email: fb.customer_email,
-          rating: fb.rating,
+          rating: fb.overall_rating,
           comment: fb.comment,
-          dish_name: fb.dish_name,
-          restaurant_name: restaurants.find(r => r.id === restaurantId)?.name,
+          dish_name: fb.dish?.name || null,
+          restaurant_name: restaurants.find(r => r.id === selectedRestaurant)?.name,
           location_name: fb.location_name,
           qr_code: fb.qr_code,
           responses: fb.responses,
           created_at: fb.created_at
         }));
-
-        // Apply client-side filters for demo
-        if (searchQuery) {
-          const query = searchQuery.toLowerCase();
-          mappedFeedback = mappedFeedback.filter((fb: Feedback) =>
-            fb.comment?.toLowerCase().includes(query) ||
-            fb.customer_email?.toLowerCase().includes(query) ||
-            fb.dish_name?.toLowerCase().includes(query)
-          );
-        }
-
-        if (parseInt(selectedRatingMin) > 1) {
-          mappedFeedback = mappedFeedback.filter((fb: Feedback) => fb.rating >= parseInt(selectedRatingMin));
-        }
-
-        if (parseInt(selectedRatingMax) < 5) {
-          mappedFeedback = mappedFeedback.filter((fb: Feedback) => fb.rating <= parseInt(selectedRatingMax));
-        }
-
-        if (dateFrom) {
-          const fromDate = new Date(dateFrom);
-          mappedFeedback = mappedFeedback.filter((fb: Feedback) => new Date(fb.created_at) >= fromDate);
-        }
-
-        if (dateTo) {
-          const toDate = new Date(dateTo);
-          mappedFeedback = mappedFeedback.filter((fb: Feedback) => new Date(fb.created_at) <= toDate);
-        }
-
-        feedback = mappedFeedback;
-        totalCount = mappedFeedback.length;
       } else {
-        feedback = [];
-        totalCount = 0;
+        // Load feedback from all restaurants with server-side filtering
+        const query: any = {};
+        
+        if (searchQuery) query.search = searchQuery;
+        if (selectedRating) {
+          query.rating_min = parseInt(selectedRating);
+          query.rating_max = parseInt(selectedRating);
+        }
+        if (selectedDish) query.dish_id = selectedDish;
+        if (dateFrom) query.date_from = dateFrom;
+        if (dateTo) query.date_to = dateTo;
+        
+        const feedbackPromises = restaurants.map(async (restaurant) => {
+          try {
+            const feedbackResponse = await api.api.v1RestaurantsFeedbackList(restaurant.id, query);
+            const feedbackData = feedbackResponse.data;
+            const restaurantFeedback = feedbackData?.data || [];
+            
+            return restaurantFeedback.map((fb: any) => ({
+              id: fb.id,
+              customer_email: fb.customer_email,
+              rating: fb.overall_rating,
+              comment: fb.comment,
+              dish_name: fb.dish?.name || null,
+              restaurant_name: restaurant.name,
+              location_name: fb.location_name,
+              qr_code: fb.qr_code,
+              responses: fb.responses,
+              created_at: fb.created_at
+            }));
+          } catch (err) {
+            console.error(`Error loading feedback for restaurant ${restaurant.id}:`, err);
+            return [];
+          }
+        });
+        
+        const feedbackArrays = await Promise.all(feedbackPromises);
+        allFeedback = feedbackArrays.flat();
       }
+
+      // Server-side filtering is now handled by the backend
+      // Sort by creation date (newest first) - though backend already sorts
+      allFeedback.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+
+      feedback = allFeedback;
+      totalCount = allFeedback.length;
 
     } catch (err) {
       error = handleApiError(err);
@@ -153,17 +291,26 @@
     }
   }
 
-  function handleFilterChange() {
-    loadFeedback();
-  }
+  // Remove manual filter change handler since filters are now automatic
+  // function handleFilterChange() {
+  //   loadFeedback();
+  // }
 
   function clearFilters() {
     searchQuery = '';
+    searchInput = ''; // Clear the input field too
     selectedRestaurant = '';
-    selectedRatingMin = '1';
-    selectedRatingMax = '5';
-    dateFrom = '';
-    dateTo = '';
+    selectedDish = '';
+    selectedRating = '';
+    
+    // Reset to default 15-day filter
+    setDefaultDateFilter();
+    
+    // Clear any pending search timeout
+    if (searchTimeout) {
+      clearTimeout(searchTimeout);
+    }
+    
     loadFeedback();
   }
 
@@ -173,6 +320,35 @@
       return date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     } catch {
       return dateString;
+    }
+  }
+
+  function getQuestionText(response: any, index: number): string {
+    // First priority: Backend-provided question text
+    if (response.question_text && response.question_text.trim()) {
+      return response.question_text;
+    }
+    
+    // Second priority: Legacy question field (for backward compatibility)
+    if (response.question && response.question.trim()) {
+      return response.question;
+    }
+    
+    // Fallback: Generate smart question text based on answer type and common patterns
+    const answer = response.answer;
+    
+    if (typeof answer === 'boolean') {
+      return `Question ${index + 1} (Yes/No)`;
+    } else if (typeof answer === 'number' && answer >= 1 && answer <= 5) {
+      return `Rating Question ${index + 1}`;
+    } else if (typeof answer === 'number') {
+      return `Numeric Question ${index + 1}`;
+    } else if (Array.isArray(answer)) {
+      return `Multiple Choice Question ${index + 1}`;
+    } else if (typeof answer === 'string' && answer.length > 50) {
+      return `Comment Question ${index + 1}`;
+    } else {
+      return `Question ${index + 1}`;
     }
   }
 
@@ -193,18 +369,68 @@
   }
 
   function exportToCSV() {
-    const headers = ['ID', 'Date', 'Customer Email', 'Rating', 'Dish', 'Restaurant', 'Comment'];
+    // Get all unique questions across all feedback, prefixed with dish name for clarity
+    const allQuestions = new Set<string>();
+    feedback.forEach(fb => {
+      if (fb.responses) {
+        fb.responses.forEach((response: any, index: number) => {
+          const questionText = getQuestionText(response, index);
+          const dishName = fb.dish_name || 'General';
+          const prefixedQuestion = `[${dishName}] ${questionText}`;
+          allQuestions.add(prefixedQuestion);
+        });
+      }
+    });
+    
+    const questionArray = Array.from(allQuestions).sort();
+    const headers = ['ID', 'Date', 'Customer Email', 'Rating', 'Dish', 'Restaurant', 'Location', 'Comment', ...questionArray];
+    
     const csvContent = [
       headers.join(','),
-      ...feedback.map(fb => [
-        fb.id,
-        fb.created_at,
-        fb.customer_email || 'Anonymous',
-        fb.rating,
-        fb.dish_name || '',
-        fb.restaurant_name || '',
-        `"${fb.comment?.replace(/"/g, '""') || ''}"`
-      ].join(','))
+      ...feedback.map(fb => {
+        // Basic fields
+        const basicFields = [
+          fb.id,
+          fb.created_at,
+          fb.customer_email || 'Anonymous',
+          fb.rating || '',
+          fb.dish_name || '',
+          fb.restaurant_name || '',
+          typeof fb.qr_code === 'object' ? (fb.qr_code?.location || fb.qr_code?.name || fb.qr_code?.identifier || '') : (fb.qr_code || ''),
+          `"${fb.comment?.replace(/"/g, '""') || ''}"`
+        ];
+        
+        // Response fields - create a map of question to answer
+        const responseMap = new Map<string, string>();
+        if (fb.responses) {
+          fb.responses.forEach((response: any, index: number) => {
+            const questionText = getQuestionText(response, index);
+            const dishName = fb.dish_name || 'General';
+            const prefixedQuestion = `[${dishName}] ${questionText}`;
+            let answerText = '';
+            
+            if (typeof response.answer === 'boolean') {
+              answerText = response.answer ? 'Yes' : 'No';
+            } else if (typeof response.answer === 'number') {
+              answerText = response.answer.toString();
+            } else if (Array.isArray(response.answer)) {
+              answerText = response.answer.join('; ');
+            } else {
+              answerText = String(response.answer || '');
+            }
+            
+            responseMap.set(prefixedQuestion, answerText);
+          });
+        }
+        
+        // Add response values in the same order as headers
+        const responseFields = questionArray.map(question => {
+          const answer = responseMap.get(question) || '';
+          return `"${answer.replace(/"/g, '""')}"`;
+        });
+        
+        return [...basicFields, ...responseFields].join(',');
+      })
     ].join('\n');
 
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
@@ -280,15 +506,15 @@
     <Card variant="default" hover interactive class="mb-6 group transform transition-all duration-300 animate-fade-in-up">
       <div class="space-y-4">
         <!-- First Row: Search and Restaurant -->
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
           <!-- Search -->
           <div class="space-y-1">
             <label class="text-xs font-medium text-gray-500 uppercase tracking-wider">Search</label>
             <Input
               type="text"
               placeholder="Search comments, emails, dishes..."
-              bind:value={searchQuery}
-              onchange={handleFilterChange}
+              bind:value={searchInput}
+              oninput={handleSearchInput}
               class="w-full"
             />
           </div>
@@ -302,36 +528,42 @@
                 { value: '', label: 'All Restaurants' },
                 ...restaurants.map(r => ({ value: r.id, label: r.name }))
               ]}
-              onchange={handleFilterChange}
               minWidth="min-w-full"
+            />
+          </div>
+
+          <!-- Dish Filter -->
+          <div class="space-y-1">
+            <label class="text-xs font-medium text-gray-500 uppercase tracking-wider">Dish</label>
+            <Select
+              bind:value={selectedDish}
+              options={[
+                { value: '', label: 'All Dishes' },
+                ...dishes.map(d => ({ value: d.id, label: d.name }))
+              ]}
+              minWidth="min-w-full"
+              disabled={dishes.length === 0}
             />
           </div>
         </div>
 
         <!-- Second Row: Rating and Date Range -->
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          <!-- Rating Range -->
+          <!-- Rating Filter -->
           <div class="space-y-1">
-            <label class="text-xs font-medium text-gray-500 uppercase tracking-wider">Rating Range</label>
-            <div class="flex items-center gap-3">
-              <div class="flex-1">
-                <Select
-                  bind:value={selectedRatingMin}
-                  options={[1, 2, 3, 4, 5].map(r => ({ value: r.toString(), label: `${r}★` }))}
-                  onchange={handleFilterChange}
-                  minWidth="min-w-full"
-                />
-              </div>
-              <span class="text-sm text-gray-500 font-medium">to</span>
-              <div class="flex-1">
-                <Select
-                  bind:value={selectedRatingMax}
-                  options={[1, 2, 3, 4, 5].map(r => ({ value: r.toString(), label: `${r}★` }))}
-                  onchange={handleFilterChange}
-                  minWidth="min-w-full"
-                />
-              </div>
-            </div>
+            <label class="text-xs font-medium text-gray-500 uppercase tracking-wider">Rating</label>
+            <Select
+              bind:value={selectedRating}
+              options={[
+                { value: '', label: 'All Ratings' },
+                { value: '5', label: '5★ Excellent' },
+                { value: '4', label: '4★ Good' },
+                { value: '3', label: '3★ Average' },
+                { value: '2', label: '2★ Poor' },
+                { value: '1', label: '1★ Very Poor' }
+              ]}
+              minWidth="min-w-full"
+            />
           </div>
 
           <!-- Date Range -->
@@ -342,7 +574,6 @@
                 <Input
                   type="date"
                   bind:value={dateFrom}
-                  onchange={handleFilterChange}
                   placeholder="From"
                   class="w-full"
                 />
@@ -352,7 +583,6 @@
                 <Input
                   type="date"
                   bind:value={dateTo}
-                  onchange={handleFilterChange}
                   placeholder="To"
                   class="w-full"
                 />
@@ -417,7 +647,7 @@
           </svg>
           <h3 class="text-lg font-medium text-gray-900 mb-2">Failed to load feedback</h3>
           <p class="text-gray-600 mb-4">{error}</p>
-          <Button on:click={loadFeedback}>Try Again</Button>
+          <Button onclick={loadFeedback}>Try Again</Button>
         </div>
       </Card>
 
@@ -430,81 +660,256 @@
           </svg>
           <h3 class="text-lg font-medium text-gray-900 mb-2">No feedback found</h3>
           <p class="text-gray-600 mb-4">No feedback matches your current filters.</p>
-          <Button variant="outline" on:click={clearFilters}>Clear Filters</Button>
+          <Button variant="outline" onclick={clearFilters}>Clear Filters</Button>
         </div>
       </Card>
 
     {:else}
       <!-- Feedback List -->
-      <div class="space-y-4">
+      <div class="space-y-6">
         {#each feedback as fb, index}
-          <Card variant="default" hover interactive class="group transform transition-all duration-300 animate-fade-in-up" style="animation-delay: {index * 50}ms">
-            <div class="flex justify-between items-start mb-4">
-              <div class="flex-1">
-                <div class="flex items-center space-x-4 mb-2">
-                  <div class="flex items-center space-x-3">
-                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold {getRatingBgColor(fb.rating)}">
-                      <span class="text-lg mr-1">{renderStars(fb.rating)}</span>
-                      {fb.rating}/5
-                    </span>
+          <div class="group relative animate-fade-in-up" style="animation-delay: {index * 50}ms">
+            <!-- Modern card with gradient border on hover -->
+            <div class="absolute -inset-0.5 bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl opacity-0 group-hover:opacity-20 blur transition duration-500"></div>
+            <Card variant="default" class="relative overflow-hidden border-0 shadow-xl hover:shadow-2xl transition-all duration-500">
+              <!-- Header Section -->
+              <div class="relative">
+                <!-- Background gradient accent -->
+                <div class="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-blue-500/5 to-purple-600/5 rounded-full blur-3xl"></div>
+                
+                <div class="relative flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-6">
+                  <!-- Left side info -->
+                  <div class="flex-1 space-y-3">
+                    <!-- Rating and badges row -->
+                    <div class="flex flex-wrap items-center gap-3">
+                      <!-- Modern rating badge -->
+                      <div class="relative">
+                        <div class="absolute inset-0 bg-gradient-to-r {fb.rating >= 4 ? 'from-green-400 to-emerald-500' : fb.rating >= 3 ? 'from-yellow-400 to-orange-500' : 'from-red-400 to-pink-500'} rounded-xl blur opacity-25"></div>
+                        <div class="relative flex items-center gap-2 px-4 py-2 bg-gradient-to-r {fb.rating >= 4 ? 'from-green-50 to-emerald-50 border-green-200' : fb.rating >= 3 ? 'from-yellow-50 to-orange-50 border-yellow-200' : 'from-red-50 to-pink-50 border-red-200'} border rounded-xl">
+                          <div class="flex text-lg">
+                            {#each Array(5) as _, i}
+                              {#if i < fb.rating}
+                                <svg class="w-5 h-5 {fb.rating >= 4 ? 'text-green-500' : fb.rating >= 3 ? 'text-yellow-500' : 'text-red-500'}" fill="currentColor" viewBox="0 0 20 20">
+                                  <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                                </svg>
+                              {:else}
+                                <svg class="w-5 h-5 text-gray-300" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 20 20">
+                                  <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                                </svg>
+                              {/if}
+                            {/each}
+                          </div>
+                          <span class="font-bold {fb.rating >= 4 ? 'text-green-700' : fb.rating >= 3 ? 'text-yellow-700' : 'text-red-700'}">{fb.rating}.0</span>
+                        </div>
+                      </div>
+                      
+                      {#if fb.dish_name}
+                        <div class="flex items-center gap-2 px-3 py-1.5 bg-purple-50 border border-purple-200 rounded-lg">
+                          <svg class="w-4 h-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                          </svg>
+                          <span class="text-sm font-medium text-purple-700">{fb.dish_name}</span>
+                        </div>
+                      {/if}
+                      
+                      {#if fb.restaurant_name}
+                        <div class="flex items-center gap-2 px-3 py-1.5 bg-blue-50 border border-blue-200 rounded-lg">
+                          <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                          </svg>
+                          <span class="text-sm font-medium text-blue-700">{fb.restaurant_name}</span>
+                        </div>
+                      {/if}
+                    </div>
+                    
+                    <!-- Meta information with modern icons -->
+                    <div class="flex flex-wrap items-center gap-4 text-sm text-gray-600">
+                      <div class="flex items-center gap-1.5">
+                        <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                        <span>{formatDate(fb.created_at)}</span>
+                      </div>
+                      
+                      <div class="flex items-center gap-1.5">
+                        <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                        </svg>
+                        <span>{fb.customer_email || 'Anonymous Guest'}</span>
+                      </div>
+                      
+                      {#if fb.qr_code}
+                        <div class="flex items-center gap-1.5">
+                          <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" />
+                          </svg>
+                          <span>{typeof fb.qr_code === 'object' ? (fb.qr_code?.location || fb.qr_code?.name || fb.qr_code?.identifier || 'QR Code') : fb.qr_code}</span>
+                        </div>
+                      {/if}
+                    </div>
                   </div>
                   
-                  {#if fb.dish_name}
-                    <span class="text-sm text-gray-400">•</span>
-                    <span class="text-sm font-medium text-gray-700">{fb.dish_name}</span>
-                  {/if}
-                  
-                  {#if fb.restaurant_name}
-                    <span class="text-sm text-gray-400">•</span>
-                    <span class="text-sm text-gray-600">{fb.restaurant_name}</span>
-                  {/if}
+                  <!-- Right side actions -->
+                  <div class="flex items-center gap-2">
+                    <button class="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
+                      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h.01M12 12h.01M19 12h.01M6 12a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0z" />
+                      </svg>
+                    </button>
+                  </div>
                 </div>
                 
-                <div class="flex items-center text-xs text-gray-500 space-x-4">
-                  <span>{formatDate(fb.created_at)}</span>
-                  {#if fb.customer_email}
-                    <span>• {fb.customer_email}</span>
-                  {:else}
-                    <span>• Anonymous</span>
-                  {/if}
-                  {#if fb.qr_code}
-                    <span>• QR: {fb.qr_code}</span>
-                  {/if}
-                </div>
-              </div>
-              
-              <div class="flex items-center space-x-2">
-                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                  ID: {fb.id.slice(0, 8)}
-                </span>
-              </div>
-            </div>
-            
-            {#if fb.comment}
-              <div class="bg-gradient-to-r from-gray-50 to-gray-100/50 rounded-xl p-4 mb-4 border border-gray-200/50">
-                <p class="text-gray-700 text-sm italic">"{fb.comment}"</p>
-              </div>
-            {/if}
-            
-            {#if fb.responses && Object.keys(fb.responses).length > 0}
-              <div class="border-t border-gray-100 pt-4">
-                <h4 class="text-sm font-semibold text-gray-700 mb-3 flex items-center">
-                  <svg class="h-4 w-4 mr-2 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                  </svg>
-                  Questionnaire Responses
-                </h4>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  {#each Object.entries(fb.responses) as [key, value]}
-                    <div class="bg-gray-50 rounded-lg p-3 group-hover:bg-gray-100 transition-colors">
-                      <span class="text-xs text-gray-500 uppercase tracking-wider">{key}</span>
-                      <p class="text-sm text-gray-900 font-medium mt-1">{typeof value === 'object' ? JSON.stringify(value) : value}</p>
+                <!-- Comment Section -->
+                {#if fb.comment}
+                  <div class="relative mb-6">
+                    <div class="absolute -left-1 top-0 bottom-0 w-1 bg-gradient-to-b from-blue-500 to-purple-600 rounded-full"></div>
+                    <div class="pl-6">
+                      <div class="flex items-start gap-3">
+                        <svg class="w-5 h-5 text-gray-400 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                        </svg>
+                        <blockquote class="flex-1 text-gray-700 leading-relaxed">
+                          <p class="text-base italic">"{fb.comment}"</p>
+                        </blockquote>
+                      </div>
                     </div>
-                  {/each}
-                </div>
+                  </div>
+                {/if}
+                
+                <!-- Questions & Responses Section -->
+                {#if fb.responses && fb.responses.length > 0}
+                  <div class="space-y-4">
+                    <!-- Collapsible Header -->
+                    <button
+                      onclick={() => toggleCollapse(fb.id)}
+                      class="w-full flex items-center justify-between p-3 -mx-3 rounded-lg border border-transparent hover:border-gray-200 hover:bg-gray-50/50 transition-all duration-200 cursor-pointer group/header focus:outline-none focus:ring-2 focus:ring-purple-500/20"
+                    >
+                      <div class="flex items-center gap-3">
+                        <div class="p-2 bg-gradient-to-br from-purple-500 to-blue-600 rounded-lg group-hover/header:shadow-lg transition-shadow duration-200">
+                          <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
+                        </div>
+                        <div class="text-left">
+                          <h4 class="text-lg font-semibold text-gray-900 group-hover/header:text-purple-700 transition-colors duration-200">Customer Responses</h4>
+                          <p class="text-sm text-gray-500 group-hover/header:text-gray-600 transition-colors duration-200">{fb.responses.length} question{fb.responses.length > 1 ? 's' : ''} answered</p>
+                        </div>
+                      </div>
+                      
+                      <!-- Toggle Indicator -->
+                      <div class="flex items-center gap-2 px-3 py-2 text-sm font-medium text-purple-600 group-hover/header:text-purple-700 group-hover/header:bg-purple-50 rounded-lg transition-all duration-200 border border-purple-200/50 group-hover/header:border-purple-300">
+                        <span class="hidden sm:block">{isCollapsed(fb.id) ? 'Show' : 'Hide'} Details</span>
+                        <svg class="w-5 h-5 transform transition-transform duration-200 {isCollapsed(fb.id) ? 'rotate-0' : 'rotate-180'}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                        </svg>
+                      </div>
+                    </button>
+                    
+                    <!-- Collapsed Preview -->
+                    {#if isCollapsed(fb.id)}
+                      <div class="ml-8 text-sm text-gray-400 italic">
+                        Click above to view {fb.responses.length} detailed response{fb.responses.length > 1 ? 's' : ''}
+                      </div>
+                    {/if}
+                    
+                    <!-- Collapsible Content -->
+                    {#if !isCollapsed(fb.id)}
+                      <div class="space-y-4" style="animation: slideDown 0.3s ease-out;">
+                        {#each fb.responses as response, index}
+                          <div class="group/question relative">
+                            <!-- Question Number Badge -->
+                            <div class="absolute -left-3 top-0 z-10">
+                              <div class="w-6 h-6 bg-gradient-to-r from-purple-500 to-blue-600 rounded-full flex items-center justify-center">
+                                <span class="text-xs font-bold text-white">{index + 1}</span>
+                              </div>
+                            </div>
+                            
+                            <!-- Question Card -->
+                            <div class="ml-6 bg-gradient-to-r from-gray-50 to-white border border-gray-200 rounded-xl p-5 group-hover/question:shadow-md transition-all duration-300">
+                              <!-- Question Text -->
+                              <div class="mb-3">
+                                <p class="text-sm font-medium text-gray-900 leading-relaxed">
+                                  {getQuestionText(response, index)}
+                                </p>
+                              </div>
+                              
+                              <!-- Answer Section -->
+                              <div class="space-y-2">
+                                <div class="flex items-start gap-3">
+                                  <!-- Answer Type Icon -->
+                                  <div class="mt-0.5">
+                                    {#if typeof response.answer === 'boolean'}
+                                      <svg class="w-4 h-4 {response.answer ? 'text-green-500' : 'text-red-500'}" fill="currentColor" viewBox="0 0 20 20">
+                                        {#if response.answer}
+                                          <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                                        {:else}
+                                          <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+                                        {/if}
+                                      </svg>
+                                    {:else if typeof response.answer === 'number'}
+                                      <svg class="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14" />
+                                      </svg>
+                                    {:else}
+                                      <svg class="w-4 h-4 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                                      </svg>
+                                    {/if}
+                                  </div>
+                                  
+                                  <!-- Answer Display -->
+                                  <div class="flex-1">
+                                    {#if typeof response.answer === 'boolean'}
+                                      <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg {response.answer ? 'bg-green-100 text-green-800 border border-green-200' : 'bg-red-100 text-red-800 border border-red-200'}">
+                                        <span class="font-semibold">{response.answer ? 'Yes' : 'No'}</span>
+                                      </div>
+                                    {:else if typeof response.answer === 'number'}
+                                      {#if response.answer >= 1 && response.answer <= 5}
+                                        <!-- Rating display -->
+                                        <div class="flex items-center gap-2">
+                                          <div class="flex">
+                                            {#each Array(5) as _, i}
+                                              <svg class="w-4 h-4 {i < response.answer ? 'text-yellow-400' : 'text-gray-300'}" fill="currentColor" viewBox="0 0 20 20">
+                                                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                                              </svg>
+                                            {/each}
+                                          </div>
+                                          <span class="font-semibold text-gray-900">{response.answer}/5</span>
+                                        </div>
+                                      {:else}
+                                        <!-- Numeric value -->
+                                        <div class="inline-flex items-center gap-2 px-3 py-1.5 bg-blue-100 text-blue-800 border border-blue-200 rounded-lg">
+                                          <span class="font-semibold">{response.answer}</span>
+                                        </div>
+                                      {/if}
+                                    {:else if Array.isArray(response.answer)}
+                                      <!-- Multiple choice -->
+                                      <div class="flex flex-wrap gap-2">
+                                        {#each response.answer as item}
+                                          <span class="inline-flex items-center px-3 py-1.5 bg-purple-100 text-purple-800 border border-purple-200 rounded-lg text-sm font-medium">
+                                            {item}
+                                          </span>
+                                        {/each}
+                                      </div>
+                                    {:else}
+                                      <!-- Text response -->
+                                      <div class="bg-gray-50 border border-gray-200 rounded-lg p-3">
+                                        <p class="text-gray-900 text-sm leading-relaxed">{response.answer}</p>
+                                      </div>
+                                    {/if}
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        {/each}
+                      </div>
+                    {/if}
+                  </div>
+                {/if}
               </div>
-            {/if}
-          </Card>
+            </Card>
+          </div>
         {/each}
       </div>
     {/if}
@@ -525,5 +930,18 @@
   .animate-fade-in-up {
     animation: fade-in-up 0.6s ease-out forwards;
     opacity: 0;
+  }
+
+  @keyframes slideDown {
+    from {
+      opacity: 0;
+      max-height: 0;
+      transform: translateY(-10px);
+    }
+    to {
+      opacity: 1;
+      max-height: 1000px;
+      transform: translateY(0);
+    }
   }
 </style>

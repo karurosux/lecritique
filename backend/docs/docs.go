@@ -3217,7 +3217,7 @@ const docTemplate = `{
                         "ApiKeyAuth": []
                     }
                 ],
-                "description": "Get all feedback for a specific restaurant with pagination",
+                "description": "Get all feedback for a specific restaurant with pagination and optional filters",
                 "consumes": [
                     "application/json"
                 ],
@@ -3227,7 +3227,7 @@ const docTemplate = `{
                 "tags": [
                     "feedback"
                 ],
-                "summary": "Get restaurant feedback",
+                "summary": "Get restaurant feedback with filters",
                 "parameters": [
                     {
                         "type": "string",
@@ -3246,6 +3246,48 @@ const docTemplate = `{
                         "type": "integer",
                         "description": "Items per page (default: 20, max: 100)",
                         "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Search in comments, customer name, or email",
+                        "name": "search",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Minimum rating (1-5)",
+                        "name": "rating_min",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Maximum rating (1-5)",
+                        "name": "rating_max",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Start date (YYYY-MM-DD format)",
+                        "name": "date_from",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "End date (YYYY-MM-DD format)",
+                        "name": "date_to",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Filter by specific dish ID",
+                        "name": "dish_id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "Filter by completion status",
+                        "name": "is_complete",
                         "in": "query"
                     }
                 ],

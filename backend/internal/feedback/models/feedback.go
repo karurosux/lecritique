@@ -31,8 +31,9 @@ type Feedback struct {
 type Responses []Response
 
 type Response struct {
-	QuestionID uuid.UUID   `json:"question_id"`
-	Answer     interface{} `json:"answer"`
+	QuestionID   uuid.UUID `json:"question_id"`
+	QuestionText string    `json:"question_text,omitempty"`
+	Answer       any       `json:"answer"`
 }
 
 type DeviceInfo struct {

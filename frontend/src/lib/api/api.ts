@@ -1891,11 +1891,11 @@ export class Api<
       }),
 
     /**
-     * @description Get all feedback for a specific restaurant with pagination
+     * @description Get all feedback for a specific restaurant with pagination and optional filters
      *
      * @tags feedback
      * @name V1RestaurantsFeedbackList
-     * @summary Get restaurant feedback
+     * @summary Get restaurant feedback with filters
      * @request GET:/api/v1/restaurants/{restaurantId}/feedback
      * @secure
      */
@@ -1906,6 +1906,20 @@ export class Api<
         page?: number;
         /** Items per page (default: 20, max: 100) */
         limit?: number;
+        /** Search in comments, customer name, or email */
+        search?: string;
+        /** Minimum rating (1-5) */
+        rating_min?: number;
+        /** Maximum rating (1-5) */
+        rating_max?: number;
+        /** Start date (YYYY-MM-DD format) */
+        date_from?: string;
+        /** End date (YYYY-MM-DD format) */
+        date_to?: string;
+        /** Filter by specific dish ID */
+        dish_id?: string;
+        /** Filter by completion status */
+        is_complete?: boolean;
       },
       params: RequestParams = {},
     ) =>
