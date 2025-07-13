@@ -356,3 +356,71 @@ func (h *AnalyticsHandler) GetDishInsights(c echo.Context) error {
 	})
 }
 
+// GetRestaurantChartData gets aggregated chart data for restaurant analytics
+// @Summary Get restaurant chart data
+// @Description Get pre-aggregated chart data for all questions in a restaurant with optional filters
+// @Tags analytics
+// @Accept json
+// @Produce json
+// @Security ApiKeyAuth
+// @Param restaurantId path string true "Restaurant ID"
+// @Param date_from query string false "Start date (YYYY-MM-DD)"
+// @Param date_to query string false "End date (YYYY-MM-DD)"
+// @Param dish_id query string false "Filter by specific dish ID"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} response.Response
+// @Failure 401 {object} response.Response
+// @Failure 403 {object} response.Response
+// @Failure 404 {object} response.Response
+// @Failure 500 {object} response.Response
+// @Router /api/v1/analytics/restaurants/{restaurantId}/charts [get]
+func (h *AnalyticsHandler) GetRestaurantChartData(c echo.Context) error {
+	ctx := c.Request().Context()
+	
+	restaurantID, err := uuid.Parse(c.Param("restaurantId"))
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, "Invalid restaurant ID")
+	}
+
+	accountID, ok := c.Get("account_id").(uuid.UUID)
+	if !ok {
+		return echo.NewHTTPError(http.StatusUnauthorized, "Invalid authentication")
+	}
+
+	// Verify restaurant ownership
+	restaurant, err := h.restaurantRepo.FindByID(ctx, restaurantID)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusNotFound, "Restaurant not found")
+	}
+	if restaurant.AccountID != accountID {
+		return echo.NewHTTPError(http.StatusForbidden, "Access denied")
+	}
+
+	// Build filters from query parameters
+	filters := make(map[string]interface{})
+	if dateFrom := c.QueryParam("date_from"); dateFrom != "" {
+		filters["date_from"] = dateFrom
+	}
+	if dateTo := c.QueryParam("date_to"); dateTo != "" {
+		filters["date_to"] = dateTo
+	}
+	if dishID := c.QueryParam("dish_id"); dishID != "" {
+		filters["dish_id"] = dishID
+	}
+
+	// Get chart data
+	chartData, err := h.analyticsService.GetRestaurantChartData(ctx, restaurantID, filters)
+	if err != nil {
+		logger.Error("Failed to get restaurant chart data", err, logrus.Fields{
+			"restaurant_id": restaurantID,
+			"filters": filters,
+		})
+		return echo.NewHTTPError(http.StatusInternalServerError, "Failed to get chart data")
+	}
+
+	return c.JSON(http.StatusOK, map[string]interface{}{
+		"success": true,
+		"data":    chartData,
+	})
+}
+

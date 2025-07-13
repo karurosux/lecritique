@@ -3,14 +3,14 @@
   import { auth } from '$lib/stores/auth';
   import { goto } from '$app/navigation';
   import { Card, Button, Select } from '$lib/components/ui';
-  import FeedbackChartWidget from '$lib/components/analytics/FeedbackChartWidget.svelte';
+  import ChartDataWidget from '$lib/components/analytics/ChartDataWidget.svelte';
   import { BarChart3, Activity, Download, QrCode, Utensils, Calendar } from 'lucide-svelte';
 
   let loading = $state(true);
   let error = $state('');
   let restaurants = $state<any[]>([]);
   let selectedRestaurant = $state('');
-  let feedbacks = $state<any[]>([]);
+  let chartData = $state<any>(null);
   let analyticsData = $state<any>(null);
   let hasInitialized = $state(false);
   
@@ -78,28 +78,25 @@
     try {
       const api = getApiClient();
       
-      // Build filter parameters
-      const filterParams = {};
+      // Build filter parameters for the new chart endpoint
+      const chartParams = {};
       
       // Date filter
       if (filters.days !== 'all') {
         const today = new Date();
         const daysAgo = new Date(today.getTime() - parseInt(filters.days) * 24 * 60 * 60 * 1000);
-        filterParams.date_from = daysAgo.toISOString().split('T')[0];
+        chartParams.date_from = daysAgo.toISOString().split('T')[0];
       }
       
       // Dish filter
       if (filters.dishId) {
-        filterParams.dish_id = filters.dishId;
+        chartParams.dish_id = filters.dishId;
       }
       
-      // Load analytics data and feedbacks in parallel
-      const [analyticsResponse, feedbackResponse] = await Promise.all([
+      // Load analytics data and chart data in parallel
+      const [analyticsResponse, chartResponse] = await Promise.all([
         api.api.v1AnalyticsRestaurantsDetail(selectedRestaurant),
-        api.api.v1RestaurantsFeedbackList(selectedRestaurant, { 
-          limit: 100,
-          ...filterParams
-        })
+        api.api.v1AnalyticsRestaurantsChartsList(selectedRestaurant, chartParams)
       ]);
       
       // Process analytics data
@@ -107,13 +104,11 @@
         analyticsData = analyticsResponse.data.data;
       }
       
-      // Process feedback data
-      if (feedbackResponse.data?.data) {
-        feedbacks = feedbackResponse.data.data;
-      } else if (Array.isArray(feedbackResponse.data)) {
-        feedbacks = feedbackResponse.data;
+      // Process chart data
+      if (chartResponse.data?.data) {
+        chartData = chartResponse.data.data;
       } else {
-        feedbacks = [];
+        chartData = null;
       }
 
     } catch (err) {
@@ -123,6 +118,7 @@
       loading = false;
     }
   }
+
 
   function handleRestaurantChange() {
     resetFilters();
@@ -197,8 +193,8 @@
             <p class="text-lg font-semibold text-gray-900">
               {restaurants.find(r => r.id === selectedRestaurant)?.name || 'Select a restaurant'}
             </p>
-            {#if feedbacks.length > 0}
-              <p class="text-sm text-gray-500 mt-1">{feedbacks.length} total responses across all dishes</p>
+            {#if chartData?.summary?.total_responses}
+              <p class="text-sm text-gray-500 mt-1">{chartData.summary.total_responses} total responses across all dishes</p>
             {/if}
           </div>
         </div>
@@ -367,35 +363,8 @@
   {:else}
     <!-- Analytics Content -->
     <div class="space-y-8">
-      <!-- Dish Analytics Charts -->
-      {#if feedbacks.length > 0}
-        <FeedbackChartWidget feedbacks={feedbacks} title="" />
-      {:else}
-        <!-- No Data State -->
-        <Card variant="elevated">
-          <div class="text-center py-16">
-            <div class="h-20 w-20 bg-gray-100 rounded-3xl flex items-center justify-center mx-auto mb-6">
-              <ChartBar class="h-10 w-10 text-gray-400" />
-            </div>
-            <h3 class="text-xl font-semibold text-gray-900 mb-2">No Analytics Data Available</h3>
-            <p class="text-gray-600 mb-6 max-w-md mx-auto">
-              Start collecting customer feedback to see detailed analytics and insights about your restaurant performance.
-            </p>
-            <div class="flex items-center justify-center gap-4">
-              <Button href={`/restaurants/${selectedRestaurant}/qr-codes`} variant="gradient" size="lg">
-                <QrCode class="h-5 w-5 mr-2" />
-                View QR Codes
-              </Button>
-              <Button onclick={loadAnalytics} variant="outline" size="lg">
-                <svg class="h-5 w-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                </svg>
-                Check for Data
-              </Button>
-            </div>
-          </div>
-        </Card>
-      {/if}
+      <!-- Chart Analytics -->
+      <ChartDataWidget chartData={chartData} title="" />
     </div>
   {/if}
 </div>

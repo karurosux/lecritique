@@ -154,3 +154,63 @@ type FeedbackSummary struct {
 	Highlight    string    `json:"highlight"` // Key comment or issue
 	CreatedAt    time.Time `json:"created_at"`
 }
+
+// Chart-specific aggregation models for frontend compatibility
+
+// ChartData represents aggregated data for frontend charts
+type ChartData struct {
+	QuestionID   uuid.UUID              `json:"question_id"`
+	QuestionText string                 `json:"question_text"`
+	QuestionType string                 `json:"question_type"`
+	ChartType    string                 `json:"chart_type"` // "rating", "choice", "text_sentiment"
+	Data         map[string]interface{} `json:"data"`
+}
+
+// RatingDistribution represents rating question aggregations
+type RatingDistribution struct {
+	Scale         int                    `json:"scale"` // 1-5, 1-10, etc.
+	Distribution  map[string]int64       `json:"distribution"` // "1": count, "2": count, etc.
+	Average       float64                `json:"average"`
+	Total         int64                  `json:"total"`
+	Percentages   map[string]float64     `json:"percentages"`
+}
+
+// ChoiceDistribution represents choice question aggregations  
+type ChoiceDistribution struct {
+	Options       map[string]int64       `json:"options"` // option_text: count
+	Total         int64                  `json:"total"`
+	Percentages   map[string]float64     `json:"percentages"`
+	IsMultiChoice bool                   `json:"is_multi_choice"`
+	Combinations  []ChoiceCombination    `json:"combinations,omitempty"` // for multi-choice only
+}
+
+// ChoiceCombination represents multi-choice combination analysis
+type ChoiceCombination struct {
+	Options []string `json:"options"`
+	Count   int64    `json:"count"`
+	Percentage float64 `json:"percentage"`
+}
+
+// TextSentiment represents text response sentiment analysis
+type TextSentiment struct {
+	Positive    int64    `json:"positive"`
+	Neutral     int64    `json:"neutral"`
+	Negative    int64    `json:"negative"`
+	Total       int64    `json:"total"`
+	Samples     []string `json:"samples"` // sample responses
+	Keywords    []string `json:"keywords"` // common keywords
+}
+
+// RestaurantChartData represents aggregated chart data for entire restaurant
+type RestaurantChartData struct {
+	RestaurantID uuid.UUID   `json:"restaurant_id"`
+	Charts       []ChartData `json:"charts"`
+	Summary      struct {
+		TotalResponses int64     `json:"total_responses"`
+		DateRange      struct {
+			Start time.Time `json:"start"`
+			End   time.Time `json:"end"`
+		} `json:"date_range"`
+		FiltersApplied map[string]interface{} `json:"filters_applied"`
+	} `json:"summary"`
+}

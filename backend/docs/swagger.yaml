@@ -1113,6 +1113,63 @@ paths:
       summary: Get restaurant analytics
       tags:
       - analytics
+  /api/v1/analytics/restaurants/{restaurantId}/charts:
+    get:
+      consumes:
+      - application/json
+      description: Get pre-aggregated chart data for all questions in a restaurant
+        with optional filters
+      parameters:
+      - description: Restaurant ID
+        in: path
+        name: restaurantId
+        required: true
+        type: string
+      - description: Start date (YYYY-MM-DD)
+        in: query
+        name: date_from
+        type: string
+      - description: End date (YYYY-MM-DD)
+        in: query
+        name: date_to
+        type: string
+      - description: Filter by specific dish ID
+        in: query
+        name: dish_id
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - ApiKeyAuth: []
+      summary: Get restaurant chart data
+      tags:
+      - analytics
   /api/v1/auth/cancel-deactivation:
     post:
       consumes:

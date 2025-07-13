@@ -2,6 +2,7 @@ package services
 
 import (
 	"context"
+	"fmt"
 	"sort"
 	"strings"
 	"time"
@@ -14,6 +15,7 @@ import (
 	qrcodeRepos "github.com/lecritique/api/internal/qrcode/repositories"
 	restaurantRepos "github.com/lecritique/api/internal/restaurant/repositories"
 	"github.com/lecritique/api/internal/shared/logger"
+	sharedModels "github.com/lecritique/api/internal/shared/models"
 	"github.com/sirupsen/logrus"
 )
 
@@ -21,6 +23,10 @@ type AnalyticsService interface {
 	GetDashboardMetrics(ctx context.Context, restaurantID uuid.UUID) (*analyticsModels.DashboardMetrics, error)
 	GetDishInsights(ctx context.Context, dishID uuid.UUID) (*analyticsModels.DishInsights, error)
 	GetRestaurantInsights(ctx context.Context, restaurantID uuid.UUID, period string) (*analyticsModels.RestaurantInsights, error)
+	
+	// Chart aggregation methods
+	GetRestaurantChartData(ctx context.Context, restaurantID uuid.UUID, filters map[string]interface{}) (*analyticsModels.RestaurantChartData, error)
+	GetQuestionChartData(ctx context.Context, questionID uuid.UUID, filters map[string]interface{}) (*analyticsModels.ChartData, error)
 }
 
 type analyticsService struct {
@@ -782,4 +788,445 @@ func (s *analyticsService) getQRCodePerformance(ctx context.Context, restaurantI
 	})
 	
 	return performance, nil
+}
+
+// Chart aggregation implementations
+
+func (s *analyticsService) GetRestaurantChartData(ctx context.Context, restaurantID uuid.UUID, filters map[string]interface{}) (*analyticsModels.RestaurantChartData, error) {
+	// Build filter struct from map
+	feedbackFilters := s.buildFeedbackFilters(filters)
+	
+	// Get filtered feedback data  
+	feedback, err := s.feedbackRepo.FindByRestaurantIDWithFilters(ctx, restaurantID, sharedModels.PageRequest{
+		Page: 1, Limit: 10000, // Large limit to get all relevant data
+	}, feedbackFilters)
+	if err != nil {
+		return nil, err
+	}
+	
+	// Note: We don't need dish data for this aggregation, removed unused variable
+	
+	// Aggregate chart data by question across all dishes
+	chartData := &analyticsModels.RestaurantChartData{
+		RestaurantID: restaurantID,
+		Charts:       []analyticsModels.ChartData{},
+	}
+	
+	// Group responses by question_id
+	questionResponses := make(map[uuid.UUID][]feedbackModels.Response)
+	questionMeta := make(map[uuid.UUID]struct {
+		Text string
+		Type string
+	})
+	
+	for _, f := range feedback.Data {
+		for _, response := range f.Responses {
+			questionResponses[response.QuestionID] = append(questionResponses[response.QuestionID], response)
+			if questionMeta[response.QuestionID].Text == "" {
+				questionMeta[response.QuestionID] = struct {
+					Text string
+					Type string
+				}{
+					Text: response.QuestionText,
+					Type: string(response.QuestionType),
+				}
+			}
+		}
+	}
+	
+	// Generate chart data for each question
+	for questionID, responses := range questionResponses {
+		meta := questionMeta[questionID]
+		chartData.Charts = append(chartData.Charts, s.aggregateQuestionResponses(questionID, meta.Text, meta.Type, responses))
+	}
+	
+	// Set summary information
+	chartData.Summary.TotalResponses = int64(len(feedback.Data))
+	chartData.Summary.FiltersApplied = filters
+	
+	// Set date range based on data
+	if len(feedback.Data) > 0 {
+		chartData.Summary.DateRange.Start = feedback.Data[len(feedback.Data)-1].CreatedAt
+		chartData.Summary.DateRange.End = feedback.Data[0].CreatedAt
+	}
+	
+	return chartData, nil
+}
+
+func (s *analyticsService) GetQuestionChartData(ctx context.Context, questionID uuid.UUID, filters map[string]interface{}) (*analyticsModels.ChartData, error) {
+	// Build filter struct
+	feedbackFilters := s.buildFeedbackFilters(filters)
+	
+	// Get question details first to understand dish context
+	// Note: We'd need to add a method to get question by ID, for now we'll work with what we have
+	
+	// For now, get all feedback that contains this question
+	// This is not optimal - ideally we'd have a direct question-to-feedback lookup
+	allFeedback, err := s.feedbackRepo.FindByRestaurantIDWithFilters(ctx, uuid.UUID{}, sharedModels.PageRequest{
+		Page: 1, Limit: 10000,
+	}, feedbackFilters)
+	if err != nil {
+		return nil, err
+	}
+	
+	// Filter responses for this specific question
+	var responses []feedbackModels.Response
+	var questionText, questionType string
+	
+	for _, f := range allFeedback.Data {
+		for _, response := range f.Responses {
+			if response.QuestionID == questionID {
+				responses = append(responses, response)
+				if questionText == "" {
+					questionText = response.QuestionText
+					questionType = string(response.QuestionType)
+				}
+			}
+		}
+	}
+	
+	chartData := s.aggregateQuestionResponses(questionID, questionText, questionType, responses)
+	return &chartData, nil
+}
+
+// Helper methods
+
+func (s *analyticsService) buildFeedbackFilters(filters map[string]interface{}) feedbackRepos.FeedbackFilter {
+	feedbackFilters := feedbackRepos.FeedbackFilter{}
+	
+	if dateFrom, ok := filters["date_from"].(string); ok {
+		if parsed, err := time.Parse("2006-01-02", dateFrom); err == nil {
+			feedbackFilters.DateFrom = &parsed
+		}
+	}
+	
+	if dateTo, ok := filters["date_to"].(string); ok {
+		if parsed, err := time.Parse("2006-01-02", dateTo); err == nil {
+			feedbackFilters.DateTo = &parsed
+		}
+	}
+	
+	if dishIDStr, ok := filters["dish_id"].(string); ok {
+		if dishID, err := uuid.Parse(dishIDStr); err == nil {
+			feedbackFilters.DishID = &dishID
+		}
+	}
+	
+	return feedbackFilters
+}
+
+func (s *analyticsService) aggregateQuestionResponses(questionID uuid.UUID, questionText, questionType string, responses []feedbackModels.Response) analyticsModels.ChartData {
+	chartData := analyticsModels.ChartData{
+		QuestionID:   questionID,
+		QuestionText: questionText,
+		QuestionType: questionType,
+		Data:         make(map[string]interface{}),
+	}
+	
+	switch questionType {
+	case "rating":
+		chartData.ChartType = "rating"
+		chartData.Data = s.aggregateRatingResponses(responses)
+	case "scale":
+		chartData.ChartType = "scale"
+		chartData.Data = s.aggregateScaleResponses(responses)
+	case "single_choice", "multi_choice":
+		chartData.ChartType = "choice"
+		chartData.Data = s.aggregateChoiceResponses(responses, questionType == "multi_choice")
+	case "yes_no":
+		chartData.ChartType = "choice"  
+		chartData.Data = s.aggregateYesNoResponses(responses)
+	case "text":
+		chartData.ChartType = "text_sentiment"
+		chartData.Data = s.aggregateTextResponses(responses)
+	default:
+		chartData.ChartType = "rating" // fallback
+		chartData.Data = s.aggregateRatingResponses(responses)
+	}
+	
+	return chartData
+}
+
+func (s *analyticsService) aggregateRatingResponses(responses []feedbackModels.Response) map[string]interface{} {
+	distribution := make(map[string]int64)
+	var total int64
+	var sum float64
+	maxScale := 0
+	
+	for _, response := range responses {
+		switch v := response.Answer.(type) {
+		case float64:
+			key := fmt.Sprintf("%.0f", v)
+			distribution[key]++
+			sum += v
+			total++
+			if int(v) > maxScale {
+				maxScale = int(v)
+			}
+		case int:
+			key := fmt.Sprintf("%d", v)
+			distribution[key]++
+			sum += float64(v)
+			total++
+			if v > maxScale {
+				maxScale = v
+			}
+		}
+	}
+	
+	// Calculate percentages
+	percentages := make(map[string]float64)
+	for key, count := range distribution {
+		if total > 0 {
+			percentages[key] = float64(count) / float64(total) * 100
+		}
+	}
+	
+	// Determine scale (common scales: 5, 10)
+	scale := 5 // default
+	if maxScale > 5 {
+		scale = 10
+	}
+	
+	return map[string]interface{}{
+		"scale":        scale,
+		"distribution": distribution,
+		"average":      sum / float64(total),
+		"total":        total,
+		"percentages":  percentages,
+	}
+}
+
+func (s *analyticsService) aggregateScaleResponses(responses []feedbackModels.Response) map[string]interface{} {
+	distribution := make(map[string]int64)
+	var total int64
+	var sum float64
+	maxScale := 0
+	
+	for _, response := range responses {
+		switch v := response.Answer.(type) {
+		case float64:
+			key := fmt.Sprintf("%.0f", v)
+			distribution[key]++
+			sum += v
+			total++
+			if int(v) > maxScale {
+				maxScale = int(v)
+			}
+		case int:
+			key := fmt.Sprintf("%d", v)
+			distribution[key]++
+			sum += float64(v)
+			total++
+			if v > maxScale {
+				maxScale = v
+			}
+		}
+	}
+	
+	// Calculate percentages
+	percentages := make(map[string]float64)
+	for key, count := range distribution {
+		if total > 0 {
+			percentages[key] = float64(count) / float64(total) * 100
+		}
+	}
+	
+	// Determine scale (common scales: 5, 10)
+	scale := 5 // default
+	if maxScale > 5 {
+		scale = 10
+	}
+	
+	return map[string]interface{}{
+		"scale":        scale,
+		"distribution": distribution,
+		"average":      sum / float64(total),
+		"total":        total,
+		"percentages":  percentages,
+		"is_scale":     true, // Flag to differentiate from rating
+	}
+}
+
+func (s *analyticsService) aggregateChoiceResponses(responses []feedbackModels.Response, isMultiChoice bool) map[string]interface{} {
+	options := make(map[string]int64)
+	combinations := make(map[string]int64) // for multi-choice
+	var total int64
+	
+	for _, response := range responses {
+		total++
+		
+		switch v := response.Answer.(type) {
+		case string:
+			if isMultiChoice {
+				// Handle multi-choice - could be comma-separated or JSON array
+				choices := strings.Split(v, ",")
+				for i, choice := range choices {
+					choices[i] = strings.TrimSpace(choice)
+					options[choices[i]]++
+				}
+				// Track combination
+				sort.Strings(choices)
+				combKey := strings.Join(choices, " + ")
+				combinations[combKey]++
+			} else {
+				options[v]++
+			}
+		case []interface{}:
+			// JSON array format for multi-choice
+			if isMultiChoice {
+				var choices []string
+				for _, item := range v {
+					if str, ok := item.(string); ok {
+						choices = append(choices, str)
+						options[str]++
+					}
+				}
+				// Track combination
+				sort.Strings(choices)
+				combKey := strings.Join(choices, " + ")
+				combinations[combKey]++
+			}
+		}
+	}
+	
+	// Calculate percentages
+	percentages := make(map[string]float64)
+	for option, count := range options {
+		if total > 0 {
+			percentages[option] = float64(count) / float64(total) * 100
+		}
+	}
+	
+	result := map[string]interface{}{
+		"options":        options,
+		"total":          total,
+		"percentages":    percentages,
+		"is_multi_choice": isMultiChoice,
+	}
+	
+	// Add combinations for multi-choice
+	if isMultiChoice && len(combinations) > 0 {
+		var combList []map[string]interface{}
+		for combo, count := range combinations {
+			combList = append(combList, map[string]interface{}{
+				"options":    strings.Split(combo, " + "),
+				"count":      count,
+				"percentage": float64(count) / float64(total) * 100,
+			})
+		}
+		result["combinations"] = combList
+	}
+	
+	return result
+}
+
+func (s *analyticsService) aggregateYesNoResponses(responses []feedbackModels.Response) map[string]interface{} {
+	options := make(map[string]int64)
+	var total int64
+	
+	for _, response := range responses {
+		total++
+		switch v := response.Answer.(type) {
+		case bool:
+			if v {
+				options["Yes"]++
+			} else {
+				options["No"]++
+			}
+		case string:
+			// Handle string representations
+			lower := strings.ToLower(v)
+			if lower == "yes" || lower == "true" || lower == "1" {
+				options["Yes"]++
+			} else {
+				options["No"]++
+			}
+		}
+	}
+	
+	// Calculate percentages
+	percentages := make(map[string]float64)
+	for option, count := range options {
+		if total > 0 {
+			percentages[option] = float64(count) / float64(total) * 100
+		}
+	}
+	
+	return map[string]interface{}{
+		"options":        options,
+		"total":          total,
+		"percentages":    percentages,
+		"is_multi_choice": false,
+	}
+}
+
+func (s *analyticsService) aggregateTextResponses(responses []feedbackModels.Response) map[string]interface{} {
+	var positive, neutral, negative int64
+	var samples []string
+	keywords := make(map[string]int)
+	
+	// Simple keyword-based sentiment analysis
+	positiveWords := []string{"excellent", "great", "amazing", "love", "perfect", "fantastic", "wonderful"}
+	negativeWords := []string{"terrible", "awful", "bad", "hate", "horrible", "disgusting", "worst"}
+	
+	for _, response := range responses {
+		if text, ok := response.Answer.(string); ok && text != "" {
+			lower := strings.ToLower(text)
+			
+			// Simple sentiment detection
+			hasPositive := false
+			hasNegative := false
+			
+			for _, word := range positiveWords {
+				if strings.Contains(lower, word) {
+					hasPositive = true
+					keywords[word]++
+					break
+				}
+			}
+			
+			for _, word := range negativeWords {
+				if strings.Contains(lower, word) {
+					hasNegative = true
+					keywords[word]++
+					break
+				}
+			}
+			
+			// Classify sentiment
+			if hasPositive && !hasNegative {
+				positive++
+			} else if hasNegative && !hasPositive {
+				negative++
+			} else {
+				neutral++
+			}
+			
+			// Add to samples (limit to 5)
+			if len(samples) < 5 {
+				samples = append(samples, text)
+			}
+		}
+	}
+	
+	// Get top keywords
+	var topKeywords []string
+	for word := range keywords {
+		topKeywords = append(topKeywords, word)
+		if len(topKeywords) >= 5 {
+			break
+		}
+	}
+	
+	total := positive + neutral + negative
+	
+	return map[string]interface{}{
+		"positive":  positive,
+		"neutral":   neutral,
+		"negative":  negative,
+		"total":     total,
+		"samples":   samples,
+		"keywords":  topKeywords,
+	}
 }

@@ -806,6 +806,37 @@ export class Api<
       }),
 
     /**
+     * @description Get pre-aggregated chart data for all questions in a restaurant with optional filters
+     *
+     * @tags analytics
+     * @name V1AnalyticsRestaurantsChartsList
+     * @summary Get restaurant chart data
+     * @request GET:/api/v1/analytics/restaurants/{restaurantId}/charts
+     * @secure
+     */
+    v1AnalyticsRestaurantsChartsList: (
+      restaurantId: string,
+      query?: {
+        /** Start date (YYYY-MM-DD) */
+        date_from?: string;
+        /** End date (YYYY-MM-DD) */
+        date_to?: string;
+        /** Filter by specific dish ID */
+        dish_id?: string;
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<Record<string, any>, ResponseResponse>({
+        path: `/api/v1/analytics/restaurants/${restaurantId}/charts`,
+        method: "GET",
+        query: query,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
      * @description Cancel a pending account deactivation request
      *
      * @tags auth

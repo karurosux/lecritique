@@ -29,6 +29,7 @@ func RegisterRoutes(protected *echo.Group, db *gorm.DB, authService authServices
 	analytics := protected.Group("/analytics")
 	analytics.Use(middleware.JWTAuth(authService))
 	analytics.GET("/restaurants/:restaurantId", analyticsHandler.GetRestaurantAnalytics)
+	analytics.GET("/restaurants/:restaurantId/charts", analyticsHandler.GetRestaurantChartData)
 	analytics.GET("/dishes/:dishId", analyticsHandler.GetDishAnalytics)
 	analytics.GET("/dashboard/:restaurantId", analyticsHandler.GetDashboardMetrics)
 	analytics.GET("/dishes/:dishId/insights", analyticsHandler.GetDishInsights)
