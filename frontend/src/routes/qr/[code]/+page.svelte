@@ -279,11 +279,16 @@
     try {
       const api = getApiClient();
       
-      // Transform responses from object to array format
-      const responseArray = Object.entries(responses).map(([questionId, answer]) => ({
-        question_id: questionId,
-        answer: answer
-      }));
+      // Transform responses from object to array format with question types
+      const responseArray = Object.entries(responses).map(([questionId, answer]) => {
+        const question = questions.find(q => q.id === questionId);
+        return {
+          question_id: questionId,
+          question_text: question?.text || '',
+          question_type: question?.type || 'choice',
+          answer: answer
+        };
+      });
 
       const feedbackData = {
         restaurant_id: qrData?.restaurant?.id,
@@ -298,6 +303,8 @@
       if (comment && comment.trim()) {
         feedbackData.responses.push({
           question_id: 'comment',
+          question_text: 'Additional Comments',
+          question_type: 'text',
           answer: comment
         });
       }

@@ -43,7 +43,7 @@
                 </div>
                 <div class="flex items-center space-x-1">
                   <div class="w-2 h-2 bg-pink-400 rounded-full"></div>
-                  <span class="text-gray-600">{analyticsData.average_rating.toFixed(1)} Avg Rating</span>
+                  <span class="text-gray-600">{analyticsData.average_rating?.toFixed(1) || '0.0'} Avg Rating</span>
                 </div>
               </div>
             {/if}

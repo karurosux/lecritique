@@ -78,9 +78,9 @@ func (r *feedbackRepository) FindByRestaurantID(ctx context.Context, restaurantI
 	
 	// Populate question text for each feedback
 	for i := range feedbacks {
-		if err := r.populateQuestionTexts(ctx, &feedbacks[i]); err != nil {
+		if err := r.populateQuestionData(ctx, &feedbacks[i]); err != nil {
 			// Log error but don't fail the entire request
-			fmt.Printf("Error populating question texts for feedback %s: %v\n", feedbacks[i].ID, err)
+			fmt.Printf("Error populating question data for feedback %s: %v\n", feedbacks[i].ID, err)
 		}
 	}
 	
@@ -136,9 +136,9 @@ func (r *feedbackRepository) FindByRestaurantIDWithFilters(ctx context.Context, 
 	
 	// Populate question text for each feedback
 	for i := range feedbacks {
-		if err := r.populateQuestionTexts(ctx, &feedbacks[i]); err != nil {
+		if err := r.populateQuestionData(ctx, &feedbacks[i]); err != nil {
 			// Log error but don't fail the entire request
-			fmt.Printf("Error populating question texts for feedback %s: %v\n", feedbacks[i].ID, err)
+			fmt.Printf("Error populating question data for feedback %s: %v\n", feedbacks[i].ID, err)
 		}
 	}
 	
@@ -195,8 +195,8 @@ func (r *feedbackRepository) applyFilters(query *gorm.DB, filters FeedbackFilter
 	return query
 }
 
-// populateQuestionTexts populates the question text for each response in the feedback
-func (r *feedbackRepository) populateQuestionTexts(ctx context.Context, feedback *models.Feedback) error {
+// populateQuestionData populates the question text and type for each response in the feedback
+func (r *feedbackRepository) populateQuestionData(ctx context.Context, feedback *models.Feedback) error {
 	if len(feedback.Responses) == 0 {
 		return nil
 	}
@@ -207,29 +207,35 @@ func (r *feedbackRepository) populateQuestionTexts(ctx context.Context, feedback
 		questionIDs = append(questionIDs, response.QuestionID)
 	}
 	
-	// Query questions table to get question texts
+	// Query questions table to get question data and types
 	var questions []struct {
 		ID   uuid.UUID `gorm:"column:id"`
 		Text string    `gorm:"column:text"`
+		Type string    `gorm:"column:type"`
 	}
 	
 	if err := r.DB.WithContext(ctx).Table("questions").
-		Select("id, text").
+		Select("id, text, type").
 		Where("id IN ?", questionIDs).
 		Find(&questions).Error; err != nil {
 		return err
 	}
 	
-	// Create a map for quick lookup
+	// Create maps for quick lookup
 	questionTextMap := make(map[uuid.UUID]string)
+	questionTypeMap := make(map[uuid.UUID]string)
 	for _, question := range questions {
 		questionTextMap[question.ID] = question.Text
+		questionTypeMap[question.ID] = question.Type
 	}
 	
-	// Update responses with question text
+	// Update responses with question text and type
 	for i := range feedback.Responses {
 		if text, exists := questionTextMap[feedback.Responses[i].QuestionID]; exists {
 			feedback.Responses[i].QuestionText = text
+		}
+		if qType, exists := questionTypeMap[feedback.Responses[i].QuestionID]; exists {
+			feedback.Responses[i].QuestionType = models.QuestionType(qType)
 		}
 	}
 	

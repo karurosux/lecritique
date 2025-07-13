@@ -2,8 +2,9 @@
   import { Card } from '$lib/components/ui';
 
   interface Feedback {
-    id: string;
-    rating: number;
+    id?: string;
+    rating?: number;
+    overall_rating?: number;
     comment?: string;
     dish_name?: string;
     created_at: string;
@@ -15,11 +16,21 @@
 
   let {
     analyticsData = null,
+    feedbacks = [],
     loading = false
   }: {
     analyticsData?: AnalyticsData | null;
+    feedbacks?: Feedback[];
     loading?: boolean;
   } = $props();
+  
+  // Use analytics data if available, otherwise use feedbacks prop
+  let displayFeedbacks = $derived(() => {
+    if (analyticsData?.recent_feedback) {
+      return analyticsData.recent_feedback;
+    }
+    return feedbacks;
+  });
 
   function renderStars(rating: number): string {
     return '★'.repeat(Math.round(rating)) + '☆'.repeat(5 - Math.round(rating));
@@ -90,17 +101,18 @@
             </div>
           </div>
         {/each}
-      {:else if analyticsData && analyticsData.recent_feedback.length > 0}
-        {#each analyticsData.recent_feedback.slice(0, 10) as feedback}
-          <div class="group border-l-4 {getBorderColor(feedback.rating)} pl-4 py-3 hover:bg-gray-50 rounded-r-lg transition-all duration-200">
+      {:else if displayFeedbacks() && displayFeedbacks().length > 0}
+        {#each displayFeedbacks().slice(0, 10) as feedback}
+          {@const rating = feedback.rating || feedback.overall_rating || 0}
+          <div class="group border-l-4 {getBorderColor(rating)} pl-4 py-3 hover:bg-gray-50 rounded-r-lg transition-all duration-200">
             <div class="flex items-start justify-between">
               <div class="flex-1">
                 <div class="flex items-center gap-3 mb-1">
-                  <span class="text-sm font-medium {getRatingColor(feedback.rating)}">
-                    {renderStars(feedback.rating)}
+                  <span class="text-sm font-medium {getRatingColor(rating)}">
+                    {renderStars(rating)}
                   </span>
                   <span class="text-xs text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full">
-                    {feedback.rating}/5
+                    {rating}/5
                   </span>
                   {#if feedback.dish_name}
                     <span class="text-xs text-gray-400">•</span>

@@ -72,8 +72,8 @@
       
       <div class="space-y-4">
         {#each [5, 4, 3, 2, 1] as rating}
-          {@const count = analyticsData.rating_distribution[rating.toString()] || 0}
-          {@const percentage = getPercentage(count, analyticsData.total_feedback)}
+          {@const count = analyticsData.rating_distribution?.[rating.toString()] || 0}
+          {@const percentage = getPercentage(count, analyticsData.total_feedback || 0)}
           <div class="group">
             <div class="flex items-center gap-3">
               <div class="w-14 text-sm font-medium text-gray-600 group-hover:text-gray-900 transition-colors">
@@ -107,7 +107,7 @@
       </div>
       
       <div class="space-y-4">
-        {#each analyticsData.top_dishes.slice(0, 5) as dish, index}
+        {#each (analyticsData.top_dishes || []).slice(0, 5) as dish, index}
           <div class="group flex items-center justify-between p-3 rounded-xl hover:bg-gray-50 transition-all duration-200">
             <div class="flex items-center space-x-3">
               <div class="flex items-center justify-center w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-600 rounded-xl text-sm font-semibold text-white shadow-lg shadow-purple-500/25 group-hover:scale-110 transition-transform duration-200">
@@ -123,11 +123,11 @@
               </div>
             </div>
             <div class="text-right">
-              <div class="font-semibold {getRatingColor(dish.average_rating)} text-lg">
-                {dish.average_rating.toFixed(1)}
+              <div class="font-semibold {getRatingColor(dish.average_rating || 0)} text-lg">
+                {dish.average_rating?.toFixed(1) || '0.0'}
               </div>
-              <div class="text-xs {getRatingColor(dish.average_rating)}">
-                {renderStars(dish.average_rating)}
+              <div class="text-xs {getRatingColor(dish.average_rating || 0)}">
+                {renderStars(dish.average_rating || 0)}
               </div>
             </div>
           </div>
