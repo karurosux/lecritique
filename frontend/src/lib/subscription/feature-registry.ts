@@ -20,15 +20,14 @@ export const LIMITS = {
   LOCATIONS_PER_RESTAURANT: 'max_locations_per_restaurant',
   QR_CODES_PER_LOCATION: 'max_qr_codes_per_location',
   FEEDBACKS_PER_MONTH: 'max_feedbacks_per_month',
-  TEAM_MEMBERS: 'max_team_members',
-  STORAGE_GB: 'max_storage_gb',
-  API_CALLS_PER_HOUR: 'max_api_calls_per_hour'
+  TEAM_MEMBERS: 'max_team_members'
 } as const;
 
 export const FLAGS = {
+  BASIC_ANALYTICS: 'basic_analytics',
+  FEEDBACK_EXPLORER: 'feedback_explorer',
   ADVANCED_ANALYTICS: 'advanced_analytics',
   CUSTOM_BRANDING: 'custom_branding',
-  API_ACCESS: 'api_access',
   PRIORITY_SUPPORT: 'priority_support',
   WHITE_LABEL: 'white_label',
   CUSTOM_DOMAIN: 'custom_domain'
@@ -85,32 +84,26 @@ export const featureRegistry: Record<string, FeatureDefinition> = {
     category: 'collaboration',
     sortOrder: 4
   },
-  [LIMITS.STORAGE_GB]: {
-    key: LIMITS.STORAGE_GB,
-    type: 'limit',
-    displayName: 'Storage',
-    description: 'Storage space for media files',
-    unit: 'GB',
-    unlimitedText: 'Unlimited storage',
-    format: '{value} GB storage',
-    icon: 'hard-drive',
-    category: 'resources',
-    sortOrder: 5
-  },
-  [LIMITS.API_CALLS_PER_HOUR]: {
-    key: LIMITS.API_CALLS_PER_HOUR,
-    type: 'limit',
-    displayName: 'API Rate Limit',
-    description: 'API calls per hour',
-    unit: 'calls/hour',
-    unlimitedText: 'Unlimited API calls',
-    format: '{value} API calls/hour',
-    icon: 'activity',
-    category: 'developer',
-    sortOrder: 10
-  },
 
   // Flags
+  [FLAGS.BASIC_ANALYTICS]: {
+    key: FLAGS.BASIC_ANALYTICS,
+    type: 'flag',
+    displayName: 'Analytics Dashboard',
+    description: 'View feedback analytics and insights',
+    icon: 'bar-chart-2',
+    category: 'analytics',
+    sortOrder: 19
+  },
+  [FLAGS.FEEDBACK_EXPLORER]: {
+    key: FLAGS.FEEDBACK_EXPLORER,
+    type: 'flag',
+    displayName: 'Feedback Explorer',
+    description: 'Browse and search all feedback',
+    icon: 'search',
+    category: 'analytics',
+    sortOrder: 20
+  },
   [FLAGS.ADVANCED_ANALYTICS]: {
     key: FLAGS.ADVANCED_ANALYTICS,
     type: 'flag',
@@ -118,7 +111,7 @@ export const featureRegistry: Record<string, FeatureDefinition> = {
     description: 'Detailed insights and reporting',
     icon: 'bar-chart',
     category: 'analytics',
-    sortOrder: 20
+    sortOrder: 21
   },
   [FLAGS.CUSTOM_BRANDING]: {
     key: FLAGS.CUSTOM_BRANDING,
@@ -127,15 +120,6 @@ export const featureRegistry: Record<string, FeatureDefinition> = {
     description: 'Customize with your brand',
     icon: 'palette',
     category: 'customization',
-    sortOrder: 21
-  },
-  [FLAGS.API_ACCESS]: {
-    key: FLAGS.API_ACCESS,
-    type: 'flag',
-    displayName: 'API Access',
-    description: 'Programmatic access via API',
-    icon: 'code',
-    category: 'developer',
     sortOrder: 22
   },
   [FLAGS.PRIORITY_SUPPORT]: {
@@ -204,6 +188,10 @@ export function formatFeatureValue(key: string, value: number | boolean): string
 // Get all features from a plan in display order
 export function getPlanFeatures(plan: any): string[] {
   const features: string[] = [];
+  
+  // Add base features available for all plans
+  features.push('Analytics Dashboard');
+  features.push('Feedback Explorer');
   
   // Process limits
   if (plan.features?.limits) {

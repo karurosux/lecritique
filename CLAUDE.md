@@ -85,3 +85,5 @@ When working on LeCritique:
 ### Deployment Guidelines
 - Dont execute apps, neither frontend or backend, user always executing it out of AI context
 
+## 🚨 AI Interaction Guidelines
+- Stop adding things I did not ask, it just make me spend more money

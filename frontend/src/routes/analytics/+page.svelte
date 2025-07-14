@@ -4,7 +4,9 @@
   import { goto } from '$app/navigation';
   import { Card, Button, Select } from '$lib/components/ui';
   import ChartDataWidget from '$lib/components/analytics/ChartDataWidget.svelte';
-  import { BarChart3, Activity, Download, QrCode, Utensils, Calendar } from 'lucide-svelte';
+  import ChartDataWidgetGrouped from '$lib/components/analytics/ChartDataWidgetGrouped.svelte';
+  import QRCodeAnalytics from '$lib/components/analytics/QRCodeAnalytics.svelte';
+  import { BarChart3, Activity, Download, QrCode, Utensils, Calendar, Search, Layers, Grid } from 'lucide-svelte';
 
   let loading = $state(true);
   let error = $state('');
@@ -16,9 +18,14 @@
   
   // Filter states
   let filters = $state({
-    days: 'all', // 'all', '7', '30', '90'
+    days: '7', // 'all', '7', '30', '90'
     dishId: ''
   });
+  
+  // Search and view states
+  let searchQuery = $state('');
+  let showOnlyWithData = $state(false);
+  let viewMode = $state<'grouped' | 'all'>('grouped');
   
   let authState = $derived($auth);
   let availableDishes = $state<any[]>([]);
@@ -93,10 +100,11 @@
         chartParams.dish_id = filters.dishId;
       }
       
-      // Load analytics data and chart data in parallel
-      const [analyticsResponse, chartResponse] = await Promise.all([
+      // Load analytics data, chart data, and dashboard metrics in parallel
+      const [analyticsResponse, chartResponse, dashboardResponse] = await Promise.all([
         api.api.v1AnalyticsRestaurantsDetail(selectedRestaurant),
-        api.api.v1AnalyticsRestaurantsChartsList(selectedRestaurant, chartParams)
+        api.api.v1AnalyticsRestaurantsChartsList(selectedRestaurant, chartParams),
+        api.api.v1AnalyticsDashboardDetail(selectedRestaurant)
       ]);
       
       // Process analytics data
@@ -109,6 +117,17 @@
         chartData = chartResponse.data.data;
       } else {
         chartData = null;
+      }
+      
+      // Add QR code performance data from dashboard metrics
+      if (dashboardResponse.data?.data) {
+        analyticsData = {
+          ...analyticsData,
+          qr_performance: dashboardResponse.data.data.qr_performance,
+          total_qr_scans: dashboardResponse.data.data.total_qr_scans,
+          total_active_codes: dashboardResponse.data.data.active_qr_codes,
+          average_conversion_rate: dashboardResponse.data.data.completion_rate
+        };
       }
 
     } catch (err) {
@@ -180,107 +199,133 @@
     </div>
   </div>
 
-  <!-- Restaurant Selection -->
-  <div class="mb-8">
-    <Card variant="elevated">
-      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div class="flex items-center space-x-4">
-          <div class="h-10 w-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center">
-            <Activity class="h-5 w-5 text-white" />
-          </div>
-          <div>
-            <p class="text-sm font-medium text-gray-600">Restaurant</p>
-            <p class="text-lg font-semibold text-gray-900">
-              {restaurants.find(r => r.id === selectedRestaurant)?.name || 'Select a restaurant'}
-            </p>
-            {#if chartData?.summary?.total_responses}
-              <p class="text-sm text-gray-500 mt-1">{chartData.summary.total_responses} total responses across all dishes</p>
-            {/if}
-          </div>
-        </div>
-        <div class="flex items-center gap-4">
-          {#if restaurants.length > 0}
-            <Select
-              bind:value={selectedRestaurant}
-              options={restaurants.map(r => ({ value: r.id, label: r.name }))}
-              onchange={handleRestaurantChange}
-            />
-          {/if}
-          <Button 
-            variant="outline" 
-            onclick={loadAnalytics} 
-            disabled={loading}
-            class="group"
-          >
-            <svg class="h-4 w-4 mr-2 {loading ? 'animate-spin' : 'group-hover:rotate-180 transition-transform duration-300'}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-            </svg>
-            {loading ? 'Loading...' : 'Refresh'}
-          </Button>
-        </div>
-      </div>
-    </Card>
-  </div>
+  <!-- Analytics Controls -->
+  <div class="mb-6">
+    <Card variant="elevated" padding={false}>
+      <div class="divide-y divide-gray-200">
+        <!-- Primary Controls Row -->
+        <div class="p-4">
+          <div class="flex flex-col lg:flex-row items-start lg:items-center gap-4">
+            <!-- Left Side: Restaurant & Time -->
+            <div class="flex flex-wrap items-center gap-3 flex-1">
+              {#if restaurants.length > 0}
+                <div class="flex items-center gap-2">
+                  <Activity class="h-4 w-4 text-gray-500" />
+                  <Select
+                    bind:value={selectedRestaurant}
+                    options={restaurants.map(r => ({ value: r.id, label: r.name }))}
+                    onchange={handleRestaurantChange}
+                    minWidth="min-w-48"
+                  />
+                  {#if chartData?.summary?.total_responses}
+                    <span class="text-sm text-gray-500 hidden sm:inline">
+                      ({chartData.summary.total_responses} responses)
+                    </span>
+                  {/if}
+                </div>
+              {/if}
+              
+              <div class="flex items-center gap-2">
+                <Calendar class="h-4 w-4 text-gray-500" />
+                <div class="flex items-center gap-1 bg-gray-100 rounded-lg p-1">
+                  <button 
+                    class="px-3 py-1.5 text-sm font-medium rounded-md transition-all {filters.days === '7' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-600 hover:text-gray-900'}" 
+                    onclick={() => { filters.days = '7'; applyFilters(); }}
+                  >
+                    Week
+                  </button>
+                  <button 
+                    class="px-3 py-1.5 text-sm font-medium rounded-md transition-all {filters.days === '30' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-600 hover:text-gray-900'}" 
+                    onclick={() => { filters.days = '30'; applyFilters(); }}
+                  >
+                    Month
+                  </button>
+                  <button 
+                    class="px-3 py-1.5 text-sm font-medium rounded-md transition-all {filters.days === '90' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-600 hover:text-gray-900'}" 
+                    onclick={() => { filters.days = '90'; applyFilters(); }}
+                  >
+                    Quarter
+                  </button>
+                  <button 
+                    class="px-3 py-1.5 text-sm font-medium rounded-md transition-all {filters.days === 'all' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-600 hover:text-gray-900'}" 
+                    onclick={() => { filters.days = 'all'; applyFilters(); }}
+                  >
+                    All Time
+                  </button>
+                </div>
+              </div>
+            </div>
 
-  <!-- Simple Filters -->
-  <div class="mb-8">
-    <Card variant="elevated">
-      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <!-- Time Period Filter -->
-        <div class="flex items-center space-x-4">
-          <div class="h-10 w-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center">
-            <Calendar class="h-5 w-5 text-white" />
+            <!-- Right Side: Refresh -->
+            <button 
+              onclick={loadAnalytics} 
+              disabled={loading}
+              class="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-all disabled:opacity-50 group"
+              title="Refresh data"
+            >
+              <svg class="h-5 w-5 {loading ? 'animate-spin' : 'group-hover:rotate-180 transition-transform duration-300'}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+              </svg>
+            </button>
           </div>
-          <div>
-            <p class="text-sm font-medium text-gray-600">Time Period</p>
-            <div class="flex items-center gap-2 mt-1">
-              <Button 
-                variant={filters.days === 'all' ? 'default' : 'outline'} 
-                size="sm" 
-                onclick={() => { filters.days = 'all'; applyFilters(); }}
+        </div>
+
+        <!-- Secondary Controls Row -->
+        <div class="p-4 bg-gray-50">
+          <div class="flex flex-col lg:flex-row items-start lg:items-center gap-4">
+            <!-- Left Side: Search & Dish Filter -->
+            <div class="flex flex-wrap items-center gap-3 flex-1">
+              <div class="relative">
+                <Search class="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <input
+                  type="text"
+                  bind:value={searchQuery}
+                  placeholder="Search dishes or questions..."
+                  class="pl-9 pr-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent w-64"
+                />
+              </div>
+              
+              <div class="flex items-center gap-2">
+                <Utensils class="h-4 w-4 text-gray-500" />
+                <Select
+                  bind:value={filters.dishId}
+                  options={[
+                    { value: '', label: 'All Dishes' },
+                    ...availableDishes.map(d => ({ value: d.id, label: d.name }))
+                  ]}
+                  onchange={applyFilters}
+                  minWidth="min-w-40"
+                />
+              </div>
+              
+              <label class="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  bind:checked={showOnlyWithData}
+                  class="w-4 h-4 text-purple-600 bg-gray-100 border-gray-300 rounded focus:ring-purple-500"
+                />
+                <span class="text-sm font-medium text-gray-700">With data only</span>
+              </label>
+            </div>
+
+            <!-- Right Side: View Mode -->
+            <div class="flex items-center gap-1 bg-white border border-gray-300 rounded-lg p-1">
+              <button
+                class="px-3 py-1.5 text-sm font-medium rounded-md transition-all {viewMode === 'grouped' ? 'bg-gray-900 text-white' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'}"
+                onclick={() => viewMode = 'grouped'}
               >
-                All Time
-              </Button>
-              <Button 
-                variant={filters.days === '7' ? 'default' : 'outline'} 
-                size="sm" 
-                onclick={() => { filters.days = '7'; applyFilters(); }}
+                <Layers class="h-4 w-4 inline mr-1.5" />
+                Grouped
+              </button>
+              <button
+                class="px-3 py-1.5 text-sm font-medium rounded-md transition-all {viewMode === 'all' ? 'bg-gray-900 text-white' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'}"
+                onclick={() => viewMode = 'all'}
               >
-                7 Days
-              </Button>
-              <Button 
-                variant={filters.days === '30' ? 'default' : 'outline'} 
-                size="sm" 
-                onclick={() => { filters.days = '30'; applyFilters(); }}
-              >
-                30 Days
-              </Button>
-              <Button 
-                variant={filters.days === '90' ? 'default' : 'outline'} 
-                size="sm" 
-                onclick={() => { filters.days = '90'; applyFilters(); }}
-              >
-                90 Days
-              </Button>
+                <Grid class="h-4 w-4 inline mr-1.5" />
+                All
+              </button>
             </div>
           </div>
-        </div>
-
-        <!-- Dish Filter -->
-        <div class="flex items-center space-x-4">
-          <div class="h-10 w-10 bg-gradient-to-br from-purple-500 to-pink-600 rounded-xl flex items-center justify-center">
-            <Utensils class="h-5 w-5 text-white" />
-          </div>
-          <Select
-            bind:value={filters.dishId}
-            options={[
-              { value: '', label: 'All Dishes' },
-              ...availableDishes.map(d => ({ value: d.id, label: d.name }))
-            ]}
-            onchange={applyFilters}
-            minWidth="min-w-48"
-            placeholder="Select a dish..."
-          />
         </div>
       </div>
     </Card>
@@ -363,8 +408,26 @@
   {:else}
     <!-- Analytics Content -->
     <div class="space-y-8">
-      <!-- Chart Analytics -->
-      <ChartDataWidget chartData={chartData} title="" />
+      <!-- Chart Analytics with Grouping -->
+      <ChartDataWidgetGrouped 
+        chartData={chartData} 
+        title="" 
+        groupByDish={true}
+        initiallyExpanded={false}
+        bind:searchQuery={searchQuery}
+        bind:showOnlyWithData={showOnlyWithData}
+        bind:viewMode={viewMode}
+        hideControls={true}
+      />
+      
+      <!-- QR Code Analytics -->
+      {#if chartData?.feedbacks?.length > 0}
+        <QRCodeAnalytics 
+          analyticsData={analyticsData}
+          feedbacks={chartData.feedbacks}
+          {loading}
+        />
+      {/if}
     </div>
   {/if}
 </div>

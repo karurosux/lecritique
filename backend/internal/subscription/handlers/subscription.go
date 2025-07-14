@@ -1,11 +1,13 @@
 package handlers
 
 import (
+	"errors"
 	"net/http"
 
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
-	"github.com/lecritique/api/internal/shared/errors"
+	sharedErrors "github.com/lecritique/api/internal/shared/errors"
+	sharedRepos "github.com/lecritique/api/internal/shared/repositories"
 	"github.com/lecritique/api/internal/shared/response"
 	"github.com/lecritique/api/internal/shared/validator"
 	"github.com/lecritique/api/internal/subscription/services"
@@ -65,6 +67,10 @@ func (h *SubscriptionHandler) GetUserSubscription(c echo.Context) error {
 
 	subscription, err := h.subscriptionService.GetUserSubscription(ctx, accountID)
 	if err != nil {
+		// If no subscription found, return null instead of error
+		if errors.Is(err, sharedRepos.ErrRecordNotFound) {
+			return response.Success(c, nil)
+		}
 		return response.Error(c, err)
 	}
 
@@ -113,16 +119,16 @@ func (h *SubscriptionHandler) CreateSubscription(c echo.Context) error {
 
 	var req CreateSubscriptionRequest
 	if err := c.Bind(&req); err != nil {
-		return response.Error(c, errors.ErrBadRequest)
+		return response.Error(c, sharedErrors.ErrBadRequest)
 	}
 
 	if err := h.validator.Validate(req); err != nil {
-		return response.Error(c, errors.NewWithDetails("VALIDATION_ERROR", "Validation failed", http.StatusBadRequest, h.validator.FormatErrors(err)))
+		return response.Error(c, sharedErrors.NewWithDetails("VALIDATION_ERROR", "Validation failed", http.StatusBadRequest, h.validator.FormatErrors(err)))
 	}
 
 	planID, err := uuid.Parse(req.PlanID)
 	if err != nil {
-		return response.Error(c, errors.ErrBadRequest)
+		return response.Error(c, sharedErrors.ErrBadRequest)
 	}
 
 	createReq := &services.CreateSubscriptionRequest{

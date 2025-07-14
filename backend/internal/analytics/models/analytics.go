@@ -105,14 +105,16 @@ type DashboardMetrics struct {
 
 // QRCodePerformance represents performance data for individual QR codes
 type QRCodePerformance struct {
-	ID             uuid.UUID `json:"id"`
-	Label          string    `json:"label"`
-	Location       string    `json:"location,omitempty"`
-	RestaurantID   uuid.UUID `json:"restaurant_id"`
-	RestaurantName string    `json:"restaurant_name"`
-	ScansCount     int64     `json:"scans_count"`
-	FeedbackCount  int64     `json:"feedback_count"`
-	ConversionRate float64   `json:"conversion_rate"` // feedback / scans * 100
+	ID             uuid.UUID  `json:"id"`
+	Label          string     `json:"label"`
+	Location       string     `json:"location,omitempty"`
+	RestaurantID   uuid.UUID  `json:"restaurant_id"`
+	RestaurantName string     `json:"restaurant_name"`
+	ScansCount     int64      `json:"scans_count"`
+	FeedbackCount  int64      `json:"feedback_count"`
+	ConversionRate float64    `json:"conversion_rate"` // feedback / scans * 100
+	LastScan       *time.Time `json:"last_scan,omitempty"`
+	IsActive       bool       `json:"is_active"`
 }
 
 // Supporting types
@@ -163,6 +165,8 @@ type ChartData struct {
 	QuestionText string                 `json:"question_text"`
 	QuestionType string                 `json:"question_type"`
 	ChartType    string                 `json:"chart_type"` // "rating", "choice", "text_sentiment"
+	DishID       *uuid.UUID             `json:"dish_id,omitempty"`
+	DishName     string                 `json:"dish_name,omitempty"`
 	Data         map[string]interface{} `json:"data"`
 }
 

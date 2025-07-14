@@ -772,6 +772,8 @@ func (s *analyticsService) getQRCodePerformance(ctx context.Context, restaurantI
 			ScansCount:     int64(qr.ScansCount),
 			FeedbackCount:  feedbackCount,
 			ConversionRate: conversionRate,
+			LastScan:       qr.LastScannedAt,
+			IsActive:       qr.IsActive,
 		}
 		
 		// Add location if available
@@ -804,7 +806,19 @@ func (s *analyticsService) GetRestaurantChartData(ctx context.Context, restauran
 		return nil, err
 	}
 	
-	// Note: We don't need dish data for this aggregation, removed unused variable
+	// Get all dishes for this restaurant to map dish names
+	dishes, err := s.dishRepo.FindByRestaurantID(ctx, restaurantID)
+	if err != nil {
+		logger.Error("Failed to get dishes", err, logrus.Fields{"restaurant_id": restaurantID})
+	}
+	
+	// Create dish ID to name map
+	dishMap := make(map[uuid.UUID]string)
+	if dishes != nil {
+		for _, dish := range dishes {
+			dishMap[dish.ID] = dish.Name
+		}
+	}
 	
 	// Aggregate chart data by question across all dishes
 	chartData := &analyticsModels.RestaurantChartData{
@@ -812,32 +826,54 @@ func (s *analyticsService) GetRestaurantChartData(ctx context.Context, restauran
 		Charts:       []analyticsModels.ChartData{},
 	}
 	
-	// Group responses by question_id
-	questionResponses := make(map[uuid.UUID][]feedbackModels.Response)
-	questionMeta := make(map[uuid.UUID]struct {
-		Text string
-		Type string
+	// Group responses by question_id and dish_id combination
+	type questionDishKey struct {
+		QuestionID uuid.UUID
+		DishID     uuid.UUID
+	}
+	
+	questionDishResponses := make(map[questionDishKey][]feedbackModels.Response)
+	questionDishMeta := make(map[questionDishKey]struct {
+		Text     string
+		Type     string
+		DishID   uuid.UUID
+		DishName string
 	})
 	
 	for _, f := range feedback.Data {
+		dishName := dishMap[f.DishID]
 		for _, response := range f.Responses {
-			questionResponses[response.QuestionID] = append(questionResponses[response.QuestionID], response)
-			if questionMeta[response.QuestionID].Text == "" {
-				questionMeta[response.QuestionID] = struct {
-					Text string
-					Type string
+			key := questionDishKey{
+				QuestionID: response.QuestionID,
+				DishID:     f.DishID,
+			}
+			questionDishResponses[key] = append(questionDishResponses[key], response)
+			if questionDishMeta[key].Text == "" {
+				questionDishMeta[key] = struct {
+					Text     string
+					Type     string
+					DishID   uuid.UUID
+					DishName string
 				}{
-					Text: response.QuestionText,
-					Type: string(response.QuestionType),
+					Text:     response.QuestionText,
+					Type:     string(response.QuestionType),
+					DishID:   f.DishID,
+					DishName: dishName,
 				}
 			}
 		}
 	}
 	
-	// Generate chart data for each question
-	for questionID, responses := range questionResponses {
-		meta := questionMeta[questionID]
-		chartData.Charts = append(chartData.Charts, s.aggregateQuestionResponses(questionID, meta.Text, meta.Type, responses))
+	// Generate chart data for each question-dish combination
+	for key, responses := range questionDishResponses {
+		meta := questionDishMeta[key]
+		chart := s.aggregateQuestionResponses(key.QuestionID, meta.Text, meta.Type, responses)
+		// Add dish information
+		if meta.DishID != uuid.Nil {
+			chart.DishID = &meta.DishID
+			chart.DishName = meta.DishName
+		}
+		chartData.Charts = append(chartData.Charts, chart)
 	}
 	
 	// Set summary information
