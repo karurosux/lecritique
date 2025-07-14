@@ -1,4 +1,4 @@
--- Insert subscription plans
+-- Insert subscription plans (using old format - will be converted by migration)
 INSERT INTO subscription_plans (id, name, code, description, price, currency, interval, features, is_active) VALUES
 (
     '11111111-1111-1111-1111-111111111111',
@@ -10,13 +10,13 @@ INSERT INTO subscription_plans (id, name, code, description, price, currency, in
     'month',
     '{
         "max_restaurants": 1,
-        "max_locations_per_restaurant": 1,
-        "max_qr_codes_per_location": 5,
+        "max_qr_codes": 5,
         "max_feedbacks_per_month": 50,
         "max_team_members": 2,
+        "basic_analytics": true,
         "advanced_analytics": false,
+        "feedback_explorer": true,
         "custom_branding": false,
-        "api_access": false,
         "priority_support": false
     }'::jsonb,
     true
@@ -31,13 +31,13 @@ INSERT INTO subscription_plans (id, name, code, description, price, currency, in
     'month',
     '{
         "max_restaurants": 3,
-        "max_locations_per_restaurant": 3,
-        "max_qr_codes_per_location": 25,
+        "max_qr_codes": 75,
         "max_feedbacks_per_month": 250,
         "max_team_members": 5,
+        "basic_analytics": true,
         "advanced_analytics": true,
+        "feedback_explorer": true,
         "custom_branding": false,
-        "api_access": false,
         "priority_support": false
     }'::jsonb,
     true
@@ -46,19 +46,19 @@ INSERT INTO subscription_plans (id, name, code, description, price, currency, in
     '33333333-3333-3333-3333-333333333333',
     'Premium',
     'premium',
-    'Larger plan with more features',
+    'For restaurant chains and large operations',
     199.00,
     'USD',
     'month',
     '{
         "max_restaurants": 20,
-        "max_locations_per_restaurant": 50,
-        "max_qr_codes_per_location": 100,
+        "max_qr_codes": 2000,
         "max_feedbacks_per_month": 1000,
-        "max_team_members": 20,
+        "max_team_members": 50,
+        "basic_analytics": true,
         "advanced_analytics": true,
+        "feedback_explorer": true,
         "custom_branding": true,
-        "api_access": true,
         "priority_support": true
     }'::jsonb,
     true

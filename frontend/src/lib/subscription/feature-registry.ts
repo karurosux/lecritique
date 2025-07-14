@@ -17,20 +17,17 @@ export interface FeatureDefinition {
 // Feature keys matching backend constants
 export const LIMITS = {
   RESTAURANTS: 'max_restaurants',
-  LOCATIONS_PER_RESTAURANT: 'max_locations_per_restaurant',
-  QR_CODES_PER_LOCATION: 'max_qr_codes_per_location',
+  QR_CODES: 'max_qr_codes',
   FEEDBACKS_PER_MONTH: 'max_feedbacks_per_month',
   TEAM_MEMBERS: 'max_team_members'
 } as const;
 
 export const FLAGS = {
   BASIC_ANALYTICS: 'basic_analytics',
-  FEEDBACK_EXPLORER: 'feedback_explorer',
   ADVANCED_ANALYTICS: 'advanced_analytics',
+  FEEDBACK_EXPLORER: 'feedback_explorer',
   CUSTOM_BRANDING: 'custom_branding',
-  PRIORITY_SUPPORT: 'priority_support',
-  WHITE_LABEL: 'white_label',
-  CUSTOM_DOMAIN: 'custom_domain'
+  PRIORITY_SUPPORT: 'priority_support'
 } as const;
 
 // Feature registry with all feature definitions
@@ -48,6 +45,18 @@ export const featureRegistry: Record<string, FeatureDefinition> = {
     category: 'core',
     sortOrder: 1
   },
+  [LIMITS.QR_CODES]: {
+    key: LIMITS.QR_CODES,
+    type: 'limit',
+    displayName: 'QR Codes',
+    description: 'Total QR codes across all restaurants',
+    unit: 'QR codes',
+    unlimitedText: 'Unlimited QR codes',
+    format: '{value} QR codes',
+    icon: 'qr-code',
+    category: 'core',
+    sortOrder: 2
+  },
   [LIMITS.FEEDBACKS_PER_MONTH]: {
     key: LIMITS.FEEDBACKS_PER_MONTH,
     type: 'limit',
@@ -57,18 +66,6 @@ export const featureRegistry: Record<string, FeatureDefinition> = {
     unlimitedText: 'Unlimited feedbacks',
     format: '{value} feedbacks/month',
     icon: 'message-square',
-    category: 'core',
-    sortOrder: 2
-  },
-  [LIMITS.QR_CODES_PER_LOCATION]: {
-    key: LIMITS.QR_CODES_PER_LOCATION,
-    type: 'limit',
-    displayName: 'QR Codes',
-    description: 'QR codes per location',
-    unit: 'QR codes/location',
-    unlimitedText: 'Unlimited QR codes',
-    format: '{value} QR codes per location',
-    icon: 'qr-code',
     category: 'core',
     sortOrder: 3
   },
@@ -89,18 +86,9 @@ export const featureRegistry: Record<string, FeatureDefinition> = {
   [FLAGS.BASIC_ANALYTICS]: {
     key: FLAGS.BASIC_ANALYTICS,
     type: 'flag',
-    displayName: 'Analytics Dashboard',
+    displayName: 'Basic Analytics',
     description: 'View feedback analytics and insights',
     icon: 'bar-chart-2',
-    category: 'analytics',
-    sortOrder: 19
-  },
-  [FLAGS.FEEDBACK_EXPLORER]: {
-    key: FLAGS.FEEDBACK_EXPLORER,
-    type: 'flag',
-    displayName: 'Feedback Explorer',
-    description: 'Browse and search all feedback',
-    icon: 'search',
     category: 'analytics',
     sortOrder: 20
   },
@@ -113,6 +101,15 @@ export const featureRegistry: Record<string, FeatureDefinition> = {
     category: 'analytics',
     sortOrder: 21
   },
+  [FLAGS.FEEDBACK_EXPLORER]: {
+    key: FLAGS.FEEDBACK_EXPLORER,
+    type: 'flag',
+    displayName: 'Feedback Explorer',
+    description: 'Browse and search all feedback',
+    icon: 'search',
+    category: 'analytics',
+    sortOrder: 22
+  },
   [FLAGS.CUSTOM_BRANDING]: {
     key: FLAGS.CUSTOM_BRANDING,
     type: 'flag',
@@ -120,7 +117,7 @@ export const featureRegistry: Record<string, FeatureDefinition> = {
     description: 'Customize with your brand',
     icon: 'palette',
     category: 'customization',
-    sortOrder: 22
+    sortOrder: 23
   },
   [FLAGS.PRIORITY_SUPPORT]: {
     key: FLAGS.PRIORITY_SUPPORT,
@@ -129,25 +126,7 @@ export const featureRegistry: Record<string, FeatureDefinition> = {
     description: '24/7 priority customer support',
     icon: 'headphones',
     category: 'support',
-    sortOrder: 23
-  },
-  [FLAGS.WHITE_LABEL]: {
-    key: FLAGS.WHITE_LABEL,
-    type: 'flag',
-    displayName: 'White Label',
-    description: 'Remove LeCritique branding',
-    icon: 'eye-off',
-    category: 'customization',
     sortOrder: 24
-  },
-  [FLAGS.CUSTOM_DOMAIN]: {
-    key: FLAGS.CUSTOM_DOMAIN,
-    type: 'flag',
-    displayName: 'Custom Domain',
-    description: 'Use your own domain',
-    icon: 'globe',
-    category: 'customization',
-    sortOrder: 25
   }
 };
 

@@ -49,81 +49,82 @@ func (m *SubscriptionMiddleware) RequireActiveSubscription() echo.MiddlewareFunc
 	}
 }
 
-// RequireFeature checks if the subscription has a specific feature
-// func (m *SubscriptionMiddleware) RequireFeature(feature string) echo.MiddlewareFunc {
-// 	return func(next echo.HandlerFunc) echo.HandlerFunc {
-// 		return func(c echo.Context) error {
-// 			subscription, ok := c.Get("subscription").(*models.Subscription)
-// 			if !ok {
-// 				// Try to fetch subscription if not in context
-// 				accountID, ok := c.Get("account_id").(uuid.UUID)
-// 				if !ok {
-// 					return response.Error(c, errors.ErrUnauthorized)
-// 				}
-//
-// 				var err error
-// 				subscription, err = m.subscriptionService.GetUserSubscription(c.Request().Context(), accountID)
-// 				if err != nil || subscription == nil {
-// 					return response.Error(c, errors.ErrNoSubscriptionFound)
-// 				}
-// 			}
-//
-// 			// Check feature availability
-// 			hasFeature := false
-// 			switch feature {
-// 			case "advanced_analytics":
-// 				hasFeature = subscription.Plan.Features.AdvancedAnalytics
-// 			case "custom_branding":
-// 				hasFeature = subscription.Plan.Features.CustomBranding
-// 			case "api_access":
-// 				hasFeature = subscription.Plan.Features.APIAccess
-// 			case "priority_support":
-// 				hasFeature = subscription.Plan.Features.PrioritySupport
-// 			}
-//
-// 			if !hasFeature {
-// 				return response.Error(c, http.StatusForbidden, "This feature is not available in your current plan")
-// 			}
-//
-// 			return next(c)
-// 		}
-// 	}
-// }
+// RequireFeature checks if the subscription has a specific feature flag
+func (m *SubscriptionMiddleware) RequireFeature(feature string) echo.MiddlewareFunc {
+	return func(next echo.HandlerFunc) echo.HandlerFunc {
+		return func(c echo.Context) error {
+			subscription, ok := c.Get("subscription").(*models.Subscription)
+			if !ok {
+				// Try to fetch subscription if not in context
+				accountID, ok := c.Get("account_id").(uuid.UUID)
+				if !ok {
+					return response.Error(c, errors.ErrUnauthorized)
+				}
+
+				var err error
+				subscription, err = m.subscriptionService.GetUserSubscription(c.Request().Context(), accountID)
+				if err != nil || subscription == nil {
+					return response.Error(c, errors.ErrNoSubscriptionFound)
+				}
+				c.Set("subscription", subscription)
+			}
+
+			// Check feature availability using the flexible flag system
+			hasFeature := subscription.Plan.Features.GetFlag(feature)
+
+			if !hasFeature {
+				return response.Error(c, errors.Forbidden("This feature is not available in your current plan"))
+			}
+
+			return next(c)
+		}
+	}
+}
 
 // CheckResourceLimit checks if user can add a resource type
-// func (m *SubscriptionMiddleware) CheckResourceLimit(resourceType string) echo.MiddlewareFunc {
-// 	return func(next echo.HandlerFunc) echo.HandlerFunc {
-// 		return func(c echo.Context) error {
-// 			subscription, ok := c.Get("subscription").(*models.Subscription)
-// 			if !ok {
-// 				accountID, ok := c.Get("account_id").(uuid.UUID)
-// 				if !ok {
-// 					return response.Error(c, http.StatusUnauthorized, "Unauthorized")
-// 				}
-//
-// 				var err error
-// 				subscription, err = m.subscriptionService.GetUserSubscription(c.Request().Context(), accountID)
-// 				if err != nil || subscription == nil {
-// 					return response.Error(c, http.StatusPaymentRequired, "No active subscription found")
-// 				}
-// 			}
-//
-// 			// Check usage limits
-// 			canAdd, reason, err := m.usageService.CanAddResource(c.Request().Context(), subscription.ID, resourceType)
-// 			if err != nil {
-// 				return response.Error(c, http.StatusInternalServerError, "Failed to check resource limits")
-// 			}
-//
-// 			if !canAdd {
-// 				return response.Error(c, http.StatusForbidden, reason)
-// 			}
-//
-// 			// Store resource type for tracking after successful creation
-// 			c.Set("track_resource_type", resourceType)
-// 			return next(c)
-// 		}
-// 	}
-// }
+func (m *SubscriptionMiddleware) CheckResourceLimit(resourceType string) echo.MiddlewareFunc {
+	return func(next echo.HandlerFunc) echo.HandlerFunc {
+		return func(c echo.Context) error {
+			subscription, ok := c.Get("subscription").(*models.Subscription)
+			if !ok {
+				accountID, ok := c.Get("account_id").(uuid.UUID)
+				if !ok {
+					return response.Error(c, errors.ErrUnauthorized)
+				}
+
+				var err error
+				subscription, err = m.subscriptionService.GetUserSubscription(c.Request().Context(), accountID)
+				if err != nil || subscription == nil {
+					return response.Error(c, errors.ErrNoSubscriptionFound)
+				}
+				c.Set("subscription", subscription)
+			}
+
+			// Check usage limits
+			canAdd, reason, err := m.usageService.CanAddResource(c.Request().Context(), subscription.ID, resourceType)
+			if err != nil {
+				return response.Error(c, errors.BadRequest("Failed to check resource limits"))
+			}
+
+			if !canAdd {
+				return response.Error(c, errors.Forbidden(reason))
+			}
+
+			// Store resource type for tracking after successful creation
+			c.Set("track_resource_type", resourceType)
+			return next(c)
+		}
+	}
+}
+
+// GetSubscriptionFromContext retrieves the subscription from echo context
+func GetSubscriptionFromContext(c echo.Context) (*models.Subscription, error) {
+	subscription, ok := c.Get("subscription").(*models.Subscription)
+	if !ok {
+		return nil, errors.ErrNoSubscriptionFound
+	}
+	return subscription, nil
+}
 
 // TrackUsageAfterSuccess tracks usage after successful resource creation
 func (m *SubscriptionMiddleware) TrackUsageAfterSuccess() echo.MiddlewareFunc {
@@ -158,4 +159,3 @@ func (m *SubscriptionMiddleware) TrackUsageAfterSuccess() echo.MiddlewareFunc {
 		}
 	}
 }
-

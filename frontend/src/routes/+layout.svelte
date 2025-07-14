@@ -1,7 +1,9 @@
 <script>
   import { page } from "$app/stores";
+  import { FeatureGate, FEATURES } from "$lib/components/subscription";
   import { Logo, UserMenu } from "$lib/components/ui";
   import { auth } from "$lib/stores/auth";
+  import { subscription } from "$lib/stores/subscription";
   import "../app.css";
 
   let { children } = $props();
@@ -10,12 +12,28 @@
     $page.route?.id?.includes("login") || $page.route?.id?.includes("register"),
   );
 
-  let isPublicPage = $derived(
-    $page.route?.id?.includes("qr/"),
-  );
+  let isPublicPage = $derived($page.route?.id?.includes("qr/"));
 
   // Show navbar on all non-auth and non-public pages (independent of auth loading state)
   let showNavbar = $derived(!isAuthPage && !isPublicPage);
+
+  let authState = $derived($auth);
+  let hasLoadedFeatures = $state(false);
+
+  // Load subscription features when authenticated
+  $effect(() => {
+    if (
+      authState.isAuthenticated &&
+      !hasLoadedFeatures &&
+      !isAuthPage &&
+      !isPublicPage
+    ) {
+      hasLoadedFeatures = true;
+      subscription.fetchPlanFeatures().catch((error) => {
+        console.error("Failed to load subscription features:", error);
+      });
+    }
+  });
 </script>
 
 {#if showNavbar}
@@ -54,28 +72,31 @@
             >
               Restaurants
             </a>
-            <a
-              href="/analytics"
-              class="px-4 py-2 text-sm font-medium rounded-lg transition-all duration-150 {$page.route?.id?.includes(
-                'analytics',
-              )
-                ? 'bg-gradient-to-r from-blue-600 to-purple-600 !text-white shadow-lg shadow-blue-500/25'
-                : 'text-gray-700 hover:text-gray-900 hover:bg-gray-100'}"
-            >
-              Analytics
-            </a>
-            <a
-              href="/feedback/manage"
-              class="px-4 py-2 text-sm font-medium rounded-lg transition-all duration-150 {$page.route?.id?.includes(
-                'feedback',
-              )
-                ? 'bg-gradient-to-r from-blue-600 to-purple-600 !text-white shadow-lg shadow-blue-500/25'
-                : 'text-gray-700 hover:text-gray-900 hover:bg-gray-100'}"
-            >
-              Feedback
-            </a>
+            <FeatureGate feature={FEATURES.BASIC_ANALYTICS}>
+              <a
+                href="/analytics"
+                class="px-4 py-2 text-sm font-medium rounded-lg transition-all duration-150 {$page.route?.id?.includes(
+                  'analytics',
+                )
+                  ? 'bg-gradient-to-r from-blue-600 to-purple-600 !text-white shadow-lg shadow-blue-500/25'
+                  : 'text-gray-700 hover:text-gray-900 hover:bg-gray-100'}"
+              >
+                Analytics
+              </a>
+            </FeatureGate>
+            <FeatureGate feature={FEATURES.FEEDBACK_EXPLORER}>
+              <a
+                href="/feedback/manage"
+                class="px-4 py-2 text-sm font-medium rounded-lg transition-all duration-150 {$page.route?.id?.includes(
+                  'feedback',
+                )
+                  ? 'bg-gradient-to-r from-blue-600 to-purple-600 !text-white shadow-lg shadow-blue-500/25'
+                  : 'text-gray-700 hover:text-gray-900 hover:bg-gray-100'}"
+              >
+                Feedback
+              </a>
+            </FeatureGate>
           </nav>
-
           <UserMenu />
         </div>
       </div>
@@ -88,11 +109,17 @@
 >
   <!-- Animated background gradients -->
   <div class="absolute inset-0 overflow-hidden">
-    <div class="absolute -top-40 -right-40 w-80 h-80 bg-purple-300 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob"></div>
-    <div class="absolute -bottom-40 -left-40 w-80 h-80 bg-blue-300 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000"></div>
-    <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-pink-300 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-4000"></div>
+    <div
+      class="absolute -top-40 -right-40 w-80 h-80 bg-purple-300 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob"
+    ></div>
+    <div
+      class="absolute -bottom-40 -left-40 w-80 h-80 bg-blue-300 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000"
+    ></div>
+    <div
+      class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-pink-300 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-4000"
+    ></div>
   </div>
-  
+
   <!-- Content -->
   <div class="relative">
     {@render children()}

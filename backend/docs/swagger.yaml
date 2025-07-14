@@ -199,6 +199,20 @@ definitions:
       type:
         type: string
     type: object
+  handlers.PlanFeaturesResponse:
+    properties:
+      features:
+        additionalProperties: true
+        type: object
+      is_active:
+        type: boolean
+      plan_code:
+        type: string
+      plan_name:
+        type: string
+      subscription_status:
+        type: string
+    type: object
   handlers.PortalResponse:
     properties:
       portal_url:
@@ -3645,6 +3659,40 @@ paths:
       security:
       - BearerAuth: []
       summary: Create a new subscription
+      tags:
+      - subscription
+  /api/v1/user/subscription/features:
+    get:
+      consumes:
+      - application/json
+      description: Get the current subscription plan features in a structured format
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/handlers.PlanFeaturesResponse'
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: Get current plan features
       tags:
       - subscription
   /restaurants/{restaurantId}/questionnaires/{id}/questions:

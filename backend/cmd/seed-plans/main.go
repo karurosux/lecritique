@@ -35,7 +35,7 @@ func main() {
 			features = EXCLUDED.features,
 			is_active = EXCLUDED.is_active
 	`, "starter", "Starter", "Perfect for small restaurants just getting started", 29.99, "USD", 
-	`{"max_restaurants": 1, "max_locations_per_restaurant": 3, "max_qr_codes_per_location": 5, "max_feedbacks_per_month": 50, "max_team_members": 2, "advanced_analytics": false, "custom_branding": false, "api_access": false, "priority_support": false}`).Error
+	`{"max_restaurants": 1, "max_qr_codes": 15, "max_feedbacks_per_month": 50, "max_team_members": 2, "basic_analytics": true, "advanced_analytics": false, "feedback_explorer": true, "custom_branding": false, "priority_support": false}`).Error
 
 	if err != nil {
 		log.Printf("⚠️  Warning: Failed to create Starter plan: %v\n", err)
@@ -55,7 +55,7 @@ func main() {
 			features = EXCLUDED.features,
 			is_active = EXCLUDED.is_active
 	`, "professional", "Professional", "For growing restaurant chains and franchises", 79.99, "USD",
-	`{"max_restaurants": 5, "max_locations_per_restaurant": 10, "max_qr_codes_per_location": 25, "max_feedbacks_per_month": 250, "max_team_members": 10, "advanced_analytics": true, "custom_branding": true, "api_access": true, "priority_support": false}`).Error
+	`{"max_restaurants": 5, "max_qr_codes": 125, "max_feedbacks_per_month": 250, "max_team_members": 10, "basic_analytics": true, "advanced_analytics": true, "feedback_explorer": true, "custom_branding": true, "priority_support": false}`).Error
 
 	if err != nil {
 		log.Printf("⚠️  Warning: Failed to create Professional plan: %v\n", err)
@@ -75,7 +75,7 @@ func main() {
 			features = EXCLUDED.features,
 			is_active = EXCLUDED.is_active
 	`, "premium", "Premium", "Unlimited scale with premium support and features", 199.99, "USD",
-	`{"max_restaurants": 20, "max_locations_per_restaurant": 50, "max_qr_codes_per_location": 100, "max_feedbacks_per_month": 1000, "max_team_members": 50, "advanced_analytics": true, "custom_branding": true, "api_access": true, "priority_support": true}`).Error
+	`{"max_restaurants": 20, "max_qr_codes": 2000, "max_feedbacks_per_month": 1000, "max_team_members": 50, "basic_analytics": true, "advanced_analytics": true, "feedback_explorer": true, "custom_branding": true, "priority_support": true}`).Error
 
 	if err != nil {
 		log.Printf("⚠️  Warning: Failed to create Premium plan: %v\n", err)
@@ -85,7 +85,7 @@ func main() {
 
 	fmt.Println("\n🎉 Subscription plans created successfully!")
 	fmt.Println("📊 Plans available:")
-	fmt.Println("   • Starter: $29.99/month - 1 restaurant, 3 locations")
-	fmt.Println("   • Professional: $79.99/month - 5 restaurants, 10 locations") 
-	fmt.Println("   • Premium: $199.99/month - 20 restaurants, 50 locations each")
+	fmt.Println("   • Starter: $29.99/month - 1 restaurant, 15 QR codes")
+	fmt.Println("   • Professional: $79.99/month - 5 restaurants, 125 QR codes") 
+	fmt.Println("   • Premium: $199.99/month - 20 restaurants, 2000 QR codes")
 }

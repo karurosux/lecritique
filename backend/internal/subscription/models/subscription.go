@@ -77,23 +77,19 @@ func (pf PlanFeatures) IsUnlimited(key string) bool {
 
 // Common limit keys as constants for type safety
 const (
-	LimitRestaurants          = "max_restaurants"
-	LimitLocationsPerRestaurant = "max_locations_per_restaurant"
-	LimitQRCodesPerLocation   = "max_qr_codes_per_location"
-	LimitFeedbacksPerMonth    = "max_feedbacks_per_month"
-	LimitTeamMembers          = "max_team_members"
-	LimitStorageGB            = "max_storage_gb"
-	LimitAPICallsPerHour      = "max_api_calls_per_hour"
+	LimitRestaurants       = "max_restaurants"
+	LimitQRCodes           = "max_qr_codes"
+	LimitFeedbacksPerMonth = "max_feedbacks_per_month"
+	LimitTeamMembers       = "max_team_members"
 )
 
 // Common feature flags
 const (
+	FlagBasicAnalytics    = "basic_analytics"
 	FlagAdvancedAnalytics = "advanced_analytics"
+	FlagFeedbackExplorer  = "feedback_explorer"
 	FlagCustomBranding    = "custom_branding"
-	FlagAPIAccess         = "api_access"
 	FlagPrioritySupport   = "priority_support"
-	FlagWhiteLabel        = "white_label"
-	FlagCustomDomain      = "custom_domain"
 )
 
 // GORM Scanner/Valuer interfaces for JSONB

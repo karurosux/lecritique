@@ -153,6 +153,14 @@ export interface HandlersPaymentMethodResponse {
   type?: string;
 }
 
+export interface HandlersPlanFeaturesResponse {
+  features?: Record<string, any>;
+  is_active?: boolean;
+  plan_code?: string;
+  plan_name?: string;
+  subscription_status?: string;
+}
+
 export interface HandlersPortalResponse {
   portal_url?: string;
 }
@@ -2388,6 +2396,30 @@ export class Api<
       this.request<ResponseResponse, ResponseResponse>({
         path: `/api/v1/user/subscription`,
         method: "DELETE",
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description Get the current subscription plan features in a structured format
+     *
+     * @tags subscription
+     * @name V1UserSubscriptionFeaturesList
+     * @summary Get current plan features
+     * @request GET:/api/v1/user/subscription/features
+     * @secure
+     */
+    v1UserSubscriptionFeaturesList: (params: RequestParams = {}) =>
+      this.request<
+        ResponseResponse & {
+          data?: HandlersPlanFeaturesResponse;
+        },
+        ResponseResponse
+      >({
+        path: `/api/v1/user/subscription/features`,
+        method: "GET",
         secure: true,
         type: ContentType.Json,
         format: "json",

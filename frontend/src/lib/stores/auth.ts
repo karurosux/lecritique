@@ -175,6 +175,10 @@ function createAuthStore() {
       // Clear security data
       api.setSecurityData(null);
 
+      // Reset subscription data
+      const { subscription } = await import('./subscription');
+      subscription.reset();
+
       // Reset store to clean initial state
       set({
         user: null,

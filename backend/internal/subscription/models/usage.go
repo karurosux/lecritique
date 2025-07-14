@@ -79,10 +79,10 @@ func (u *SubscriptionUsage) CanAddResource(resourceType string, plan PlanFeature
 		limitKey = LimitRestaurants
 		currentUsage = int64(u.RestaurantsCount)
 	case ResourceTypeLocation:
-		limitKey = LimitLocationsPerRestaurant
-		currentUsage = int64(u.LocationsCount)
+		// Locations are no longer limited separately
+		return true, ""
 	case ResourceTypeQRCode:
-		limitKey = LimitQRCodesPerLocation
+		limitKey = LimitQRCodes
 		currentUsage = int64(u.QRCodesCount)
 	case ResourceTypeTeamMember:
 		limitKey = LimitTeamMembers
