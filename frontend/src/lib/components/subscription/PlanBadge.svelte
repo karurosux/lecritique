@@ -1,9 +1,9 @@
 <script lang="ts">
-	import { planFeatures } from '$lib/stores/subscription';
+	import { subscription, isSubscribed } from '$lib/stores/subscription';
 
-	let planName = $derived($planFeatures?.plan_name || 'Free');
-	let planCode = $derived($planFeatures?.plan_code || 'free');
-	let isActive = $derived($planFeatures?.is_active || false);
+	let planName = $derived($subscription.subscription?.plan?.name || 'Free');
+	let planCode = $derived($subscription.subscription?.plan?.code || 'free');
+	let isActive = $derived($isSubscribed);
 
 	let badgeClass = $derived(() => {
 		if (!isActive) return 'bg-gray-100 text-gray-800';

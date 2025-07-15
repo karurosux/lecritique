@@ -31,7 +31,6 @@ func RegisterRoutes(v1 *echo.Group, db *gorm.DB, authService authServices.AuthSe
 	
 	// User subscription routes
 	user.GET("/subscription", subscriptionHandler.GetUserSubscription)
-	user.GET("/subscription/features", subscriptionHandler.GetCurrentPlanFeatures)
 	user.POST("/subscription", subscriptionHandler.CreateSubscription)
 	user.DELETE("/subscription", subscriptionHandler.CancelSubscription)
 	

@@ -23,12 +23,10 @@
   async function loadData() {
     isLoading = true;
     try {
-      await Promise.all([
-        subscription.fetchSubscription(),
-        subscription.fetchPlans()
-      ]);
+      // Only fetch plans since subscription is already loaded from login
+      await subscription.fetchPlans();
     } catch (error) {
-      onError?.('Failed to load subscription data');
+      onError?.('Failed to load plans data');
     } finally {
       isLoading = false;
     }

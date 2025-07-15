@@ -47,11 +47,6 @@ export interface HandlersAcceptInviteRequest {
   token: string;
 }
 
-export interface HandlersAuthResponse {
-  account?: any;
-  token?: string;
-}
-
 export interface HandlersCardDetailsResponse {
   brand?: string;
   exp_month?: number;
@@ -100,6 +95,12 @@ export interface HandlersCreateRestaurantRequest {
 
 export interface HandlersCreateSubscriptionRequest {
   plan_id: string;
+}
+
+export interface HandlersEnhancedAuthResponse {
+  account?: any;
+  subscription?: any;
+  token?: string;
 }
 
 export interface HandlersGenerateQRCodeRequest {
@@ -227,11 +228,10 @@ export interface ModelsAccount {
   id?: string;
   is_active?: boolean;
   phone?: string;
+  /** Populated when needed */
+  subscription?: any;
   subscription_id?: string;
-  /**
-   * Subscription     *Subscription `json:"subscription,omitempty"` // TODO: Add when subscription domain is ready
-   * Restaurants      []Restaurant  `json:"restaurants,omitempty"`  // TODO: Add when restaurant domain is ready
-   */
+  /** Restaurants      []Restaurant  `json:"restaurants,omitempty"`  // TODO: Add when restaurant domain is ready */
   team_members?: ModelsTeamMember[];
   updated_at?: string;
 }
@@ -990,7 +990,7 @@ export class Api<
     ) =>
       this.request<
         ResponseResponse & {
-          data?: HandlersAuthResponse;
+          data?: HandlersEnhancedAuthResponse;
         },
         ResponseResponse
       >({

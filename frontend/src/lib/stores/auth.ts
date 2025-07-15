@@ -87,7 +87,8 @@ function createAuthStore() {
         const response = await api.api.v1AuthLoginCreate(credentials);
         
         if (response.data.success && response.data.data) {
-          const { token, account } = response.data.data;
+          console.log('Login response data:', response.data.data);
+          const { token, account, subscription: subscriptionData } = response.data.data;
           
           if (token && account) {
             const user: User = {
@@ -116,6 +117,12 @@ function createAuthStore() {
               isLoading: false,
               error: null
             }));
+
+            // Update subscription store if subscription data is provided
+            if (subscriptionData) {
+              const { subscription } = await import('./subscription');
+              subscription.setSubscriptionData(subscriptionData);
+            }
 
             return { success: true };
           }

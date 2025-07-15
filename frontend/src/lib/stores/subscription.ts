@@ -2,22 +2,11 @@ import { writable, derived } from 'svelte/store';
 import { getApiClient } from '$lib/api/client';
 import type { ModelsSubscription, ModelsSubscriptionPlan } from '$lib/api/api';
 
-interface PlanFeatures {
-  plan_name: string;
-  plan_code: string;
-  features: {
-    limits: Record<string, number>;
-    flags: Record<string, boolean>;
-  };
-  subscription_status?: string;
-  is_active: boolean;
-}
 
 interface SubscriptionState {
   subscription: ModelsSubscription | null;
   plans: ModelsSubscriptionPlan[];
   usage: SubscriptionUsage | null;
-  planFeatures: PlanFeatures | null;
   isLoading: boolean;
   error: string | null;
 }
@@ -37,7 +26,6 @@ function createSubscriptionStore() {
     subscription: null,
     plans: [],
     usage: null,
-    planFeatures: null,
     isLoading: false,
     error: null
   });
@@ -95,30 +83,6 @@ function createSubscriptionStore() {
       }
     },
 
-    async fetchPlanFeatures() {
-      update(state => ({ ...state, isLoading: true, error: null }));
-
-      try {
-        const api = getApiClient();
-        const response = await api.api.v1UserSubscriptionFeaturesList();
-
-        if (response.data.success && response.data.data) {
-          update(state => ({
-            ...state,
-            planFeatures: response.data.data as PlanFeatures,
-            isLoading: false
-          }));
-        } else {
-          throw new Error('Failed to fetch plan features');
-        }
-      } catch (error: any) {
-        update(state => ({
-          ...state,
-          isLoading: false,
-          error: error.message || 'Failed to fetch plan features'
-        }));
-      }
-    },
 
     async createCheckoutSession(planId: string) {
       // TODO: Replace with actual API call when endpoints are available
@@ -166,10 +130,19 @@ function createSubscriptionStore() {
         subscription: null,
         plans: [],
         usage: null,
-        planFeatures: null,
         isLoading: false,
         error: null
       });
+    },
+
+    setSubscriptionData(subscriptionData: any) {
+      console.log('Setting subscription data from login:', subscriptionData);
+      update(state => ({
+        ...state,
+        subscription: subscriptionData,
+        isLoading: false,
+        error: null
+      }));
     }
   };
 }
@@ -199,23 +172,11 @@ export const planLimits = derived(
   $subscription => $subscription.subscription?.plan?.features || null
 );
 
-// Derived store for plan features
-export const planFeatures = derived(
-  subscription,
-  $subscription => $subscription.planFeatures
-);
 
 // Helper to check if a feature flag is enabled
 export const hasFeature = derived(
   subscription,
   $subscription => (feature: string): boolean => {
-    // Check planFeatures endpoint first (for backward compatibility)
-    const features = $subscription.planFeatures?.features;
-    if (features?.flags) {
-      return features.flags[feature] === true;
-    }
-    
-    // Fall back to plan columns
     const plan = $subscription.subscription?.plan;
     if (!plan) return false;
     
@@ -240,13 +201,6 @@ export const hasFeature = derived(
 export const getLimit = derived(
   subscription,
   $subscription => (limit: string): number => {
-    // Check planFeatures endpoint first (for backward compatibility)
-    const features = $subscription.planFeatures?.features;
-    if (features?.limits) {
-      return features.limits[limit] || 0;
-    }
-    
-    // Fall back to plan columns
     const plan = $subscription.subscription?.plan;
     if (!plan) return 0;
     
@@ -269,13 +223,6 @@ export const getLimit = derived(
 export const isUnlimited = derived(
   subscription,
   $subscription => (limit: string): boolean => {
-    // Check planFeatures endpoint first (for backward compatibility)
-    const features = $subscription.planFeatures?.features;
-    if (features?.limits) {
-      return features.limits[limit] === -1;
-    }
-    
-    // Fall back to plan columns
     const plan = $subscription.subscription?.plan;
     if (!plan) return false;
     

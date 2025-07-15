@@ -2,7 +2,7 @@
   import {
     getLimit,
     isUnlimited,
-    planFeatures,
+    subscription,
   } from "$lib/stores/subscription";
   import type { Snippet } from "svelte";
 
@@ -25,7 +25,7 @@
   let limitValue = $derived($getLimit(limit));
   let unlimited = $derived($isUnlimited(limit));
   let canAdd = $derived(unlimited || currentCount < limitValue);
-  let loading = $derived($planFeatures === null);
+  let loading = $derived($subscription.isLoading);
 </script>
 
 {#if loading}

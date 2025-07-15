@@ -878,7 +878,7 @@ const docTemplate = `{
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/handlers.AuthResponse"
+                                            "$ref": "#/definitions/handlers.EnhancedAuthResponse"
                                         }
                                     }
                                 }
@@ -4881,15 +4881,6 @@ const docTemplate = `{
                 }
             }
         },
-        "handlers.AuthResponse": {
-            "type": "object",
-            "properties": {
-                "account": {},
-                "token": {
-                    "type": "string"
-                }
-            }
-        },
         "handlers.CardDetailsResponse": {
             "type": "object",
             "properties": {
@@ -5020,6 +5011,16 @@ const docTemplate = `{
             ],
             "properties": {
                 "plan_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "handlers.EnhancedAuthResponse": {
+            "type": "object",
+            "properties": {
+                "account": {},
+                "subscription": {},
+                "token": {
                     "type": "string"
                 }
             }
@@ -5361,11 +5362,14 @@ const docTemplate = `{
                 "phone": {
                     "type": "string"
                 },
+                "subscription": {
+                    "description": "Populated when needed"
+                },
                 "subscription_id": {
                     "type": "string"
                 },
                 "team_members": {
-                    "description": "Subscription     *Subscription ` + "`" + `json:\"subscription,omitempty\"` + "`" + ` // TODO: Add when subscription domain is ready\nRestaurants      []Restaurant  ` + "`" + `json:\"restaurants,omitempty\"` + "`" + `  // TODO: Add when restaurant domain is ready",
+                    "description": "Restaurants      []Restaurant  ` + "`" + `json:\"restaurants,omitempty\"` + "`" + `  // TODO: Add when restaurant domain is ready",
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/models.TeamMember"

@@ -11,19 +11,23 @@ import (
 	"github.com/lecritique/api/internal/shared/errors"
 	"github.com/lecritique/api/internal/shared/response"
 	"github.com/lecritique/api/internal/shared/validator"
+	subscriptionModels "github.com/lecritique/api/internal/subscription/models"
+	"gorm.io/gorm"
 )
 
 type AuthHandler struct {
 	authService services.AuthService
 	validator   *validator.Validator
 	config      *config.Config
+	db          *gorm.DB
 }
 
-func NewAuthHandler(authService services.AuthService, config *config.Config) *AuthHandler {
+func NewAuthHandler(authService services.AuthService, config *config.Config, db *gorm.DB) *AuthHandler {
 	return &AuthHandler{
 		authService: authService,
 		validator:   validator.New(),
 		config:      config,
+		db:          db,
 	}
 }
 
@@ -41,6 +45,12 @@ type LoginRequest struct {
 type AuthResponse struct {
 	Token   string      `json:"token"`
 	Account interface{} `json:"account"`
+}
+
+type EnhancedAuthResponse struct {
+	Token        string      `json:"token"`
+	Account      interface{} `json:"account"`
+	Subscription interface{} `json:"subscription"`
 }
 
 // Register godoc
@@ -84,7 +94,7 @@ func (h *AuthHandler) Register(c echo.Context) error {
 // @Accept json
 // @Produce json
 // @Param request body LoginRequest true "Login credentials"
-// @Success 200 {object} response.Response{data=AuthResponse}
+// @Success 200 {object} response.Response{data=EnhancedAuthResponse}
 // @Failure 400 {object} response.Response
 // @Failure 401 {object} response.Response
 // @Router /api/v1/auth/login [post]
@@ -105,9 +115,23 @@ func (h *AuthHandler) Login(c echo.Context) error {
 		return response.Error(c, err)
 	}
 
-	return response.Success(c, AuthResponse{
-		Token:   token,
-		Account: account,
+	// Fetch subscription data for the account
+	var subscription *subscriptionModels.Subscription
+	err = h.db.WithContext(ctx).
+		Preload("Plan").
+		Where("account_id = ?", account.ID).
+		First(&subscription).Error
+	
+	if err != nil && err != gorm.ErrRecordNotFound {
+		// Log error but don't fail login
+		// This ensures backward compatibility
+		subscription = nil
+	}
+
+	return response.Success(c, EnhancedAuthResponse{
+		Token:        token,
+		Account:      account,
+		Subscription: subscription,
 	})
 }
 

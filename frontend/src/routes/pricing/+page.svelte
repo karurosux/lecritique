@@ -12,18 +12,7 @@
 
 	onMount(async () => {
 		try {
-			// First fetch subscription data to check if user is subscribed
-			await subscription.fetchSubscription();
-			
-			// Debug: Log subscription status
-			const sub = $subscription;
-			console.log('Subscription data:', {
-				subscription: sub.subscription,
-				status: sub.subscription?.status,
-				isSubscribed: $isSubscribed
-			});
-			
-			// If user already has subscription, redirect to settings
+			// Check if user already has subscription from login data
 			if ($isSubscribed) {
 				goto('/settings');
 				return;
@@ -31,9 +20,10 @@
 
 			// If not subscribed, fetch available plans
 			await subscription.fetchPlans();
+			const sub = $subscription;
 			plans = sub.plans || [];
 		} catch (error) {
-			console.error('Failed to load subscription data:', error);
+			console.error('Failed to load plans:', error);
 		} finally {
 			isLoading = false;
 		}

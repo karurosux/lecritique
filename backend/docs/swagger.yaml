@@ -8,12 +8,6 @@ definitions:
     required:
     - token
     type: object
-  handlers.AuthResponse:
-    properties:
-      account: {}
-      token:
-        type: string
-    type: object
   handlers.CardDetailsResponse:
     properties:
       brand:
@@ -100,6 +94,13 @@ definitions:
         type: string
     required:
     - plan_id
+    type: object
+  handlers.EnhancedAuthResponse:
+    properties:
+      account: {}
+      subscription: {}
+      token:
+        type: string
     type: object
   handlers.GenerateQRCodeRequest:
     properties:
@@ -324,12 +325,13 @@ definitions:
         type: boolean
       phone:
         type: string
+      subscription:
+        description: Populated when needed
       subscription_id:
         type: string
       team_members:
-        description: |-
-          Subscription     *Subscription `json:"subscription,omitempty"` // TODO: Add when subscription domain is ready
-          Restaurants      []Restaurant  `json:"restaurants,omitempty"`  // TODO: Add when restaurant domain is ready
+        description: 'Restaurants      []Restaurant  `json:"restaurants,omitempty"`  //
+          TODO: Add when restaurant domain is ready'
         items:
           $ref: '#/definitions/models.TeamMember'
         type: array
@@ -1378,7 +1380,7 @@ paths:
             - $ref: '#/definitions/response.Response'
             - properties:
                 data:
-                  $ref: '#/definitions/handlers.AuthResponse'
+                  $ref: '#/definitions/handlers.EnhancedAuthResponse'
               type: object
         "400":
           description: Bad Request

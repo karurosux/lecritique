@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { hasFeature, planFeatures } from "$lib/stores/subscription";
+  import { hasFeature, subscription } from "$lib/stores/subscription";
   import type { Snippet } from "svelte";
 
   interface Props {
@@ -17,7 +17,7 @@
   }: Props = $props();
 
   let hasAccess = $derived($hasFeature(feature));
-  let loading = $derived($planFeatures === null);
+  let loading = $derived($subscription.isLoading);
 </script>
 
 {#if loading}

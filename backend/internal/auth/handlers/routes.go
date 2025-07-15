@@ -22,7 +22,7 @@ func RegisterRoutes(v1 *echo.Group, db *gorm.DB, cfg *config.Config) services.Au
 	authService := services.NewAuthService(accountRepo, tokenRepo, emailService, cfg)
 	
 	// Initialize handler
-	authHandler := NewAuthHandler(authService, cfg)
+	authHandler := NewAuthHandler(authService, cfg, db)
 	
 	// Auth routes
 	auth := v1.Group("/auth")

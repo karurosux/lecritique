@@ -19,7 +19,7 @@ type Account struct {
 	EmailVerifiedAt         *time.Time    `json:"email_verified_at"`
 	DeactivationRequestedAt *time.Time    `json:"deactivation_requested_at"`
 	SubscriptionID          *uuid.UUID    `json:"subscription_id"`
-	// Subscription     *Subscription `json:"subscription,omitempty"` // TODO: Add when subscription domain is ready
+	Subscription            interface{}   `gorm:"-" json:"subscription,omitempty"` // Populated when needed
 	// Restaurants      []Restaurant  `json:"restaurants,omitempty"`  // TODO: Add when restaurant domain is ready
 	TeamMembers             []TeamMember  `json:"team_members,omitempty"`
 }
