@@ -1,8 +1,6 @@
 package models
 
 import (
-	"database/sql/driver"
-	"encoding/json"
 	"time"
 
 	"github.com/google/uuid"
@@ -42,37 +40,61 @@ type SubscriptionPlan struct {
 	Price       float64     `gorm:"not null" json:"price"`
 	Currency    string      `gorm:"default:'USD'" json:"currency"`
 	Interval    string      `gorm:"default:'month'" json:"interval"`
-	Features    PlanFeatures `gorm:"type:jsonb" json:"features"`
+	
+	// Limits (as columns)
+	MaxRestaurants      int `gorm:"not null;default:1;check:max_restaurants >= -1" json:"max_restaurants"`
+	MaxQRCodes         int `gorm:"column:max_qr_codes;not null;default:5;check:max_qr_codes >= -1" json:"max_qr_codes"`
+	MaxFeedbacksPerMonth int `gorm:"column:max_feedbacks_per_month;not null;default:50;check:max_feedbacks_per_month >= -1" json:"max_feedbacks_per_month"`
+	MaxTeamMembers     int `gorm:"column:max_team_members;not null;default:2;check:max_team_members >= -1" json:"max_team_members"`
+	
+	// Feature flags (as columns)
+	HasBasicAnalytics    bool `gorm:"column:has_basic_analytics;not null;default:false" json:"has_basic_analytics"`
+	HasAdvancedAnalytics bool `gorm:"column:has_advanced_analytics;not null;default:false" json:"has_advanced_analytics"`
+	HasFeedbackExplorer  bool `gorm:"column:has_feedback_explorer;not null;default:false" json:"has_feedback_explorer"`
+	HasCustomBranding    bool `gorm:"column:has_custom_branding;not null;default:false" json:"has_custom_branding"`
+	HasPrioritySupport   bool `gorm:"column:has_priority_support;not null;default:false" json:"has_priority_support"`
+	
 	IsActive    bool        `gorm:"default:true" json:"is_active"`
 	IsVisible   bool        `gorm:"default:true" json:"is_visible"`
 	TrialDays   int         `gorm:"default:0" json:"trial_days"`
 	StripePriceID string    `json:"-"`
 }
 
-// PlanFeatures uses generic maps for flexibility
-type PlanFeatures struct {
-	Limits map[string]int64        `json:"limits"`
-	Flags  map[string]bool         `json:"flags"`
-	Custom map[string]interface{}  `json:"custom,omitempty"`
-}
-
-// Helper methods for type-safe access
-func (pf PlanFeatures) GetLimit(key string) int64 {
-	if pf.Limits == nil {
+// Helper methods for SubscriptionPlan
+func (sp *SubscriptionPlan) GetLimit(key string) int {
+	switch key {
+	case LimitRestaurants:
+		return sp.MaxRestaurants
+	case LimitQRCodes:
+		return sp.MaxQRCodes
+	case LimitFeedbacksPerMonth:
+		return sp.MaxFeedbacksPerMonth
+	case LimitTeamMembers:
+		return sp.MaxTeamMembers
+	default:
 		return 0
 	}
-	return pf.Limits[key]
 }
 
-func (pf PlanFeatures) GetFlag(key string) bool {
-	if pf.Flags == nil {
+func (sp *SubscriptionPlan) GetFlag(key string) bool {
+	switch key {
+	case FlagBasicAnalytics:
+		return sp.HasBasicAnalytics
+	case FlagAdvancedAnalytics:
+		return sp.HasAdvancedAnalytics
+	case FlagFeedbackExplorer:
+		return sp.HasFeedbackExplorer
+	case FlagCustomBranding:
+		return sp.HasCustomBranding
+	case FlagPrioritySupport:
+		return sp.HasPrioritySupport
+	default:
 		return false
 	}
-	return pf.Flags[key]
 }
 
-func (pf PlanFeatures) IsUnlimited(key string) bool {
-	return pf.GetLimit(key) == -1
+func (sp *SubscriptionPlan) IsUnlimited(key string) bool {
+	return sp.GetLimit(key) == -1
 }
 
 // Common limit keys as constants for type safety
@@ -92,30 +114,15 @@ const (
 	FlagPrioritySupport   = "priority_support"
 )
 
-// GORM Scanner/Valuer interfaces for JSONB
-func (pf PlanFeatures) Value() (driver.Value, error) {
-	return json.Marshal(pf)
-}
-
-func (pf *PlanFeatures) Scan(value interface{}) error {
-	if value == nil {
-		return nil
-	}
-	bytes, ok := value.([]byte)
-	if !ok {
-		return json.Unmarshal([]byte("{}"), pf)
-	}
-	return json.Unmarshal(bytes, pf)
-}
 
 func (s *Subscription) IsActive() bool {
 	return s.Status == SubscriptionActive && time.Now().Before(s.CurrentPeriodEnd)
 }
 
 func (s *Subscription) CanAddRestaurant(currentCount int) bool {
-	limit := s.Plan.Features.GetLimit(LimitRestaurants)
+	limit := s.Plan.GetLimit(LimitRestaurants)
 	if limit == -1 {
 		return true
 	}
-	return int64(currentCount) < limit
+	return currentCount < limit
 }

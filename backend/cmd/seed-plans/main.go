@@ -25,17 +25,28 @@ func main() {
 
 	// Starter Plan
 	err = db.Exec(`
-		INSERT INTO subscription_plans (code, name, description, price, currency, features, is_active)
-		VALUES (?, ?, ?, ?, ?, ?, true)
+		INSERT INTO subscription_plans (code, name, description, price, currency, 
+			max_restaurants, max_qr_codes, max_feedbacks_per_month, max_team_members,
+			has_basic_analytics, has_advanced_analytics, has_feedback_explorer, 
+			has_custom_branding, has_priority_support, is_active)
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, true)
 		ON CONFLICT (code) DO UPDATE SET
 			name = EXCLUDED.name,
 			description = EXCLUDED.description,
 			price = EXCLUDED.price,
 			currency = EXCLUDED.currency,
-			features = EXCLUDED.features,
+			max_restaurants = EXCLUDED.max_restaurants,
+			max_qr_codes = EXCLUDED.max_qr_codes,
+			max_feedbacks_per_month = EXCLUDED.max_feedbacks_per_month,
+			max_team_members = EXCLUDED.max_team_members,
+			has_basic_analytics = EXCLUDED.has_basic_analytics,
+			has_advanced_analytics = EXCLUDED.has_advanced_analytics,
+			has_feedback_explorer = EXCLUDED.has_feedback_explorer,
+			has_custom_branding = EXCLUDED.has_custom_branding,
+			has_priority_support = EXCLUDED.has_priority_support,
 			is_active = EXCLUDED.is_active
-	`, "starter", "Starter", "Perfect for small restaurants just getting started", 29.99, "USD", 
-	`{"max_restaurants": 1, "max_qr_codes": 15, "max_feedbacks_per_month": 50, "max_team_members": 2, "basic_analytics": true, "advanced_analytics": false, "feedback_explorer": true, "custom_branding": false, "priority_support": false}`).Error
+	`, "starter", "Starter", "Perfect for small restaurants just getting started", 29.99, "USD",
+	1, 15, 50, 2, true, false, true, false, false).Error
 
 	if err != nil {
 		log.Printf("⚠️  Warning: Failed to create Starter plan: %v\n", err)
@@ -45,17 +56,28 @@ func main() {
 
 	// Professional Plan  
 	err = db.Exec(`
-		INSERT INTO subscription_plans (code, name, description, price, currency, features, is_active)
-		VALUES (?, ?, ?, ?, ?, ?, true)
+		INSERT INTO subscription_plans (code, name, description, price, currency, 
+			max_restaurants, max_qr_codes, max_feedbacks_per_month, max_team_members,
+			has_basic_analytics, has_advanced_analytics, has_feedback_explorer, 
+			has_custom_branding, has_priority_support, is_active)
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, true)
 		ON CONFLICT (code) DO UPDATE SET
 			name = EXCLUDED.name,
 			description = EXCLUDED.description,
 			price = EXCLUDED.price,
 			currency = EXCLUDED.currency,
-			features = EXCLUDED.features,
+			max_restaurants = EXCLUDED.max_restaurants,
+			max_qr_codes = EXCLUDED.max_qr_codes,
+			max_feedbacks_per_month = EXCLUDED.max_feedbacks_per_month,
+			max_team_members = EXCLUDED.max_team_members,
+			has_basic_analytics = EXCLUDED.has_basic_analytics,
+			has_advanced_analytics = EXCLUDED.has_advanced_analytics,
+			has_feedback_explorer = EXCLUDED.has_feedback_explorer,
+			has_custom_branding = EXCLUDED.has_custom_branding,
+			has_priority_support = EXCLUDED.has_priority_support,
 			is_active = EXCLUDED.is_active
 	`, "professional", "Professional", "For growing restaurant chains and franchises", 79.99, "USD",
-	`{"max_restaurants": 5, "max_qr_codes": 125, "max_feedbacks_per_month": 250, "max_team_members": 10, "basic_analytics": true, "advanced_analytics": true, "feedback_explorer": true, "custom_branding": true, "priority_support": false}`).Error
+	5, 125, 250, 10, true, true, true, true, false).Error
 
 	if err != nil {
 		log.Printf("⚠️  Warning: Failed to create Professional plan: %v\n", err)
@@ -65,17 +87,28 @@ func main() {
 
 	// Premium Plan
 	err = db.Exec(`
-		INSERT INTO subscription_plans (code, name, description, price, currency, features, is_active)
-		VALUES (?, ?, ?, ?, ?, ?, true)
+		INSERT INTO subscription_plans (code, name, description, price, currency, 
+			max_restaurants, max_qr_codes, max_feedbacks_per_month, max_team_members,
+			has_basic_analytics, has_advanced_analytics, has_feedback_explorer, 
+			has_custom_branding, has_priority_support, is_active)
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, true)
 		ON CONFLICT (code) DO UPDATE SET
 			name = EXCLUDED.name,
 			description = EXCLUDED.description,
 			price = EXCLUDED.price,
 			currency = EXCLUDED.currency,
-			features = EXCLUDED.features,
+			max_restaurants = EXCLUDED.max_restaurants,
+			max_qr_codes = EXCLUDED.max_qr_codes,
+			max_feedbacks_per_month = EXCLUDED.max_feedbacks_per_month,
+			max_team_members = EXCLUDED.max_team_members,
+			has_basic_analytics = EXCLUDED.has_basic_analytics,
+			has_advanced_analytics = EXCLUDED.has_advanced_analytics,
+			has_feedback_explorer = EXCLUDED.has_feedback_explorer,
+			has_custom_branding = EXCLUDED.has_custom_branding,
+			has_priority_support = EXCLUDED.has_priority_support,
 			is_active = EXCLUDED.is_active
 	`, "premium", "Premium", "Unlimited scale with premium support and features", 199.99, "USD",
-	`{"max_restaurants": 20, "max_qr_codes": 2000, "max_feedbacks_per_month": 1000, "max_team_members": 50, "basic_analytics": true, "advanced_analytics": true, "feedback_explorer": true, "custom_branding": true, "priority_support": true}`).Error
+	20, 2000, 1000, 50, true, true, true, true, true).Error
 
 	if err != nil {
 		log.Printf("⚠️  Warning: Failed to create Premium plan: %v\n", err)

@@ -1,6 +1,6 @@
 import { redirect } from '@sveltejs/kit';
 import { get } from 'svelte/store';
-import { subscription, hasFeature, getLimit, FEATURES, LIMITS } from '$lib/stores/subscription';
+import { subscription, hasFeature, getLimit, isSubscribed, FEATURES, LIMITS } from '$lib/stores/subscription';
 
 export type FeatureFlag = typeof FEATURES[keyof typeof FEATURES];
 export type UsageLimit = typeof LIMITS[keyof typeof LIMITS];
@@ -19,9 +19,15 @@ export function checkRouteAccess(config: RouteProtectionConfig): boolean {
 	const sub = get(subscription);
 	const checkFeature = get(hasFeature);
 	const checkLimit = get(getLimit);
+	const subscribed = get(isSubscribed);
+	
+	// Always check if subscription is active when checking features/limits
+	if (!subscribed) {
+		return false;
+	}
 	
 	// Check if subscription is required
-	if (config.requireSubscription && sub.subscription?.status !== 'active') {
+	if (config.requireSubscription && !subscribed) {
 		return false;
 	}
 	
@@ -57,7 +63,7 @@ export function protectRoute(config: RouteProtectionConfig) {
 	const hasAccess = checkRouteAccess(config);
 	
 	if (!hasAccess) {
-		const redirectTo = config.redirectTo || '/subscription';
+		const redirectTo = config.redirectTo || '/pricing';
 		throw redirect(303, redirectTo);
 	}
 }
@@ -69,6 +75,13 @@ export function requireFeature(feature: FeatureFlag, redirectTo?: string) {
 
 export function requireSubscription(redirectTo?: string) {
 	protectRoute({ requireSubscription: true, redirectTo });
+}
+
+export function requireActiveSubscription(redirectTo?: string) {
+	const subscribed = get(isSubscribed);
+	if (!subscribed) {
+		throw redirect(303, redirectTo || '/pricing');
+	}
 }
 
 export function requireLimit(limit: UsageLimit, redirectOnExceeded = true, redirectTo?: string) {

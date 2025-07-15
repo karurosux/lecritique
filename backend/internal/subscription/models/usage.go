@@ -67,38 +67,48 @@ func (s *Subscription) GetCurrentUsage() *SubscriptionUsage {
 }
 
 // CanAddResource checks if a resource can be added based on plan limits
-func (u *SubscriptionUsage) CanAddResource(resourceType string, plan PlanFeatures) (bool, string) {
-	var limitKey string
-	var currentUsage int64
+func (u *SubscriptionUsage) CanAddResource(resourceType string, plan *SubscriptionPlan) (bool, string) {
+	var limit int
+	var currentUsage int
 	
 	switch resourceType {
 	case ResourceTypeFeedback:
-		limitKey = LimitFeedbacksPerMonth
-		currentUsage = int64(u.FeedbacksCount)
+		limit = plan.MaxFeedbacksPerMonth
+		currentUsage = u.FeedbacksCount
 	case ResourceTypeRestaurant:
-		limitKey = LimitRestaurants
-		currentUsage = int64(u.RestaurantsCount)
+		limit = plan.MaxRestaurants
+		currentUsage = u.RestaurantsCount
 	case ResourceTypeLocation:
 		// Locations are no longer limited separately
 		return true, ""
 	case ResourceTypeQRCode:
-		limitKey = LimitQRCodes
-		currentUsage = int64(u.QRCodesCount)
+		limit = plan.MaxQRCodes
+		currentUsage = u.QRCodesCount
 	case ResourceTypeTeamMember:
-		limitKey = LimitTeamMembers
-		currentUsage = int64(u.TeamMembersCount)
+		limit = plan.MaxTeamMembers
+		currentUsage = u.TeamMembersCount
 	default:
 		return true, ""
 	}
-	
-	limit := plan.GetLimit(limitKey)
 	if limit == -1 {
 		return true, ""
 	}
 	
 	if currentUsage >= limit {
-		def, _ := GetFeatureDefinition(limitKey)
-		return false, fmt.Sprintf("%s limit reached", def.DisplayName)
+		var resourceName string
+		switch resourceType {
+		case ResourceTypeFeedback:
+			resourceName = "Monthly feedback"
+		case ResourceTypeRestaurant:
+			resourceName = "Restaurant"
+		case ResourceTypeQRCode:
+			resourceName = "QR code"
+		case ResourceTypeTeamMember:
+			resourceName = "Team member"
+		default:
+			resourceName = "Resource"
+		}
+		return false, fmt.Sprintf("%s limit reached (%d/%d)", resourceName, currentUsage, limit)
 	}
 	
 	return true, ""

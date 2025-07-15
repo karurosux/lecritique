@@ -5543,27 +5543,6 @@ const docTemplate = `{
                 "RoleViewer"
             ]
         },
-        "models.PlanFeatures": {
-            "type": "object",
-            "properties": {
-                "custom": {
-                    "type": "object",
-                    "additionalProperties": true
-                },
-                "flags": {
-                    "type": "object",
-                    "additionalProperties": {
-                        "type": "boolean"
-                    }
-                },
-                "limits": {
-                    "type": "object",
-                    "additionalProperties": {
-                        "type": "integer"
-                    }
-                }
-            }
-        },
         "models.QRCode": {
             "type": "object",
             "properties": {
@@ -5869,8 +5848,21 @@ const docTemplate = `{
                 "description": {
                     "type": "string"
                 },
-                "features": {
-                    "$ref": "#/definitions/models.PlanFeatures"
+                "has_advanced_analytics": {
+                    "type": "boolean"
+                },
+                "has_basic_analytics": {
+                    "description": "Feature flags (as columns)",
+                    "type": "boolean"
+                },
+                "has_custom_branding": {
+                    "type": "boolean"
+                },
+                "has_feedback_explorer": {
+                    "type": "boolean"
+                },
+                "has_priority_support": {
+                    "type": "boolean"
                 },
                 "id": {
                     "type": "string"
@@ -5883,6 +5875,19 @@ const docTemplate = `{
                 },
                 "is_visible": {
                     "type": "boolean"
+                },
+                "max_feedbacks_per_month": {
+                    "type": "integer"
+                },
+                "max_qr_codes": {
+                    "type": "integer"
+                },
+                "max_restaurants": {
+                    "description": "Limits (as columns)",
+                    "type": "integer"
+                },
+                "max_team_members": {
+                    "type": "integer"
                 },
                 "name": {
                     "type": "string"

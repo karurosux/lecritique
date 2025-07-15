@@ -1,6 +1,10 @@
 <script>
   import { page } from "$app/stores";
-  import { FeatureGate, FEATURES } from "$lib/components/subscription";
+  import {
+    FeatureGate,
+    FEATURES,
+    ActiveSubscriptionGate,
+  } from "$lib/components/subscription";
   import { Logo, UserMenu } from "$lib/components/ui";
   import { auth } from "$lib/stores/auth";
   import { subscription } from "$lib/stores/subscription";
@@ -18,22 +22,22 @@
   let showNavbar = $derived(!isAuthPage && !isPublicPage);
 
   let authState = $derived($auth);
-  let hasLoadedFeatures = $state(false);
 
-  // Load subscription features when authenticated
-  $effect(() => {
-    if (
-      authState.isAuthenticated &&
-      !hasLoadedFeatures &&
-      !isAuthPage &&
-      !isPublicPage
-    ) {
-      hasLoadedFeatures = true;
-      subscription.fetchPlanFeatures().catch((error) => {
-        console.error("Failed to load subscription features:", error);
-      });
-    }
-  });
+  // Define routes where animated background should appear
+  let routesWithAnimatedBg = [
+    "/", // Landing page
+    "/pricing", // Pricing page
+    // Add more routes as needed
+  ];
+
+  let showAnimatedBackground = $derived(
+    routesWithAnimatedBg.some(route => {
+      if (route === "/") {
+        return $page.route?.id === "/";
+      }
+      return $page.route?.id?.includes(route);
+    })
+  );
 </script>
 
 {#if showNavbar}
@@ -52,50 +56,58 @@
         <div class="flex items-center space-x-8">
           <!-- Navigation Menu -->
           <nav class="flex space-x-4">
-            <a
-              href="/dashboard"
-              class="px-4 py-2 text-sm font-medium rounded-lg transition-all duration-150 {$page.route?.id?.includes(
-                'dashboard',
-              )
-                ? 'bg-gradient-to-r from-blue-600 to-purple-600 !text-white shadow-lg shadow-blue-500/25'
-                : 'text-gray-700 hover:text-gray-900 hover:bg-gray-100'}"
-            >
-              Dashboard
-            </a>
-            <a
-              href="/restaurants"
-              class="px-4 py-2 text-sm font-medium rounded-lg transition-all duration-150 {$page.route?.id?.includes(
-                'restaurants',
-              )
-                ? 'bg-gradient-to-r from-blue-600 to-purple-600 !text-white shadow-lg shadow-blue-500/25'
-                : 'text-gray-700 hover:text-gray-900 hover:bg-gray-100'}"
-            >
-              Restaurants
-            </a>
-            <FeatureGate feature={FEATURES.BASIC_ANALYTICS}>
+            <ActiveSubscriptionGate>
               <a
-                href="/analytics"
+                href="/dashboard"
                 class="px-4 py-2 text-sm font-medium rounded-lg transition-all duration-150 {$page.route?.id?.includes(
-                  'analytics',
+                  'dashboard',
                 )
                   ? 'bg-gradient-to-r from-blue-600 to-purple-600 !text-white shadow-lg shadow-blue-500/25'
                   : 'text-gray-700 hover:text-gray-900 hover:bg-gray-100'}"
               >
-                Analytics
+                Dashboard
               </a>
-            </FeatureGate>
-            <FeatureGate feature={FEATURES.FEEDBACK_EXPLORER}>
+            </ActiveSubscriptionGate>
+            <ActiveSubscriptionGate>
               <a
-                href="/feedback/manage"
+                href="/restaurants"
                 class="px-4 py-2 text-sm font-medium rounded-lg transition-all duration-150 {$page.route?.id?.includes(
-                  'feedback',
+                  'restaurants',
                 )
                   ? 'bg-gradient-to-r from-blue-600 to-purple-600 !text-white shadow-lg shadow-blue-500/25'
                   : 'text-gray-700 hover:text-gray-900 hover:bg-gray-100'}"
               >
-                Feedback
+                Restaurants
               </a>
-            </FeatureGate>
+            </ActiveSubscriptionGate>
+            <ActiveSubscriptionGate>
+              <FeatureGate feature={FEATURES.BASIC_ANALYTICS}>
+                <a
+                  href="/analytics"
+                  class="px-4 py-2 text-sm font-medium rounded-lg transition-all duration-150 {$page.route?.id?.includes(
+                    'analytics',
+                  )
+                    ? 'bg-gradient-to-r from-blue-600 to-purple-600 !text-white shadow-lg shadow-blue-500/25'
+                    : 'text-gray-700 hover:text-gray-900 hover:bg-gray-100'}"
+                >
+                  Analytics
+                </a>
+              </FeatureGate>
+            </ActiveSubscriptionGate>
+            <ActiveSubscriptionGate>
+              <FeatureGate feature={FEATURES.FEEDBACK_EXPLORER}>
+                <a
+                  href="/feedback/manage"
+                  class="px-4 py-2 text-sm font-medium rounded-lg transition-all duration-150 {$page.route?.id?.includes(
+                    'feedback',
+                  )
+                    ? 'bg-gradient-to-r from-blue-600 to-purple-600 !text-white shadow-lg shadow-blue-500/25'
+                    : 'text-gray-700 hover:text-gray-900 hover:bg-gray-100'}"
+                >
+                  Feedback
+                </a>
+              </FeatureGate>
+            </ActiveSubscriptionGate>
           </nav>
           <UserMenu />
         </div>
@@ -104,24 +116,23 @@
   </div>
 {/if}
 
-<div
-  class="min-h-screen bg-gradient-to-br from-blue-50/50 via-purple-50/30 to-pink-50/50 relative"
->
-  <!-- Animated background gradients -->
-  <div class="absolute inset-0 overflow-hidden">
-    <div
-      class="absolute -top-40 -right-40 w-80 h-80 bg-purple-300 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob"
-    ></div>
-    <div
-      class="absolute -bottom-40 -left-40 w-80 h-80 bg-blue-300 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000"
-    ></div>
-    <div
-      class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-pink-300 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-4000"
-    ></div>
+<div class="min-h-screen relative bg-gray-50">
+  <!-- Animated gradient orbs with light colors -->
+  {#if showAnimatedBackground}
+    <div class="animated-orbs-container fixed inset-0 overflow-hidden">
+      <div class="animated-orb orb-purple-pink absolute -top-[40%] -left-[20%] w-[60%] h-[60%] bg-gradient-to-br from-blue-600 to-purple-600 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-pulse"></div>
+      <div class="animated-orb orb-blue-cyan absolute -bottom-[40%] -right-[20%] w-[60%] h-[60%] bg-gradient-to-br from-blue-500 to-blue-600 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-pulse animation-delay-2000"></div>
+      <div class="animated-orb orb-indigo-purple absolute top-[20%] right-[30%] w-[40%] h-[40%] bg-gradient-to-br from-purple-600 to-purple-700 rounded-full mix-blend-multiply filter blur-3xl opacity-15 animate-pulse animation-delay-4000"></div>
+    </div>
+  {/if}
+
+  <!-- Subtle grid pattern -->
+  <div class="global-grid-pattern fixed inset-0 opacity-[0.03]">
+    <div class="grid-lines absolute inset-0" style="background-image: repeating-linear-gradient(0deg, transparent, transparent 59px, rgba(0,0,0,1) 59px, rgba(0,0,0,1) 60px), repeating-linear-gradient(90deg, transparent, transparent 59px, rgba(0,0,0,1) 59px, rgba(0,0,0,1) 60px);"></div>
   </div>
 
   <!-- Content -->
-  <div class="relative">
+  <div class="relative z-10">
     {@render children()}
   </div>
 </div>

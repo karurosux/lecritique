@@ -184,7 +184,14 @@ export const currentPlan = derived(
 
 export const isSubscribed = derived(
   subscription,
-  $subscription => $subscription.subscription?.status === 'active'
+  $subscription => {
+    // Check if status matches the actual string value from backend
+    // The backend sends "active" as a string, but TypeScript expects the enum
+    const status = $subscription.subscription?.status;
+    
+    // Handle both enum constant and raw string value
+    return status === 'active' || status === 'SubscriptionActive';
+  }
 );
 
 export const planLimits = derived(
@@ -202,9 +209,30 @@ export const planFeatures = derived(
 export const hasFeature = derived(
   subscription,
   $subscription => (feature: string): boolean => {
+    // Check planFeatures endpoint first (for backward compatibility)
     const features = $subscription.planFeatures?.features;
-    if (!features?.flags) return false;
-    return features.flags[feature] === true;
+    if (features?.flags) {
+      return features.flags[feature] === true;
+    }
+    
+    // Fall back to plan columns
+    const plan = $subscription.subscription?.plan;
+    if (!plan) return false;
+    
+    switch(feature) {
+      case FEATURES.BASIC_ANALYTICS:
+        return plan.has_basic_analytics || false;
+      case FEATURES.ADVANCED_ANALYTICS:
+        return plan.has_advanced_analytics || false;
+      case FEATURES.FEEDBACK_EXPLORER:
+        return plan.has_feedback_explorer || false;
+      case FEATURES.CUSTOM_BRANDING:
+        return plan.has_custom_branding || false;
+      case FEATURES.PRIORITY_SUPPORT:
+        return plan.has_priority_support || false;
+      default:
+        return false;
+    }
   }
 );
 
@@ -212,9 +240,28 @@ export const hasFeature = derived(
 export const getLimit = derived(
   subscription,
   $subscription => (limit: string): number => {
+    // Check planFeatures endpoint first (for backward compatibility)
     const features = $subscription.planFeatures?.features;
-    if (!features?.limits) return 0;
-    return features.limits[limit] || 0;
+    if (features?.limits) {
+      return features.limits[limit] || 0;
+    }
+    
+    // Fall back to plan columns
+    const plan = $subscription.subscription?.plan;
+    if (!plan) return 0;
+    
+    switch(limit) {
+      case LIMITS.RESTAURANTS:
+        return plan.max_restaurants || 0;
+      case LIMITS.QR_CODES:
+        return plan.max_qr_codes || 0;
+      case LIMITS.FEEDBACKS_PER_MONTH:
+        return plan.max_feedbacks_per_month || 0;
+      case LIMITS.TEAM_MEMBERS:
+        return plan.max_team_members || 0;
+      default:
+        return 0;
+    }
   }
 );
 
@@ -222,9 +269,28 @@ export const getLimit = derived(
 export const isUnlimited = derived(
   subscription,
   $subscription => (limit: string): boolean => {
+    // Check planFeatures endpoint first (for backward compatibility)
     const features = $subscription.planFeatures?.features;
-    if (!features?.limits) return false;
-    return features.limits[limit] === -1;
+    if (features?.limits) {
+      return features.limits[limit] === -1;
+    }
+    
+    // Fall back to plan columns
+    const plan = $subscription.subscription?.plan;
+    if (!plan) return false;
+    
+    switch(limit) {
+      case LIMITS.RESTAURANTS:
+        return plan.max_restaurants === -1;
+      case LIMITS.QR_CODES:
+        return plan.max_qr_codes === -1;
+      case LIMITS.FEEDBACKS_PER_MONTH:
+        return plan.max_feedbacks_per_month === -1;
+      case LIMITS.TEAM_MEMBERS:
+        return plan.max_team_members === -1;
+      default:
+        return false;
+    }
   }
 );
 

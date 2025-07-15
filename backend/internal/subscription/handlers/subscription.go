@@ -196,8 +196,19 @@ func (h *SubscriptionHandler) GetCurrentPlanFeatures(c echo.Context) error {
 		PlanName: subscription.Plan.Name,
 		PlanCode: subscription.Plan.Code,
 		Features: map[string]interface{}{
-			"limits": subscription.Plan.Features.Limits,
-			"flags":  subscription.Plan.Features.Flags,
+			"limits": map[string]int{
+				"max_restaurants":       subscription.Plan.MaxRestaurants,
+				"max_qr_codes":         subscription.Plan.MaxQRCodes,
+				"max_feedbacks_per_month": subscription.Plan.MaxFeedbacksPerMonth,
+				"max_team_members":      subscription.Plan.MaxTeamMembers,
+			},
+			"flags": map[string]bool{
+				"basic_analytics":    subscription.Plan.HasBasicAnalytics,
+				"advanced_analytics": subscription.Plan.HasAdvancedAnalytics,
+				"feedback_explorer":  subscription.Plan.HasFeedbackExplorer,
+				"custom_branding":    subscription.Plan.HasCustomBranding,
+				"priority_support":   subscription.Plan.HasPrioritySupport,
+			},
 		},
 		SubscriptionStatus: string(subscription.Status),
 		IsActive:          subscription.IsActive(),

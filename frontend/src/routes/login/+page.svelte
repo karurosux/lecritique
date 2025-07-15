@@ -44,10 +44,7 @@
   <meta name="description" content="Login to your LeCritique restaurant management account" />
 </svelte:head>
 
-<div class="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
-  <!-- Background Pattern -->
-  <div class="absolute inset-0 bg-grid-gray-100/50 bg-[size:20px_20px] opacity-30"></div>
-  <div class="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-blue-500/5 via-transparent to-purple-500/5"></div>
+<div class="min-h-screen flex flex-col justify-center py-12 sm:px-6 lg:px-8">
   
   <div class="relative z-10 sm:mx-auto sm:w-full sm:max-w-md">
     <div class="flex justify-center mb-8">

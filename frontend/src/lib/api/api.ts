@@ -289,12 +289,6 @@ export interface ModelsLocation {
   updated_at?: string;
 }
 
-export interface ModelsPlanFeatures {
-  custom?: Record<string, any>;
-  flags?: Record<string, boolean>;
-  limits?: Record<string, number>;
-}
-
 export interface ModelsQRCode {
   code?: string;
   created_at?: string;
@@ -389,11 +383,21 @@ export interface ModelsSubscriptionPlan {
   created_at?: string;
   currency?: string;
   description?: string;
-  features?: ModelsPlanFeatures;
+  has_advanced_analytics?: boolean;
+  /** Feature flags (as columns) */
+  has_basic_analytics?: boolean;
+  has_custom_branding?: boolean;
+  has_feedback_explorer?: boolean;
+  has_priority_support?: boolean;
   id?: string;
   interval?: string;
   is_active?: boolean;
   is_visible?: boolean;
+  max_feedbacks_per_month?: number;
+  max_qr_codes?: number;
+  /** Limits (as columns) */
+  max_restaurants?: number;
+  max_team_members?: number;
   name?: string;
   price?: number;
   trial_days?: number;

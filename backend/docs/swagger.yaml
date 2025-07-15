@@ -448,20 +448,6 @@ definitions:
     - RoleAdmin
     - RoleManager
     - RoleViewer
-  models.PlanFeatures:
-    properties:
-      custom:
-        additionalProperties: true
-        type: object
-      flags:
-        additionalProperties:
-          type: boolean
-        type: object
-      limits:
-        additionalProperties:
-          type: integer
-        type: object
-    type: object
   models.QRCode:
     properties:
       code:
@@ -673,8 +659,17 @@ definitions:
         type: string
       description:
         type: string
-      features:
-        $ref: '#/definitions/models.PlanFeatures'
+      has_advanced_analytics:
+        type: boolean
+      has_basic_analytics:
+        description: Feature flags (as columns)
+        type: boolean
+      has_custom_branding:
+        type: boolean
+      has_feedback_explorer:
+        type: boolean
+      has_priority_support:
+        type: boolean
       id:
         type: string
       interval:
@@ -683,6 +678,15 @@ definitions:
         type: boolean
       is_visible:
         type: boolean
+      max_feedbacks_per_month:
+        type: integer
+      max_qr_codes:
+        type: integer
+      max_restaurants:
+        description: Limits (as columns)
+        type: integer
+      max_team_members:
+        type: integer
       name:
         type: string
       price:

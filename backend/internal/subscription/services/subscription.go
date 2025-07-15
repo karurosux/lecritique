@@ -87,7 +87,7 @@ func (s *subscriptionService) CanUserCreateRestaurant(ctx context.Context, accou
 	}
 
 	currentCount := len(restaurants)
-	maxRestaurants := subscription.Plan.Features.GetLimit(models.LimitRestaurants)
+	maxRestaurants := subscription.Plan.MaxRestaurants
 
 	// Check if user can create more restaurants
 	canCreate := subscription.CanAddRestaurant(currentCount)
@@ -103,7 +103,7 @@ func (s *subscriptionService) CanUserCreateRestaurant(ctx context.Context, accou
 		CanCreate:          canCreate,
 		Reason:            reason,
 		CurrentCount:      currentCount,
-		MaxAllowed:        int(maxRestaurants),
+		MaxAllowed:        maxRestaurants,
 		SubscriptionStatus: string(subscription.Status),
 	}, nil
 }

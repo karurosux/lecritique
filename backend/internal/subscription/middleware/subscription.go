@@ -69,8 +69,8 @@ func (m *SubscriptionMiddleware) RequireFeature(feature string) echo.MiddlewareF
 				c.Set("subscription", subscription)
 			}
 
-			// Check feature availability using the flexible flag system
-			hasFeature := subscription.Plan.Features.GetFlag(feature)
+			// Check feature availability using the new column-based approach
+			hasFeature := subscription.Plan.GetFlag(feature)
 
 			if !hasFeature {
 				return response.Error(c, errors.Forbidden("This feature is not available in your current plan"))

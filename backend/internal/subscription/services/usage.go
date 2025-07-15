@@ -104,7 +104,7 @@ func (s *usageService) CanAddResource(ctx context.Context, subscriptionID uuid.U
 	}
 
 	// Check against plan limits
-	canAdd, reason := usage.CanAddResource(resourceType, subscription.Plan.Features)
+	canAdd, reason := usage.CanAddResource(resourceType, &subscription.Plan)
 	return canAdd, reason, nil
 }
 

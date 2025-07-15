@@ -1,10 +1,11 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import { Button, Card } from '$lib/components/ui';
-  import { Check, Loader2, CreditCard, ExternalLink } from 'lucide-svelte';
+  import { Loader2, CreditCard, ExternalLink } from 'lucide-svelte';
   import { subscription, currentPlan, planLimits } from '$lib/stores/subscription';
+  import { PlanSelector } from '$lib/components/subscription';
   import type { ModelsSubscriptionPlan } from '$lib/api/api';
-  import { getPlanFeatures, LIMITS } from '$lib/subscription/feature-registry';
+  import { LIMITS } from '$lib/subscription/feature-registry';
 
   interface Props {
     onError?: (message: string) => void;
@@ -77,11 +78,6 @@
       month: 'long',
       day: 'numeric'
     });
-  }
-
-  // Get feature display text using the dynamic registry
-  function getFeatureText(plan: ModelsSubscriptionPlan): string[] {
-    return getPlanFeatures(plan);
   }
 
   let subscriptionData = $derived($subscription);
@@ -191,64 +187,13 @@
       <div class="space-y-4">
         <h3 class="text-lg font-medium text-gray-900">Available Plans</h3>
         
-        <div class="grid gap-4 md:grid-cols-3">
-        {#each plans as plan}
-          {@const isCurrent = plan.id === current?.id}
-          <div class="relative">
-            {#if isCurrent}
-              <div class="absolute -top-3 left-1/2 -translate-x-1/2 z-10">
-                <span class="bg-blue-500 text-white text-xs font-semibold px-3 py-1 rounded-full whitespace-nowrap">
-                  Current Plan
-                </span>
-              </div>
-            {/if}
-            <Card 
-              variant={isCurrent ? 'glass' : 'default'} 
-              class="relative p-6 overflow-visible {isCurrent ? 'ring-2 ring-blue-500 ring-offset-2' : ''}"
-            >
-            
-            <h4 class="text-lg font-semibold text-gray-900">{plan.name}</h4>
-            {#if plan.description}
-              <p class="mt-1 text-sm text-gray-600">{plan.description}</p>
-            {/if}
-            <p class="mt-3 text-3xl font-bold text-gray-900">
-              {formatPrice(plan.price)}
-              <span class="text-lg font-normal text-gray-600">/{plan.interval}</span>
-            </p>
-            
-            <ul class="mt-6 space-y-3 text-sm text-gray-600">
-              {#each getFeatureText(plan) as feature}
-                <li class="flex items-start">
-                  <Check class="h-5 w-5 text-green-500 mr-2 flex-shrink-0" />
-                  {feature}
-                </li>
-              {/each}
-            </ul>
-            
-            {#if isCurrent}
-              <Button variant="primary" size="md" class="w-full mt-6" disabled>
-                Current Plan
-              </Button>
-            {:else}
-              <Button 
-                variant="gradient"
-                size="md" 
-                class="w-full mt-6"
-                onclick={() => handleUpgrade(plan)}
-                disabled={isCreatingSession}
-              >
-                {#if isCreatingSession}
-                  <Loader2 class="h-4 w-4 mr-2 animate-spin" />
-                  Processing...
-                {:else}
-                  Upgrade to {plan.name}
-                {/if}
-              </Button>
-            {/if}
-            </Card>
-          </div>
-        {/each}
-        </div>
+        <PlanSelector
+          {plans}
+          currentPlanId={current?.id}
+          isLoading={isCreatingSession}
+          onSelectPlan={handleUpgrade}
+          actionLabel={(plan) => `Upgrade to ${plan.name}`}
+        />
       </div>
     {/if}
   {:else}
@@ -257,43 +202,14 @@
       <h3 class="text-lg font-semibold text-gray-900 mb-2">No Active Subscription</h3>
       <p class="text-gray-600 mb-6">Choose a plan to get started with LeCritique</p>
       
-      <div class="grid gap-4 md:grid-cols-3 mt-8">
-        {#each plans as plan}
-          <Card variant="default" class="p-6">
-            <h4 class="text-lg font-semibold text-gray-900">{plan.name}</h4>
-            {#if plan.description}
-              <p class="mt-1 text-sm text-gray-600">{plan.description}</p>
-            {/if}
-            <p class="mt-3 text-3xl font-bold text-gray-900">
-              {formatPrice(plan.price)}
-              <span class="text-lg font-normal text-gray-600">/{plan.interval}</span>
-            </p>
-            
-            <ul class="mt-6 space-y-3 text-sm text-gray-600">
-              {#each getFeatureText(plan) as feature}
-                <li class="flex items-start">
-                  <Check class="h-5 w-5 text-green-500 mr-2 flex-shrink-0" />
-                  {feature}
-                </li>
-              {/each}
-            </ul>
-            
-            <Button 
-              variant="gradient"
-              size="md" 
-              class="w-full mt-6"
-              onclick={() => handleUpgrade(plan)}
-              disabled={isCreatingSession}
-            >
-              {#if isCreatingSession}
-                <Loader2 class="h-4 w-4 mr-2 animate-spin" />
-                Processing...
-              {:else}
-                Get Started
-              {/if}
-            </Button>
-          </Card>
-        {/each}
+      <div class="mt-8">
+        <PlanSelector
+          {plans}
+          isLoading={isCreatingSession}
+          onSelectPlan={handleUpgrade}
+          actionLabel={() => 'Get Started'}
+          showCurrentBadge={false}
+        />
       </div>
     </Card>
   {/if}
