@@ -9,7 +9,12 @@ export const load: LayoutLoad = async ({ route }) => {
 	const authState = get(auth);
 	
 	// Skip subscription loading for auth pages and public pages
-	const isAuthPage = route?.id?.includes('login') || route?.id?.includes('register');
+	const isAuthPage = route?.id?.includes('login') || 
+		route?.id?.includes('register') ||
+		route?.id?.includes('forgot-password') ||
+		route?.id?.includes('reset-password') ||
+		route?.id?.includes('registration-success') ||
+		route?.id?.includes('email-verification');
 	const isPublicPage = route?.id?.includes('qr/');
 	
 	// If authenticated and not on auth/public pages, ensure subscription data is loaded

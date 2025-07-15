@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { APP_CONFIG } from '$lib/constants/config';
+  
   interface Invoice {
     id: string;
     plan: string;
@@ -57,7 +59,7 @@
   <div class="mt-6 pt-6 border-t">
     <p class="text-sm text-gray-600">
       All invoices include tax information and can be used for accounting purposes. 
-      For billing inquiries, please contact support@lecritique.com
+      For billing inquiries, please contact {APP_CONFIG.emails.billing}
     </p>
   </div>
 </div>

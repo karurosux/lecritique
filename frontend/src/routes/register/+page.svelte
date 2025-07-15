@@ -63,8 +63,8 @@
     });
     
     if (result.success) {
-      // Registration successful, redirect to login with success message
-      goto('/login?message=Registration successful. Please check your email for verification.');
+      // Registration successful, redirect to success page
+      goto('/registration-success');
     }
     
     isSubmitting = false;

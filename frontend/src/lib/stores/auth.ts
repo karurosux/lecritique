@@ -129,7 +129,19 @@ function createAuthStore() {
         
         throw new Error('Invalid response from server');
       } catch (error: any) {
+        const errorCode = error.response?.data?.error?.code;
         const errorMessage = error.response?.data?.error?.message || error.message || 'Login failed';
+        
+        // Check if it's an email verification error
+        if (errorCode === 'EMAIL_NOT_VERIFIED') {
+          update(state => ({
+            ...state,
+            isLoading: false,
+            error: null // Don't show error since we're redirecting
+          }));
+          
+          return { success: false, unverified: true, email: credentials.email };
+        }
         
         update(state => ({
           ...state,
@@ -293,6 +305,13 @@ function createAuthStore() {
     } catch (error: any) {
       // Check for authentication errors
       if (error.response?.status === 401 || error.response?.status === 403) {
+        // Check if it's an email verification error - don't logout for this
+        const errorCode = error.response?.data?.error?.code;
+        if (errorCode === 'EMAIL_NOT_VERIFIED') {
+          // Don't logout or redirect, let the login handler deal with it
+          throw error;
+        }
+        
         // Token is invalid, logout user
         await authStore.logout();
         

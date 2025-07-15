@@ -3,6 +3,7 @@
 	import { PlanSelector } from '$lib/components/subscription';
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
+	import { APP_CONFIG } from '$lib/constants/config';
 	import type { ModelsSubscriptionPlan } from '$lib/api/api';
 	import { Check, HelpCircle, User, Frown } from 'lucide-svelte';
 
@@ -124,7 +125,7 @@
 						<h3 class="font-semibold text-gray-900 mb-2">Questions?</h3>
 						<p class="text-sm text-gray-600">
 							Get help choosing the right plan<br/>
-							<a href="mailto:support@lecritique.com" class="text-purple-600 hover:text-purple-700 font-medium transition-colors">support@lecritique.com</a>
+							<a href={`mailto:${APP_CONFIG.emails.support}`} class="text-purple-600 hover:text-purple-700 font-medium transition-colors">{APP_CONFIG.emails.support}</a>
 						</p>
 					</div>
 				</div>

@@ -3,6 +3,7 @@
   import { Button, Card } from '$lib/components/ui';
   import { Loader2, CreditCard, ExternalLink } from 'lucide-svelte';
   import { subscription, currentPlan, planLimits } from '$lib/stores/subscription';
+  import { APP_CONFIG } from '$lib/constants/config';
   import { PlanSelector } from '$lib/components/subscription';
   import type { ModelsSubscriptionPlan } from '$lib/api/api';
   import { LIMITS } from '$lib/subscription/feature-registry';
@@ -114,7 +115,7 @@
             <p class="mt-1 text-sm text-amber-700">
               You are currently on a custom plan tailored specifically for your organization. 
               To make any changes to your subscription, please contact our support team at 
-              <a href="mailto:support@lecritique.com" class="font-medium underline">support@lecritique.com</a>.
+              <a href={`mailto:${APP_CONFIG.emails.support}`} class="font-medium underline">{APP_CONFIG.emails.support}</a>.
             </p>
           </div>
         </div>

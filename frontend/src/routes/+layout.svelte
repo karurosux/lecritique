@@ -13,13 +13,23 @@
   let { children } = $props();
 
   let isAuthPage = $derived(
-    $page.route?.id?.includes("login") || $page.route?.id?.includes("register"),
+    $page.route?.id?.includes("login") || 
+    $page.route?.id?.includes("register") ||
+    $page.route?.id?.includes("forgot-password") ||
+    $page.route?.id?.includes("reset-password") ||
+    $page.route?.id?.includes("registration-success") ||
+    $page.route?.id?.includes("email-verification"),
   );
 
   let isPublicPage = $derived($page.route?.id?.includes("qr/"));
+  
+  let isLegalPage = $derived(
+    $page.route?.id?.includes("terms") ||
+    $page.route?.id?.includes("privacy")
+  );
 
-  // Show navbar on all non-auth and non-public pages (independent of auth loading state)
-  let showNavbar = $derived(!isAuthPage && !isPublicPage);
+  // Show navbar on all non-auth, non-public, and non-legal pages (independent of auth loading state)
+  let showNavbar = $derived(!isAuthPage && !isPublicPage && !isLegalPage);
 
   let authState = $derived($auth);
 

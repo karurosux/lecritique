@@ -98,6 +98,11 @@ func (s *authService) Login(ctx context.Context, email, password string) (string
 		return "", nil, errors.ErrUnauthorized
 	}
 
+	// Check if email is verified
+	if !account.EmailVerified {
+		return "", nil, errors.NewWithDetails("EMAIL_NOT_VERIFIED", "Please verify your email address before logging in", 401, nil)
+	}
+
 	// If account has pending deactivation, cancel it
 	if account.IsPendingDeactivation() {
 		account.DeactivationRequestedAt = nil
