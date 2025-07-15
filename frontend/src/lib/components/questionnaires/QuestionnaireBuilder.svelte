@@ -38,18 +38,6 @@
   let storeError = $derived($questionnaireStore?.error);
   let storeLoading = $derived($questionnaireStore?.loading);
 
-  // Debug: Log when questions change
-  $effect(() => {
-    console.log('Questions updated:', questions.length, questions);
-  });
-
-  // Debug: Log when initialData changes
-  $effect(() => {
-    console.log('InitialData:', initialData);
-    if (initialData?.questions) {
-      console.log('InitialData questions:', initialData.questions.length, initialData.questions);
-    }
-  });
 
 
   function addQuestion() {
@@ -193,7 +181,6 @@
         
         // For existing questionnaires, we need to manage questions differently
         // This is a simplified approach - in production you'd want to handle adds/updates/deletes separately
-        console.log('Updating existing questionnaire with questions:', questions);
         
         // For now, we'll just dispatch success - the questions management needs to be improved
         // TODO: Implement proper question update logic
@@ -202,10 +189,7 @@
         questionnaire = await questionnaireStore.createQuestionnaire(restaurantId, questionnaireData);
         
         // Add questions to the new questionnaire
-        console.log('Adding questions to questionnaire:', questionnaire.id, 'Restaurant:', restaurantId);
-        console.log('Questions to add:', questions);
         for (const question of questions) {
-          console.log('Adding question:', question, 'to questionnaire:', questionnaire.id);
           await questionnaireStore.addQuestion(restaurantId, questionnaire.id!, question);
         }
       }

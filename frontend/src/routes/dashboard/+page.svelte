@@ -122,7 +122,7 @@
               dashboardMetrics = dashboardResponse.data.data;
             }
           } catch (err) {
-            console.log('Dashboard metrics not available yet, using legacy analytics');
+            // Dashboard metrics not available yet, using legacy analytics
           }
           
           // Calculate stats
@@ -132,8 +132,6 @@
           
           // Parse analytics data (legacy)
           const analyticsData = analyticsResponse.data?.data || {};
-          console.log('🔍 Analytics API Response:', analyticsResponse.data);
-          console.log('🔍 Average Rating from API:', analyticsData?.average_rating);
           const totalFeedback = analyticsData?.total_feedback || 0;
           const averageRating = analyticsData?.average_rating || 0;
           const feedbackToday = analyticsData?.feedback_today || 0;

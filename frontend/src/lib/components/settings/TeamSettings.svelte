@@ -38,13 +38,6 @@
 		}
 	});
 	
-	// Debug logging
-	$effect(() => {
-		console.log('Team members:', teamMembers);
-		console.log('Current user email:', $auth.user?.email);
-		console.log('Current user role:', currentUserRole);
-		console.log('Can manage team:', canManageTeam);
-	});
 
 	async function loadTeamMembers() {
 		loading = true;

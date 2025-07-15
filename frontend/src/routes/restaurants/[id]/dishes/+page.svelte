@@ -195,7 +195,6 @@
 			const api = getApiClient();
 			const response = await api.api.v1RestaurantsQuestionsDishesWithQuestionsList(restaurantId);
 			dishesWithQuestions = response.data.data || [];
-			console.log('Dishes with questions:', dishesWithQuestions);
 		} catch (error) {
 			console.error('Failed to fetch dishes with questions:', error);
 		}

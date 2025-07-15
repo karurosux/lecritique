@@ -149,7 +149,6 @@
       
       // Make sure we have restaurants loaded first
       if (restaurants.length === 0 && !selectedRestaurant) {
-        console.log('No restaurants loaded yet, skipping dish loading');
         return;
       }
       
@@ -183,7 +182,6 @@
         }, []);
         
         dishes = uniqueDishes.sort((a, b) => a.name.localeCompare(b.name));
-        console.log(`Loaded ${dishes.length} unique dishes from ${restaurants.length} restaurants`);
       }
     } catch (err) {
       console.error('Error loading dishes:', err);
