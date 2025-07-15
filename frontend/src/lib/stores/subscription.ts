@@ -1,4 +1,5 @@
 import { writable, derived } from 'svelte/store';
+import { browser } from '$app/environment';
 import { getApiClient } from '$lib/api/client';
 import type { ModelsSubscription, ModelsSubscriptionPlan } from '$lib/api/api';
 
@@ -136,7 +137,6 @@ function createSubscriptionStore() {
     },
 
     setSubscriptionData(subscriptionData: any) {
-      console.log('Setting subscription data from login:', subscriptionData);
       update(state => ({
         ...state,
         subscription: subscriptionData,

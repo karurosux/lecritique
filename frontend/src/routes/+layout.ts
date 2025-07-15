@@ -12,8 +12,14 @@ export const load: LayoutLoad = async ({ route }) => {
 	const isAuthPage = route?.id?.includes('login') || route?.id?.includes('register');
 	const isPublicPage = route?.id?.includes('qr/');
 	
-	// Subscription data is now loaded during login, so we don't need to fetch it here
-	// The subscription data from login response is already available in the subscription store
+	// If authenticated and not on auth/public pages, ensure subscription data is loaded
+	if (browser && authState.isAuthenticated && !isAuthPage && !isPublicPage) {
+		const subState = get(subscription);
+		// Only fetch if we don't have subscription data (e.g., after page reload)
+		if (!subState.subscription && !subState.isLoading) {
+			await subscription.fetchSubscription();
+		}
+	}
 	
 	return {
 		user: authState.user

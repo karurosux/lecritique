@@ -2,19 +2,26 @@ import { requireActiveSubscription } from '$lib/subscription/route-guard';
 import { browser } from '$app/environment';
 import { get } from 'svelte/store';
 import { subscription } from '$lib/stores/subscription';
+import { auth } from '$lib/stores/auth';
 
 export async function load() {
-	// Only check subscription in browser to ensure store is properly hydrated
-	if (browser) {
-		// Debug: log current subscription state
+	// Server-side: just return empty (subscription check happens client-side)
+	if (!browser) {
+		return {};
+	}
+	
+	// Client-side: ensure subscription is loaded before checking
+	const authState = get(auth);
+	
+	if (authState.isAuthenticated) {
 		const subState = get(subscription);
-		console.log('Dashboard load - subscription state:', {
-			subscription: subState.subscription,
-			status: subState.subscription?.status,
-			isLoading: subState.isLoading
-		});
 		
-		// Dashboard requires an active subscription
+		// If subscription not loaded yet, fetch it first
+		if (!subState.subscription && !subState.isLoading) {
+			await subscription.fetchSubscription();
+		}
+		
+		// Now check if user has active subscription
 		requireActiveSubscription();
 	}
 	

@@ -147,7 +147,6 @@
 
   function handleExportReport() {
     // TODO: Implement export functionality
-    console.log('Export report for restaurant:', selectedRestaurant);
   }
 
   function resetFilters() {

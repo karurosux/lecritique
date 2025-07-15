@@ -87,7 +87,6 @@ function createAuthStore() {
         const response = await api.api.v1AuthLoginCreate(credentials);
         
         if (response.data.success && response.data.data) {
-          console.log('Login response data:', response.data.data);
           const { token, account, subscription: subscriptionData } = response.data.data;
           
           if (token && account) {
