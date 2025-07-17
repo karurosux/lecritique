@@ -13,24 +13,22 @@ import (
 func RegisterTeamRoutes(v1 *echo.Group, db *gorm.DB, cfg *config.Config, authService services.AuthService) {
 	// Initialize repositories
 	teamMemberRepo := repositories.NewTeamMemberRepository(db)
-	userRepo := repositories.NewUserRepository(db)
+	invitationRepo := repositories.NewTeamInvitationRepository(db)
 	accountRepo := repositories.NewAccountRepository(db)
-	tokenRepo := repositories.NewTokenRepository(db)
 	
 	// Initialize email service
 	emailService := sharedServices.NewEmailService(cfg)
 	
 	// Initialize team member service
-	teamMemberService := services.NewTeamMemberService(
+	teamMemberService := services.NewTeamMemberServiceV2(
 		teamMemberRepo,
-		userRepo,
+		invitationRepo,
 		accountRepo,
-		tokenRepo,
 		emailService,
 	)
 	
 	// Initialize handler
-	teamHandler := NewTeamMemberHandler(teamMemberService)
+	teamHandler := NewTeamMemberHandler(teamMemberService, authService)
 	
 	// Team routes
 	team := v1.Group("/team")
@@ -46,6 +44,7 @@ func RegisterTeamRoutes(v1 *echo.Group, db *gorm.DB, cfg *config.Config, authSer
 	// Team member management
 	teamProtected.GET("/members", teamHandler.ListMembers)
 	teamProtected.POST("/members/invite", teamHandler.InviteMember)
+	teamProtected.POST("/members/:id/resend-invitation", teamHandler.ResendInvitation)
 	teamProtected.PUT("/members/:id/role", teamHandler.UpdateRole)
 	teamProtected.DELETE("/members/:id", teamHandler.RemoveMember)
 }

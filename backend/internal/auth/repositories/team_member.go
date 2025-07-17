@@ -13,7 +13,8 @@ type TeamMemberRepository interface {
 	Create(ctx context.Context, member *models.TeamMember) error
 	FindByID(ctx context.Context, id uuid.UUID, preloads ...string) (*models.TeamMember, error)
 	FindByAccountID(ctx context.Context, accountID uuid.UUID) ([]models.TeamMember, error)
-	FindByUserAndAccount(ctx context.Context, userID, accountID uuid.UUID) (*models.TeamMember, error)
+	FindByMemberAndAccount(ctx context.Context, memberID, accountID uuid.UUID) (*models.TeamMember, error)
+	FindByMemberID(ctx context.Context, memberID uuid.UUID) ([]models.TeamMember, error)
 	Update(ctx context.Context, member *models.TeamMember) error
 	Delete(ctx context.Context, id uuid.UUID) error
 	CountByAccountID(ctx context.Context, accountID uuid.UUID) (int64, error)
@@ -32,21 +33,31 @@ func NewTeamMemberRepository(db *gorm.DB) TeamMemberRepository {
 func (r *teamMemberRepository) FindByAccountID(ctx context.Context, accountID uuid.UUID) ([]models.TeamMember, error) {
 	var members []models.TeamMember
 	err := r.DB.WithContext(ctx).
-		Preload("User").
+		Preload("Account").
+		Preload("MemberAccount").
 		Where("account_id = ?", accountID).
 		Find(&members).Error
 	return members, err
 }
 
-func (r *teamMemberRepository) FindByUserAndAccount(ctx context.Context, userID, accountID uuid.UUID) (*models.TeamMember, error) {
+func (r *teamMemberRepository) FindByMemberAndAccount(ctx context.Context, memberID, accountID uuid.UUID) (*models.TeamMember, error) {
 	var member models.TeamMember
 	err := r.DB.WithContext(ctx).
-		Where("user_id = ? AND account_id = ? AND deleted_at IS NULL", userID, accountID).
+		Where("member_id = ? AND account_id = ? AND deleted_at IS NULL", memberID, accountID).
 		First(&member).Error
 	if err != nil {
 		return nil, err
 	}
 	return &member, nil
+}
+
+func (r *teamMemberRepository) FindByMemberID(ctx context.Context, memberID uuid.UUID) ([]models.TeamMember, error) {
+	var members []models.TeamMember
+	err := r.DB.WithContext(ctx).
+		Preload("Account").
+		Where("member_id = ? AND accepted_at IS NOT NULL", memberID).
+		Find(&members).Error
+	return members, err
 }
 
 func (r *teamMemberRepository) CountByAccountID(ctx context.Context, accountID uuid.UUID) (int64, error) {

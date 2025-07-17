@@ -14,7 +14,8 @@ export const load: LayoutLoad = async ({ route }) => {
 		route?.id?.includes('forgot-password') ||
 		route?.id?.includes('reset-password') ||
 		route?.id?.includes('registration-success') ||
-		route?.id?.includes('email-verification');
+		route?.id?.includes('email-verification') ||
+		route?.id?.includes('verify-email');
 	const isPublicPage = route?.id?.includes('qr/');
 	
 	// If authenticated and not on auth/public pages, ensure subscription data is loaded

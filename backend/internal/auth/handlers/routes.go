@@ -14,15 +14,18 @@ func RegisterRoutes(v1 *echo.Group, db *gorm.DB, cfg *config.Config) services.Au
 	// Initialize repositories
 	accountRepo := repositories.NewAccountRepository(db)
 	tokenRepo := repositories.NewTokenRepository(db)
+	teamMemberRepo := repositories.NewTeamMemberRepository(db)
+	invitationRepo := repositories.NewTeamInvitationRepository(db)
 	
 	// Initialize email service
 	emailService := sharedServices.NewEmailService(cfg)
 	
-	// Initialize service
+	// Initialize services
 	authService := services.NewAuthService(accountRepo, tokenRepo, emailService, cfg)
+	teamMemberService := services.NewTeamMemberServiceV2(teamMemberRepo, invitationRepo, accountRepo, emailService)
 	
 	// Initialize handler
-	authHandler := NewAuthHandler(authService, cfg, db)
+	authHandler := NewAuthHandler(authService, teamMemberService, cfg, db)
 	
 	// Auth routes
 	auth := v1.Group("/auth")
@@ -31,6 +34,7 @@ func RegisterRoutes(v1 *echo.Group, db *gorm.DB, cfg *config.Config) services.Au
 	
 	// Public routes
 	auth.GET("/verify-email", authHandler.VerifyEmail)
+	auth.POST("/resend-verification", authHandler.ResendVerificationEmail)
 	auth.POST("/forgot-password", authHandler.SendPasswordReset)
 	auth.POST("/reset-password", authHandler.ResetPassword)
 	auth.POST("/confirm-email-change", authHandler.ConfirmEmailChange)

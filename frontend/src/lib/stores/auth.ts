@@ -9,6 +9,7 @@ export interface User {
   phone?: string;
   email_verified: boolean;
   deactivation_requested_at?: string | null;
+  account_id?: string; // The account they're accessing (important for team members)
 }
 
 export interface AuthState {
@@ -96,7 +97,8 @@ function createAuthStore() {
               company_name: account.company_name,
               phone: account.phone,
               email_verified: account.email_verified,
-              deactivation_requested_at: account.deactivation_requested_at
+              deactivation_requested_at: account.deactivation_requested_at,
+              account_id: account.id // Store which account they're accessing
             };
 
             // Store in localStorage
@@ -121,6 +123,9 @@ function createAuthStore() {
             if (subscriptionData) {
               const { subscription } = await import('./subscription');
               subscription.setSubscriptionData(subscriptionData);
+              console.log('[Auth] Setting subscription data:', subscriptionData);
+            } else {
+              console.log('[Auth] No subscription data in login response');
             }
 
             return { success: true };

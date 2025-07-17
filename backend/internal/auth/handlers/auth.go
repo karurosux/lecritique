@@ -1,11 +1,13 @@
 package handlers
 
 import (
+	"log"
 	"net/http"
 	"time"
 
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
+	"github.com/lecritique/api/internal/auth/models"
 	"github.com/lecritique/api/internal/auth/services"
 	"github.com/lecritique/api/internal/shared/config"
 	"github.com/lecritique/api/internal/shared/errors"
@@ -16,25 +18,30 @@ import (
 )
 
 type AuthHandler struct {
-	authService services.AuthService
-	validator   *validator.Validator
-	config      *config.Config
-	db          *gorm.DB
+	authService       services.AuthService
+	teamMemberService services.TeamMemberServiceV2
+	validator         *validator.Validator
+	config            *config.Config
+	db                *gorm.DB
 }
 
-func NewAuthHandler(authService services.AuthService, config *config.Config, db *gorm.DB) *AuthHandler {
+func NewAuthHandler(authService services.AuthService, teamMemberService services.TeamMemberServiceV2, config *config.Config, db *gorm.DB) *AuthHandler {
 	return &AuthHandler{
-		authService: authService,
-		validator:   validator.New(),
-		config:      config,
-		db:          db,
+		authService:       authService,
+		teamMemberService: teamMemberService,
+		validator:         validator.New(),
+		config:            config,
+		db:                db,
 	}
 }
 
 type RegisterRequest struct {
-	Email       string `json:"email" validate:"required,email"`
-	Password    string `json:"password" validate:"required,min=8"`
-	CompanyName string `json:"company_name" validate:"required"`
+	Email           string `json:"email" validate:"required,email"`
+	Password        string `json:"password" validate:"required,min=8"`
+	CompanyName     string `json:"company_name" validate:"required_without=InvitationToken"`
+	FirstName       string `json:"first_name,omitempty"`
+	LastName        string `json:"last_name,omitempty"`
+	InvitationToken string `json:"invitation_token,omitempty"` // Optional invitation token
 }
 
 type LoginRequest struct {
@@ -76,9 +83,26 @@ func (h *AuthHandler) Register(c echo.Context) error {
 		return response.Error(c, errors.NewWithDetails("VALIDATION_ERROR", "Validation failed", http.StatusBadRequest, h.validator.FormatErrors(err)))
 	}
 
-	account, err := h.authService.Register(ctx, req.Email, req.Password, req.CompanyName)
+	registerData := services.RegisterData{
+		Email:       req.Email,
+		Password:    req.Password,
+		CompanyName: req.CompanyName,
+		FirstName:   req.FirstName,
+		LastName:    req.LastName,
+	}
+	
+	account, err := h.authService.Register(ctx, registerData)
 	if err != nil {
 		return response.Error(c, err)
+	}
+
+	// Check if there's an invitation token
+	if req.InvitationToken != "" {
+		// Accept the invitation
+		if err := h.teamMemberService.AcceptInvitationDuringRegistration(ctx, req.InvitationToken, account.ID); err != nil {
+			// Log the error but don't fail registration
+			log.Printf("Failed to accept team invitation: %v", err)
+		}
 	}
 
 	return response.Success(c, map[string]interface{}{
@@ -127,6 +151,58 @@ func (h *AuthHandler) Login(c echo.Context) error {
 		// This ensures backward compatibility
 		subscription = nil
 	}
+	
+	// Check if this user is a team member of another account
+	var teamMemberships []models.TeamMember
+	h.db.WithContext(ctx).
+		Preload("Account").
+		Where("member_id = ? AND accepted_at IS NOT NULL", account.ID).
+		Find(&teamMemberships)
+	
+	log.Printf("Found %d team memberships for account %s", len(teamMemberships), account.ID)
+	
+	// Filter out memberships where the user is a member of their own account
+	var externalMemberships []models.TeamMember
+	for _, tm := range teamMemberships {
+		if tm.AccountID != account.ID {
+			externalMemberships = append(externalMemberships, tm)
+		}
+	}
+	
+	log.Printf("Found %d external team memberships for account %s", len(externalMemberships), account.ID)
+	
+	// If user is a team member of another organization, return their account but with the organization's subscription
+	if len(externalMemberships) > 0 {
+		// For now, use the first organization they're a member of
+		// In the future, we might want to let users choose which organization to access
+		orgAccountID := externalMemberships[0].AccountID
+		
+		log.Printf("Team member %s is member of org %s", account.Email, orgAccountID)
+		
+		// Get the organization's subscription
+		var orgSubscription subscriptionModels.Subscription
+		err := h.db.WithContext(ctx).
+			Preload("Plan").
+			Where("account_id = ?", orgAccountID).
+			First(&orgSubscription).Error
+		
+		if err != nil {
+			log.Printf("Error fetching org subscription: %v", err)
+			// Return without subscription if not found
+			return response.Success(c, EnhancedAuthResponse{
+				Token:   token,
+				Account: account,
+			})
+		}
+		
+		log.Printf("Team member %s logged in, providing organization subscription from account %s: %+v", account.Email, orgAccountID, orgSubscription)
+		
+		return response.Success(c, EnhancedAuthResponse{
+			Token:        token,
+			Account:      account, // Keep the user's own account
+			Subscription: &orgSubscription, // But use the organization's subscription
+		})
+	}
 
 	return response.Success(c, EnhancedAuthResponse{
 		Token:        token,
@@ -137,6 +213,10 @@ func (h *AuthHandler) Login(c echo.Context) error {
 
 type SendEmailVerificationRequest struct {
 	AccountID string `json:"account_id" validate:"required,uuid"`
+}
+
+type ResendVerificationRequest struct {
+	Email string `json:"email" validate:"required,email"`
 }
 
 type PasswordResetRequest struct {
@@ -169,6 +249,39 @@ func (h *AuthHandler) SendEmailVerification(c echo.Context) error {
 
 	return response.Success(c, map[string]string{
 		"message": "Verification email sent successfully",
+	})
+}
+
+// ResendVerificationEmail godoc
+// @Summary Resend email verification
+// @Description Resend verification email to the specified email address (public endpoint)
+// @Tags auth
+// @Accept json
+// @Produce json
+// @Param request body ResendVerificationRequest true "Email address"
+// @Success 200 {object} response.Response{data=map[string]string}
+// @Failure 400 {object} response.Response
+// @Router /api/v1/auth/resend-verification [post]
+func (h *AuthHandler) ResendVerificationEmail(c echo.Context) error {
+	ctx := c.Request().Context()
+
+	var req ResendVerificationRequest
+	if err := c.Bind(&req); err != nil {
+		return response.Error(c, errors.ErrBadRequest)
+	}
+
+	if err := h.validator.Validate(req); err != nil {
+		return response.Error(c, errors.NewWithDetails("VALIDATION_ERROR", "Validation failed", http.StatusBadRequest, h.validator.FormatErrors(err)))
+	}
+
+	// Note: We don't reveal whether the email exists for security reasons
+	if err := h.authService.ResendVerificationEmail(ctx, req.Email); err != nil {
+		// Log the error but return success to prevent email enumeration
+		// The service will handle logging internally
+	}
+
+	return response.Success(c, map[string]string{
+		"message": "If an account with that email exists, a verification email has been sent",
 	})
 }
 

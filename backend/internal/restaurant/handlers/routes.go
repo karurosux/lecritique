@@ -24,6 +24,7 @@ func RegisterRoutes(protected *echo.Group, db *gorm.DB, authService authServices
 	// Restaurant routes (protected)
 	restaurants := protected.Group("/restaurants")
 	restaurants.Use(middleware.JWTAuth(authService))
+	restaurants.Use(middleware.TeamAware(db)) // Add team-aware middleware
 	restaurants.POST("", restaurantHandler.Create)
 	restaurants.GET("", restaurantHandler.GetAll)
 	restaurants.GET("/:id", restaurantHandler.GetByID)

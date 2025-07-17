@@ -13,13 +13,15 @@ import (
 )
 
 type TeamMemberHandler struct {
-	teamMemberService services.TeamMemberService
+	teamMemberService services.TeamMemberServiceV2
+	authService       services.AuthService
 	validator         *validator.Validator
 }
 
-func NewTeamMemberHandler(teamMemberService services.TeamMemberService) *TeamMemberHandler {
+func NewTeamMemberHandler(teamMemberService services.TeamMemberServiceV2, authService services.AuthService) *TeamMemberHandler {
 	return &TeamMemberHandler{
 		teamMemberService: teamMemberService,
+		authService:       authService,
 		validator:         validator.New(),
 	}
 }
@@ -213,6 +215,47 @@ func (h *TeamMemberHandler) RemoveMember(c echo.Context) error {
 	})
 }
 
+// ResendInvitation godoc
+// @Summary Resend team invitation
+// @Description Resend an invitation email to a pending team member
+// @Tags team
+// @Accept json
+// @Produce json
+// @Param id path string true "Invitation ID"
+// @Success 200 {object} response.Response{data=map[string]string}
+// @Failure 401 {object} response.Response
+// @Failure 403 {object} response.Response
+// @Failure 404 {object} response.Response
+// @Failure 500 {object} response.Response
+// @Router /api/v1/team/members/{id}/resend-invitation [post]
+// @Security BearerAuth
+func (h *TeamMemberHandler) ResendInvitation(c echo.Context) error {
+	ctx := c.Request().Context()
+	accountID, ok := c.Get("account_id").(uuid.UUID)
+	if !ok {
+		return response.Error(c, errors.ErrUnauthorized)
+	}
+
+	// Check user role - only owners and admins can resend invitations
+	userRole, ok := c.Get("user_role").(string)
+	if !ok || (userRole != string(models.RoleOwner) && userRole != string(models.RoleAdmin)) {
+		return response.Error(c, errors.Forbidden("resend invitations"))
+	}
+
+	invitationID, err := uuid.Parse(c.Param("id"))
+	if err != nil {
+		return response.Error(c, errors.ErrInvalidUUID)
+	}
+
+	if err := h.teamMemberService.ResendInvitation(ctx, accountID, invitationID); err != nil {
+		return response.Error(c, err)
+	}
+
+	return response.Success(c, map[string]string{
+		"message": "Invitation resent successfully",
+	})
+}
+
 // AcceptInvitation godoc
 // @Summary Accept team invitation
 // @Description Accept a team invitation using the invitation token
@@ -237,11 +280,30 @@ func (h *TeamMemberHandler) AcceptInvitation(c echo.Context) error {
 		return response.Error(c, err)
 	}
 
-	if err := h.teamMemberService.AcceptInvitation(ctx, req.Token); err != nil {
+	// Get the invitation details
+	invitation, err := h.teamMemberService.GetInvitationByToken(ctx, req.Token)
+	if err != nil {
 		return response.Error(c, err)
 	}
 
+	// Get the account for the invitation email
+	account, err := h.authService.GetAccountByEmail(ctx, invitation.Email)
+	if err != nil {
+		// Account doesn't exist - user needs to register
+		return response.Success(c, map[string]interface{}{
+			"invitation": invitation,
+			"message": "Please register with this email address to join the team.",
+			"status": "needs_registration",
+		})
+	}
+
+	// Account exists - accept the invitation
+	if err := h.teamMemberService.AcceptInvitationDuringRegistration(ctx, req.Token, account.ID); err != nil {
+		return response.Error(c, err)
+	}
+	
 	return response.Success(c, map[string]string{
-		"message": "Invitation accepted successfully",
+		"message": "Invitation accepted successfully. You have been added to the team.",
+		"status": "accepted",
 	})
 }

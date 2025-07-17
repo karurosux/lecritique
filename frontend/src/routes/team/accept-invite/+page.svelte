@@ -2,6 +2,7 @@
 	import { onMount } from 'svelte';
 	import { page } from '$app/stores';
 	import { goto } from '$app/navigation';
+	import { auth } from '$lib/stores/auth';
 	import { Api } from '$lib/api/api';
 	import { Button } from '$lib/components/ui';
 	import { Loader2, UserPlus, CheckCircle, XCircle } from 'lucide-svelte';
@@ -9,6 +10,7 @@
 	let loading = $state(true);
 	let error = $state('');
 	let success = $state(false);
+	let invitationStatus = $state<'pending' | 'accepted' | null>(null);
 
 	onMount(async () => {
 		const token = $page.url.searchParams.get('token');
@@ -20,18 +22,39 @@
 		}
 
 		try {
-			const api = new Api({
+			console.log('Accepting invitation with token:', token);
+			console.log('Is authenticated:', $auth.isAuthenticated);
+			
+			// Get API instance - will include auth token if user is logged in
+			const api = $auth.isAuthenticated ? auth.getApi() : new Api({
 				baseURL: 'http://localhost:8080'
 			});
-			const response = await api.api.v1TeamAcceptInviteCreate({ token });
 			
-			if (response.data.success) {
-				success = true;
-				setTimeout(() => {
-					goto('/login');
-				}, 3000);
+			console.log('Calling API endpoint...');
+			const response = await api.api.v1TeamAcceptInviteCreate({ token });
+			console.log('API response:', response.data);
+			
+			if (response.data.success && response.data.data) {
+				const data = response.data.data as any;
+				invitationStatus = data.status;
+				
+				if (data.status === 'accepted') {
+					// Invitation was accepted (user was authenticated)
+					success = true;
+					setTimeout(() => {
+						goto('/settings/team');
+					}, 2000);
+				} else if (data.status === 'pending') {
+					// User needs to login or register
+					success = true;
+					setTimeout(() => {
+						// Store the token in sessionStorage for after login
+						sessionStorage.setItem('pendingInvitationToken', token);
+						goto('/login');
+					}, 3000);
+				}
 			} else {
-				throw new Error('Failed to accept invitation');
+				throw new Error('Failed to process invitation');
 			}
 		} catch (err: any) {
 			error = err.response?.data?.error?.message || 'Failed to accept invitation. The link may be expired or invalid.';
@@ -53,14 +76,22 @@
 			{:else if success}
 				<div class="text-center">
 					<CheckCircle class="h-12 w-12 text-green-600 mx-auto mb-4" />
-					<h2 class="text-xl font-semibold text-gray-900 mb-2">Invitation Accepted!</h2>
-					<p class="text-gray-600 mb-6">You've successfully joined the team. Redirecting to login...</p>
+					<h2 class="text-xl font-semibold text-gray-900 mb-2">
+						{invitationStatus === 'accepted' ? 'Invitation Accepted!' : 'Valid Invitation!'}
+					</h2>
+					<p class="text-gray-600 mb-6">
+						{#if invitationStatus === 'accepted'}
+							You've successfully joined the team. Redirecting to team settings...
+						{:else}
+							Please login or register to join the team. Redirecting...
+						{/if}
+					</p>
 					<Button
 						variant="gradient"
 						class="w-full"
-						onclick={() => goto('/login')}
+						onclick={() => goto(invitationStatus === 'accepted' ? '/settings/team' : '/login')}
 					>
-						Go to Login
+						{invitationStatus === 'accepted' ? 'Go to Team Settings' : 'Go to Login'}
 					</Button>
 				</div>
 			{:else if error}

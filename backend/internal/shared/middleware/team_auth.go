@@ -33,7 +33,8 @@ func TeamAuthMiddleware(db *gorm.DB) echo.MiddlewareFunc {
 			// Find the owner
 			for _, member := range members {
 				if member.Role == models.RoleOwner {
-					c.Set("user_id", member.UserID)
+					// For owner, use account_id as user_id since member_id might be invalid
+					c.Set("user_id", accountID)
 					c.Set("user_role", string(member.Role))
 					break
 				}
@@ -41,6 +42,7 @@ func TeamAuthMiddleware(db *gorm.DB) echo.MiddlewareFunc {
 
 			// If no owner found, set as owner by default (for backward compatibility)
 			if c.Get("user_role") == nil {
+				c.Set("user_id", accountID)
 				c.Set("user_role", string(models.RoleOwner))
 			}
 

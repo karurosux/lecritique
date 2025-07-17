@@ -4,11 +4,13 @@
   import { Mail, AlertCircle, RefreshCw, ArrowLeft } from 'lucide-svelte';
   import { onMount } from 'svelte';
   import { APP_CONFIG } from '$lib/constants/config';
+  import { getApiClient } from '$lib/api/client';
   
   let email = $derived($page.url.searchParams.get('email') || '');
   let showContent = $state(false);
   let resending = $state(false);
   let resendSuccess = $state(false);
+  let resendError = $state('');
   
   onMount(() => {
     setTimeout(() => {
@@ -17,22 +19,34 @@
   });
   
   async function resendVerification() {
-    if (resending) return;
+    if (resending || !email) return;
     
     resending = true;
     resendSuccess = false;
+    resendError = '';
     
-    // TODO: Implement actual resend logic when backend endpoint is available
-    // For now, just simulate the action
-    setTimeout(() => {
-      resending = false;
-      resendSuccess = true;
+    try {
+      const api = getApiClient();
+      const response = await api.api.v1AuthResendVerificationCreate({ email });
       
-      // Reset success message after 5 seconds
+      if (response.data.success) {
+        resendSuccess = true;
+        
+        // Reset success message after 5 seconds
+        setTimeout(() => {
+          resendSuccess = false;
+        }, 5000);
+      }
+    } catch (error: any) {
+      resendError = error.response?.data?.error?.message || 'Failed to send verification email';
+      
+      // Reset error message after 5 seconds
       setTimeout(() => {
-        resendSuccess = false;
+        resendError = '';
       }, 5000);
-    }, 1500);
+    } finally {
+      resending = false;
+    }
   }
 </script>
 
@@ -98,6 +112,14 @@
           <div class="bg-green-50 border border-green-200 rounded-lg p-4">
             <p class="text-sm text-green-800 font-medium">
               Verification email has been resent successfully!
+            </p>
+          </div>
+        {/if}
+        
+        {#if resendError}
+          <div class="bg-red-50 border border-red-200 rounded-lg p-4">
+            <p class="text-sm text-red-800 font-medium">
+              {resendError}
             </p>
           </div>
         {/if}

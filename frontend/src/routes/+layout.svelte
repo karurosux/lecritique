@@ -18,7 +18,8 @@
     $page.route?.id?.includes("forgot-password") ||
     $page.route?.id?.includes("reset-password") ||
     $page.route?.id?.includes("registration-success") ||
-    $page.route?.id?.includes("email-verification"),
+    $page.route?.id?.includes("email-verification") ||
+    $page.route?.id?.includes("verify-email"),
   );
 
   let isPublicPage = $derived($page.route?.id?.includes("qr/"));

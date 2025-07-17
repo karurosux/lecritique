@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { Button, Input, Modal } from '$lib/components/ui';
+	import { RoleGate } from '$lib/components/auth';
 	import { 
 		Users, 
 		UserPlus, 
@@ -30,6 +31,7 @@
 	let inviteRole = $state<string>('VIEWER');
 	let inviting = $state(false);
 	let removingMemberId = $state<string | null>(null);
+	let resendingInvitationId = $state<string | null>(null);
 
 	// Load team members when component mounts and user is authenticated
 	$effect(() => {
@@ -49,6 +51,17 @@
 			
 			if (response.data.success && response.data.data) {
 				teamMembers = response.data.data as ModelsTeamMember[];
+				console.log('Team members loaded:', teamMembers);
+				console.log('Current account from auth store:', $auth.user);
+				teamMembers.forEach((member, index) => {
+					console.log(`Member ${index}:`, {
+						id: member.id,
+						member_id: member.member_id,
+						account_id: member.account_id,
+						role: member.role,
+						member: member.member
+					});
+				});
 			} else {
 				throw new Error('Failed to load team members');
 			}
@@ -89,6 +102,29 @@
 			onError?.(errorMessage);
 		} finally {
 			inviting = false;
+		}
+	}
+
+	async function resendInvitation(invitationId: string) {
+		if (resendingInvitationId) return;
+		
+		resendingInvitationId = invitationId;
+		try {
+			// Get API instance from auth store
+			const api = auth.getApi();
+			
+			const response = await api.api.v1TeamMembersResendInvitationCreate(invitationId);
+			
+			if (response.data.success) {
+				onSuccess?.('Invitation resent successfully');
+			} else {
+				throw new Error('Failed to resend invitation');
+			}
+		} catch (error: any) {
+			const errorMessage = error.response?.data?.error?.message || 'Failed to resend invitation';
+			onError?.(errorMessage);
+		} finally {
+			resendingInvitationId = null;
 		}
 	}
 
@@ -182,13 +218,28 @@
 
 	// Get user's role
 	let currentUserRole = $derived(
-		teamMembers.find(m => m.user?.email === $auth.user?.email)?.role || 'VIEWER'
+		teamMembers.find(m => {
+			// For owner, check if account_id matches since member data might be invalid
+			if (m.role === 'OWNER' && m.account_id === $auth.user?.id) {
+				return true;
+			}
+			// For other roles, check email match
+			return m.member?.email === $auth.user?.email;
+		})?.role || 'VIEWER'
 	);
 
 	// Check if user can manage team
 	let canManageTeam = $derived(
 		currentUserRole === 'OWNER' || currentUserRole === 'ADMIN'
 	);
+	
+	// Debug logging
+	$effect(() => {
+		console.log('Current auth user email:', $auth.user?.email);
+		console.log('Team members emails:', teamMembers.map(m => ({ email: m.member?.email, role: m.role })));
+		console.log('Current user role:', currentUserRole);
+		console.log('Can manage team:', canManageTeam);
+	});
 </script>
 
 <div>
@@ -198,7 +249,7 @@
 				<h2 class="text-2xl font-bold text-gray-900">Team Members</h2>
 				<p class="mt-1 text-sm text-gray-600">Manage your team and their access levels</p>
 			</div>
-			{#if canManageTeam}
+			<RoleGate roles={['OWNER', 'ADMIN']} teamMembers={teamMembers}>
 				<Button
 					variant="gradient"
 					size="sm"
@@ -207,7 +258,7 @@
 					<UserPlus class="h-4 w-4 mr-2" />
 					Invite Member
 				</Button>
-			{/if}
+			</RoleGate>
 		</div>
 	</div>
 
@@ -223,21 +274,33 @@
 					<div class="flex items-center justify-between">
 						<div class="flex items-center space-x-4">
 							<div class="h-10 w-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-semibold">
-								{member.user?.first_name ? member.user.first_name[0] : member.user?.email?.[0]?.toUpperCase() || '?'}
+								{member.member?.first_name ? member.member.first_name[0] : member.member?.email?.[0]?.toUpperCase() || '?'}
 							</div>
 							<div>
 								<div class="flex items-center gap-2">
 									<p class="font-medium text-gray-900">
-										{member.user?.first_name && member.user?.last_name
-											? `${member.user.first_name} ${member.user.last_name}`
-											: member.user?.email || 'Unknown'}
+										{#if member.member?.email}
+											{member.member.first_name && member.member.last_name
+												? `${member.member.first_name} ${member.member.last_name}`
+												: member.member.company_name || member.member.email}
+										{:else if member.role === 'OWNER'}
+											{$auth.user?.company_name || $auth.user?.email || 'Owner'}
+										{:else}
+											Unknown
+										{/if}
 									</p>
 									<span class={`inline-flex items-center gap-1 px-2 py-1 text-xs font-medium rounded-full ${getRoleBadgeClass(member.role || '')}`}>
 										<RoleIcon class="h-3 w-3" />
 										{member.role?.replace('Role', '') || 'Unknown'}
 									</span>
 								</div>
-								<p class="text-sm text-gray-500">{member.user?.email || ''}</p>
+								<p class="text-sm text-gray-500">
+									{#if member.member?.email}
+										{member.member.email}
+									{:else if member.role === 'OWNER'}
+										{$auth.user?.email || ''}
+									{/if}
+								</p>
 							</div>
 						</div>
 						
@@ -251,40 +314,58 @@
 								</p>
 							</div>
 							
-							{#if canManageTeam && member.role !== 'OWNER'}
-								<div class="flex items-center gap-2">
-									<select
-										class="text-sm border-gray-300 rounded-md"
-										value={member.role}
-										onchange={(e) => updateRole(member.id || '', e.currentTarget.value)}
-										disabled={!canManageTeam}
-									>
-										<option value="ADMIN">Admin</option>
-										<option value="MANAGER">Manager</option>
-										<option value="VIEWER">Viewer</option>
-									</select>
-									
-									<Button
-										variant="ghost"
-										size="sm"
-										onclick={() => removeMember(member.id || '')}
-										disabled={removingMemberId === member.id}
-									>
-										{#if removingMemberId === member.id}
-											<Loader2 class="h-4 w-4 animate-spin" />
-										{:else}
-											<Trash2 class="h-4 w-4 text-red-500" />
-										{/if}
-									</Button>
-								</div>
-							{/if}
+							<RoleGate roles={['OWNER', 'ADMIN']} teamMembers={teamMembers}>
+								{#if member.role !== 'OWNER'}
+									<div class="flex items-center gap-2">
+										<select
+											class="text-sm border-gray-300 rounded-md"
+											value={member.role}
+											onchange={(e) => updateRole(member.id || '', e.currentTarget.value)}
+										>
+											<option value="ADMIN">Admin</option>
+											<option value="MANAGER">Manager</option>
+											<option value="VIEWER">Viewer</option>
+										</select>
+										
+										<Button
+											variant="ghost"
+											size="sm"
+											onclick={() => removeMember(member.id || '')}
+											disabled={removingMemberId === member.id}
+										>
+											{#if removingMemberId === member.id}
+												<Loader2 class="h-4 w-4 animate-spin" />
+											{:else}
+												<Trash2 class="h-4 w-4 text-red-500" />
+											{/if}
+										</Button>
+									</div>
+								{/if}
+							</RoleGate>
 						</div>
 					</div>
 					
 					{#if !member.accepted_at}
-						<div class="mt-3 flex items-center gap-2 text-sm text-amber-600 bg-amber-50 px-3 py-2 rounded-md">
-							<Mail class="h-4 w-4" />
-							Invitation pending
+						<div class="mt-3 flex items-center justify-between text-sm text-amber-600 bg-amber-50 px-3 py-2 rounded-md">
+							<div class="flex items-center gap-2">
+								<Mail class="h-4 w-4" />
+								Invitation pending
+							</div>
+							<RoleGate roles={['OWNER', 'ADMIN']} teamMembers={teamMembers}>
+								<Button
+									variant="ghost"
+									size="xs"
+									onclick={() => resendInvitation(member.id || '')}
+									disabled={resendingInvitationId === member.id}
+								>
+									{#if resendingInvitationId === member.id}
+										<Loader2 class="h-3 w-3 animate-spin" />
+									{:else}
+										<Mail class="h-3 w-3 mr-1" />
+										Resend
+									{/if}
+								</Button>
+							</RoleGate>
 						</div>
 					{/if}
 				</div>

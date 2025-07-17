@@ -31,7 +31,13 @@ func NewEmailService(config *config.Config) EmailService {
 
 func (s *emailService) SendVerificationEmail(ctx context.Context, email, token string) error {
 	subject := "Verify Your Email - LeCritique"
-	verificationURL := fmt.Sprintf("%s/api/v1/auth/verify-email?token=%s", s.config.App.URL, token)
+	// Use frontend URL for user-facing verification link
+	frontendURL := s.config.App.FrontendURL
+	if frontendURL == "" {
+		// Default to localhost:5173 for development
+		frontendURL = "http://localhost:5173"
+	}
+	verificationURL := fmt.Sprintf("%s/verify-email?token=%s", frontendURL, token)
 	
 	body := fmt.Sprintf(`
 	<html>
@@ -50,7 +56,13 @@ func (s *emailService) SendVerificationEmail(ctx context.Context, email, token s
 
 func (s *emailService) SendPasswordResetEmail(ctx context.Context, email, token string) error {
 	subject := "Reset Your Password - LeCritique"
-	resetURL := fmt.Sprintf("%s/reset-password?token=%s", s.config.App.URL, token)
+	// Use frontend URL for user-facing reset link
+	frontendURL := s.config.App.FrontendURL
+	if frontendURL == "" {
+		// Default to localhost:5173 for development
+		frontendURL = "http://localhost:5173"
+	}
+	resetURL := fmt.Sprintf("%s/reset-password?token=%s", frontendURL, token)
 	
 	body := fmt.Sprintf(`
 	<html>

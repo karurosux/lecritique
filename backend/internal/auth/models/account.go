@@ -1,6 +1,7 @@
 package models
 
 import (
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -13,6 +14,8 @@ type Account struct {
 	Email                   string        `gorm:"uniqueIndex;not null" json:"email"`
 	PasswordHash            string        `gorm:"not null" json:"-"`
 	CompanyName             string        `gorm:"not null" json:"company_name"`
+	FirstName               string        `json:"first_name"`
+	LastName                string        `json:"last_name"`
 	Phone                   string        `json:"phone"`
 	IsActive                bool          `gorm:"default:true" json:"is_active"`
 	EmailVerified           bool          `gorm:"default:false" json:"email_verified"`
@@ -36,6 +39,17 @@ func (a *Account) SetPassword(password string) error {
 func (a *Account) CheckPassword(password string) bool {
 	err := bcrypt.CompareHashAndPassword([]byte(a.PasswordHash), []byte(password))
 	return err == nil
+}
+
+// DisplayName returns the best available name for the account
+func (a *Account) DisplayName() string {
+	if a.FirstName != "" || a.LastName != "" {
+		return strings.TrimSpace(a.FirstName + " " + a.LastName)
+	}
+	if a.CompanyName != "" {
+		return a.CompanyName
+	}
+	return a.Email
 }
 
 // IsPendingDeactivation checks if the account has a pending deactivation request
@@ -62,14 +76,14 @@ func (a *Account) ShouldBeDeactivated() bool {
 
 type TeamMember struct {
 	models.BaseModel
-	AccountID  uuid.UUID  `gorm:"not null" json:"account_id"`
-	Account    Account    `json:"account,omitempty"`
-	UserID     uuid.UUID  `gorm:"not null" json:"user_id"`
-	User       User       `json:"user,omitempty"`
-	Role       MemberRole `gorm:"not null" json:"role"`
-	InvitedBy  uuid.UUID  `json:"invited_by"`
-	InvitedAt  time.Time  `json:"invited_at"`
-	AcceptedAt *time.Time `json:"accepted_at"`
+	AccountID      uuid.UUID  `gorm:"not null" json:"account_id"`         // The organization account
+	Account        Account    `json:"account,omitempty"`
+	MemberID       uuid.UUID  `gorm:"not null" json:"member_id"`          // The member's account ID
+	MemberAccount  Account    `gorm:"foreignKey:MemberID" json:"member,omitempty"`
+	Role           MemberRole `gorm:"not null" json:"role"`
+	InvitedBy      uuid.UUID  `json:"invited_by"`
+	InvitedAt      time.Time  `json:"invited_at"`
+	AcceptedAt     *time.Time `json:"accepted_at"`
 }
 
 type MemberRole string
@@ -81,33 +95,3 @@ const (
 	RoleViewer  MemberRole = "VIEWER"
 )
 
-type User struct {
-	models.BaseModel
-	Email        string       `gorm:"uniqueIndex;not null" json:"email"`
-	PasswordHash string       `gorm:"not null" json:"-"`
-	FirstName    string       `json:"first_name"`
-	LastName     string       `json:"last_name"`
-	IsActive     bool         `gorm:"default:true" json:"is_active"`
-	TeamMembers  []TeamMember `json:"team_members,omitempty"`
-}
-
-func (u *User) SetPassword(password string) error {
-	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
-	if err != nil {
-		return err
-	}
-	u.PasswordHash = string(hash)
-	return nil
-}
-
-func (u *User) CheckPassword(password string) bool {
-	err := bcrypt.CompareHashAndPassword([]byte(u.PasswordHash), []byte(password))
-	return err == nil
-}
-
-func (u *User) FullName() string {
-	if u.FirstName == "" && u.LastName == "" {
-		return u.Email
-	}
-	return u.FirstName + " " + u.LastName
-}

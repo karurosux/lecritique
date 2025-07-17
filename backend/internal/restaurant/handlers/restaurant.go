@@ -8,6 +8,7 @@ import (
 	"github.com/lecritique/api/internal/restaurant/models"
 	"github.com/lecritique/api/internal/restaurant/services"
 	"github.com/lecritique/api/internal/shared/errors"
+	"github.com/lecritique/api/internal/shared/middleware"
 	"github.com/lecritique/api/internal/shared/response"
 	"github.com/lecritique/api/internal/shared/validator"
 )
@@ -46,7 +47,7 @@ type CreateRestaurantRequest struct {
 // @Router /api/v1/restaurants [post]
 func (h *RestaurantHandler) Create(c echo.Context) error {
 	ctx := c.Request().Context()
-	accountID := c.Get("account_id").(uuid.UUID)
+	accountID := middleware.GetResourceAccountID(c)
 
 	var req CreateRestaurantRequest
 	if err := c.Bind(&req); err != nil {
@@ -84,7 +85,7 @@ func (h *RestaurantHandler) Create(c echo.Context) error {
 // @Router /api/v1/restaurants [get]
 func (h *RestaurantHandler) GetAll(c echo.Context) error {
 	ctx := c.Request().Context()
-	accountID := c.Get("account_id").(uuid.UUID)
+	accountID := middleware.GetResourceAccountID(c)
 
 	restaurants, err := h.restaurantService.GetByAccountID(ctx, accountID)
 	if err != nil {
@@ -109,7 +110,7 @@ func (h *RestaurantHandler) GetAll(c echo.Context) error {
 // @Router /api/v1/restaurants/{id} [get]
 func (h *RestaurantHandler) GetByID(c echo.Context) error {
 	ctx := c.Request().Context()
-	accountID := c.Get("account_id").(uuid.UUID)
+	accountID := middleware.GetResourceAccountID(c)
 	
 	restaurantID, err := uuid.Parse(c.Param("id"))
 	if err != nil {
@@ -140,7 +141,7 @@ func (h *RestaurantHandler) GetByID(c echo.Context) error {
 // @Router /api/v1/restaurants/{id} [put]
 func (h *RestaurantHandler) Update(c echo.Context) error {
 	ctx := c.Request().Context()
-	accountID := c.Get("account_id").(uuid.UUID)
+	accountID := middleware.GetResourceAccountID(c)
 	
 	restaurantID, err := uuid.Parse(c.Param("id"))
 	if err != nil {
@@ -176,7 +177,7 @@ func (h *RestaurantHandler) Update(c echo.Context) error {
 // @Router /api/v1/restaurants/{id} [delete]
 func (h *RestaurantHandler) Delete(c echo.Context) error {
 	ctx := c.Request().Context()
-	accountID := c.Get("account_id").(uuid.UUID)
+	accountID := middleware.GetResourceAccountID(c)
 	
 	restaurantID, err := uuid.Parse(c.Param("id"))
 	if err != nil {

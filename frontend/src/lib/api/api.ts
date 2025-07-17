@@ -154,14 +154,6 @@ export interface HandlersPaymentMethodResponse {
   type?: string;
 }
 
-export interface HandlersPlanFeaturesResponse {
-  features?: Record<string, any>;
-  is_active?: boolean;
-  plan_code?: string;
-  plan_name?: string;
-  subscription_status?: string;
-}
-
 export interface HandlersPortalResponse {
   portal_url?: string;
 }
@@ -172,10 +164,18 @@ export interface HandlersQRCodeListResponse {
 }
 
 export interface HandlersRegisterRequest {
-  company_name: string;
+  company_name?: string;
   email: string;
+  first_name?: string;
+  /** Optional invitation token */
+  invitation_token?: string;
+  last_name?: string;
   /** @minLength 8 */
   password: string;
+}
+
+export interface HandlersResendVerificationRequest {
+  email: string;
 }
 
 export interface HandlersResetPasswordRequest {
@@ -225,8 +225,10 @@ export interface ModelsAccount {
   email?: string;
   email_verified?: boolean;
   email_verified_at?: string;
+  first_name?: string;
   id?: string;
   is_active?: boolean;
+  last_name?: string;
   phone?: string;
   /** Populated when needed */
   subscription?: any;
@@ -407,15 +409,17 @@ export interface ModelsSubscriptionPlan {
 export interface ModelsTeamMember {
   accepted_at?: string;
   account?: ModelsAccount;
+  /** The organization account */
   account_id?: string;
   created_at?: string;
   id?: string;
   invited_at?: string;
   invited_by?: string;
+  member?: ModelsAccount;
+  /** The member's account ID */
+  member_id?: string;
   role?: ModelsMemberRole;
   updated_at?: string;
-  user?: ModelsUser;
-  user_id?: string;
 }
 
 export interface ModelsUpdateQuestionRequest {
@@ -427,17 +431,6 @@ export interface ModelsUpdateQuestionRequest {
   options?: string[];
   text?: string;
   type?: ModelsQuestionType;
-}
-
-export interface ModelsUser {
-  created_at?: string;
-  email?: string;
-  first_name?: string;
-  id?: string;
-  is_active?: boolean;
-  last_name?: string;
-  team_members?: ModelsTeamMember[];
-  updated_at?: string;
 }
 
 export interface ResponseErrorData {
@@ -1073,6 +1066,32 @@ export class Api<
         ResponseResponse
       >({
         path: `/api/v1/auth/register`,
+        method: "POST",
+        body: request,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description Resend verification email to the specified email address (public endpoint)
+     *
+     * @tags auth
+     * @name V1AuthResendVerificationCreate
+     * @summary Resend email verification
+     * @request POST:/api/v1/auth/resend-verification
+     */
+    v1AuthResendVerificationCreate: (
+      request: HandlersResendVerificationRequest,
+      params: RequestParams = {},
+    ) =>
+      this.request<
+        ResponseResponse & {
+          data?: Record<string, string>;
+        },
+        ResponseResponse
+      >({
+        path: `/api/v1/auth/resend-verification`,
         method: "POST",
         body: request,
         type: ContentType.Json,
@@ -2283,6 +2302,33 @@ export class Api<
       }),
 
     /**
+     * @description Resend an invitation email to a pending team member
+     *
+     * @tags team
+     * @name V1TeamMembersResendInvitationCreate
+     * @summary Resend team invitation
+     * @request POST:/api/v1/team/members/{id}/resend-invitation
+     * @secure
+     */
+    v1TeamMembersResendInvitationCreate: (
+      id: string,
+      params: RequestParams = {},
+    ) =>
+      this.request<
+        ResponseResponse & {
+          data?: Record<string, string>;
+        },
+        ResponseResponse
+      >({
+        path: `/api/v1/team/members/${id}/resend-invitation`,
+        method: "POST",
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
      * @description Update the role of a team member
      *
      * @tags team
@@ -2400,30 +2446,6 @@ export class Api<
       this.request<ResponseResponse, ResponseResponse>({
         path: `/api/v1/user/subscription`,
         method: "DELETE",
-        secure: true,
-        type: ContentType.Json,
-        format: "json",
-        ...params,
-      }),
-
-    /**
-     * @description Get the current subscription plan features in a structured format
-     *
-     * @tags subscription
-     * @name V1UserSubscriptionFeaturesList
-     * @summary Get current plan features
-     * @request GET:/api/v1/user/subscription/features
-     * @secure
-     */
-    v1UserSubscriptionFeaturesList: (params: RequestParams = {}) =>
-      this.request<
-        ResponseResponse & {
-          data?: HandlersPlanFeaturesResponse;
-        },
-        ResponseResponse
-      >({
-        path: `/api/v1/user/subscription/features`,
-        method: "GET",
         secure: true,
         type: ContentType.Json,
         format: "json",

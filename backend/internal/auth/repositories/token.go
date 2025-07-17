@@ -16,6 +16,7 @@ type TokenRepository interface {
 	FindByAccountAndType(ctx context.Context, accountID uuid.UUID, tokenType models.TokenType) (*models.VerificationToken, error)
 	MarkAsUsed(ctx context.Context, tokenID uuid.UUID) error
 	DeleteExpired(ctx context.Context) error
+	DeleteByAccountAndType(ctx context.Context, accountID uuid.UUID, tokenType models.TokenType) error
 }
 
 type tokenRepository struct {
@@ -70,6 +71,14 @@ func (r *tokenRepository) MarkAsUsed(ctx context.Context, tokenID uuid.UUID) err
 
 func (r *tokenRepository) DeleteExpired(ctx context.Context) error {
 	err := r.db.WithContext(ctx).Where("expires_at < ?", time.Now()).Delete(&models.VerificationToken{}).Error
+	if err != nil {
+		return errors.ErrInternalServer
+	}
+	return nil
+}
+
+func (r *tokenRepository) DeleteByAccountAndType(ctx context.Context, accountID uuid.UUID, tokenType models.TokenType) error {
+	err := r.db.WithContext(ctx).Where("account_id = ? AND type = ?", accountID, tokenType).Delete(&models.VerificationToken{}).Error
 	if err != nil {
 		return errors.ErrInternalServer
 	}

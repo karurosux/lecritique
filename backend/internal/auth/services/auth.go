@@ -15,12 +15,21 @@ import (
 	"github.com/lecritique/api/internal/shared/services"
 )
 
+type RegisterData struct {
+	Email       string
+	Password    string
+	CompanyName string
+	FirstName   string
+	LastName    string
+}
+
 type AuthService interface {
-	Register(ctx context.Context, email, password, companyName string) (*models.Account, error)
+	Register(ctx context.Context, data RegisterData) (*models.Account, error)
 	Login(ctx context.Context, email, password string) (string, *models.Account, error)
 	ValidateToken(tokenString string) (*Claims, error)
 	RefreshToken(ctx context.Context, oldToken string) (string, error)
 	SendEmailVerification(ctx context.Context, accountID uuid.UUID) error
+	ResendVerificationEmail(ctx context.Context, email string) error
 	VerifyEmail(ctx context.Context, token string) error
 	SendPasswordReset(ctx context.Context, email string) error
 	ResetPassword(ctx context.Context, token, newPassword string) error
@@ -30,6 +39,7 @@ type AuthService interface {
 	CancelDeactivation(ctx context.Context, accountID uuid.UUID) error
 	ProcessPendingDeactivations(ctx context.Context) error
 	UpdateProfile(ctx context.Context, accountID uuid.UUID, updates map[string]interface{}) (*models.Account, error)
+	GetAccountByEmail(ctx context.Context, email string) (*models.Account, error)
 }
 
 type authService struct {
@@ -54,28 +64,44 @@ func NewAuthService(accountRepo repositories.AccountRepository, tokenRepo reposi
 	}
 }
 
-func (s *authService) Register(ctx context.Context, email, password, companyName string) (*models.Account, error) {
+func (s *authService) Register(ctx context.Context, data RegisterData) (*models.Account, error) {
 	// Check if account already exists
-	existing, _ := s.accountRepo.FindByEmail(ctx, email)
+	existing, _ := s.accountRepo.FindByEmail(ctx, data.Email)
 	if existing != nil {
 		return nil, errors.ErrConflict
 	}
 
 	// Create new account
 	account := &models.Account{
-		Email:       email,
-		CompanyName: companyName,
+		Email:       data.Email,
+		CompanyName: data.CompanyName,
+		FirstName:   data.FirstName,
+		LastName:    data.LastName,
 		IsActive:    true,
 	}
 
 	// Hash password
-	if err := account.SetPassword(password); err != nil {
+	if err := account.SetPassword(data.Password); err != nil {
 		return nil, err
 	}
 
 	// Save account
 	if err := s.accountRepo.Create(ctx, account); err != nil {
 		return nil, err
+	}
+
+	// If this is not a team member registration (no invitation), create owner team member record
+	// This ensures the owner appears in the team members list
+	// The migration script will handle existing accounts
+	// For new accounts, the frontend should handle creating the owner team member
+	if data.CompanyName != "" {
+		log.Printf("New organization account created: %s. Owner team member should be created.", account.ID)
+	}
+
+	// Send verification email
+	if err := s.SendEmailVerification(ctx, account.ID); err != nil {
+		// Log error but don't fail registration
+		log.Printf("Failed to send verification email for new account %s: %v", account.ID, err)
 	}
 
 	return account, nil
@@ -191,6 +217,48 @@ func (s *authService) SendEmailVerification(ctx context.Context, accountID uuid.
 	// Create verification token (24 hours expiry)
 	verificationToken := &models.VerificationToken{
 		AccountID: accountID,
+		Token:     token,
+		Type:      models.TokenTypeEmailVerification,
+		ExpiresAt: time.Now().Add(24 * time.Hour),
+	}
+
+	// Save token
+	if err := s.tokenRepo.Create(ctx, verificationToken); err != nil {
+		return err
+	}
+
+	// Send email
+	return s.emailService.SendVerificationEmail(ctx, account.Email, token)
+}
+
+func (s *authService) ResendVerificationEmail(ctx context.Context, email string) error {
+	// Find account by email
+	account, err := s.accountRepo.FindByEmail(ctx, email)
+	if err != nil {
+		// Don't reveal if email exists - just log and return nil
+		log.Printf("Resend verification requested for non-existent email: %s", email)
+		return nil
+	}
+
+	// Check if already verified
+	if account.EmailVerified {
+		log.Printf("Resend verification requested for already verified account: %s", account.ID)
+		return nil
+	}
+
+	// Delete any existing verification tokens for this account
+	if err := s.tokenRepo.DeleteByAccountAndType(ctx, account.ID, models.TokenTypeEmailVerification); err != nil {
+		log.Printf("Failed to delete existing verification tokens: %v", err)
+		// Continue anyway
+	}
+
+	// Generate new verification token
+	token, err := models.GenerateToken()
+	if err != nil {
+		return err
+	}
+	verificationToken := &models.VerificationToken{
+		AccountID: account.ID,
 		Token:     token,
 		Type:      models.TokenTypeEmailVerification,
 		ExpiresAt: time.Now().Add(24 * time.Hour),
@@ -550,4 +618,8 @@ func (s *authService) UpdateProfile(ctx context.Context, accountID uuid.UUID, up
 	}
 
 	return account, nil
+}
+
+func (s *authService) GetAccountByEmail(ctx context.Context, email string) (*models.Account, error) {
+	return s.accountRepo.FindByEmail(ctx, email)
 }

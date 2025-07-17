@@ -20,7 +20,7 @@ func RegisterRoutes(v1 *echo.Group, db *gorm.DB, authService authServices.AuthSe
 	subscriptionService := services.NewSubscriptionService(subscriptionRepo, planRepo, restaurantRepo)
 	
 	// Initialize handler
-	subscriptionHandler := NewSubscriptionHandler(subscriptionService)
+	subscriptionHandler := NewSubscriptionHandler(subscriptionService, db)
 	
 	// Public routes (no authentication required)
 	v1.GET("/plans", subscriptionHandler.GetAvailablePlans)

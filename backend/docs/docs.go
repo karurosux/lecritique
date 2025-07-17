@@ -1078,6 +1078,61 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/v1/auth/resend-verification": {
+            "post": {
+                "description": "Resend verification email to the specified email address (public endpoint)",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Resend email verification",
+                "parameters": [
+                    {
+                        "description": "Email address",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ResendVerificationRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "additionalProperties": {
+                                                "type": "string"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
         "/api/v1/auth/reset-password": {
             "post": {
                 "description": "Reset password using reset token",
@@ -4217,6 +4272,82 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/v1/team/members/{id}/resend-invitation": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Resend an invitation email to a pending team member",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "team"
+                ],
+                "summary": "Resend team invitation",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Invitation ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "additionalProperties": {
+                                                "type": "string"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
         "/api/v1/team/members/{id}/role": {
             "put": {
                 "security": [
@@ -4506,64 +4637,6 @@ const docTemplate = `{
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/response.Response"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/response.Response"
-                        }
-                    },
-                    "404": {
-                        "description": "Not Found",
-                        "schema": {
-                            "$ref": "#/definitions/response.Response"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/response.Response"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/v1/user/subscription/features": {
-            "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Get the current subscription plan features in a structured format",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "subscription"
-                ],
-                "summary": "Get current plan features",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/response.Response"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/handlers.PlanFeaturesResponse"
-                                        }
-                                    }
-                                }
-                            ]
                         }
                     },
                     "401": {
@@ -5174,27 +5247,6 @@ const docTemplate = `{
                 }
             }
         },
-        "handlers.PlanFeaturesResponse": {
-            "type": "object",
-            "properties": {
-                "features": {
-                    "type": "object",
-                    "additionalProperties": true
-                },
-                "is_active": {
-                    "type": "boolean"
-                },
-                "plan_code": {
-                    "type": "string"
-                },
-                "plan_name": {
-                    "type": "string"
-                },
-                "subscription_status": {
-                    "type": "string"
-                }
-            }
-        },
         "handlers.PortalResponse": {
             "type": "object",
             "properties": {
@@ -5220,7 +5272,6 @@ const docTemplate = `{
         "handlers.RegisterRequest": {
             "type": "object",
             "required": [
-                "company_name",
                 "email",
                 "password"
             ],
@@ -5231,9 +5282,30 @@ const docTemplate = `{
                 "email": {
                     "type": "string"
                 },
+                "first_name": {
+                    "type": "string"
+                },
+                "invitation_token": {
+                    "description": "Optional invitation token",
+                    "type": "string"
+                },
+                "last_name": {
+                    "type": "string"
+                },
                 "password": {
                     "type": "string",
                     "minLength": 8
+                }
+            }
+        },
+        "handlers.ResendVerificationRequest": {
+            "type": "object",
+            "required": [
+                "email"
+            ],
+            "properties": {
+                "email": {
+                    "type": "string"
                 }
             }
         },
@@ -5353,11 +5425,17 @@ const docTemplate = `{
                 "email_verified_at": {
                     "type": "string"
                 },
+                "first_name": {
+                    "type": "string"
+                },
                 "id": {
                     "type": "string"
                 },
                 "is_active": {
                     "type": "boolean"
+                },
+                "last_name": {
+                    "type": "string"
                 },
                 "phone": {
                     "type": "string"
@@ -5932,6 +6010,7 @@ const docTemplate = `{
                     "$ref": "#/definitions/models.Account"
                 },
                 "account_id": {
+                    "description": "The organization account",
                     "type": "string"
                 },
                 "created_at": {
@@ -5946,16 +6025,17 @@ const docTemplate = `{
                 "invited_by": {
                     "type": "string"
                 },
+                "member": {
+                    "$ref": "#/definitions/models.Account"
+                },
+                "member_id": {
+                    "description": "The member's account ID",
+                    "type": "string"
+                },
                 "role": {
                     "$ref": "#/definitions/models.MemberRole"
                 },
                 "updated_at": {
-                    "type": "string"
-                },
-                "user": {
-                    "$ref": "#/definitions/models.User"
-                },
-                "user_id": {
                     "type": "string"
                 }
             }
@@ -5989,38 +6069,6 @@ const docTemplate = `{
                 },
                 "type": {
                     "$ref": "#/definitions/models.QuestionType"
-                }
-            }
-        },
-        "models.User": {
-            "type": "object",
-            "properties": {
-                "created_at": {
-                    "type": "string"
-                },
-                "email": {
-                    "type": "string"
-                },
-                "first_name": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "string"
-                },
-                "is_active": {
-                    "type": "boolean"
-                },
-                "last_name": {
-                    "type": "string"
-                },
-                "team_members": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/models.TeamMember"
-                    }
-                },
-                "updated_at": {
-                    "type": "string"
                 }
             }
         },

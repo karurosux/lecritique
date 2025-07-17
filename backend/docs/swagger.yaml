@@ -200,20 +200,6 @@ definitions:
       type:
         type: string
     type: object
-  handlers.PlanFeaturesResponse:
-    properties:
-      features:
-        additionalProperties: true
-        type: object
-      is_active:
-        type: boolean
-      plan_code:
-        type: string
-      plan_name:
-        type: string
-      subscription_status:
-        type: string
-    type: object
   handlers.PortalResponse:
     properties:
       portal_url:
@@ -234,13 +220,26 @@ definitions:
         type: string
       email:
         type: string
+      first_name:
+        type: string
+      invitation_token:
+        description: Optional invitation token
+        type: string
+      last_name:
+        type: string
       password:
         minLength: 8
         type: string
     required:
-    - company_name
     - email
     - password
+    type: object
+  handlers.ResendVerificationRequest:
+    properties:
+      email:
+        type: string
+    required:
+    - email
     type: object
   handlers.ResetPasswordRequest:
     properties:
@@ -319,10 +318,14 @@ definitions:
         type: boolean
       email_verified_at:
         type: string
+      first_name:
+        type: string
       id:
         type: string
       is_active:
         type: boolean
+      last_name:
+        type: string
       phone:
         type: string
       subscription:
@@ -717,6 +720,7 @@ definitions:
       account:
         $ref: '#/definitions/models.Account'
       account_id:
+        description: The organization account
         type: string
       created_at:
         type: string
@@ -726,13 +730,14 @@ definitions:
         type: string
       invited_by:
         type: string
+      member:
+        $ref: '#/definitions/models.Account'
+      member_id:
+        description: The member's account ID
+        type: string
       role:
         $ref: '#/definitions/models.MemberRole'
       updated_at:
-        type: string
-      user:
-        $ref: '#/definitions/models.User'
-      user_id:
         type: string
     type: object
   models.UpdateQuestionRequest:
@@ -755,27 +760,6 @@ definitions:
         type: string
       type:
         $ref: '#/definitions/models.QuestionType'
-    type: object
-  models.User:
-    properties:
-      created_at:
-        type: string
-      email:
-        type: string
-      first_name:
-        type: string
-      id:
-        type: string
-      is_active:
-        type: boolean
-      last_name:
-        type: string
-      team_members:
-        items:
-          $ref: '#/definitions/models.TeamMember'
-        type: array
-      updated_at:
-        type: string
     type: object
   response.ErrorData:
     properties:
@@ -1498,6 +1482,40 @@ paths:
           schema:
             $ref: '#/definitions/response.Response'
       summary: Register a new account
+      tags:
+      - auth
+  /api/v1/auth/resend-verification:
+    post:
+      consumes:
+      - application/json
+      description: Resend verification email to the specified email address (public
+        endpoint)
+      parameters:
+      - description: Email address
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.ResendVerificationRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  additionalProperties:
+                    type: string
+                  type: object
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: Resend email verification
       tags:
       - auth
   /api/v1/auth/reset-password:
@@ -3428,6 +3446,52 @@ paths:
       summary: Remove team member
       tags:
       - team
+  /api/v1/team/members/{id}/resend-invitation:
+    post:
+      consumes:
+      - application/json
+      description: Resend an invitation email to a pending team member
+      parameters:
+      - description: Invitation ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  additionalProperties:
+                    type: string
+                  type: object
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: Resend team invitation
+      tags:
+      - team
   /api/v1/team/members/{id}/role:
     put:
       consumes:
@@ -3665,40 +3729,6 @@ paths:
       security:
       - BearerAuth: []
       summary: Create a new subscription
-      tags:
-      - subscription
-  /api/v1/user/subscription/features:
-    get:
-      consumes:
-      - application/json
-      description: Get the current subscription plan features in a structured format
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            allOf:
-            - $ref: '#/definitions/response.Response'
-            - properties:
-                data:
-                  $ref: '#/definitions/handlers.PlanFeaturesResponse'
-              type: object
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/response.Response'
-        "404":
-          description: Not Found
-          schema:
-            $ref: '#/definitions/response.Response'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/response.Response'
-      security:
-      - BearerAuth: []
-      summary: Get current plan features
       tags:
       - subscription
   /restaurants/{restaurantId}/questionnaires/{id}/questions:
