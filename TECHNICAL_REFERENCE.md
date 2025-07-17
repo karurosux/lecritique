@@ -3,18 +3,71 @@
 ## API Endpoints
 
 ### Public (No Auth)
-- `GET /public/qr/:code` - Validate QR
-- `GET /public/restaurant/:id/menu` - Get menu
-- `GET /public/questionnaire/:restaurantId/:dishId` - Get questionnaire
-- `POST /public/feedback` - Submit feedback
+- `GET /api/health` - Health check
+- `POST /api/v1/auth/register` - Register new account
+- `POST /api/v1/auth/login` - Login
+- `GET /api/v1/auth/verify-email` - Verify email
+- `POST /api/v1/auth/resend-verification` - Resend verification
+- `POST /api/v1/auth/forgot-password` - Password reset
+- `POST /api/v1/team/accept-invite` - Accept team invitation
+- `GET /api/v1/plans` - Get subscription plans
+
+### Public Feedback
+- `GET /api/v1/public/qr/:code` - Validate QR code
+- `GET /api/v1/public/restaurant/:id/menu` - Get restaurant menu
+- `GET /api/v1/public/questionnaire/:restaurantId/:dishId` - Get questionnaire
+- `GET /api/v1/public/restaurant/:restaurantId/dishes/:dishId/questions` - Get dish questions
+- `POST /api/v1/public/feedback` - Submit feedback
 
 ### Protected (Auth Required)
-See Swagger docs at `/swagger` for full list. Key endpoints:
-- Auth: `/api/auth/*`
-- Restaurants: `/api/restaurants/*`
-- Dishes: `/api/restaurants/:id/dishes/*`
-- Questionnaires: `/api/restaurants/:id/questionnaires/*`
-- QR Codes: `/api/restaurants/:id/qr-codes/*`
+
+#### Auth & Profile
+- `POST /api/v1/auth/refresh` - Refresh token
+- `PUT /api/v1/auth/profile` - Update profile
+- `POST /api/v1/auth/change-email` - Request email change
+
+#### Team Management
+- `GET /api/v1/team/members` - List team members
+- `POST /api/v1/team/members/invite` - Invite member
+- `PUT /api/v1/team/members/:id/role` - Update role
+- `DELETE /api/v1/team/members/:id` - Remove member
+
+#### Restaurants
+- `GET /api/v1/restaurants` - List restaurants
+- `POST /api/v1/restaurants` - Create restaurant
+- `GET /api/v1/restaurants/:id` - Get restaurant
+- `PUT /api/v1/restaurants/:id` - Update restaurant
+- `DELETE /api/v1/restaurants/:id` - Delete restaurant
+
+#### Dishes
+- `POST /api/v1/dishes` - Create dish
+- `GET /api/v1/dishes/:id` - Get dish
+- `PUT /api/v1/dishes/:id` - Update dish
+- `DELETE /api/v1/dishes/:id` - Delete dish
+- `GET /api/v1/restaurants/:restaurantId/dishes` - Get restaurant dishes
+
+#### Questions
+- `POST /api/v1/restaurants/:restaurantId/dishes/:dishId/questions` - Create question
+- `GET /api/v1/restaurants/:restaurantId/dishes/:dishId/questions` - Get questions
+- `PUT /api/v1/restaurants/:restaurantId/dishes/:dishId/questions/:questionId` - Update
+- `DELETE /api/v1/restaurants/:restaurantId/dishes/:dishId/questions/:questionId` - Delete
+- `POST /api/v1/restaurants/:restaurantId/dishes/:dishId/questions/reorder` - Reorder
+
+#### QR Codes
+- `POST /api/v1/restaurants/:restaurantId/qr-codes` - Generate QR code
+- `GET /api/v1/restaurants/:restaurantId/qr-codes` - List QR codes
+- `PATCH /api/v1/qr-codes/:id` - Update QR code
+- `DELETE /api/v1/qr-codes/:id` - Delete QR code
+
+#### Analytics
+- `GET /api/v1/analytics/restaurants/:restaurantId` - Restaurant analytics
+- `GET /api/v1/analytics/restaurants/:restaurantId/charts` - Chart data
+- `GET /api/v1/analytics/dishes/:dishId` - Dish analytics
+- `GET /api/v1/analytics/dashboard/:restaurantId` - Dashboard metrics
+
+#### AI
+- `POST /api/v1/ai/generate-questions/:dishId` - Generate questions
+- `POST /api/v1/ai/generate-questionnaire/:dishId` - Generate questionnaire
 
 ## Database Schema
 
