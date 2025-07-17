@@ -24,6 +24,7 @@ func RegisterRoutes(protected *echo.Group, db *gorm.DB, authService authServices
 	// Dish routes (protected)
 	dishes := protected.Group("/dishes")
 	dishes.Use(middleware.JWTAuth(authService))
+	dishes.Use(middleware.TeamAware(db)) // Add team-aware middleware
 	dishes.POST("", dishHandler.Create)
 	dishes.GET("/:id", dishHandler.GetByID)
 	dishes.PUT("/:id", dishHandler.Update)
@@ -32,5 +33,6 @@ func RegisterRoutes(protected *echo.Group, db *gorm.DB, authService authServices
 	// Restaurant-specific dish routes
 	restaurants := protected.Group("/restaurants")
 	restaurants.Use(middleware.JWTAuth(authService))
+	restaurants.Use(middleware.TeamAware(db)) // Add team-aware middleware
 	restaurants.GET("/:restaurantId/dishes", dishHandler.GetByRestaurant)
 }

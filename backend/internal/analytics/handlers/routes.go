@@ -28,6 +28,7 @@ func RegisterRoutes(protected *echo.Group, db *gorm.DB, authService authServices
 	// Analytics routes (protected)
 	analytics := protected.Group("/analytics")
 	analytics.Use(middleware.JWTAuth(authService))
+	analytics.Use(middleware.TeamAware(db)) // Add team-aware middleware
 	analytics.GET("/restaurants/:restaurantId", analyticsHandler.GetRestaurantAnalytics)
 	analytics.GET("/restaurants/:restaurantId/charts", analyticsHandler.GetRestaurantChartData)
 	analytics.GET("/dishes/:dishId", analyticsHandler.GetDishAnalytics)

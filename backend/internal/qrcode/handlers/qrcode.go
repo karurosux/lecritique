@@ -8,6 +8,7 @@ import (
 	"github.com/lecritique/api/internal/qrcode/models"
 	"github.com/lecritique/api/internal/qrcode/services"
 	"github.com/lecritique/api/internal/shared/logger"
+	"github.com/lecritique/api/internal/shared/middleware"
 	"github.com/lecritique/api/internal/shared/validator"
 	"github.com/sirupsen/logrus"
 )
@@ -61,15 +62,13 @@ func (h *QRCodeHandler) Generate(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 
-	accountID, ok := c.Get("account_id").(uuid.UUID)
-	if !ok {
-		return echo.NewHTTPError(http.StatusUnauthorized, "Invalid authentication")
-	}
+	// Use resource account ID for team-aware access
+	resourceAccountID := middleware.GetResourceAccountID(c)
 
-	qrCode, err := h.qrCodeService.Generate(ctx, accountID, req.RestaurantID, req.Type, req.Label, req.Location)
+	qrCode, err := h.qrCodeService.Generate(ctx, resourceAccountID, req.RestaurantID, req.Type, req.Label, req.Location)
 	if err != nil {
 		logger.Error("Failed to generate QR code", err, logrus.Fields{
-			"account_id":    accountID,
+			"account_id":    resourceAccountID,
 			"restaurant_id": req.RestaurantID,
 			"type":          req.Type,
 			"label":         req.Label,
@@ -109,15 +108,13 @@ func (h *QRCodeHandler) GetByRestaurant(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, "Invalid restaurant ID")
 	}
 
-	accountID, ok := c.Get("account_id").(uuid.UUID)
-	if !ok {
-		return echo.NewHTTPError(http.StatusUnauthorized, "Invalid authentication")
-	}
+	// Use resource account ID for team-aware access
+	resourceAccountID := middleware.GetResourceAccountID(c)
 
-	qrCodes, err := h.qrCodeService.GetByRestaurantID(ctx, accountID, restaurantID)
+	qrCodes, err := h.qrCodeService.GetByRestaurantID(ctx, resourceAccountID, restaurantID)
 	if err != nil {
 		logger.Error("Failed to get QR codes", err, logrus.Fields{
-			"account_id":    accountID,
+			"account_id":    resourceAccountID,
 			"restaurant_id": restaurantID,
 		})
 		return echo.NewHTTPError(http.StatusInternalServerError, "Failed to get QR codes")
@@ -150,14 +147,12 @@ func (h *QRCodeHandler) Delete(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, "Invalid QR code ID")
 	}
 
-	accountID, ok := c.Get("account_id").(uuid.UUID)
-	if !ok {
-		return echo.NewHTTPError(http.StatusUnauthorized, "Invalid authentication")
-	}
+	// Use resource account ID for team-aware access
+	resourceAccountID := middleware.GetResourceAccountID(c)
 
-	if err := h.qrCodeService.Delete(ctx, accountID, qrCodeID); err != nil {
+	if err := h.qrCodeService.Delete(ctx, resourceAccountID, qrCodeID); err != nil {
 		logger.Error("Failed to delete QR code", err, logrus.Fields{
-			"account_id": accountID,
+			"account_id": resourceAccountID,
 			"qr_code_id": qrCodeID,
 		})
 		return echo.NewHTTPError(http.StatusInternalServerError, "Failed to delete QR code")
@@ -203,10 +198,8 @@ func (h *QRCodeHandler) Update(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, "Invalid QR code ID")
 	}
 
-	accountID, ok := c.Get("account_id").(uuid.UUID)
-	if !ok {
-		return echo.NewHTTPError(http.StatusUnauthorized, "Invalid authentication")
-	}
+	// Use resource account ID for team-aware access
+	resourceAccountID := middleware.GetResourceAccountID(c)
 
 	var req UpdateQRCodeRequest
 	if err := c.Bind(&req); err != nil {
@@ -224,10 +217,10 @@ func (h *QRCodeHandler) Update(c echo.Context) error {
 		Location: req.Location,
 	}
 
-	updatedQRCode, err := h.qrCodeService.Update(ctx, accountID, qrCodeID, serviceReq)
+	updatedQRCode, err := h.qrCodeService.Update(ctx, resourceAccountID, qrCodeID, serviceReq)
 	if err != nil {
 		logger.Error("Failed to update QR code", err, logrus.Fields{
-			"account_id": accountID,
+			"account_id": resourceAccountID,
 			"qr_code_id": qrCodeID,
 		})
 		return echo.NewHTTPError(http.StatusInternalServerError, "Failed to update QR code")

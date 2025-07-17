@@ -8,6 +8,7 @@ import (
 	"github.com/lecritique/api/internal/menu/models"
 	"github.com/lecritique/api/internal/menu/services"
 	"github.com/lecritique/api/internal/shared/errors"
+	"github.com/lecritique/api/internal/shared/middleware"
 	"github.com/lecritique/api/internal/shared/response"
 	"github.com/lecritique/api/internal/shared/validator"
 )
@@ -48,7 +49,7 @@ type CreateDishRequest struct {
 // @Router /api/v1/dishes [post]
 func (h *DishHandler) Create(c echo.Context) error {
 	ctx := c.Request().Context()
-	accountID := c.Get("account_id").(uuid.UUID)
+	accountID := middleware.GetResourceAccountID(c)
 
 	var req CreateDishRequest
 	if err := c.Bind(&req); err != nil {
@@ -97,7 +98,7 @@ func (h *DishHandler) Create(c echo.Context) error {
 // @Router /api/v1/restaurants/{restaurantId}/dishes [get]
 func (h *DishHandler) GetByRestaurant(c echo.Context) error {
 	ctx := c.Request().Context()
-	accountID := c.Get("account_id").(uuid.UUID)
+	accountID := middleware.GetResourceAccountID(c)
 
 	restaurantID, err := uuid.Parse(c.Param("restaurantId"))
 	if err != nil {
@@ -128,7 +129,7 @@ func (h *DishHandler) GetByRestaurant(c echo.Context) error {
 // @Router /api/v1/dishes/{id} [get]
 func (h *DishHandler) GetByID(c echo.Context) error {
 	ctx := c.Request().Context()
-	accountID := c.Get("account_id").(uuid.UUID)
+	accountID := middleware.GetResourceAccountID(c)
 
 	dishID, err := uuid.Parse(c.Param("id"))
 	if err != nil {
@@ -160,7 +161,7 @@ func (h *DishHandler) GetByID(c echo.Context) error {
 // @Router /api/v1/dishes/{id} [put]
 func (h *DishHandler) Update(c echo.Context) error {
 	ctx := c.Request().Context()
-	accountID := c.Get("account_id").(uuid.UUID)
+	accountID := middleware.GetResourceAccountID(c)
 
 	dishID, err := uuid.Parse(c.Param("id"))
 	if err != nil {
@@ -197,7 +198,7 @@ func (h *DishHandler) Update(c echo.Context) error {
 // @Router /api/v1/dishes/{id} [delete]
 func (h *DishHandler) Delete(c echo.Context) error {
 	ctx := c.Request().Context()
-	accountID := c.Get("account_id").(uuid.UUID)
+	accountID := middleware.GetResourceAccountID(c)
 
 	dishID, err := uuid.Parse(c.Param("id"))
 	if err != nil {

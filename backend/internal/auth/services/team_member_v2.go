@@ -30,6 +30,7 @@ type TeamMemberServiceV2 interface {
 	// For registration flow
 	CheckPendingInvitations(ctx context.Context, email string) ([]*models.TeamInvitation, error)
 	AcceptInvitationDuringRegistration(ctx context.Context, invitationToken string, memberAccountID uuid.UUID) error
+	UpdateInvitation(ctx context.Context, invitation *models.TeamInvitation) error
 }
 
 type teamMemberServiceV2 struct {
@@ -316,4 +317,9 @@ func (s *teamMemberServiceV2) AcceptInvitationDuringRegistration(ctx context.Con
 	}
 	
 	return nil
+}
+
+// UpdateInvitation updates an invitation
+func (s *teamMemberServiceV2) UpdateInvitation(ctx context.Context, invitation *models.TeamInvitation) error {
+	return s.invitationRepo.Update(ctx, invitation)
 }

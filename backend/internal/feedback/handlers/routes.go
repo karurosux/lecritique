@@ -48,12 +48,14 @@ func RegisterRoutes(public *echo.Group, protected *echo.Group, db *gorm.DB, auth
 	// Protected feedback routes (requires auth)
 	restaurants := protected.Group("/restaurants")
 	restaurants.Use(middleware.JWTAuth(authService))
+	restaurants.Use(middleware.TeamAware(db)) // Add team-aware middleware
 	restaurants.GET("/:restaurantId/feedback", feedbackHandler.GetByRestaurant)
 	restaurants.GET("/:restaurantId/analytics", feedbackHandler.GetStats)
 	
 	// Protected questionnaire routes
 	questionnaires := protected.Group("/restaurants/:restaurantId/questionnaires")
 	questionnaires.Use(middleware.JWTAuth(authService))
+	questionnaires.Use(middleware.TeamAware(db)) // Add team-aware middleware
 	questionnaires.POST("", questionnaireHandler.CreateQuestionnaire)
 	questionnaires.GET("", questionnaireHandler.ListQuestionnaires)
 	questionnaires.GET("/:id", questionnaireHandler.GetQuestionnaire)
@@ -67,6 +69,7 @@ func RegisterRoutes(public *echo.Group, protected *echo.Group, db *gorm.DB, auth
 	// Question routes (new simplified structure)
 	dishRoutes := protected.Group("/restaurants/:restaurantId/dishes/:dishId")
 	dishRoutes.Use(middleware.JWTAuth(authService))
+	dishRoutes.Use(middleware.TeamAware(db)) // Add team-aware middleware
 	dishRoutes.POST("/questions", questionHandler.CreateQuestion)
 	dishRoutes.GET("/questions", questionHandler.GetQuestionsByDish)
 	dishRoutes.GET("/questions/:questionId", questionHandler.GetQuestion)
@@ -77,11 +80,13 @@ func RegisterRoutes(public *echo.Group, protected *echo.Group, db *gorm.DB, auth
 	// Bulk question routes
 	restaurantQuestionRoutes := protected.Group("/restaurants/:restaurantId")
 	restaurantQuestionRoutes.Use(middleware.JWTAuth(authService))
+	restaurantQuestionRoutes.Use(middleware.TeamAware(db)) // Add team-aware middleware
 	restaurantQuestionRoutes.GET("/questions/dishes-with-questions", questionHandler.GetDishesWithQuestions)
 
 	// AI question generation routes
 	aiRoutes := protected.Group("/ai")
 	aiRoutes.Use(middleware.JWTAuth(authService))
+	aiRoutes.Use(middleware.TeamAware(db)) // Add team-aware middleware
 	aiRoutes.POST("/generate-questions/:dishId", questionnaireHandler.GenerateQuestions)
 	aiRoutes.POST("/generate-questionnaire/:dishId", questionnaireHandler.GenerateAndSaveQuestionnaire)
 }

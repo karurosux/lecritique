@@ -24,11 +24,13 @@ func RegisterRoutes(protected *echo.Group, db *gorm.DB, authService authServices
 	// QR Code routes (protected)
 	restaurants := protected.Group("/restaurants")
 	restaurants.Use(middleware.JWTAuth(authService))
+	restaurants.Use(middleware.TeamAware(db)) // Add team-aware middleware
 	restaurants.POST("/:restaurantId/qr-codes", qrCodeHandler.Generate)
 	restaurants.GET("/:restaurantId/qr-codes", qrCodeHandler.GetByRestaurant)
 	
 	qrCodes := protected.Group("/qr-codes")
 	qrCodes.Use(middleware.JWTAuth(authService))
+	qrCodes.Use(middleware.TeamAware(db)) // Add team-aware middleware
 	qrCodes.PATCH("/:id", qrCodeHandler.Update)
 	qrCodes.DELETE("/:id", qrCodeHandler.Delete)
 }

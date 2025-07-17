@@ -11,6 +11,7 @@ import (
 	menuRepos "github.com/lecritique/api/internal/menu/repositories"
 	restaurantRepos "github.com/lecritique/api/internal/restaurant/repositories"
 	"github.com/lecritique/api/internal/shared/logger"
+	"github.com/lecritique/api/internal/shared/middleware"
 	"github.com/lecritique/api/internal/shared/models"
 	"github.com/sirupsen/logrus"
 )
@@ -78,17 +79,15 @@ func (h *AnalyticsHandler) GetRestaurantAnalytics(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, "Invalid restaurant ID")
 	}
 
-	accountID, ok := c.Get("account_id").(uuid.UUID)
-	if !ok {
-		return echo.NewHTTPError(http.StatusUnauthorized, "Invalid authentication")
-	}
+	// Use resource account ID for team-aware access
+	resourceAccountID := middleware.GetResourceAccountID(c)
 
 	// Verify restaurant ownership
 	restaurant, err := h.restaurantRepo.FindByID(ctx, restaurantID)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusNotFound, "Restaurant not found")
 	}
-	if restaurant.AccountID != accountID {
+	if restaurant.AccountID != resourceAccountID {
 		return echo.NewHTTPError(http.StatusForbidden, "Access denied")
 	}
 
@@ -210,10 +209,8 @@ func (h *AnalyticsHandler) GetDishAnalytics(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, "Invalid dish ID")
 	}
 
-	accountID, ok := c.Get("account_id").(uuid.UUID)
-	if !ok {
-		return echo.NewHTTPError(http.StatusUnauthorized, "Invalid authentication")
-	}
+	// Use resource account ID for team-aware access
+	resourceAccountID := middleware.GetResourceAccountID(c)
 
 	// Get dish and verify ownership
 	dish, err := h.dishRepo.FindByID(ctx, dishID)
@@ -222,7 +219,7 @@ func (h *AnalyticsHandler) GetDishAnalytics(c echo.Context) error {
 	}
 
 	restaurant, err := h.restaurantRepo.FindByID(ctx, dish.RestaurantID)
-	if err != nil || restaurant.AccountID != accountID {
+	if err != nil || restaurant.AccountID != resourceAccountID {
 		return echo.NewHTTPError(http.StatusForbidden, "Access denied")
 	}
 
@@ -273,17 +270,15 @@ func (h *AnalyticsHandler) GetDashboardMetrics(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, "Invalid restaurant ID")
 	}
 
-	accountID, ok := c.Get("account_id").(uuid.UUID)
-	if !ok {
-		return echo.NewHTTPError(http.StatusUnauthorized, "Invalid authentication")
-	}
+	// Use resource account ID for team-aware access
+	resourceAccountID := middleware.GetResourceAccountID(c)
 
 	// Verify restaurant ownership
 	restaurant, err := h.restaurantRepo.FindByID(ctx, restaurantID)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusNotFound, "Restaurant not found")
 	}
-	if restaurant.AccountID != accountID {
+	if restaurant.AccountID != resourceAccountID {
 		return echo.NewHTTPError(http.StatusForbidden, "Access denied")
 	}
 
@@ -325,10 +320,8 @@ func (h *AnalyticsHandler) GetDishInsights(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, "Invalid dish ID")
 	}
 
-	accountID, ok := c.Get("account_id").(uuid.UUID)
-	if !ok {
-		return echo.NewHTTPError(http.StatusUnauthorized, "Invalid authentication")
-	}
+	// Use resource account ID for team-aware access
+	resourceAccountID := middleware.GetResourceAccountID(c)
 
 	// Get dish and verify ownership
 	dish, err := h.dishRepo.FindByID(ctx, dishID)
@@ -337,7 +330,7 @@ func (h *AnalyticsHandler) GetDishInsights(c echo.Context) error {
 	}
 
 	restaurant, err := h.restaurantRepo.FindByID(ctx, dish.RestaurantID)
-	if err != nil || restaurant.AccountID != accountID {
+	if err != nil || restaurant.AccountID != resourceAccountID {
 		return echo.NewHTTPError(http.StatusForbidden, "Access denied")
 	}
 
@@ -382,17 +375,15 @@ func (h *AnalyticsHandler) GetRestaurantChartData(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, "Invalid restaurant ID")
 	}
 
-	accountID, ok := c.Get("account_id").(uuid.UUID)
-	if !ok {
-		return echo.NewHTTPError(http.StatusUnauthorized, "Invalid authentication")
-	}
+	// Use resource account ID for team-aware access
+	resourceAccountID := middleware.GetResourceAccountID(c)
 
 	// Verify restaurant ownership
 	restaurant, err := h.restaurantRepo.FindByID(ctx, restaurantID)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusNotFound, "Restaurant not found")
 	}
-	if restaurant.AccountID != accountID {
+	if restaurant.AccountID != resourceAccountID {
 		return echo.NewHTTPError(http.StatusForbidden, "Access denied")
 	}
 

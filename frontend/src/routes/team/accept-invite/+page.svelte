@@ -44,14 +44,15 @@
 					setTimeout(() => {
 						goto('/settings/team');
 					}, 2000);
-				} else if (data.status === 'pending') {
+				} else if (data.status === 'needs_registration' || data.status === 'pending') {
 					// User needs to login or register
+					invitationStatus = 'pending'; // Normalize status for UI
 					success = true;
 					setTimeout(() => {
-						// Store the token in sessionStorage for after login
-						sessionStorage.setItem('pendingInvitationToken', token);
 						goto('/login');
 					}, 3000);
+				} else {
+					throw new Error('Unknown invitation status: ' + data.status);
 				}
 			} else {
 				throw new Error('Failed to process invitation');

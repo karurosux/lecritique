@@ -105,6 +105,19 @@ func (h *AuthHandler) Register(c echo.Context) error {
 		}
 	}
 
+	// Also check for pending invitations that were already accepted via email
+	invitations, err := h.teamMemberService.CheckPendingInvitations(ctx, account.Email)
+	if err == nil && len(invitations) > 0 {
+		for _, inv := range invitations {
+			// Only auto-accept if the email link was clicked (EmailAcceptedAt is set)
+			if inv.EmailAcceptedAt != nil && inv.AcceptedAt == nil {
+				if err := h.teamMemberService.AcceptInvitationDuringRegistration(ctx, inv.Token, account.ID); err != nil {
+					log.Printf("Failed to auto-accept team invitation: %v", err)
+				}
+			}
+		}
+	}
+
 	return response.Success(c, map[string]interface{}{
 		"account": account,
 		"message": "Registration successful. Please check your email to verify your account.",
@@ -137,6 +150,19 @@ func (h *AuthHandler) Login(c echo.Context) error {
 	token, account, err := h.authService.Login(ctx, req.Email, req.Password)
 	if err != nil {
 		return response.Error(c, err)
+	}
+
+	// Check for pending invitations that were already accepted via email
+	invitations, err := h.teamMemberService.CheckPendingInvitations(ctx, account.Email)
+	if err == nil && len(invitations) > 0 {
+		for _, inv := range invitations {
+			// Only auto-accept if the email link was clicked (EmailAcceptedAt is set)
+			if inv.EmailAcceptedAt != nil && inv.AcceptedAt == nil {
+				if err := h.teamMemberService.AcceptInvitationDuringRegistration(ctx, inv.Token, account.ID); err != nil {
+					log.Printf("Failed to auto-accept team invitation: %v", err)
+				}
+			}
+		}
 	}
 
 	// Fetch subscription data for the account

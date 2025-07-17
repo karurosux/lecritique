@@ -2,14 +2,17 @@ package handlers
 
 import (
 	"net/http"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"github.com/lecritique/api/internal/auth/models"
 	"github.com/lecritique/api/internal/auth/services"
 	"github.com/lecritique/api/internal/shared/errors"
+	"github.com/lecritique/api/internal/shared/logger"
 	"github.com/lecritique/api/internal/shared/response"
 	"github.com/lecritique/api/internal/shared/validator"
+	"github.com/sirupsen/logrus"
 )
 
 type TeamMemberHandler struct {
@@ -289,7 +292,16 @@ func (h *TeamMemberHandler) AcceptInvitation(c echo.Context) error {
 	// Get the account for the invitation email
 	account, err := h.authService.GetAccountByEmail(ctx, invitation.Email)
 	if err != nil {
-		// Account doesn't exist - user needs to register
+		// Account doesn't exist - mark invitation as email_accepted
+		// When they register with this email, they'll be auto-added to the team
+		now := time.Now()
+		invitation.EmailAcceptedAt = &now
+		if err := h.teamMemberService.UpdateInvitation(ctx, invitation); err != nil {
+			logger.Warn("Failed to update invitation", logrus.Fields{
+				"error": err.Error(),
+			})
+		}
+		
 		return response.Success(c, map[string]interface{}{
 			"invitation": invitation,
 			"message": "Please register with this email address to join the team.",

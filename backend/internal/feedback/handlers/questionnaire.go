@@ -8,6 +8,7 @@ import (
 	"github.com/lecritique/api/internal/feedback/models"
 	"github.com/lecritique/api/internal/feedback/services"
 	menuServices "github.com/lecritique/api/internal/menu/services"
+	"github.com/lecritique/api/internal/shared/middleware"
 )
 
 type QuestionnaireHandler struct {
@@ -37,10 +38,7 @@ func NewQuestionnaireHandler(questionnaireService *services.QuestionnaireService
 // @Router /api/v1/restaurants/{restaurantId}/questionnaires [post]
 // @Security Bearer
 func (h *QuestionnaireHandler) CreateQuestionnaire(c echo.Context) error {
-	accountID, ok := c.Get("account_id").(uuid.UUID)
-	if !ok {
-		return echo.NewHTTPError(http.StatusUnauthorized, "Unauthorized")
-	}
+	accountID := middleware.GetResourceAccountID(c)
 	restaurantID, err := uuid.Parse(c.Param("restaurantId"))
 	if err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, "Invalid restaurant ID")
@@ -78,10 +76,7 @@ func (h *QuestionnaireHandler) CreateQuestionnaire(c echo.Context) error {
 // @Router /api/v1/restaurants/{restaurantId}/questionnaires/{id} [get]
 // @Security Bearer
 func (h *QuestionnaireHandler) GetQuestionnaire(c echo.Context) error {
-	accountID, ok := c.Get("account_id").(uuid.UUID)
-	if !ok {
-		return echo.NewHTTPError(http.StatusUnauthorized, "Unauthorized")
-	}
+	accountID := middleware.GetResourceAccountID(c)
 	questionnaireID, err := uuid.Parse(c.Param("id"))
 	if err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, "Invalid questionnaire ID")
@@ -112,10 +107,7 @@ func (h *QuestionnaireHandler) GetQuestionnaire(c echo.Context) error {
 // @Router /api/v1/restaurants/{restaurantId}/questionnaires [get]
 // @Security Bearer
 func (h *QuestionnaireHandler) ListQuestionnaires(c echo.Context) error {
-	accountID, ok := c.Get("account_id").(uuid.UUID)
-	if !ok {
-		return echo.NewHTTPError(http.StatusUnauthorized, "Unauthorized")
-	}
+	accountID := middleware.GetResourceAccountID(c)
 	restaurantID, err := uuid.Parse(c.Param("restaurantId"))
 	if err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, "Invalid restaurant ID")
@@ -149,10 +141,7 @@ func (h *QuestionnaireHandler) ListQuestionnaires(c echo.Context) error {
 // @Router /api/v1/restaurants/{restaurantId}/questionnaires/{id} [put]
 // @Security Bearer
 func (h *QuestionnaireHandler) UpdateQuestionnaire(c echo.Context) error {
-	accountID, ok := c.Get("account_id").(uuid.UUID)
-	if !ok {
-		return echo.NewHTTPError(http.StatusUnauthorized, "Unauthorized")
-	}
+	accountID := middleware.GetResourceAccountID(c)
 	questionnaireID, err := uuid.Parse(c.Param("id"))
 	if err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, "Invalid questionnaire ID")
@@ -190,10 +179,7 @@ func (h *QuestionnaireHandler) UpdateQuestionnaire(c echo.Context) error {
 // @Router /api/v1/restaurants/{restaurantId}/questionnaires/{id} [delete]
 // @Security Bearer
 func (h *QuestionnaireHandler) DeleteQuestionnaire(c echo.Context) error {
-	accountID, ok := c.Get("account_id").(uuid.UUID)
-	if !ok {
-		return echo.NewHTTPError(http.StatusUnauthorized, "Unauthorized")
-	}
+	accountID := middleware.GetResourceAccountID(c)
 	questionnaireID, err := uuid.Parse(c.Param("id"))
 	if err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, "Invalid questionnaire ID")
@@ -224,10 +210,7 @@ func (h *QuestionnaireHandler) DeleteQuestionnaire(c echo.Context) error {
 // @Router /restaurants/{restaurantId}/questionnaires/{id}/questions [post]
 // @Security BearerAuth
 func (h *QuestionnaireHandler) AddQuestion(c echo.Context) error {
-	accountID, ok := c.Get("account_id").(uuid.UUID)
-	if !ok {
-		return echo.NewHTTPError(http.StatusUnauthorized, "Unauthorized")
-	}
+	accountID := middleware.GetResourceAccountID(c)
 	questionnaireID, err := uuid.Parse(c.Param("id"))
 	if err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, "Invalid questionnaire ID")
@@ -266,10 +249,7 @@ func (h *QuestionnaireHandler) AddQuestion(c echo.Context) error {
 // @Router /restaurants/{restaurantId}/questionnaires/{id}/questions/{questionId} [put]
 // @Security BearerAuth
 func (h *QuestionnaireHandler) UpdateQuestion(c echo.Context) error {
-	accountID, ok := c.Get("account_id").(uuid.UUID)
-	if !ok {
-		return echo.NewHTTPError(http.StatusUnauthorized, "Unauthorized")
-	}
+	accountID := middleware.GetResourceAccountID(c)
 	questionID, err := uuid.Parse(c.Param("questionId"))
 	if err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, "Invalid question ID")
@@ -307,10 +287,7 @@ func (h *QuestionnaireHandler) UpdateQuestion(c echo.Context) error {
 // @Router /restaurants/{restaurantId}/questionnaires/{id}/questions/{questionId} [delete]
 // @Security BearerAuth
 func (h *QuestionnaireHandler) DeleteQuestion(c echo.Context) error {
-	accountID, ok := c.Get("account_id").(uuid.UUID)
-	if !ok {
-		return echo.NewHTTPError(http.StatusUnauthorized, "Unauthorized")
-	}
+	accountID := middleware.GetResourceAccountID(c)
 	questionID, err := uuid.Parse(c.Param("questionId"))
 	if err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, "Invalid question ID")
@@ -341,10 +318,7 @@ func (h *QuestionnaireHandler) DeleteQuestion(c echo.Context) error {
 // @Router /restaurants/{restaurantId}/questionnaires/{id}/reorder [post]
 // @Security BearerAuth
 func (h *QuestionnaireHandler) ReorderQuestions(c echo.Context) error {
-	accountID, ok := c.Get("account_id").(uuid.UUID)
-	if !ok {
-		return echo.NewHTTPError(http.StatusUnauthorized, "Unauthorized")
-	}
+	accountID := middleware.GetResourceAccountID(c)
 	questionnaireID, err := uuid.Parse(c.Param("id"))
 	if err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, "Invalid questionnaire ID")
@@ -382,10 +356,7 @@ func (h *QuestionnaireHandler) ReorderQuestions(c echo.Context) error {
 // @Router /api/v1/ai/generate-questions/{dishId} [post]
 // @Security Bearer
 func (h *QuestionnaireHandler) GenerateQuestions(c echo.Context) error {
-	accountID, ok := c.Get("account_id").(uuid.UUID)
-	if !ok {
-		return echo.NewHTTPError(http.StatusUnauthorized, "Unauthorized")
-	}
+	accountID := middleware.GetResourceAccountID(c)
 	dishID, err := uuid.Parse(c.Param("dishId"))
 	if err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, "Invalid dish ID")
@@ -426,10 +397,7 @@ func (h *QuestionnaireHandler) GenerateQuestions(c echo.Context) error {
 // @Router /api/v1/ai/generate-questionnaire/{dishId} [post]
 // @Security Bearer
 func (h *QuestionnaireHandler) GenerateAndSaveQuestionnaire(c echo.Context) error {
-	accountID, ok := c.Get("account_id").(uuid.UUID)
-	if !ok {
-		return echo.NewHTTPError(http.StatusUnauthorized, "Unauthorized")
-	}
+	accountID := middleware.GetResourceAccountID(c)
 	dishID, err := uuid.Parse(c.Param("dishId"))
 	if err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, "Invalid dish ID")

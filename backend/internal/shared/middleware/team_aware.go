@@ -23,10 +23,10 @@ func TeamAware(db *gorm.DB) echo.MiddlewareFunc {
 			// Always set personal account ID
 			c.Set("personal_account_id", accountID)
 			
-			// Check if this user is a team member
+			// Check if this user is a team member of another organization
 			var teamMemberships []authModels.TeamMember
 			db.WithContext(ctx).
-				Where("member_id = ? AND accepted_at IS NOT NULL", accountID).
+				Where("member_id = ? AND account_id != ? AND accepted_at IS NOT NULL", accountID, accountID).
 				Find(&teamMemberships)
 			
 			if len(teamMemberships) > 0 {

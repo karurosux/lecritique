@@ -11,6 +11,7 @@ import (
 	"github.com/lecritique/api/internal/feedback/repositories"
 	"github.com/lecritique/api/internal/feedback/services"
 	"github.com/lecritique/api/internal/shared/logger"
+	"github.com/lecritique/api/internal/shared/middleware"
 	sharedModels "github.com/lecritique/api/internal/shared/models"
 	"github.com/sirupsen/logrus"
 )
@@ -55,10 +56,7 @@ func (h *FeedbackHandler) GetByRestaurant(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, "Invalid restaurant ID")
 	}
 
-	accountID, ok := c.Get("account_id").(uuid.UUID)
-	if !ok {
-		return echo.NewHTTPError(http.StatusUnauthorized, "Invalid authentication")
-	}
+	accountID := middleware.GetResourceAccountID(c)
 
 	// Parse pagination parameters
 	page, _ := strconv.Atoi(c.QueryParam("page"))
@@ -174,10 +172,7 @@ func (h *FeedbackHandler) GetStats(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, "Invalid restaurant ID")
 	}
 
-	accountID, ok := c.Get("account_id").(uuid.UUID)
-	if !ok {
-		return echo.NewHTTPError(http.StatusUnauthorized, "Invalid authentication")
-	}
+	accountID := middleware.GetResourceAccountID(c)
 
 	stats, err := h.feedbackService.GetStats(ctx, accountID, restaurantID)
 	if err != nil {
