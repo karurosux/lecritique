@@ -58,6 +58,7 @@ type EnhancedAuthResponse struct {
 	Token        string      `json:"token"`
 	Account      interface{} `json:"account"`
 	Subscription interface{} `json:"subscription"`
+	Role         string      `json:"role,omitempty"`
 }
 
 // Register godoc
@@ -73,7 +74,7 @@ type EnhancedAuthResponse struct {
 // @Router /api/v1/auth/register [post]
 func (h *AuthHandler) Register(c echo.Context) error {
 	ctx := c.Request().Context()
-	
+
 	var req RegisterRequest
 	if err := c.Bind(&req); err != nil {
 		return response.Error(c, errors.ErrBadRequest)
@@ -90,7 +91,7 @@ func (h *AuthHandler) Register(c echo.Context) error {
 		FirstName:   req.FirstName,
 		LastName:    req.LastName,
 	}
-	
+
 	account, err := h.authService.Register(ctx, registerData)
 	if err != nil {
 		return response.Error(c, err)
@@ -137,7 +138,7 @@ func (h *AuthHandler) Register(c echo.Context) error {
 // @Router /api/v1/auth/login [post]
 func (h *AuthHandler) Login(c echo.Context) error {
 	ctx := c.Request().Context()
-	
+
 	var req LoginRequest
 	if err := c.Bind(&req); err != nil {
 		return response.Error(c, errors.ErrBadRequest)
@@ -152,6 +153,7 @@ func (h *AuthHandler) Login(c echo.Context) error {
 		return response.Error(c, err)
 	}
 
+	// TODO: Simplify this process, this is absurdly hard.
 	// Check for pending invitations that were already accepted via email
 	invitations, err := h.teamMemberService.CheckPendingInvitations(ctx, account.Email)
 	if err == nil && len(invitations) > 0 {
@@ -165,28 +167,29 @@ func (h *AuthHandler) Login(c echo.Context) error {
 		}
 	}
 
+	// TODO: Fetching in contorller? WTF.
 	// Fetch subscription data for the account
 	var subscription *subscriptionModels.Subscription
 	err = h.db.WithContext(ctx).
 		Preload("Plan").
 		Where("account_id = ?", account.ID).
 		First(&subscription).Error
-	
+
 	if err != nil && err != gorm.ErrRecordNotFound {
 		// Log error but don't fail login
 		// This ensures backward compatibility
 		subscription = nil
 	}
-	
+
 	// Check if this user is a team member of another account
 	var teamMemberships []models.TeamMember
 	h.db.WithContext(ctx).
 		Preload("Account").
 		Where("member_id = ? AND accepted_at IS NOT NULL", account.ID).
 		Find(&teamMemberships)
-	
+
 	log.Printf("Found %d team memberships for account %s", len(teamMemberships), account.ID)
-	
+
 	// Filter out memberships where the user is a member of their own account
 	var externalMemberships []models.TeamMember
 	for _, tm := range teamMemberships {
@@ -194,24 +197,21 @@ func (h *AuthHandler) Login(c echo.Context) error {
 			externalMemberships = append(externalMemberships, tm)
 		}
 	}
-	
-	log.Printf("Found %d external team memberships for account %s", len(externalMemberships), account.ID)
-	
+
 	// If user is a team member of another organization, return their account but with the organization's subscription
 	if len(externalMemberships) > 0 {
 		// For now, use the first organization they're a member of
 		// In the future, we might want to let users choose which organization to access
 		orgAccountID := externalMemberships[0].AccountID
-		
+
 		log.Printf("Team member %s is member of org %s", account.Email, orgAccountID)
-		
+
 		// Get the organization's subscription
 		var orgSubscription subscriptionModels.Subscription
 		err := h.db.WithContext(ctx).
 			Preload("Plan").
 			Where("account_id = ?", orgAccountID).
 			First(&orgSubscription).Error
-		
 		if err != nil {
 			log.Printf("Error fetching org subscription: %v", err)
 			// Return without subscription if not found
@@ -220,20 +220,36 @@ func (h *AuthHandler) Login(c echo.Context) error {
 				Account: account,
 			})
 		}
-		
+
 		log.Printf("Team member %s logged in, providing organization subscription from account %s: %+v", account.Email, orgAccountID, orgSubscription)
-		
+
+		// Get the user's role in the organization
+		userRole := string(externalMemberships[0].Role)
+
 		return response.Success(c, EnhancedAuthResponse{
 			Token:        token,
-			Account:      account, // Keep the user's own account
+			Account:      account,          // Keep the user's own account
 			Subscription: &orgSubscription, // But use the organization's subscription
+			Role:         userRole,
 		})
+	}
+
+	// Get the user's role in their own account from team_members
+	var userRole string
+	var teamMember models.TeamMember
+	err = h.db.WithContext(ctx).
+		Where("account_id = ? AND member_id = ?", account.ID, account.ID).
+		First(&teamMember).Error
+
+	if err == nil {
+		userRole = string(teamMember.Role)
 	}
 
 	return response.Success(c, EnhancedAuthResponse{
 		Token:        token,
 		Account:      account,
 		Subscription: subscription,
+		Role:         userRole,
 	})
 }
 
@@ -413,7 +429,7 @@ func (h *AuthHandler) ResetPassword(c echo.Context) error {
 // @Router /api/v1/auth/refresh [post]
 func (h *AuthHandler) RefreshToken(c echo.Context) error {
 	ctx := c.Request().Context()
-	
+
 	// Get token from header
 	tokenString := c.Request().Header.Get("Authorization")
 	if tokenString == "" {
@@ -457,7 +473,7 @@ type ConfirmEmailChangeRequest struct {
 // @Router /api/v1/auth/change-email [post]
 func (h *AuthHandler) ChangeEmail(c echo.Context) error {
 	ctx := c.Request().Context()
-	
+
 	// Get account ID from context (set by auth middleware)
 	accountID, ok := c.Get("account_id").(uuid.UUID)
 	if !ok {
@@ -483,7 +499,7 @@ func (h *AuthHandler) ChangeEmail(c echo.Context) error {
 	responseData := map[string]string{
 		"message": message,
 	}
-	
+
 	if h.config.IsDevMode() && !h.config.IsSMTPConfigured() {
 		message = "Email changed successfully (dev mode - no SMTP configured)."
 		responseData["message"] = message
@@ -525,7 +541,7 @@ func (h *AuthHandler) ConfirmEmailChange(c echo.Context) error {
 
 	return response.Success(c, map[string]string{
 		"message": "Email changed successfully.",
-		"token": newToken,
+		"token":   newToken,
 	})
 }
 
@@ -542,7 +558,7 @@ func (h *AuthHandler) ConfirmEmailChange(c echo.Context) error {
 // @Router /api/v1/auth/deactivate [post]
 func (h *AuthHandler) RequestDeactivation(c echo.Context) error {
 	ctx := c.Request().Context()
-	
+
 	// Get account ID from context (set by auth middleware)
 	accountID, ok := c.Get("account_id").(uuid.UUID)
 	if !ok {
@@ -557,7 +573,7 @@ func (h *AuthHandler) RequestDeactivation(c echo.Context) error {
 	deactivationDate := time.Now().Add(15 * 24 * time.Hour)
 
 	return response.Success(c, map[string]interface{}{
-		"message": "Account deactivation requested. Your account will be deactivated on " + deactivationDate.Format("January 2, 2006") + ".",
+		"message":           "Account deactivation requested. Your account will be deactivated on " + deactivationDate.Format("January 2, 2006") + ".",
 		"deactivation_date": deactivationDate,
 	})
 }
@@ -575,7 +591,7 @@ func (h *AuthHandler) RequestDeactivation(c echo.Context) error {
 // @Router /api/v1/auth/cancel-deactivation [post]
 func (h *AuthHandler) CancelDeactivation(c echo.Context) error {
 	ctx := c.Request().Context()
-	
+
 	// Get account ID from context (set by auth middleware)
 	accountID, ok := c.Get("account_id").(uuid.UUID)
 	if !ok {
@@ -613,7 +629,7 @@ type UpdateProfileRequest struct {
 // @Security BearerAuth
 func (h *AuthHandler) UpdateProfile(c echo.Context) error {
 	ctx := c.Request().Context()
-	
+
 	// Get account ID from context (set by auth middleware)
 	accountID, ok := c.Get("account_id").(uuid.UUID)
 	if !ok {

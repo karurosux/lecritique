@@ -31,3 +31,6 @@
 - Follow existing code patterns and conventions
 - Check neighboring files before adding libraries
 - Never commit secrets or expose sensitive data
+
+## 💻 Development Principles
+- Use good coding principles like SOLID, YAGNI, KISS, and DRY, don't over-engineer solutions

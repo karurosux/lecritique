@@ -1,5 +1,6 @@
 <script lang="ts">
   import { Card, Button } from '$lib/components/ui';
+  import { RoleGate } from '$lib/components/auth';
   import { Edit2, Lightbulb, Eye, EyeOff, Trash2, ClipboardList, Clock, AlertTriangle, MoreVertical } from 'lucide-svelte';
 
   interface Dish {
@@ -107,61 +108,63 @@
           </div>
         </div>
       </div>
-      <div class="relative dropdown-container flex-shrink-0">
-        <button
-          type="button"
-          class="p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 hover:shadow-sm hover:border hover:border-gray-200 rounded-lg transition-all duration-200 cursor-pointer {showDropdown ? 'bg-gray-100 text-gray-800 shadow-sm border border-gray-200' : ''}"
-          onclick={(e) => { e.stopPropagation(); toggleDropdown(); }}
-          title="More actions"
-        >
-          <MoreVertical class="h-4 w-4" />
-        </button>
-        
-        {#if showDropdown}
-          <div class="absolute right-0 top-full mt-1 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50">
-            <button
-              class="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2 cursor-pointer"
-              onclick={(e) => { e.stopPropagation(); handleEdit(e); closeDropdown(); }}
-            >
-              <Edit2 class="h-4 w-4 text-blue-500" />
-              Edit dish
-            </button>
-            <button
-              class="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2 cursor-pointer"
-              onclick={(e) => { e.stopPropagation(); handleGenerateQuestionnaire(); closeDropdown(); }}
-              title="{dish.has_questionnaire ? 'Manage questions' : 'Create questions'}"
-            >
-              {#if dish.has_questionnaire}
-                <ClipboardList class="h-4 w-4 text-purple-500" />
-                Questions
-              {:else}
-                <Lightbulb class="h-4 w-4 text-purple-500" />
-                Create questions
-              {/if}
-            </button>
-            <button
-              class="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2 cursor-pointer"
-              onclick={(e) => { e.stopPropagation(); handleToggleAvailability(); closeDropdown(); }}
-            >
-              {#if dish.is_available}
-                <EyeOff class="h-4 w-4 text-gray-500" />
-                Hide dish
-              {:else}
-                <Eye class="h-4 w-4 text-green-500" />
-                Show dish
-              {/if}
-            </button>
-            <hr class="my-1 border-gray-200" />
-            <button
-              class="w-full px-4 py-2 text-left text-sm text-red-700 hover:bg-red-50 flex items-center gap-2 cursor-pointer"
-              onclick={(e) => { e.stopPropagation(); handleDelete(e); closeDropdown(); }}
-            >
-              <Trash2 class="h-4 w-4 text-red-500" />
-              Delete dish
-            </button>
-          </div>
-        {/if}
-      </div>
+      <RoleGate roles={['OWNER', 'ADMIN', 'MANAGER']}>
+        <div class="relative dropdown-container flex-shrink-0">
+          <button
+            type="button"
+            class="p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 hover:shadow-sm hover:border hover:border-gray-200 rounded-lg transition-all duration-200 cursor-pointer {showDropdown ? 'bg-gray-100 text-gray-800 shadow-sm border border-gray-200' : ''}"
+            onclick={(e) => { e.stopPropagation(); toggleDropdown(); }}
+            title="More actions"
+          >
+            <MoreVertical class="h-4 w-4" />
+          </button>
+          
+          {#if showDropdown}
+            <div class="absolute right-0 top-full mt-1 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50">
+              <button
+                class="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2 cursor-pointer"
+                onclick={(e) => { e.stopPropagation(); handleEdit(e); closeDropdown(); }}
+              >
+                <Edit2 class="h-4 w-4 text-blue-500" />
+                Edit dish
+              </button>
+              <button
+                class="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2 cursor-pointer"
+                onclick={(e) => { e.stopPropagation(); handleGenerateQuestionnaire(); closeDropdown(); }}
+                title="{dish.has_questionnaire ? 'Manage questions' : 'Create questions'}"
+              >
+                {#if dish.has_questionnaire}
+                  <ClipboardList class="h-4 w-4 text-purple-500" />
+                  Questions
+                {:else}
+                  <Lightbulb class="h-4 w-4 text-purple-500" />
+                  Create questions
+                {/if}
+              </button>
+              <button
+                class="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2 cursor-pointer"
+                onclick={(e) => { e.stopPropagation(); handleToggleAvailability(); closeDropdown(); }}
+              >
+                {#if dish.is_available}
+                  <EyeOff class="h-4 w-4 text-gray-500" />
+                  Hide dish
+                {:else}
+                  <Eye class="h-4 w-4 text-green-500" />
+                  Show dish
+                {/if}
+              </button>
+              <hr class="my-1 border-gray-200" />
+              <button
+                class="w-full px-4 py-2 text-left text-sm text-red-700 hover:bg-red-50 flex items-center gap-2 cursor-pointer"
+                onclick={(e) => { e.stopPropagation(); handleDelete(e); closeDropdown(); }}
+              >
+                <Trash2 class="h-4 w-4 text-red-500" />
+                Delete dish
+              </button>
+            </div>
+          {/if}
+        </div>
+      </RoleGate>
     </div>
 
   {#if dish.description}

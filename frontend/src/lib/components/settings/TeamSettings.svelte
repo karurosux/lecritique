@@ -249,7 +249,7 @@
 				<h2 class="text-2xl font-bold text-gray-900">Team Members</h2>
 				<p class="mt-1 text-sm text-gray-600">Manage your team and their access levels</p>
 			</div>
-			<RoleGate roles={['OWNER', 'ADMIN']} teamMembers={teamMembers}>
+			<RoleGate roles={['OWNER', 'ADMIN']}>
 				<Button
 					variant="gradient"
 					size="sm"
@@ -314,7 +314,7 @@
 								</p>
 							</div>
 							
-							<RoleGate roles={['OWNER', 'ADMIN']} teamMembers={teamMembers}>
+							<RoleGate roles={['OWNER', 'ADMIN']}>
 								{#if member.role !== 'OWNER'}
 									<div class="flex items-center gap-2">
 										<select
@@ -351,7 +351,7 @@
 								<Mail class="h-4 w-4" />
 								Invitation pending
 							</div>
-							<RoleGate roles={['OWNER', 'ADMIN']} teamMembers={teamMembers}>
+							<RoleGate roles={['OWNER', 'ADMIN']}>
 								<Button
 									variant="ghost"
 									size="xs"

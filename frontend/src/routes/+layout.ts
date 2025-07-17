@@ -28,6 +28,8 @@ export const load: LayoutLoad = async ({ route }) => {
 	}
 	
 	return {
-		user: authState.user
+		user: authState.user,
+		auth: authState,
+		subscription: get(subscription)
 	};
 };

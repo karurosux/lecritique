@@ -16,14 +16,14 @@ interface GuardOptions {
 export function hasRole(teamMembers: ModelsTeamMember[], userEmail: string, userId: string, allowedRoles: Role[]): boolean {
 	const member = teamMembers.find((m: ModelsTeamMember) => {
 		// For owner, check account_id match
-		if (m.role === 'OWNER' && m.account_id === userId) {
+		if (m.role && m.role.toString() === 'OWNER' && m.account_id === userId) {
 			return true;
 		}
 		// For other roles, check email
 		return m.member?.email === userEmail;
 	});
 	
-	return member?.role ? allowedRoles.includes(member.role as Role) : false;
+	return member?.role ? allowedRoles.includes(member.role.toString() as Role) : false;
 }
 
 /**
@@ -107,7 +107,7 @@ export function canPerformAction(
 	};
 	
 	const member = teamMembers.find((m: ModelsTeamMember) => {
-		if (m.role === 'OWNER' && m.account_id === userId) {
+		if (m.role && m.role.toString() === 'OWNER' && m.account_id === userId) {
 			return true;
 		}
 		return m.member?.email === userEmail;
@@ -115,6 +115,6 @@ export function canPerformAction(
 	
 	if (!member?.role) return false;
 	
-	const permissions = rolePermissions[member.role as Role];
+	const permissions = rolePermissions[member.role.toString() as Role];
 	return permissions.includes('*') || permissions.includes(action);
 }

@@ -5,6 +5,7 @@
 	// Badge component not available, will use span with styling
 	import CreateQRCodeModal from '$lib/components/qr-codes/CreateQRCodeModal.svelte';
 	import QRCodeDisplay from '$lib/components/qr-codes/QRCodeDisplay.svelte';
+	import { RoleGate } from '$lib/components/auth';
 	import { getApiClient } from '$lib/api';
 	import { toast } from 'svelte-sonner';
 	import { invalidateAll } from '$app/navigation';
@@ -25,16 +26,9 @@
 	let restaurant = $derived(data.restaurant);
 	let restaurantId = $derived($page.params.id);
 
-	// Fetch QR codes when restaurant becomes available
+	// Fetch QR codes when component mounts and restaurant is available
 	onMount(async () => {
-		if (!qrCodes.length && restaurant) {
-			await fetchQRCodes();
-		}
-	});
-
-	// Watch for restaurant changes and fetch data
-	$effect(async () => {
-		if (restaurant && !qrCodes.length) {
+		if (restaurant) {
 			await fetchQRCodes();
 		}
 	});
@@ -160,10 +154,12 @@
 					</div>
 				</div>
 			</div>
-			<Button onclick={(e) => { clickOrigin = { x: e.clientX, y: e.clientY }; showCreateModal = true; }} variant="gradient" size="lg" class="gap-2">
-				<Plus class="h-4 w-4" />
-				Create QR Code
-			</Button>
+			<RoleGate roles={['OWNER', 'ADMIN', 'MANAGER']}>
+				<Button onclick={(e) => { clickOrigin = { x: e.clientX, y: e.clientY }; showCreateModal = true; }} variant="gradient" size="lg" class="gap-2">
+					<Plus class="h-4 w-4" />
+					Create QR Code
+				</Button>
+			</RoleGate>
 		</div>
 
 		<!-- Loading State -->
@@ -181,10 +177,12 @@
 			<p class="text-gray-600 mb-6 max-w-md mx-auto">
 				Create your first QR code to start collecting feedback from customers
 			</p>
-			<Button onclick={(e) => { clickOrigin = { x: e.clientX, y: e.clientY }; showCreateModal = true; }} variant="gradient" size="lg">
-				<Plus class="mr-2 h-4 w-4" />
-				Create First QR Code
-			</Button>
+			<RoleGate roles={['OWNER', 'ADMIN', 'MANAGER']}>
+				<Button onclick={(e) => { clickOrigin = { x: e.clientX, y: e.clientY }; showCreateModal = true; }} variant="gradient" size="lg">
+					<Plus class="mr-2 h-4 w-4" />
+					Create First QR Code
+				</Button>
+			</RoleGate>
 		</Card>
 	{:else}
 		<div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
@@ -238,24 +236,28 @@
 							<Download class="h-4 w-4 mr-1" />
 							Download
 						</Button>
-						<Button
-							variant="outline"
-							size="sm"
-							onclick={() => handleToggleActive(qrCode)}
-						>
-							{#if qrCode.is_active}
-								<EyeOff class="h-4 w-4" />
-							{:else}
-								<Eye class="h-4 w-4" />
-							{/if}
-						</Button>
-						<Button
-							variant="outline"
-							size="sm"
-							onclick={(e) => handleDelete(qrCode, e)}
-						>
-							<Trash2 class="h-4 w-4" />
-						</Button>
+						<RoleGate roles={['OWNER', 'ADMIN', 'MANAGER']}>
+							<Button
+								variant="outline"
+								size="sm"
+								onclick={() => handleToggleActive(qrCode)}
+							>
+								{#if qrCode.is_active}
+									<EyeOff class="h-4 w-4" />
+								{:else}
+									<Eye class="h-4 w-4" />
+								{/if}
+							</Button>
+						</RoleGate>
+						<RoleGate roles={['OWNER', 'ADMIN', 'MANAGER']}>
+							<Button
+								variant="outline"
+								size="sm"
+								onclick={(e) => handleDelete(qrCode, e)}
+							>
+								<Trash2 class="h-4 w-4" />
+							</Button>
+						</RoleGate>
 					</div>
 				</Card>
 			{/each}

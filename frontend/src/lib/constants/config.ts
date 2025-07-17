@@ -18,6 +18,12 @@ export const APP_CONFIG = {
     noreply: 'noreply@lecritique.com'
   },
 
+  // Client Storage
+  localStorageKeys: {
+    authToken: 'auth_token',
+    authUser: 'auth_user'
+  },
+
   // Legal
   legal: {
     termsVersion: '1.0',

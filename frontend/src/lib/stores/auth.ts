@@ -1,6 +1,9 @@
-import { writable } from 'svelte/store';
 import { browser } from '$app/environment';
-import { Api, HttpClient, type HandlersAuthResponse, type HandlersLoginRequest, type HandlersRegisterRequest } from '$lib/api/api';
+import { Api, type HandlersLoginRequest, type HandlersRegisterRequest } from '$lib/api/api';
+import { APP_CONFIG } from '$lib/constants/config';
+import { writable } from 'svelte/store';
+
+type UserRole = 'OWNER' | 'ADMIN' | 'MANAGER' | 'VIEWER';
 
 export interface User {
   id: string;
@@ -10,6 +13,7 @@ export interface User {
   email_verified: boolean;
   deactivation_requested_at?: string | null;
   account_id?: string; // The account they're accessing (important for team members)
+  role?: UserRole; // User's role in the current account
 }
 
 export interface AuthState {
@@ -31,9 +35,9 @@ const getInitialState = (): AuthState => {
   };
 
   if (browser) {
-    const storedToken = localStorage.getItem('auth_token');
-    const storedUser = localStorage.getItem('auth_user');
-    
+    const storedToken = localStorage.getItem(APP_CONFIG.localStorageKeys.authToken);
+    const storedUser = localStorage.getItem(APP_CONFIG.localStorageKeys.authUser);
+
     if (storedToken && storedUser) {
       try {
         const user = JSON.parse(storedUser);
@@ -45,8 +49,8 @@ const getInitialState = (): AuthState => {
         };
       } catch (error) {
         // Clear invalid stored data
-        localStorage.removeItem('auth_token');
-        localStorage.removeItem('auth_user');
+        localStorage.removeItem(APP_CONFIG.localStorageKeys.authToken);
+        localStorage.removeItem(APP_CONFIG.localStorageKeys.authUser);
       }
     }
   }
@@ -80,17 +84,20 @@ function createAuthStore() {
 
   const authStore = {
     subscribe,
-    
+
     async login(credentials: HandlersLoginRequest) {
       update(state => ({ ...state, isLoading: true, error: null }));
-      
+
       try {
         const response = await api.api.v1AuthLoginCreate(credentials);
-        
+
         if (response.data.success && response.data.data) {
-          const { token, account, subscription: subscriptionData } = response.data.data;
-          
+          const { token, account, subscription: subscriptionData, role } = response.data.data;
+
           if (token && account) {
+            // Use role from backend response
+            const userRole = role as any;
+
             const user: User = {
               id: account.id,
               email: account.email,
@@ -98,13 +105,14 @@ function createAuthStore() {
               phone: account.phone,
               email_verified: account.email_verified,
               deactivation_requested_at: account.deactivation_requested_at,
-              account_id: account.id // Store which account they're accessing
+              account_id: account.id, // Store which account they're accessing
+              role: userRole
             };
 
             // Store in localStorage
             if (browser) {
-              localStorage.setItem('auth_token', token);
-              localStorage.setItem('auth_user', JSON.stringify(user));
+              localStorage.setItem(APP_CONFIG.localStorageKeys.authToken, token);
+              localStorage.setItem(APP_CONFIG.localStorageKeys.authUser, JSON.stringify(user));
             }
 
             // Set security data for API client
@@ -123,7 +131,6 @@ function createAuthStore() {
             if (subscriptionData) {
               const { subscription } = await import('./subscription');
               subscription.setSubscriptionData(subscriptionData);
-              console.log('[Auth] Setting subscription data:', subscriptionData);
             } else {
               console.log('[Auth] No subscription data in login response');
             }
@@ -131,12 +138,12 @@ function createAuthStore() {
             return { success: true };
           }
         }
-        
+
         throw new Error('Invalid response from server');
       } catch (error: any) {
         const errorCode = error.response?.data?.error?.code;
         const errorMessage = error.response?.data?.error?.message || error.message || 'Login failed';
-        
+
         // Check if it's an email verification error
         if (errorCode === 'EMAIL_NOT_VERIFIED') {
           update(state => ({
@@ -144,46 +151,46 @@ function createAuthStore() {
             isLoading: false,
             error: null // Don't show error since we're redirecting
           }));
-          
+
           return { success: false, unverified: true, email: credentials.email };
         }
-        
+
         update(state => ({
           ...state,
           isLoading: false,
           error: errorMessage
         }));
-        
+
         return { success: false, error: errorMessage };
       }
     },
 
     async register(userData: HandlersRegisterRequest) {
       update(state => ({ ...state, isLoading: true, error: null }));
-      
+
       try {
         const response = await api.api.v1AuthRegisterCreate(userData);
-        
+
         if (response.data.success) {
           update(state => ({
             ...state,
             isLoading: false,
             error: null
           }));
-          
+
           return { success: true };
         }
-        
+
         throw new Error('Registration failed');
       } catch (error: any) {
         const errorMessage = error.response?.data?.error?.message || error.message || 'Registration failed';
-        
+
         update(state => ({
           ...state,
           isLoading: false,
           error: errorMessage
         }));
-        
+
         return { success: false, error: errorMessage };
       }
     },
@@ -191,8 +198,8 @@ function createAuthStore() {
     async logout() {
       // Clear localStorage
       if (browser) {
-        localStorage.removeItem('auth_token');
-        localStorage.removeItem('auth_user');
+        localStorage.removeItem(APP_CONFIG.localStorageKeys.authToken);
+        localStorage.removeItem(APP_CONFIG.localStorageKeys.authUser);
       }
 
       // Clear security data
@@ -210,7 +217,7 @@ function createAuthStore() {
         isLoading: false,
         error: null
       });
-      
+
       // Return a promise to ensure async completion
       return Promise.resolve();
     },
@@ -218,10 +225,10 @@ function createAuthStore() {
     async refreshToken() {
       try {
         const response = await api.api.v1AuthRefreshCreate();
-        
+
         if (response.data.success && response.data.data?.token) {
           const newToken = response.data.data.token;
-          
+
           // Update stored token
           if (browser) {
             localStorage.setItem('auth_token', newToken);
@@ -237,7 +244,7 @@ function createAuthStore() {
 
           return { success: true };
         }
-        
+
         throw new Error('Token refresh failed');
       } catch (error) {
         // If refresh fails, logout user
@@ -254,17 +261,17 @@ function createAuthStore() {
       // Validate the token first
       try {
         const payload = JSON.parse(atob(newToken.split('.')[1]));
-        
+
         // Update stored token
         if (browser) {
-          localStorage.setItem('auth_token', newToken);
-          
+          localStorage.setItem(APP_CONFIG.localStorageKeys.authToken, newToken);
+
           // Update user info from token if email changed
-          const storedUser = localStorage.getItem('auth_user');
+          const storedUser = localStorage.getItem(APP_CONFIG.localStorageKeys.authUser);
           if (storedUser && payload.email) {
             const user = JSON.parse(storedUser);
             user.email = payload.email;
-            localStorage.setItem('auth_user', JSON.stringify(user));
+            localStorage.setItem(APP_CONFIG.localStorageKeys.authUser, JSON.stringify(user));
           }
         }
 
@@ -289,10 +296,10 @@ function createAuthStore() {
         ...state,
         user: updatedUser
       }));
-      
+
       // Update stored user
       if (browser) {
-        localStorage.setItem('auth_user', JSON.stringify(updatedUser));
+        localStorage.setItem(APP_CONFIG.localStorageKeys.authUser, JSON.stringify(updatedUser));
       }
     },
 
@@ -316,10 +323,10 @@ function createAuthStore() {
           // Don't logout or redirect, let the login handler deal with it
           throw error;
         }
-        
+
         // Token is invalid, logout user
         await authStore.logout();
-        
+
         // Redirect to login if we're in the browser
         if (browser && typeof window !== 'undefined') {
           window.location.href = '/login';

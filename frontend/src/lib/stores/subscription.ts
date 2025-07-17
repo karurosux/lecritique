@@ -161,15 +161,15 @@ export const isSubscribed = derived(
     // Check if status matches the actual string value from backend
     // The backend sends "active" as a string, but TypeScript expects the enum
     const status = $subscription.subscription?.status;
-    
+
     // Handle both enum constant and raw string value
-    return status === 'active' || status === 'SubscriptionActive';
+    return (status as string) === 'active' || status === 'SubscriptionActive';
   }
 );
 
 export const planLimits = derived(
   subscription,
-  $subscription => $subscription.subscription?.plan?.features || null
+  $subscription => ($subscription.subscription?.plan as any)?.features || null
 );
 
 
@@ -179,8 +179,8 @@ export const hasFeature = derived(
   $subscription => (feature: string): boolean => {
     const plan = $subscription.subscription?.plan;
     if (!plan) return false;
-    
-    switch(feature) {
+
+    switch (feature) {
       case FEATURES.BASIC_ANALYTICS:
         return plan.has_basic_analytics || false;
       case FEATURES.ADVANCED_ANALYTICS:
@@ -203,8 +203,8 @@ export const getLimit = derived(
   $subscription => (limit: string): number => {
     const plan = $subscription.subscription?.plan;
     if (!plan) return 0;
-    
-    switch(limit) {
+
+    switch (limit) {
       case LIMITS.RESTAURANTS:
         return plan.max_restaurants || 0;
       case LIMITS.QR_CODES:
@@ -225,8 +225,8 @@ export const isUnlimited = derived(
   $subscription => (limit: string): boolean => {
     const plan = $subscription.subscription?.plan;
     if (!plan) return false;
-    
-    switch(limit) {
+
+    switch (limit) {
       case LIMITS.RESTAURANTS:
         return plan.max_restaurants === -1;
       case LIMITS.QR_CODES:
@@ -248,7 +248,7 @@ export const FEATURES = {
   FEEDBACK_EXPLORER: 'feedback_explorer',
   CUSTOM_BRANDING: 'custom_branding',
   PRIORITY_SUPPORT: 'priority_support'
-};
+} as const;
 
 // Common limit constants
 export const LIMITS = {
@@ -256,4 +256,4 @@ export const LIMITS = {
   QR_CODES: 'max_qr_codes',
   FEEDBACKS_PER_MONTH: 'max_feedbacks_per_month',
   TEAM_MEMBERS: 'max_team_members'
-};
+} as const;

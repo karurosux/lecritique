@@ -4,6 +4,7 @@
 	import { Plus } from 'lucide-svelte';
 	import DishCard from '$lib/components/dishes/DishCard.svelte';
 	import AddDishModal from '$lib/components/dishes/AddDishModal.svelte';
+	import { RoleGate } from '$lib/components/auth';
 	import { getApiClient } from '$lib/api';
 	import { toast } from 'svelte-sonner';
 	import { onMount } from 'svelte';
@@ -32,18 +33,9 @@
 
 	// Fetch dishes when restaurant becomes available
 	onMount(async () => {
-		if (!dishes.length && restaurant) {
-			await fetchDishes();
-		}
 		if (restaurant) {
-			await fetchDishesWithQuestions();
-		}
-	});
-
-	// Watch for restaurant changes and fetch data
-	$effect(async () => {
-		if (restaurant && !dishes.length) {
 			await fetchDishes();
+			await fetchDishesWithQuestions();
 		}
 	});
 
@@ -258,10 +250,12 @@
 				]}
 			/>
 
-			<Button onclick={handleAddDish} variant="gradient" size="lg" class="gap-2">
-				<Plus class="h-4 w-4" />
-				Add Dish
-			</Button>
+			<RoleGate roles={['OWNER', 'ADMIN', 'MANAGER']}>
+				<Button onclick={handleAddDish} variant="gradient" size="lg" class="gap-2">
+					<Plus class="h-4 w-4" />
+					Add Dish
+				</Button>
+			</RoleGate>
 		</div>
 	</Card>
 
@@ -281,10 +275,12 @@
 				}
 			</p>
 			{#if dishesWithQuestionnaires.length === 0}
-				<Button onclick={handleAddDish}>
-					<Plus class="mr-2 h-4 w-4" />
-					Add First Dish
-				</Button>
+				<RoleGate roles={['OWNER', 'ADMIN', 'MANAGER']}>
+					<Button onclick={handleAddDish}>
+						<Plus class="mr-2 h-4 w-4" />
+						Add First Dish
+					</Button>
+				</RoleGate>
 			{/if}
 		</div>
 	{:else}

@@ -2,6 +2,7 @@
   import { onMount } from "svelte";
   import { getApiClient, handleApiError } from "$lib/api/client";
   import { auth } from "$lib/stores/auth";
+  import { subscription } from "$lib/stores/subscription";
   import { goto } from "$app/navigation";
   import RestaurantHeader from "$lib/components/restaurants/RestaurantHeader.svelte";
   import SearchAndFilters from "$lib/components/restaurants/SearchAndFilters.svelte";
@@ -69,6 +70,8 @@
   );
 
   let authState = $derived($auth);
+  let subscriptionState = $derived($subscription);
+  let teamMembers = $derived(subscriptionState.subscription?.team_members || []);
   let hasInitialized = $state(false);
 
   // Handle authentication and initial load
