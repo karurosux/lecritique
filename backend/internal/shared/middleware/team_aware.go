@@ -19,16 +19,16 @@ func TeamAware(db *gorm.DB) echo.MiddlewareFunc {
 		return func(c echo.Context) error {
 			ctx := c.Request().Context()
 			accountID := c.Get("account_id").(uuid.UUID)
-			
+
 			// Always set personal account ID
 			c.Set("personal_account_id", accountID)
-			
+
 			// Check if this user is a team member of another organization
 			var teamMemberships []authModels.TeamMember
 			db.WithContext(ctx).
 				Where("member_id = ? AND account_id != ? AND accepted_at IS NOT NULL", accountID, accountID).
 				Find(&teamMemberships)
-			
+
 			if len(teamMemberships) > 0 {
 				// Use the organization's account ID for resources
 				orgAccountID := teamMemberships[0].AccountID
@@ -36,12 +36,13 @@ func TeamAware(db *gorm.DB) echo.MiddlewareFunc {
 				c.Set("resource_account_id", orgAccountID)
 				c.Set("is_team_member", true)
 				c.Set("team_role", teamMemberships[0].Role)
+				c.Set("user_role", teamMemberships[0].Role)
 			} else {
 				// Use their own account ID for resources
 				c.Set("resource_account_id", accountID)
 				c.Set("is_team_member", false)
 			}
-			
+
 			return next(c)
 		}
 	}
@@ -52,8 +53,13 @@ func GetResourceAccountID(c echo.Context) uuid.UUID {
 	if id, ok := c.Get("resource_account_id").(uuid.UUID); ok {
 		return id
 	}
+
+	if id, ok := c.Get("account_id").(uuid.UUID); ok {
+		return id
+	}
+
 	// Fallback to regular account_id if middleware wasn't applied
-	return c.Get("account_id").(uuid.UUID)
+	return uuid.Nil
 }
 
 // GetPersonalAccountID is a helper to get the user's personal account ID

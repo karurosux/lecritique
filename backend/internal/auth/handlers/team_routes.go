@@ -15,10 +15,10 @@ func RegisterTeamRoutes(v1 *echo.Group, db *gorm.DB, cfg *config.Config, authSer
 	teamMemberRepo := repositories.NewTeamMemberRepository(db)
 	invitationRepo := repositories.NewTeamInvitationRepository(db)
 	accountRepo := repositories.NewAccountRepository(db)
-	
+
 	// Initialize email service
 	emailService := sharedServices.NewEmailService(cfg)
-	
+
 	// Initialize team member service
 	teamMemberService := services.NewTeamMemberServiceV2(
 		teamMemberRepo,
@@ -26,21 +26,21 @@ func RegisterTeamRoutes(v1 *echo.Group, db *gorm.DB, cfg *config.Config, authSer
 		accountRepo,
 		emailService,
 	)
-	
+
 	// Initialize handler
 	teamHandler := NewTeamMemberHandler(teamMemberService, authService)
-	
+
 	// Team routes
 	team := v1.Group("/team")
-	
+
 	// Public route for accepting invitations
 	team.POST("/accept-invite", teamHandler.AcceptInvitation)
-	
+
 	// Protected routes - require JWT auth
 	teamProtected := team.Group("")
 	teamProtected.Use(middleware.JWTAuth(authService))
-	teamProtected.Use(middleware.TeamAuthMiddleware(db))
-	
+	teamProtected.Use(middleware.TeamAware(db))
+
 	// Team member management
 	teamProtected.GET("/members", teamHandler.ListMembers)
 	teamProtected.POST("/members/invite", teamHandler.InviteMember)

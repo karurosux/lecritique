@@ -15,6 +15,7 @@ type TeamMemberRepository interface {
 	FindByAccountID(ctx context.Context, accountID uuid.UUID) ([]models.TeamMember, error)
 	FindByMemberAndAccount(ctx context.Context, memberID, accountID uuid.UUID) (*models.TeamMember, error)
 	FindByMemberID(ctx context.Context, memberID uuid.UUID) ([]models.TeamMember, error)
+	FindByMemberIDNotOwner(ctx context.Context, memberID uuid.UUID) ([]models.TeamMember, error)
 	Update(ctx context.Context, member *models.TeamMember) error
 	Delete(ctx context.Context, id uuid.UUID) error
 	CountByAccountID(ctx context.Context, accountID uuid.UUID) (int64, error)
@@ -60,6 +61,15 @@ func (r *teamMemberRepository) FindByMemberID(ctx context.Context, memberID uuid
 	return members, err
 }
 
+func (r *teamMemberRepository) FindByMemberIDNotOwner(ctx context.Context, memberID uuid.UUID) ([]models.TeamMember, error) {
+	var members []models.TeamMember
+	err := r.DB.WithContext(ctx).
+		Preload("Account").
+		Where("member_id =? AND role != 'OWNER' AND accepted_at IS NOT NULL AND deleted_at IS NULL", memberID).
+		Find(&members).Error
+	return members, err
+}
+
 func (r *teamMemberRepository) CountByAccountID(ctx context.Context, accountID uuid.UUID) (int64, error) {
 	var count int64
 	err := r.DB.WithContext(ctx).
@@ -68,3 +78,4 @@ func (r *teamMemberRepository) CountByAccountID(ctx context.Context, accountID u
 		Count(&count).Error
 	return count, err
 }
+

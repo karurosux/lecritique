@@ -36,7 +36,18 @@ export const APP_CONFIG = {
   links: {
     github: 'https://github.com/anthropics/claude-code/issues',
     documentation: 'https://docs.lecritique.com'
+  },
+
+  // Locales related config
+  locales: {
+    language: 'en-US',
+    defaultDateFormat: {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    }
   }
+
 } as const;
 
 // Helper function to create mailto links

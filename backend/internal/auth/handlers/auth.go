@@ -97,28 +97,6 @@ func (h *AuthHandler) Register(c echo.Context) error {
 		return response.Error(c, err)
 	}
 
-	// Check if there's an invitation token
-	if req.InvitationToken != "" {
-		// Accept the invitation
-		if err := h.teamMemberService.AcceptInvitationDuringRegistration(ctx, req.InvitationToken, account.ID); err != nil {
-			// Log the error but don't fail registration
-			log.Printf("Failed to accept team invitation: %v", err)
-		}
-	}
-
-	// Also check for pending invitations that were already accepted via email
-	invitations, err := h.teamMemberService.CheckPendingInvitations(ctx, account.Email)
-	if err == nil && len(invitations) > 0 {
-		for _, inv := range invitations {
-			// Only auto-accept if the email link was clicked (EmailAcceptedAt is set)
-			if inv.EmailAcceptedAt != nil && inv.AcceptedAt == nil {
-				if err := h.teamMemberService.AcceptInvitationDuringRegistration(ctx, inv.Token, account.ID); err != nil {
-					log.Printf("Failed to auto-accept team invitation: %v", err)
-				}
-			}
-		}
-	}
-
 	return response.Success(c, map[string]interface{}{
 		"account": account,
 		"message": "Registration successful. Please check your email to verify your account.",
@@ -151,20 +129,6 @@ func (h *AuthHandler) Login(c echo.Context) error {
 	token, account, err := h.authService.Login(ctx, req.Email, req.Password)
 	if err != nil {
 		return response.Error(c, err)
-	}
-
-	// TODO: Simplify this process, this is absurdly hard.
-	// Check for pending invitations that were already accepted via email
-	invitations, err := h.teamMemberService.CheckPendingInvitations(ctx, account.Email)
-	if err == nil && len(invitations) > 0 {
-		for _, inv := range invitations {
-			// Only auto-accept if the email link was clicked (EmailAcceptedAt is set)
-			if inv.EmailAcceptedAt != nil && inv.AcceptedAt == nil {
-				if err := h.teamMemberService.AcceptInvitationDuringRegistration(ctx, inv.Token, account.ID); err != nil {
-					log.Printf("Failed to auto-accept team invitation: %v", err)
-				}
-			}
-		}
 	}
 
 	// TODO: Fetching in contorller? WTF.

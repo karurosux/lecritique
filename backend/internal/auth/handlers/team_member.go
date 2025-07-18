@@ -10,6 +10,7 @@ import (
 	"github.com/lecritique/api/internal/auth/services"
 	"github.com/lecritique/api/internal/shared/errors"
 	"github.com/lecritique/api/internal/shared/logger"
+	"github.com/lecritique/api/internal/shared/middleware"
 	"github.com/lecritique/api/internal/shared/response"
 	"github.com/lecritique/api/internal/shared/validator"
 	"github.com/sirupsen/logrus"
@@ -55,8 +56,8 @@ type AcceptInviteRequest struct {
 // @Security BearerAuth
 func (h *TeamMemberHandler) ListMembers(c echo.Context) error {
 	ctx := c.Request().Context()
-	accountID, ok := c.Get("account_id").(uuid.UUID)
-	if !ok {
+	accountID := middleware.GetResourceAccountID(c)
+	if accountID == uuid.Nil {
 		return response.Error(c, errors.ErrUnauthorized)
 	}
 
@@ -273,7 +274,7 @@ func (h *TeamMemberHandler) ResendInvitation(c echo.Context) error {
 // @Router /api/v1/team/accept-invite [post]
 func (h *TeamMemberHandler) AcceptInvitation(c echo.Context) error {
 	ctx := c.Request().Context()
-	
+
 	var req AcceptInviteRequest
 	if err := c.Bind(&req); err != nil {
 		return response.Error(c, errors.BadRequest("Invalid invitation token data"))
@@ -301,21 +302,22 @@ func (h *TeamMemberHandler) AcceptInvitation(c echo.Context) error {
 				"error": err.Error(),
 			})
 		}
-		
+
 		return response.Success(c, map[string]interface{}{
 			"invitation": invitation,
-			"message": "Please register with this email address to join the team.",
-			"status": "needs_registration",
+			"message":    "Please register with this email address to join the team.",
+			"status":     "needs_registration",
 		})
 	}
 
 	// Account exists - accept the invitation
-	if err := h.teamMemberService.AcceptInvitationDuringRegistration(ctx, req.Token, account.ID); err != nil {
+	if err := h.teamMemberService.AcceptInvitation(ctx, req.Token, account.ID); err != nil {
 		return response.Error(c, err)
 	}
-	
+
 	return response.Success(c, map[string]string{
 		"message": "Invitation accepted successfully. You have been added to the team.",
-		"status": "accepted",
+		"status":  "accepted",
 	})
 }
+

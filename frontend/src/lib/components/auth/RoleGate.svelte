@@ -1,9 +1,10 @@
 <script lang="ts">
   import { auth } from "$lib/stores/auth";
+  import type { Role } from "$lib/utils/auth-guards";
 
   interface Props {
     // Allowed roles - if any match, content is shown
-    roles?: Array<"OWNER" | "ADMIN" | "MANAGER" | "VIEWER">;
+    roles?: Role[];
     // If true, shows loading state while checking
     showLoading?: boolean;
     // Custom fallback content

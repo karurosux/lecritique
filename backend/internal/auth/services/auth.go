@@ -43,23 +43,27 @@ type AuthService interface {
 }
 
 type authService struct {
-	accountRepo repositories.AccountRepository
-	tokenRepo   repositories.TokenRepository
+	accountRepo  repositories.AccountRepository
+	tokenRepo    repositories.TokenRepository
 	emailService services.EmailService
-	config      *config.Config
+	teamService  TeamMemberServiceV2
+	config       *config.Config
 }
 
 type Claims struct {
-	AccountID uuid.UUID `json:"account_id"`
-	Email     string    `json:"email"`
+	AccountID uuid.UUID         `json:"account_id"`
+	MemberID  uuid.UUID         `json:"member_id"`
+	Email     string            `json:"email"`
+	Role      models.MemberRole `json:"role"`
 	jwt.RegisteredClaims
 }
 
-func NewAuthService(accountRepo repositories.AccountRepository, tokenRepo repositories.TokenRepository, emailService services.EmailService, config *config.Config) AuthService {
+func NewAuthService(accountRepo repositories.AccountRepository, tokenRepo repositories.TokenRepository, emailService services.EmailService, teamService TeamMemberServiceV2, config *config.Config) AuthService {
 	return &authService{
 		accountRepo:  accountRepo,
 		tokenRepo:    tokenRepo,
 		emailService: emailService,
+		teamService:  teamService,
 		config:       config,
 	}
 }
@@ -138,8 +142,13 @@ func (s *authService) Login(ctx context.Context, email, password string) (string
 		}
 	}
 
+	teamMember, err := s.teamService.GetMemberByMemberID(ctx, account.ID)
+	if err != nil {
+		return "", nil, err
+	}
+
 	// Generate token
-	token, err := s.generateToken(account)
+	token, err := s.generateToken(account, teamMember)
 	if err != nil {
 		return "", nil, err
 	}
@@ -147,10 +156,12 @@ func (s *authService) Login(ctx context.Context, email, password string) (string
 	return token, account, nil
 }
 
-func (s *authService) generateToken(account *models.Account) (string, error) {
+func (s *authService) generateToken(account *models.Account, teamMember *models.TeamMember) (string, error) {
 	claims := &Claims{
 		AccountID: account.ID,
+		MemberID:  account.ID,
 		Email:     account.Email,
+		Role:      models.RoleOwner,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(s.config.JWT.Expiration)),
 			IssuedAt:  jwt.NewNumericDate(time.Now()),
@@ -158,6 +169,11 @@ func (s *authService) generateToken(account *models.Account) (string, error) {
 			Issuer:    s.config.App.Name,
 			Subject:   account.ID.String(),
 		},
+	}
+
+	if teamMember != nil {
+		claims.AccountID = teamMember.Account.ID
+		claims.Role = teamMember.Role
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
@@ -168,7 +184,6 @@ func (s *authService) ValidateToken(tokenString string) (*Claims, error) {
 	token, err := jwt.ParseWithClaims(tokenString, &Claims{}, func(token *jwt.Token) (interface{}, error) {
 		return []byte(s.config.JWT.Secret), nil
 	})
-
 	if err != nil {
 		return nil, errors.ErrTokenInvalid
 	}
@@ -192,8 +207,14 @@ func (s *authService) RefreshToken(ctx context.Context, oldToken string) (string
 		return "", err
 	}
 
+	// Get Team Mamber
+	teamMember, err := s.teamService.GetMemberByMemberID(ctx, claims.AccountID)
+	if err != nil {
+		return "", err
+	}
+
 	// Generate new token
-	return s.generateToken(account)
+	return s.generateToken(account, teamMember)
 }
 
 func (s *authService) SendEmailVerification(ctx context.Context, accountID uuid.UUID) error {
@@ -389,7 +410,7 @@ func (s *authService) RequestEmailChange(ctx context.Context, accountID uuid.UUI
 	// In development mode without SMTP, change email immediately
 	if s.config.IsDevMode() && !s.config.IsSMTPConfigured() {
 		oldEmail := account.Email
-		
+
 		// Update email directly
 		account.Email = newEmail
 		account.EmailVerified = true
@@ -401,15 +422,20 @@ func (s *authService) RequestEmailChange(ctx context.Context, accountID uuid.UUI
 			return "", err
 		}
 
+		teamMember, err := s.teamService.GetMemberByMemberID(ctx, accountID)
+		if err != nil {
+			return "", err
+		}
+
 		// Generate new JWT token with updated email
-		newToken, err := s.generateToken(account)
+		newToken, err := s.generateToken(account, teamMember)
 		if err != nil {
 			return "", err
 		}
 
 		// Log the change
 		log.Printf("DEV MODE: Email changed directly from %s to %s for account %s", oldEmail, newEmail, accountID)
-		
+
 		return newToken, nil
 	}
 
@@ -487,8 +513,13 @@ func (s *authService) ConfirmEmailChange(ctx context.Context, token string) (str
 		return "", err
 	}
 
+	teamMember, err := s.teamService.GetMemberByMemberID(ctx, changeToken.AccountID)
+	if err != nil {
+		return "", err
+	}
+
 	// Generate new JWT token with updated email
-	newToken, err := s.generateToken(account)
+	newToken, err := s.generateToken(account, teamMember)
 	if err != nil {
 		return "", err
 	}

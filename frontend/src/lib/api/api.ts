@@ -418,7 +418,7 @@ export interface ModelsTeamMember {
   member?: ModelsAccount;
   /** The member's account ID */
   member_id?: string;
-  role?: ModelsMemberRole;
+  role?: Role;
   updated_at?: string;
 }
 
@@ -468,6 +468,7 @@ export interface ServicesPermissionResponse {
   subscription_status?: string;
 }
 
+import type { Role } from "$lib/utils/auth-guards";
 import type {
   AxiosInstance,
   AxiosRequestConfig,
