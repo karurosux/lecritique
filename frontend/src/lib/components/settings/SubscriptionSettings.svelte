@@ -28,10 +28,11 @@
   async function loadData() {
     isLoading = true;
     try {
-      // Fetch both subscription and plans data
+      // Fetch subscription, plans, and usage data
       await Promise.all([
         subscription.fetchSubscription(),
         subscription.fetchPlans(),
+        subscription.fetchUsage(),
       ]);
     } catch (error) {
       onError?.("Failed to load subscription data");
@@ -90,6 +91,8 @@
   let current = $derived($currentPlan);
   let limits = $derived($planLimits);
   let plans = $derived(subscriptionData.plans || []);
+  let usage = $derived(subscriptionData.usage);
+
 
   // Use subscription data from API instead of JWT for plan details
   let currentSubscription = $derived(subscriptionData.subscription);
@@ -189,28 +192,6 @@
           </div>
         </div>
 
-        {#if limits}
-          <div
-            class="mt-6 grid grid-cols-2 gap-4 border-t border-white/20 pt-4"
-          >
-            <div>
-              <p class="text-sm text-blue-100">Restaurants</p>
-              <p class="text-lg font-semibold">
-                {limits.limits?.[LIMITS.RESTAURANTS] === -1
-                  ? "Unlimited"
-                  : `0 of ${limits.limits?.[LIMITS.RESTAURANTS] || 0} used`}
-              </p>
-            </div>
-            <div>
-              <p class="text-sm text-blue-100">Monthly Feedback</p>
-              <p class="text-lg font-semibold">
-                {limits.limits?.[LIMITS.FEEDBACKS_PER_MONTH] === -1
-                  ? "Unlimited"
-                  : `0 of ${(limits.limits?.[LIMITS.FEEDBACKS_PER_MONTH] || 0).toLocaleString()}`}
-              </p>
-            </div>
-          </div>
-        {/if}
 
         <div class="mt-6">
           <Button

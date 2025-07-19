@@ -103,7 +103,7 @@ func (h *AuthHandler) Register(c echo.Context) error {
 // @Accept json
 // @Produce json
 // @Param request body LoginRequest true "Login credentials"
-// @Success 200 {object} response.Response{data=EnhancedAuthResponse}
+// @Success 200 {object} response.Response{data=AuthResponse}
 // @Failure 400 {object} response.Response
 // @Failure 401 {object} response.Response
 // @Router /api/v1/auth/login [post]

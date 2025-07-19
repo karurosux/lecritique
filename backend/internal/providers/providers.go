@@ -32,6 +32,7 @@ import (
 	
 	// Subscription
 	subscriptionHandlers "lecritique/internal/subscription/handlers"
+	subscriptionMiddleware "lecritique/internal/subscription/middleware"
 	subscriptionRepos "lecritique/internal/subscription/repositories"
 	subscriptionServices "lecritique/internal/subscription/services"
 	
@@ -105,4 +106,12 @@ func RegisterAll(i *do.Injector, cfg *config.Config, db *gorm.DB) {
 	do.Provide(i, subscriptionServices.NewPaymentService)
 	do.Provide(i, subscriptionHandlers.NewSubscriptionHandler)
 	do.Provide(i, subscriptionHandlers.NewPaymentHandler)
+	
+	// Subscription middleware - depends on subscription services
+	do.Provide(i, func(i *do.Injector) (*subscriptionMiddleware.SubscriptionMiddleware, error) {
+		return subscriptionMiddleware.NewSubscriptionMiddleware(
+			do.MustInvoke[subscriptionServices.SubscriptionService](i),
+			do.MustInvoke[subscriptionServices.UsageService](i),
+		), nil
+	})
 }

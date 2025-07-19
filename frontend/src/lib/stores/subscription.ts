@@ -86,6 +86,31 @@ function createSubscriptionStore() {
       }
     },
 
+    async fetchUsage() {
+      update(state => ({ ...state, isLoading: true, error: null }));
+
+      try {
+        const api = getApiClient();
+        const response = await api.api.v1UserSubscriptionUsageList();
+
+        if (response.data.success && response.data.data) {
+          update(state => ({
+            ...state,
+            usage: response.data.data,
+            isLoading: false
+          }));
+        } else {
+          throw new Error('Failed to fetch usage');
+        }
+      } catch (error: any) {
+        update(state => ({
+          ...state,
+          isLoading: false,
+          error: error.message || 'Failed to fetch usage'
+        }));
+      }
+    },
+
 
     async createCheckoutSession(planId: string) {
       // TODO: Replace with actual API call when endpoints are available

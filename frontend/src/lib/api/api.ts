@@ -41,10 +41,13 @@ export enum ModelsMemberRole {
   RoleViewer = "RoleViewer",
 }
 
-export type GithubComLecritiqueApiInternalMenuModelsDish = object;
-
 export interface HandlersAcceptInviteRequest {
   token: string;
+}
+
+export interface HandlersAuthResponse {
+  account?: any;
+  token?: string;
 }
 
 export interface HandlersCardDetailsResponse {
@@ -95,12 +98,6 @@ export interface HandlersCreateRestaurantRequest {
 
 export interface HandlersCreateSubscriptionRequest {
   plan_id: string;
-}
-
-export interface HandlersEnhancedAuthResponse {
-  account?: any;
-  subscription?: any;
-  token?: string;
 }
 
 export interface HandlersGenerateQRCodeRequest {
@@ -218,6 +215,8 @@ export interface HandlersUpdateRoleRequest {
   role: "ADMIN" | "MANAGER" | "VIEWER";
 }
 
+export type LecritiqueInternalMenuModelsDish = object;
+
 export interface ModelsAccount {
   company_name?: string;
   created_at?: string;
@@ -311,7 +310,7 @@ export interface ModelsQRCode {
 
 export interface ModelsQuestion {
   created_at?: string;
-  dish?: GithubComLecritiqueApiInternalMenuModelsDish;
+  dish?: LecritiqueInternalMenuModelsDish;
   dish_id?: string;
   display_order?: number;
   id?: string;
@@ -329,7 +328,7 @@ export interface ModelsQuestion {
 export interface ModelsQuestionnaire {
   created_at?: string;
   description?: string;
-  dish?: GithubComLecritiqueApiInternalMenuModelsDish;
+  dish?: LecritiqueInternalMenuModelsDish;
   dish_id?: string;
   id?: string;
   is_active?: boolean;
@@ -406,6 +405,22 @@ export interface ModelsSubscriptionPlan {
   updated_at?: string;
 }
 
+export interface ModelsSubscriptionUsage {
+  created_at?: string;
+  feedbacks_count?: number;
+  id?: string;
+  last_updated_at?: string;
+  locations_count?: number;
+  period_end?: string;
+  period_start?: string;
+  qr_codes_count?: number;
+  restaurants_count?: number;
+  subscription?: ModelsSubscription;
+  subscription_id?: string;
+  team_members_count?: number;
+  updated_at?: string;
+}
+
 export interface ModelsTeamMember {
   accepted_at?: string;
   account?: ModelsAccount;
@@ -418,7 +433,7 @@ export interface ModelsTeamMember {
   member?: ModelsAccount;
   /** The member's account ID */
   member_id?: string;
-  role?: Role;
+  role?: ModelsMemberRole;
   updated_at?: string;
 }
 
@@ -468,7 +483,6 @@ export interface ServicesPermissionResponse {
   subscription_status?: string;
 }
 
-import type { Role } from "$lib/utils/auth-guards";
 import type {
   AxiosInstance,
   AxiosRequestConfig,
@@ -557,7 +571,7 @@ export class HttpClient<SecurityDataType = unknown> {
       headers: {
         ...((method &&
           this.instance.defaults.headers[
-          method.toLowerCase() as keyof HeadersDefaults
+            method.toLowerCase() as keyof HeadersDefaults
           ]) ||
           {}),
         ...(params1.headers || {}),
@@ -657,22 +671,6 @@ export class Api<
   SecurityDataType extends unknown,
 > extends HttpClient<SecurityDataType> {
   api = {
-    /**
-     * @description Check if the service is running
-     *
-     * @tags system
-     * @name HealthList
-     * @summary Health check
-     * @request GET:/api/health
-     */
-    healthList: (params: RequestParams = {}) =>
-      this.request<Record<string, any>, any>({
-        path: `/api/health`,
-        method: "GET",
-        format: "json",
-        ...params,
-      }),
-
     /**
      * @description Generate AI questions and create a complete questionnaire for a dish
      *
@@ -984,7 +982,7 @@ export class Api<
     ) =>
       this.request<
         ResponseResponse & {
-          data?: HandlersEnhancedAuthResponse;
+          data?: HandlersAuthResponse;
         },
         ResponseResponse
       >({
@@ -1194,7 +1192,7 @@ export class Api<
     ) =>
       this.request<
         ResponseResponse & {
-          data?: GithubComLecritiqueApiInternalMenuModelsDish;
+          data?: LecritiqueInternalMenuModelsDish;
         },
         ResponseResponse
       >({
@@ -1219,7 +1217,7 @@ export class Api<
     v1DishesDetail: (id: string, params: RequestParams = {}) =>
       this.request<
         ResponseResponse & {
-          data?: GithubComLecritiqueApiInternalMenuModelsDish;
+          data?: LecritiqueInternalMenuModelsDish;
         },
         ResponseResponse
       >({
@@ -1797,7 +1795,7 @@ export class Api<
     ) =>
       this.request<
         ResponseResponse & {
-          data?: GithubComLecritiqueApiInternalMenuModelsDish[];
+          data?: LecritiqueInternalMenuModelsDish[];
         },
         ResponseResponse
       >({
@@ -2447,6 +2445,30 @@ export class Api<
       this.request<ResponseResponse, ResponseResponse>({
         path: `/api/v1/user/subscription`,
         method: "DELETE",
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description Retrieve the current subscription usage details for the authenticated user
+     *
+     * @tags subscription
+     * @name V1UserSubscriptionUsageList
+     * @summary Get user's current subscription usage
+     * @request GET:/api/v1/user/subscription/usage
+     * @secure
+     */
+    v1UserSubscriptionUsageList: (params: RequestParams = {}) =>
+      this.request<
+        ResponseResponse & {
+          data?: ModelsSubscriptionUsage;
+        },
+        ResponseResponse
+      >({
+        path: `/api/v1/user/subscription/usage`,
+        method: "GET",
         secure: true,
         type: ContentType.Json,
         format: "json",

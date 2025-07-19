@@ -19,27 +19,6 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/api/health": {
-            "get": {
-                "description": "Check if the service is running",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "system"
-                ],
-                "summary": "Health check",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    }
-                }
-            }
-        },
         "/api/v1/ai/generate-questionnaire/{dishId}": {
             "post": {
                 "security": [
@@ -878,7 +857,7 @@ const docTemplate = `{
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/handlers.EnhancedAuthResponse"
+                                            "$ref": "#/definitions/handlers.AuthResponse"
                                         }
                                     }
                                 }
@@ -1337,7 +1316,7 @@ const docTemplate = `{
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/github_com_lecritique_api_internal_menu_models.Dish"
+                                            "$ref": "#/definitions/lecritique_internal_menu_models.Dish"
                                         }
                                     }
                                 }
@@ -1404,7 +1383,7 @@ const docTemplate = `{
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/github_com_lecritique_api_internal_menu_models.Dish"
+                                            "$ref": "#/definitions/lecritique_internal_menu_models.Dish"
                                         }
                                     }
                                 }
@@ -2800,7 +2779,7 @@ const docTemplate = `{
                                         "data": {
                                             "type": "array",
                                             "items": {
-                                                "$ref": "#/definitions/github_com_lecritique_api_internal_menu_models.Dish"
+                                                "$ref": "#/definitions/lecritique_internal_menu_models.Dish"
                                             }
                                         }
                                     }
@@ -4660,6 +4639,64 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/v1/user/subscription/usage": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retrieve the current subscription usage details for the authenticated user",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "subscription"
+                ],
+                "summary": "Get user's current subscription usage",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/models.SubscriptionUsage"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
         "/restaurants/{restaurantId}/questionnaires/{id}/questions": {
             "post": {
                 "security": [
@@ -4940,15 +4977,21 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "github_com_lecritique_api_internal_menu_models.Dish": {
-            "type": "object"
-        },
         "handlers.AcceptInviteRequest": {
             "type": "object",
             "required": [
                 "token"
             ],
             "properties": {
+                "token": {
+                    "type": "string"
+                }
+            }
+        },
+        "handlers.AuthResponse": {
+            "type": "object",
+            "properties": {
+                "account": {},
                 "token": {
                     "type": "string"
                 }
@@ -5084,16 +5127,6 @@ const docTemplate = `{
             ],
             "properties": {
                 "plan_id": {
-                    "type": "string"
-                }
-            }
-        },
-        "handlers.EnhancedAuthResponse": {
-            "type": "object",
-            "properties": {
-                "account": {},
-                "subscription": {},
-                "token": {
                     "type": "string"
                 }
             }
@@ -5404,6 +5437,9 @@ const docTemplate = `{
                 }
             }
         },
+        "lecritique_internal_menu_models.Dish": {
+            "type": "object"
+        },
         "models.Account": {
             "type": "object",
             "properties": {
@@ -5695,7 +5731,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "dish": {
-                    "$ref": "#/definitions/github_com_lecritique_api_internal_menu_models.Dish"
+                    "$ref": "#/definitions/lecritique_internal_menu_models.Dish"
                 },
                 "dish_id": {
                     "type": "string"
@@ -5775,7 +5811,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "dish": {
-                    "$ref": "#/definitions/github_com_lecritique_api_internal_menu_models.Dish"
+                    "$ref": "#/definitions/lecritique_internal_menu_models.Dish"
                 },
                 "dish_id": {
                     "type": "string"
@@ -5999,6 +6035,50 @@ const docTemplate = `{
                 "SubscriptionCanceled",
                 "SubscriptionExpired"
             ]
+        },
+        "models.SubscriptionUsage": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "feedbacks_count": {
+                    "type": "integer"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "last_updated_at": {
+                    "type": "string"
+                },
+                "locations_count": {
+                    "type": "integer"
+                },
+                "period_end": {
+                    "type": "string"
+                },
+                "period_start": {
+                    "type": "string"
+                },
+                "qr_codes_count": {
+                    "type": "integer"
+                },
+                "restaurants_count": {
+                    "type": "integer"
+                },
+                "subscription": {
+                    "$ref": "#/definitions/models.Subscription"
+                },
+                "subscription_id": {
+                    "type": "string"
+                },
+                "team_members_count": {
+                    "type": "integer"
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
         },
         "models.TeamMember": {
             "type": "object",

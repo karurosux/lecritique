@@ -32,6 +32,7 @@ func (m *Module) RegisterRoutes(v1 *echo.Group) {
 	
 	// User subscription routes
 	user.GET("/subscription", subscriptionHandler.GetUserSubscription)
+	user.GET("/subscription/usage", subscriptionHandler.GetUserUsage)
 	user.POST("/subscription", subscriptionHandler.CreateSubscription)
 	user.DELETE("/subscription", subscriptionHandler.CancelSubscription)
 	

@@ -20,6 +20,7 @@ import (
 
 type SubscriptionHandler struct {
 	subscriptionService services.SubscriptionService
+	usageService        services.UsageService
 	teamMemberService   authServices.TeamMemberServiceV2
 	validator           *validator.Validator
 }
@@ -27,6 +28,7 @@ type SubscriptionHandler struct {
 func NewSubscriptionHandler(i *do.Injector) (*SubscriptionHandler, error) {
 	return &SubscriptionHandler{
 		subscriptionService: do.MustInvoke[services.SubscriptionService](i),
+		usageService:        do.MustInvoke[services.UsageService](i),
 		teamMemberService:   do.MustInvoke[authServices.TeamMemberServiceV2](i),
 		validator:           validator.New(),
 	}, nil
@@ -119,6 +121,61 @@ func (h *SubscriptionHandler) GetUserSubscription(c echo.Context) error {
 
 	log.Printf("Returning user subscription: %+v", subscription)
 	return response.Success(c, subscription)
+}
+
+// GetUserUsage godoc
+// @Summary Get user's current subscription usage
+// @Description Retrieve the current subscription usage details for the authenticated user
+// @Tags subscription
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} response.Response{data=models.SubscriptionUsage}
+// @Failure 401 {object} response.Response
+// @Failure 404 {object} response.Response
+// @Failure 500 {object} response.Response
+// @Router /api/v1/user/subscription/usage [get]
+func (h *SubscriptionHandler) GetUserUsage(c echo.Context) error {
+	ctx := c.Request().Context()
+	accountID, err := middleware.GetAccountID(c)
+	if err != nil {
+		return response.Error(c, err)
+	}
+
+	log.Printf("GetUserUsage called for account: %s", accountID)
+
+	// Check if this user is a team member of another account using service
+	teamMember, err := h.teamMemberService.GetMemberByMemberID(ctx, accountID)
+	var targetAccountID uuid.UUID
+	
+	// If user is a team member of another organization, use that organization's account ID
+	if err == nil && teamMember != nil && teamMember.AccountID != accountID {
+		targetAccountID = teamMember.AccountID
+		log.Printf("Team member detected, fetching usage for organization: %s", targetAccountID)
+	} else {
+		targetAccountID = accountID
+		log.Printf("Not a team member, fetching own usage for account: %s", accountID)
+	}
+
+	// Get the subscription first
+	subscription, err := h.subscriptionService.GetUserSubscription(ctx, targetAccountID)
+	if err != nil {
+		log.Printf("Failed to get subscription: %v", err)
+		if errors.Is(err, sharedRepos.ErrRecordNotFound) {
+			return response.Success(c, nil)
+		}
+		return response.Error(c, err)
+	}
+
+	// Get usage data
+	usage, err := h.usageService.GetCurrentUsage(ctx, subscription.ID)
+	if err != nil {
+		log.Printf("Failed to get usage: %v", err)
+		return response.Error(c, err)
+	}
+
+	log.Printf("Returning usage data: %+v", usage)
+	return response.Success(c, usage)
 }
 
 // CanUserCreateRestaurant godoc
