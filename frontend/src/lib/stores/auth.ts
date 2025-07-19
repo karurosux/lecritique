@@ -1,6 +1,7 @@
 import { browser } from '$app/environment';
 import { Api, type HandlersLoginRequest, type HandlersRegisterRequest } from '$lib/api/api';
 import { APP_CONFIG } from '$lib/constants/config';
+import { decodeJwt, getSubscriptionFeaturesFromToken, type JwtPayload } from '$lib/utils/jwt';
 import { writable } from 'svelte/store';
 
 type UserRole = 'OWNER' | 'ADMIN' | 'MANAGER' | 'VIEWER';
@@ -8,7 +9,7 @@ type UserRole = 'OWNER' | 'ADMIN' | 'MANAGER' | 'VIEWER';
 export interface User {
   id: string;
   email: string;
-  company_name: string;
+  name: string;
   phone?: string;
   email_verified: boolean;
   deactivation_requested_at?: string | null;
@@ -19,6 +20,7 @@ export interface User {
 export interface AuthState {
   user: User | null;
   token: string | null;
+  subscriptionFeatures: JwtPayload['subscription_features'] | null;
   isAuthenticated: boolean;
   isLoading: boolean;
   error: string | null;
@@ -29,6 +31,7 @@ const getInitialState = (): AuthState => {
   const baseState = {
     user: null,
     token: null,
+    subscriptionFeatures: null,
     isAuthenticated: false,
     isLoading: false,
     error: null
@@ -41,10 +44,13 @@ const getInitialState = (): AuthState => {
     if (storedToken && storedUser) {
       try {
         const user = JSON.parse(storedUser);
+        const subscriptionFeatures = getSubscriptionFeaturesFromToken(storedToken);
+        
         return {
           ...baseState,
           user,
           token: storedToken,
+          subscriptionFeatures,
           isAuthenticated: true
         };
       } catch (error) {
@@ -92,21 +98,28 @@ function createAuthStore() {
         const response = await api.api.v1AuthLoginCreate(credentials);
 
         if (response.data.success && response.data.data) {
-          const { token, account, subscription: subscriptionData, role } = response.data.data;
+          const { token } = response.data.data;
 
-          if (token && account) {
-            // Use role from backend response
-            const userRole = role as any;
+          if (token) {
+            // Decode JWT to extract all user data
+            const payload = decodeJwt(token);
+            if (!payload) {
+              throw new Error('Invalid token received');
+            }
 
+            // Extract subscription features from JWT token
+            const subscriptionFeatures = getSubscriptionFeaturesFromToken(token);
+
+            // Create user object from JWT payload
             const user: User = {
-              id: account.id,
-              email: account.email,
-              company_name: account.company_name,
-              phone: account.phone,
-              email_verified: account.email_verified,
-              deactivation_requested_at: account.deactivation_requested_at,
-              account_id: account.id, // Store which account they're accessing
-              role: userRole
+              id: payload.member_id || payload.account_id,
+              email: payload.email,
+              name: payload.name || '', // Name comes from JWT token
+              phone: '', // Phone is not in JWT, would need separate API call if needed
+              email_verified: true, // If they can login, email is verified
+              deactivation_requested_at: null,
+              account_id: payload.account_id,
+              role: payload.role as UserRole
             };
 
             // Store in localStorage
@@ -122,18 +135,14 @@ function createAuthStore() {
               ...state,
               user,
               token,
+              subscriptionFeatures,
               isAuthenticated: true,
               isLoading: false,
               error: null
             }));
 
-            // Update subscription store if subscription data is provided
-            if (subscriptionData) {
-              const { subscription } = await import('./subscription');
-              subscription.setSubscriptionData(subscriptionData);
-            } else {
-              console.log('[Auth] No subscription data in login response');
-            }
+            // Note: We no longer need to update subscription store separately
+            // as all subscription data is now in the JWT token
 
             return { success: true };
           }
@@ -213,6 +222,7 @@ function createAuthStore() {
       set({
         user: null,
         token: null,
+        subscriptionFeatures: null,
         isAuthenticated: false,
         isLoading: false,
         error: null
@@ -229,6 +239,9 @@ function createAuthStore() {
         if (response.data.success && response.data.data?.token) {
           const newToken = response.data.data.token;
 
+          // Extract subscription features from new token
+          const subscriptionFeatures = getSubscriptionFeaturesFromToken(newToken);
+
           // Update stored token
           if (browser) {
             localStorage.setItem('auth_token', newToken);
@@ -239,7 +252,8 @@ function createAuthStore() {
 
           update(state => ({
             ...state,
-            token: newToken
+            token: newToken,
+            subscriptionFeatures
           }));
 
           return { success: true };
@@ -260,7 +274,13 @@ function createAuthStore() {
     updateToken(newToken: string) {
       // Validate the token first
       try {
-        const payload = JSON.parse(atob(newToken.split('.')[1]));
+        const payload = decodeJwt(newToken);
+        if (!payload) {
+          throw new Error('Invalid token payload');
+        }
+
+        // Extract subscription features from new token
+        const subscriptionFeatures = getSubscriptionFeaturesFromToken(newToken);
 
         // Update stored token
         if (browser) {
@@ -281,6 +301,7 @@ function createAuthStore() {
         update(state => ({
           ...state,
           token: newToken,
+          subscriptionFeatures,
           user: state.user ? {
             ...state.user,
             email: payload.email || state.user.email

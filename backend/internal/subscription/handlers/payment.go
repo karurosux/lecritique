@@ -9,6 +9,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"lecritique/internal/shared/errors"
+	"lecritique/internal/shared/middleware"
 	"lecritique/internal/shared/response"
 	"lecritique/internal/subscription/services"
 	"github.com/samber/do"
@@ -37,9 +38,9 @@ func NewPaymentHandler(i *do.Injector) (*PaymentHandler, error) {
 // @Router /api/v1/payment/checkout [post]
 // @Security BearerAuth
 func (h *PaymentHandler) CreateCheckoutSession(c echo.Context) error {
-	accountID, ok := c.Get("account_id").(uuid.UUID)
-	if !ok {
-		return response.Error(c, errors.New("UNAUTHORIZED", "Unauthorized", http.StatusUnauthorized))
+	accountID, err := middleware.GetAccountID(c)
+	if err != nil {
+		return response.Error(c, err)
 	}
 
 	var req CreateCheckoutRequest
@@ -100,9 +101,9 @@ func (h *PaymentHandler) CompleteCheckout(c echo.Context) error {
 // @Router /api/v1/payment/portal [post]
 // @Security BearerAuth
 func (h *PaymentHandler) CreatePortalSession(c echo.Context) error {
-	accountID, ok := c.Get("account_id").(uuid.UUID)
-	if !ok {
-		return response.Error(c, errors.New("UNAUTHORIZED", "Unauthorized", http.StatusUnauthorized))
+	accountID, err := middleware.GetAccountID(c)
+	if err != nil {
+		return response.Error(c, err)
 	}
 
 	portalURL, err := h.paymentService.GetCustomerPortalURL(c.Request().Context(), accountID)
@@ -156,9 +157,9 @@ func (h *PaymentHandler) HandleWebhook(c echo.Context) error {
 // @Router /api/v1/payment/methods [get]
 // @Security BearerAuth
 func (h *PaymentHandler) GetPaymentMethods(c echo.Context) error {
-	accountID, ok := c.Get("account_id").(uuid.UUID)
-	if !ok {
-		return response.Error(c, errors.New("UNAUTHORIZED", "Unauthorized", http.StatusUnauthorized))
+	accountID, err := middleware.GetAccountID(c)
+	if err != nil {
+		return response.Error(c, err)
 	}
 
 	methods, err := h.paymentService.ListPaymentMethods(c.Request().Context(), accountID)
@@ -200,9 +201,9 @@ func (h *PaymentHandler) GetPaymentMethods(c echo.Context) error {
 // @Router /api/v1/payment/methods/default [post]
 // @Security BearerAuth
 func (h *PaymentHandler) SetDefaultPaymentMethod(c echo.Context) error {
-	accountID, ok := c.Get("account_id").(uuid.UUID)
-	if !ok {
-		return response.Error(c, errors.New("UNAUTHORIZED", "Unauthorized", http.StatusUnauthorized))
+	accountID, err := middleware.GetAccountID(c)
+	if err != nil {
+		return response.Error(c, err)
 	}
 
 	var req SetDefaultPaymentRequest
@@ -214,7 +215,7 @@ func (h *PaymentHandler) SetDefaultPaymentMethod(c echo.Context) error {
 		return response.Error(c, errors.New("VALIDATION_ERROR", err.Error(), http.StatusBadRequest))
 	}
 
-	err := h.paymentService.SetDefaultPaymentMethod(c.Request().Context(), accountID, req.PaymentMethodID)
+	err = h.paymentService.SetDefaultPaymentMethod(c.Request().Context(), accountID, req.PaymentMethodID)
 	if err != nil {
 		return response.Error(c, errors.New("BAD_REQUEST", err.Error(), http.StatusBadRequest))
 	}
@@ -233,9 +234,9 @@ func (h *PaymentHandler) SetDefaultPaymentMethod(c echo.Context) error {
 // @Router /api/v1/payment/invoices [get]
 // @Security BearerAuth
 func (h *PaymentHandler) GetInvoices(c echo.Context) error {
-	accountID, ok := c.Get("account_id").(uuid.UUID)
-	if !ok {
-		return response.Error(c, errors.New("UNAUTHORIZED", "Unauthorized", http.StatusUnauthorized))
+	accountID, err := middleware.GetAccountID(c)
+	if err != nil {
+		return response.Error(c, err)
 	}
 
 	limit := 10

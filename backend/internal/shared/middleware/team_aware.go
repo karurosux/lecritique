@@ -18,7 +18,10 @@ func TeamAware(teamMemberService services.TeamMemberServiceV2) echo.MiddlewareFu
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
 			ctx := c.Request().Context()
-			accountID := c.Get("account_id").(uuid.UUID)
+			accountID, err := GetAccountID(c)
+			if err != nil {
+				return next(c)
+			}
 
 			// Always set personal account ID
 			c.Set("personal_account_id", accountID)

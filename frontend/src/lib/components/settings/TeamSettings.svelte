@@ -266,9 +266,9 @@
                     {#if member.member?.email}
                       {member.member.first_name && member.member.last_name
                         ? `${member.member.first_name} ${member.member.last_name}`
-                        : member.member.company_name || member.member.email}
+                        : member.member.name || member.member.email}
                     {:else if member.role === "OWNER"}
-                      {$auth.user?.company_name || $auth.user?.email || "Owner"}
+                      {$auth.user?.name || $auth.user?.email || "Owner"}
                     {:else}
                       Unknown
                     {/if}
@@ -302,32 +302,36 @@
 
               <RoleGate roles={[ROLES.owner, ROLES.admin]}>
                 <div class="flex items-center gap-2">
-                  <select
-                    class="text-sm border-gray-300 rounded-md"
-                    value={member.role}
-                    onchange={(e) =>
-                      updateRole(
-                        member.id || "",
-                        e?.currentTarget?.value as Role,
-                      )}
-                  >
-                    <option value={ROLES.admin}>Admin</option>
-                    <option value={ROLES.manager}>Manager</option>
-                    <option value={ROLES.viewer}>Viewer</option>
-                  </select>
+                  {#if member.role !== ROLES.owner}
+                    <select
+                      class="text-sm border-gray-300 rounded-md"
+                      value={member.role}
+                      onchange={(e) =>
+                        updateRole(
+                          member.id || "",
+                          e?.currentTarget?.value as Role,
+                        )}
+                    >
+                      <option value={ROLES.admin}>Admin</option>
+                      <option value={ROLES.manager}>Manager</option>
+                      <option value={ROLES.viewer}>Viewer</option>
+                    </select>
+                  {/if}
 
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onclick={() => removeMember(member.id || "")}
-                    disabled={removingMemberId === member.id}
-                  >
-                    {#if removingMemberId === member.id}
-                      <Loader2 class="h-4 w-4 animate-spin" />
-                    {:else}
-                      <Trash2 class="h-4 w-4 text-red-500" />
-                    {/if}
-                  </Button>
+                  {#if member.role !== ROLES.owner}
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onclick={() => removeMember(member.id || "")}
+                      disabled={removingMemberId === member.id}
+                    >
+                      {#if removingMemberId === member.id}
+                        <Loader2 class="h-4 w-4 animate-spin" />
+                      {:else}
+                        <Trash2 class="h-4 w-4 text-red-500" />
+                      {/if}
+                    </Button>
+                  {/if}
                 </div>
               </RoleGate>
             </div>

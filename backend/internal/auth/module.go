@@ -44,10 +44,14 @@ func (m *Module) RegisterRoutes(v1 *echo.Group) {
 	authProtected.POST("/email-change/confirm", authHandler.ConfirmEmailChange)
 	authProtected.POST("/send-verification", authHandler.SendEmailVerification)
 	
-	// Team member routes
+	// Team member routes (current user's team context)
+	team := v1.Group("/team")
+	team.Use(middlewareProvider.AuthMiddleware())
+	team.GET("/members", teamMemberHandler.ListMembers)
+	
+	// Team member routes (specific team ID) - kept for compatibility
 	teams := v1.Group("/teams")
 	teams.Use(middlewareProvider.AuthMiddleware())
-	teams.Use(middlewareProvider.TeamAwareMiddleware())
 	teams.GET("/:teamId/members", teamMemberHandler.ListMembers)
 	teams.POST("/:teamId/invitations", teamMemberHandler.InviteMember)
 	// Invitation management handled through other endpoints

@@ -10,6 +10,7 @@ import (
 	authModels "lecritique/internal/auth/models"
 	authServices "lecritique/internal/auth/services"
 	sharedErrors "lecritique/internal/shared/errors"
+	"lecritique/internal/shared/middleware"
 	sharedRepos "lecritique/internal/shared/repositories"
 	"lecritique/internal/shared/response"
 	"lecritique/internal/shared/validator"
@@ -70,7 +71,10 @@ func (h *SubscriptionHandler) GetAvailablePlans(c echo.Context) error {
 // @Router /api/v1/user/subscription [get]
 func (h *SubscriptionHandler) GetUserSubscription(c echo.Context) error {
 	ctx := c.Request().Context()
-	accountID := c.Get("account_id").(uuid.UUID)
+	accountID, err := middleware.GetAccountID(c)
+	if err != nil {
+		return response.Error(c, err)
+	}
 
 	log.Printf("GetUserSubscription called for account: %s", accountID)
 
@@ -130,7 +134,10 @@ func (h *SubscriptionHandler) GetUserSubscription(c echo.Context) error {
 // @Router /api/v1/user/can-create-restaurant [get]
 func (h *SubscriptionHandler) CanUserCreateRestaurant(c echo.Context) error {
 	ctx := c.Request().Context()
-	accountID := c.Get("account_id").(uuid.UUID)
+	accountID, err := middleware.GetAccountID(c)
+	if err != nil {
+		return response.Error(c, err)
+	}
 
 	// Check if this user is a team member of another account using service
 	teamMember, err := h.teamMemberService.GetMemberByMemberID(ctx, accountID)
@@ -169,7 +176,10 @@ func (h *SubscriptionHandler) CanUserCreateRestaurant(c echo.Context) error {
 // @Router /api/v1/user/subscription [post]
 func (h *SubscriptionHandler) CreateSubscription(c echo.Context) error {
 	ctx := c.Request().Context()
-	accountID := c.Get("account_id").(uuid.UUID)
+	accountID, err := middleware.GetAccountID(c)
+	if err != nil {
+		return response.Error(c, err)
+	}
 
 	var req CreateSubscriptionRequest
 	if err := c.Bind(&req); err != nil {
@@ -212,9 +222,12 @@ func (h *SubscriptionHandler) CreateSubscription(c echo.Context) error {
 // @Router /api/v1/user/subscription [delete]
 func (h *SubscriptionHandler) CancelSubscription(c echo.Context) error {
 	ctx := c.Request().Context()
-	accountID := c.Get("account_id").(uuid.UUID)
+	accountID, err := middleware.GetAccountID(c)
+	if err != nil {
+		return response.Error(c, err)
+	}
 
-	err := h.subscriptionService.CancelSubscription(ctx, accountID)
+	err = h.subscriptionService.CancelSubscription(ctx, accountID)
 	if err != nil {
 		return response.Error(c, err)
 	}

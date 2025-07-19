@@ -2,17 +2,19 @@ package services
 
 import (
 	"context"
-	"log"
-	"net/http"
-	"time"
-
-	"github.com/golang-jwt/jwt/v5"
-	"github.com/google/uuid"
 	"lecritique/internal/auth/models"
 	"lecritique/internal/auth/repositories"
 	"lecritique/internal/shared/config"
 	"lecritique/internal/shared/errors"
 	"lecritique/internal/shared/services"
+	"log"
+	"net/http"
+	"time"
+
+	subscriptionServices "lecritique/internal/subscription/services"
+
+	"github.com/golang-jwt/jwt/v5"
+	"github.com/google/uuid"
 	"github.com/samber/do"
 )
 
@@ -44,28 +46,44 @@ type AuthService interface {
 }
 
 type authService struct {
-	accountRepo  repositories.AccountRepository
-	tokenRepo    repositories.TokenRepository
-	emailService services.EmailService
-	teamService  TeamMemberServiceV2
-	config       *config.Config
+	accountRepo         repositories.AccountRepository
+	tokenRepo           repositories.TokenRepository
+	emailService        services.EmailService
+	teamService         TeamMemberServiceV2
+	subscriptionService subscriptionServices.SubscriptionService
+	config              *config.Config
+}
+
+type SubscriptionFeatures struct {
+	MaxRestaurants       int  `json:"max_restaurants"`
+	MaxQRCodes           int  `json:"max_qr_codes"`
+	MaxFeedbacksPerMonth int  `json:"max_feedbacks_per_month"`
+	MaxTeamMembers       int  `json:"max_team_members"`
+	HasBasicAnalytics    bool `json:"has_basic_analytics"`
+	HasAdvancedAnalytics bool `json:"has_advanced_analytics"`
+	HasFeedbackExplorer  bool `json:"has_feedback_explorer"`
+	HasCustomBranding    bool `json:"has_custom_branding"`
+	HasPrioritySupport   bool `json:"has_priority_support"`
 }
 
 type Claims struct {
-	AccountID uuid.UUID         `json:"account_id"`
-	MemberID  uuid.UUID         `json:"member_id"`
-	Email     string            `json:"email"`
-	Role      models.MemberRole `json:"role"`
+	AccountID            uuid.UUID             `json:"account_id"`
+	MemberID             uuid.UUID             `json:"member_id"`
+	Name                 string                `json:"name"`
+	Email                string                `json:"email"`
+	Role                 models.MemberRole     `json:"role"`
+	SubscriptionFeatures *SubscriptionFeatures `json:"subscription_features,omitempty"`
 	jwt.RegisteredClaims
 }
 
 func NewAuthService(i *do.Injector) (AuthService, error) {
 	return &authService{
-		accountRepo:  do.MustInvoke[repositories.AccountRepository](i),
-		tokenRepo:    do.MustInvoke[repositories.TokenRepository](i),
-		emailService: do.MustInvoke[services.EmailService](i),
-		teamService:  do.MustInvoke[TeamMemberServiceV2](i),
-		config:       do.MustInvoke[*config.Config](i),
+		accountRepo:         do.MustInvoke[repositories.AccountRepository](i),
+		tokenRepo:           do.MustInvoke[repositories.TokenRepository](i),
+		emailService:        do.MustInvoke[services.EmailService](i),
+		teamService:         do.MustInvoke[TeamMemberServiceV2](i),
+		subscriptionService: do.MustInvoke[subscriptionServices.SubscriptionService](i),
+		config:              do.MustInvoke[*config.Config](i),
 	}, nil
 }
 
@@ -143,13 +161,8 @@ func (s *authService) Login(ctx context.Context, email, password string) (string
 		}
 	}
 
-	teamMember, err := s.teamService.GetMemberByMemberID(ctx, account.ID)
-	if err != nil {
-		return "", nil, err
-	}
-
 	// Generate token
-	token, err := s.generateToken(account, teamMember)
+	token, err := s.generateToken(account)
 	if err != nil {
 		return "", nil, err
 	}
@@ -157,10 +170,11 @@ func (s *authService) Login(ctx context.Context, email, password string) (string
 	return token, account, nil
 }
 
-func (s *authService) generateToken(account *models.Account, teamMember *models.TeamMember) (string, error) {
+func (s *authService) generateToken(account *models.Account) (string, error) {
 	claims := &Claims{
 		AccountID: account.ID,
 		MemberID:  account.ID,
+		Name:      account.CompanyName,
 		Email:     account.Email,
 		Role:      models.RoleOwner,
 		RegisteredClaims: jwt.RegisteredClaims{
@@ -172,9 +186,34 @@ func (s *authService) generateToken(account *models.Account, teamMember *models.
 		},
 	}
 
+	teamMember, err := s.teamService.GetMemberByMemberID(context.Background(), account.ID)
+	if err != nil {
+		return "", err
+	}
+
 	if teamMember != nil {
 		claims.AccountID = teamMember.Account.ID
 		claims.Role = teamMember.Role
+	}
+
+	// Get subscription features
+	subscription, err := s.subscriptionService.GetUserSubscription(context.Background(), claims.AccountID)
+	if err != nil {
+		return "", err
+	}
+
+	if subscription != nil && subscription.IsActive() {
+		claims.SubscriptionFeatures = &SubscriptionFeatures{
+			MaxRestaurants:       subscription.Plan.MaxRestaurants,
+			MaxQRCodes:           subscription.Plan.MaxQRCodes,
+			MaxFeedbacksPerMonth: subscription.Plan.MaxFeedbacksPerMonth,
+			MaxTeamMembers:       subscription.Plan.MaxTeamMembers,
+			HasBasicAnalytics:    subscription.Plan.HasBasicAnalytics,
+			HasAdvancedAnalytics: subscription.Plan.HasAdvancedAnalytics,
+			HasFeedbackExplorer:  subscription.Plan.HasFeedbackExplorer,
+			HasCustomBranding:    subscription.Plan.HasCustomBranding,
+			HasPrioritySupport:   subscription.Plan.HasPrioritySupport,
+		}
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
@@ -203,19 +242,13 @@ func (s *authService) RefreshToken(ctx context.Context, oldToken string) (string
 	}
 
 	// Get account
-	account, err := s.accountRepo.FindByID(ctx, claims.AccountID)
-	if err != nil {
-		return "", err
-	}
-
-	// Get Team Mamber
-	teamMember, err := s.teamService.GetMemberByMemberID(ctx, claims.AccountID)
+	account, err := s.accountRepo.FindByID(ctx, claims.MemberID)
 	if err != nil {
 		return "", err
 	}
 
 	// Generate new token
-	return s.generateToken(account, teamMember)
+	return s.generateToken(account)
 }
 
 func (s *authService) SendEmailVerification(ctx context.Context, accountID uuid.UUID) error {
@@ -423,13 +456,8 @@ func (s *authService) RequestEmailChange(ctx context.Context, accountID uuid.UUI
 			return "", err
 		}
 
-		teamMember, err := s.teamService.GetMemberByMemberID(ctx, accountID)
-		if err != nil {
-			return "", err
-		}
-
 		// Generate new JWT token with updated email
-		newToken, err := s.generateToken(account, teamMember)
+		newToken, err := s.generateToken(account)
 		if err != nil {
 			return "", err
 		}
@@ -514,13 +542,8 @@ func (s *authService) ConfirmEmailChange(ctx context.Context, token string) (str
 		return "", err
 	}
 
-	teamMember, err := s.teamService.GetMemberByMemberID(ctx, changeToken.AccountID)
-	if err != nil {
-		return "", err
-	}
-
 	// Generate new JWT token with updated email
-	newToken, err := s.generateToken(account, teamMember)
+	newToken, err := s.generateToken(account)
 	if err != nil {
 		return "", err
 	}

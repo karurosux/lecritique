@@ -1,7 +1,6 @@
 package middleware
 
 import (
-	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"lecritique/internal/auth/models"
 	"lecritique/internal/auth/services"
@@ -14,8 +13,8 @@ func TeamAuthMiddleware(teamMemberService services.TeamMemberServiceV2) echo.Mid
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
 			// Get account ID from JWT middleware
-			accountID, ok := c.Get("account_id").(uuid.UUID)
-			if !ok {
+			accountID, err := GetAccountID(c)
+			if err != nil {
 				return next(c)
 			}
 

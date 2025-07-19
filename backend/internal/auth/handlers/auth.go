@@ -1,37 +1,33 @@
 package handlers
 
 import (
-	"log"
+	"lecritique/internal/auth/services"
+	"lecritique/internal/shared/config"
+	"lecritique/internal/shared/errors"
+	"lecritique/internal/shared/middleware"
+	"lecritique/internal/shared/response"
+	"lecritique/internal/shared/validator"
 	"net/http"
 	"time"
 
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
-	"lecritique/internal/auth/models"
-	"lecritique/internal/auth/services"
-	"lecritique/internal/shared/config"
-	"lecritique/internal/shared/errors"
-	"lecritique/internal/shared/response"
-	"lecritique/internal/shared/validator"
-	subscriptionServices "lecritique/internal/subscription/services"
 	"github.com/samber/do"
 )
 
 type AuthHandler struct {
-	authService         services.AuthService
-	teamMemberService   services.TeamMemberServiceV2
-	subscriptionService subscriptionServices.SubscriptionService
-	validator           *validator.Validator
-	config              *config.Config
+	authService       services.AuthService
+	teamMemberService services.TeamMemberServiceV2
+	validator         *validator.Validator
+	config            *config.Config
 }
 
 func NewAuthHandler(i *do.Injector) (*AuthHandler, error) {
 	return &AuthHandler{
-		authService:         do.MustInvoke[services.AuthService](i),
-		teamMemberService:   do.MustInvoke[services.TeamMemberServiceV2](i),
-		subscriptionService: do.MustInvoke[subscriptionServices.SubscriptionService](i),
-		validator:           validator.New(),
-		config:              do.MustInvoke[*config.Config](i),
+		authService:       do.MustInvoke[services.AuthService](i),
+		teamMemberService: do.MustInvoke[services.TeamMemberServiceV2](i),
+		validator:         validator.New(),
+		config:            do.MustInvoke[*config.Config](i),
 	}, nil
 }
 
@@ -54,11 +50,8 @@ type AuthResponse struct {
 	Account interface{} `json:"account"`
 }
 
-type EnhancedAuthResponse struct {
-	Token        string      `json:"token"`
-	Account      interface{} `json:"account"`
-	Subscription interface{} `json:"subscription"`
-	Role         string      `json:"role,omitempty"`
+type TokenResponse struct {
+	Token string `json:"token"`
 }
 
 // Register godoc
@@ -126,80 +119,15 @@ func (h *AuthHandler) Login(c echo.Context) error {
 		return response.Error(c, errors.NewWithDetails("VALIDATION_ERROR", "Validation failed", http.StatusBadRequest, h.validator.FormatErrors(err)))
 	}
 
-	token, account, err := h.authService.Login(ctx, req.Email, req.Password)
+	token, _, err := h.authService.Login(ctx, req.Email, req.Password)
 	if err != nil {
 		return response.Error(c, err)
 	}
 
-	// Fetch subscription data for the account using service
-	subscription, err := h.subscriptionService.GetUserSubscription(ctx, account.ID)
-	if err != nil {
-		// Log error but don't fail login - this ensures backward compatibility
-		log.Printf("Error fetching subscription for account %s: %v", account.ID, err)
-		subscription = nil
-	}
-
-	// Check if this user is a team member of another account using service
-	teamMember, err := h.teamMemberService.GetMemberByMemberID(ctx, account.ID)
-	var teamMemberships []models.TeamMember
-	if err == nil && teamMember != nil {
-		teamMemberships = []models.TeamMember{*teamMember}
-	}
-
-	log.Printf("Found %d team memberships for account %s", len(teamMemberships), account.ID)
-
-	// Filter out memberships where the user is a member of their own account
-	var externalMemberships []models.TeamMember
-	for _, tm := range teamMemberships {
-		if tm.AccountID != account.ID {
-			externalMemberships = append(externalMemberships, tm)
-		}
-	}
-
-	// If user is a team member of another organization, return their account but with the organization's subscription
-	if len(externalMemberships) > 0 {
-		// For now, use the first organization they're a member of
-		// In the future, we might want to let users choose which organization to access
-		orgAccountID := externalMemberships[0].AccountID
-
-		log.Printf("Team member %s is member of org %s", account.Email, orgAccountID)
-
-		// Get the organization's subscription using service
-		orgSubscription, err := h.subscriptionService.GetUserSubscription(ctx, orgAccountID)
-		if err != nil {
-			log.Printf("Error fetching org subscription: %v", err)
-			// Return without subscription if not found
-			return response.Success(c, EnhancedAuthResponse{
-				Token:   token,
-				Account: account,
-			})
-		}
-
-		log.Printf("Team member %s logged in, providing organization subscription from account %s: %+v", account.Email, orgAccountID, *orgSubscription)
-
-		// Get the user's role in the organization
-		userRole := string(externalMemberships[0].Role)
-
-		return response.Success(c, EnhancedAuthResponse{
-			Token:        token,
-			Account:      account,         // Keep the user's own account
-			Subscription: orgSubscription, // But use the organization's subscription
-			Role:         userRole,
-		})
-	}
-
-	// Get the user's role in their own account using service
-	var userRole string
-	selfTeamMember, err := h.teamMemberService.GetMemberByID(ctx, account.ID, account.ID)
-	if err == nil && selfTeamMember != nil {
-		userRole = string(selfTeamMember.Role)
-	}
-
-	return response.Success(c, EnhancedAuthResponse{
-		Token:        token,
-		Account:      account,
-		Subscription: subscription,
-		Role:         userRole,
+	// All necessary data (account info, role, subscription features) is now in the JWT token
+	// Frontend will decode the token to get this information
+	return response.Success(c, TokenResponse{
+		Token: token,
 	})
 }
 
@@ -233,7 +161,10 @@ type ResetPasswordRequest struct {
 // @Router /api/v1/auth/send-verification [post]
 func (h *AuthHandler) SendEmailVerification(c echo.Context) error {
 	ctx := c.Request().Context()
-	accountID := c.Get("account_id").(uuid.UUID)
+	accountID, err := middleware.GetAccountID(c)
+	if err != nil {
+		return response.Error(c, err)
+	}
 
 	if err := h.authService.SendEmailVerification(ctx, accountID); err != nil {
 		return response.Error(c, err)
@@ -425,7 +356,7 @@ func (h *AuthHandler) ChangeEmail(c echo.Context) error {
 	ctx := c.Request().Context()
 
 	// Get account ID from context (set by auth middleware)
-	accountID, ok := c.Get("account_id").(uuid.UUID)
+	accountID, ok := c.Get("member_id").(uuid.UUID)
 	if !ok {
 		return response.Error(c, errors.ErrUnauthorized)
 	}
@@ -510,9 +441,9 @@ func (h *AuthHandler) RequestDeactivation(c echo.Context) error {
 	ctx := c.Request().Context()
 
 	// Get account ID from context (set by auth middleware)
-	accountID, ok := c.Get("account_id").(uuid.UUID)
-	if !ok {
-		return response.Error(c, errors.ErrUnauthorized)
+	accountID, err := middleware.GetAccountID(c)
+	if err != nil {
+		return response.Error(c, err)
 	}
 
 	if err := h.authService.RequestDeactivation(ctx, accountID); err != nil {
@@ -543,9 +474,9 @@ func (h *AuthHandler) CancelDeactivation(c echo.Context) error {
 	ctx := c.Request().Context()
 
 	// Get account ID from context (set by auth middleware)
-	accountID, ok := c.Get("account_id").(uuid.UUID)
-	if !ok {
-		return response.Error(c, errors.ErrUnauthorized)
+	accountID, err := middleware.GetAccountID(c)
+	if err != nil {
+		return response.Error(c, err)
 	}
 
 	if err := h.authService.CancelDeactivation(ctx, accountID); err != nil {
@@ -581,9 +512,9 @@ func (h *AuthHandler) UpdateProfile(c echo.Context) error {
 	ctx := c.Request().Context()
 
 	// Get account ID from context (set by auth middleware)
-	accountID, ok := c.Get("account_id").(uuid.UUID)
-	if !ok {
-		return response.Error(c, errors.ErrUnauthorized)
+	accountID, err := middleware.GetAccountID(c)
+	if err != nil {
+		return response.Error(c, err)
 	}
 
 	var req UpdateProfileRequest

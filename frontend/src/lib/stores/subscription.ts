@@ -2,6 +2,8 @@ import { writable, derived } from 'svelte/store';
 import { browser } from '$app/environment';
 import { getApiClient } from '$lib/api/client';
 import type { ModelsSubscription, ModelsSubscriptionPlan } from '$lib/api/api';
+import { auth } from './auth';
+import { hasFeatureFromToken, getLimitFromToken } from '$lib/utils/jwt';
 
 
 interface SubscriptionState {
@@ -149,95 +151,50 @@ function createSubscriptionStore() {
 
 export const subscription = createSubscriptionStore();
 
-// Derived stores for easy access
+// Derived stores that use JWT subscription features instead of API calls
 export const currentPlan = derived(
-  subscription,
-  $subscription => $subscription.subscription?.plan || null
+  auth,
+  $auth => $auth.subscriptionFeatures || null
 );
 
 export const isSubscribed = derived(
-  subscription,
-  $subscription => {
-    // Check if status matches the actual string value from backend
-    // The backend sends "active" as a string, but TypeScript expects the enum
-    const status = $subscription.subscription?.status;
-
-    // Handle both enum constant and raw string value
-    return (status as string) === 'active' || status === 'SubscriptionActive';
+  auth,
+  $auth => {
+    // User has subscription if JWT contains subscription features
+    return $auth.subscriptionFeatures !== null;
   }
 );
 
 export const planLimits = derived(
-  subscription,
-  $subscription => ($subscription.subscription?.plan as any)?.features || null
+  auth,
+  $auth => $auth.subscriptionFeatures || null
 );
 
 
 // Helper to check if a feature flag is enabled
 export const hasFeature = derived(
-  subscription,
-  $subscription => (feature: string): boolean => {
-    const plan = $subscription.subscription?.plan;
-    if (!plan) return false;
-
-    switch (feature) {
-      case FEATURES.BASIC_ANALYTICS:
-        return plan.has_basic_analytics || false;
-      case FEATURES.ADVANCED_ANALYTICS:
-        return plan.has_advanced_analytics || false;
-      case FEATURES.FEEDBACK_EXPLORER:
-        return plan.has_feedback_explorer || false;
-      case FEATURES.CUSTOM_BRANDING:
-        return plan.has_custom_branding || false;
-      case FEATURES.PRIORITY_SUPPORT:
-        return plan.has_priority_support || false;
-      default:
-        return false;
-    }
+  auth,
+  $auth => (feature: string): boolean => {
+    if (!$auth.token) return false;
+    return hasFeatureFromToken($auth.token, feature);
   }
 );
 
 // Helper to get a limit value
 export const getLimit = derived(
-  subscription,
-  $subscription => (limit: string): number => {
-    const plan = $subscription.subscription?.plan;
-    if (!plan) return 0;
-
-    switch (limit) {
-      case LIMITS.RESTAURANTS:
-        return plan.max_restaurants || 0;
-      case LIMITS.QR_CODES:
-        return plan.max_qr_codes || 0;
-      case LIMITS.FEEDBACKS_PER_MONTH:
-        return plan.max_feedbacks_per_month || 0;
-      case LIMITS.TEAM_MEMBERS:
-        return plan.max_team_members || 0;
-      default:
-        return 0;
-    }
+  auth,
+  $auth => (limit: string): number => {
+    if (!$auth.token) return 0;
+    return getLimitFromToken($auth.token, limit);
   }
 );
 
 // Helper to check if limit is unlimited (-1)
 export const isUnlimited = derived(
-  subscription,
-  $subscription => (limit: string): boolean => {
-    const plan = $subscription.subscription?.plan;
-    if (!plan) return false;
-
-    switch (limit) {
-      case LIMITS.RESTAURANTS:
-        return plan.max_restaurants === -1;
-      case LIMITS.QR_CODES:
-        return plan.max_qr_codes === -1;
-      case LIMITS.FEEDBACKS_PER_MONTH:
-        return plan.max_feedbacks_per_month === -1;
-      case LIMITS.TEAM_MEMBERS:
-        return plan.max_team_members === -1;
-      default:
-        return false;
-    }
+  auth,
+  $auth => (limit: string): boolean => {
+    if (!$auth.token) return false;
+    return getLimitFromToken($auth.token, limit) === -1;
   }
 );
 

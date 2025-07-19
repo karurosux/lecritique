@@ -13,8 +13,7 @@
 	let loading = $state(false);
 	
 	// Form fields
-	let companyName = $state('');
-	let phone = $state('');
+	let name = $state('');
 	
 	// Subscribe to auth store
 	let user = $derived($auth.user);
@@ -22,15 +21,13 @@
 	// Initialize form values when user data is available
 	$effect(() => {
 		if (user) {
-			companyName = user.company_name || '';
-			phone = user.phone || '';
+			name = user.name || '';
 		}
 	});
 	
 	// Check if form has changes
 	let hasChanges = $derived(user && (
-		companyName !== (user.company_name || '') ||
-		phone !== (user.phone || '')
+		name !== (user.name || '')
 	));
 	
 	async function handleSubmit(event: Event) {
@@ -43,16 +40,14 @@
 			const api = auth.getApi();
 			
 			const response = await api.api.v1AuthProfileUpdate({
-				company_name: companyName,
-				phone: phone
+				name: name
 			});
 			
 			if (response.data.success && response.data.data) {
 				// Update local auth state with the updated account data
 				auth.updateUser({
 					...user,
-					company_name: response.data.data.company_name || companyName,
-					phone: response.data.data.phone || phone
+					name: response.data.data.name || name
 				});
 				
 				onSuccess?.('Profile updated successfully');
@@ -69,8 +64,7 @@
 	
 	function handleReset() {
 		if (user) {
-			companyName = user.company_name || '';
-			phone = user.phone || '';
+			name = user.name || '';
 		}
 	}
 </script>
@@ -83,29 +77,15 @@
 	
 	<div class="space-y-8">
 		<form onsubmit={handleSubmit} class="space-y-6">
-			<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-				<!-- Company Information -->
-				<div class="space-y-2">
-					<label for="company-name" class="block text-sm font-medium text-gray-700">Company Name</label>
-					<Input
-						id="company-name"
-						type="text"
-						bind:value={companyName}
-						placeholder="Enter company name"
-						disabled={loading}
-					/>
-				</div>
-				
-				<div class="space-y-2">
-					<label for="phone" class="block text-sm font-medium text-gray-700">Phone Number</label>
-					<Input
-						id="phone"
-						type="tel"
-						bind:value={phone}
-						placeholder="Enter phone number"
-						disabled={loading}
-					/>
-				</div>
+			<div class="space-y-2">
+				<label for="name" class="block text-sm font-medium text-gray-700">Name</label>
+				<Input
+					id="name"
+					type="text"
+					bind:value={name}
+					placeholder="Enter name"
+					disabled={loading}
+				/>
 			</div>
 			
 			<!-- Email (Read-only with note) -->

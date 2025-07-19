@@ -7,7 +7,7 @@
   let email = $state('');
   let password = $state('');
   let confirmPassword = $state('');
-  let companyName = $state('');
+  let name = $state('');
   let isSubmitting = $state(false);
   let formErrors = $state<Record<string, string>>({});
 
@@ -41,8 +41,8 @@
       formErrors.confirmPassword = 'Passwords do not match';
     }
     
-    if (!companyName) {
-      formErrors.companyName = 'Company name is required';
+    if (!name) {
+      formErrors.name = 'Company name is required';
     }
     
     return Object.keys(formErrors).length === 0;
@@ -59,7 +59,7 @@
     const result = await auth.register({
       email,
       password,
-      company_name: companyName
+      name: name
     });
     
     if (result.success) {
@@ -111,14 +111,14 @@
     <Card>
       <form on:submit|preventDefault={handleSubmit} class="space-y-6">
         <Input
-          id="companyName"
+          id="name"
           type="text"
           label="Company Name"
-          bind:value={companyName}
+          bind:value={name}
           required
           placeholder="Enter your restaurant/company name"
           disabled={isSubmitting}
-          error={formErrors.companyName}
+          error={formErrors.name}
           on:keydown={handleKeyDown}
         />
 
@@ -186,7 +186,7 @@
           type="submit"
           variant="gradient"
           size="lg"
-          disabled={isSubmitting || !email || !password || !confirmPassword || !companyName}
+          disabled={isSubmitting || !email || !password || !confirmPassword || !name}
           class="w-full shadow-lg hover:shadow-xl transition-all duration-300"
         >
           {#if isSubmitting}

@@ -57,9 +57,9 @@ type AcceptInviteRequest struct {
 // @Security BearerAuth
 func (h *TeamMemberHandler) ListMembers(c echo.Context) error {
 	ctx := c.Request().Context()
-	accountID := middleware.GetResourceAccountID(c)
-	if accountID == uuid.Nil {
-		return response.Error(c, errors.ErrUnauthorized)
+	accountID, err := middleware.GetAccountID(c)
+	if err != nil {
+		return response.Error(c, err)
 	}
 
 	members, err := h.teamMemberService.ListMembers(ctx, accountID)
@@ -87,9 +87,9 @@ func (h *TeamMemberHandler) ListMembers(c echo.Context) error {
 // @Security BearerAuth
 func (h *TeamMemberHandler) InviteMember(c echo.Context) error {
 	ctx := c.Request().Context()
-	accountID, ok := c.Get("account_id").(uuid.UUID)
-	if !ok {
-		return response.Error(c, errors.ErrUnauthorized)
+	accountID, err := middleware.GetAccountID(c)
+	if err != nil {
+		return response.Error(c, err)
 	}
 
 	// Get current user ID (inviter)
@@ -144,9 +144,9 @@ func (h *TeamMemberHandler) InviteMember(c echo.Context) error {
 // @Security BearerAuth
 func (h *TeamMemberHandler) UpdateRole(c echo.Context) error {
 	ctx := c.Request().Context()
-	accountID, ok := c.Get("account_id").(uuid.UUID)
-	if !ok {
-		return response.Error(c, errors.ErrUnauthorized)
+	accountID, err := middleware.GetAccountID(c)
+	if err != nil {
+		return response.Error(c, err)
 	}
 
 	// Check user role - only owners and admins can update roles
@@ -195,9 +195,9 @@ func (h *TeamMemberHandler) UpdateRole(c echo.Context) error {
 // @Security BearerAuth
 func (h *TeamMemberHandler) RemoveMember(c echo.Context) error {
 	ctx := c.Request().Context()
-	accountID, ok := c.Get("account_id").(uuid.UUID)
-	if !ok {
-		return response.Error(c, errors.ErrUnauthorized)
+	accountID, err := middleware.GetAccountID(c)
+	if err != nil {
+		return response.Error(c, err)
 	}
 
 	// Check user role - only owners and admins can remove members
@@ -236,9 +236,9 @@ func (h *TeamMemberHandler) RemoveMember(c echo.Context) error {
 // @Security BearerAuth
 func (h *TeamMemberHandler) ResendInvitation(c echo.Context) error {
 	ctx := c.Request().Context()
-	accountID, ok := c.Get("account_id").(uuid.UUID)
-	if !ok {
-		return response.Error(c, errors.ErrUnauthorized)
+	accountID, err := middleware.GetAccountID(c)
+	if err != nil {
+		return response.Error(c, err)
 	}
 
 	// Check user role - only owners and admins can resend invitations

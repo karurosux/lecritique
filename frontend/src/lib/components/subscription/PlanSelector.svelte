@@ -95,7 +95,7 @@
 				class="relative p-6 overflow-visible h-full flex flex-col {isCurrent ? 'ring-2 ring-blue-500 ring-offset-2' : ''}"
 			>
 				{#if plan.code === 'professional'}
-					<div class="absolute -top-3 right-4 z-10">
+					<div class="absolute -top-4 right-4 z-10">
 						<span class="bg-gradient-to-r from-blue-600 to-purple-600 text-white text-xs font-semibold px-3 py-1 rounded-full whitespace-nowrap">
 							Most Popular
 						</span>

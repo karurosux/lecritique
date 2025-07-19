@@ -24,10 +24,13 @@
   async function loadData() {
     isLoading = true;
     try {
-      // Only fetch plans since subscription is already loaded from login
-      await subscription.fetchPlans();
+      // Fetch both subscription and plans data
+      await Promise.all([
+        subscription.fetchSubscription(),
+        subscription.fetchPlans()
+      ]);
     } catch (error) {
-      onError?.('Failed to load plans data');
+      onError?.('Failed to load subscription data');
     } finally {
       isLoading = false;
     }
@@ -84,9 +87,19 @@
   let limits = $derived($planLimits);
   let plans = $derived(subscriptionData.plans || []);
   
+  // Use subscription data from API instead of JWT for plan details
+  let currentSubscription = $derived(subscriptionData.subscription);
+  let actualCurrentPlan = $derived(
+    currentSubscription && plans.length > 0 
+      ? plans.find(p => p.id === currentSubscription.plan_id)
+      : null
+  );
+  
   // Check if current plan is custom (not in visible plans list)
   let isCustomPlan = $derived(
-    current && plans.length > 0 && !plans.find(p => p.id === current.id)
+    currentSubscription && 
+    plans.length > 0 && 
+    !plans.find(p => p.id === currentSubscription.plan_id)
   );
 </script>
 
@@ -129,7 +142,7 @@
           <div>
             <h3 class="text-sm font-medium text-blue-100">Current Plan</h3>
             <div class="flex items-center gap-2 mt-1">
-              <p class="text-2xl font-bold">{current?.name || 'Unknown'}</p>
+              <p class="text-2xl font-bold">{actualCurrentPlan?.name || currentSubscription?.plan_name || 'Unknown'}</p>
               {#if isCustomPlan}
                 <span class="bg-amber-400 text-amber-900 text-xs font-semibold px-2 py-1 rounded-full">
                   CUSTOM
@@ -137,7 +150,7 @@
               {/if}
             </div>
             <p class="mt-2 text-sm text-blue-100">
-              {formatPrice(current?.price || 0)}/{current?.interval || 'month'}
+              {formatPrice(actualCurrentPlan?.price || 0)}/{actualCurrentPlan?.interval || 'month'}
             </p>
           </div>
           <div class="text-right">
@@ -188,7 +201,7 @@
         
         <PlanSelector
           {plans}
-          currentPlanId={current?.id}
+          currentPlanId={currentSubscription?.plan_id}
           isLoading={isCreatingSession}
           onSelectPlan={handleUpgrade}
           actionLabel={(plan) => `Upgrade to ${plan.name}`}

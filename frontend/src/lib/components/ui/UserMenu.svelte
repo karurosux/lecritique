@@ -88,7 +88,7 @@
       <!-- User Info -->
       <div class="hidden sm:block text-left">
         <p class="text-sm font-semibold text-gray-900 truncate max-w-32">
-          {user.company_name || "User"}
+          {user.name || "User"}
         </p>
         <p class="text-xs text-gray-600 truncate max-w-32">
           {user.email}
@@ -131,7 +131,7 @@
             </div>
             <div class="flex-1 min-w-0">
               <p class="text-sm font-semibold text-gray-900 truncate">
-                {user.company_name || "User"}
+                {user.name || "User"}
               </p>
               <p class="text-xs text-gray-600 truncate">
                 {user.email}
@@ -226,4 +226,3 @@
     {/if}
   </div>
 {/if}
-
