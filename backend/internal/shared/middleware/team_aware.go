@@ -6,7 +6,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	authModels "lecritique/internal/auth/models"
-	"gorm.io/gorm"
+	"lecritique/internal/auth/services"
 )
 
 // TeamAware middleware checks if the user is a team member and sets the appropriate account IDs in context
@@ -14,7 +14,7 @@ import (
 // - resource_account_id: The account ID to use for accessing resources (org ID for team members)
 // - personal_account_id: The user's personal account ID (always their own)
 // - is_team_member: Boolean indicating if accessing as a team member
-func TeamAware(db *gorm.DB) echo.MiddlewareFunc {
+func TeamAware(teamMemberService services.TeamMemberServiceV2) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
 			ctx := c.Request().Context()
@@ -24,19 +24,15 @@ func TeamAware(db *gorm.DB) echo.MiddlewareFunc {
 			c.Set("personal_account_id", accountID)
 
 			// Check if this user is a team member of another organization
-			var teamMemberships []authModels.TeamMember
-			db.WithContext(ctx).
-				Where("member_id = ? AND account_id != ? AND accepted_at IS NOT NULL", accountID, accountID).
-				Find(&teamMemberships)
-
-			if len(teamMemberships) > 0 {
+			teamMember, err := teamMemberService.GetMemberByMemberID(ctx, accountID)
+			if err == nil && teamMember != nil {
 				// Use the organization's account ID for resources
-				orgAccountID := teamMemberships[0].AccountID
+				orgAccountID := teamMember.AccountID
 				log.Printf("TeamAware: Account %s is a team member of org %s", accountID, orgAccountID)
 				c.Set("resource_account_id", orgAccountID)
 				c.Set("is_team_member", true)
-				c.Set("team_role", teamMemberships[0].Role)
-				c.Set("user_role", teamMemberships[0].Role)
+				c.Set("team_role", teamMember.Role)
+				c.Set("user_role", teamMember.Role)
 			} else {
 				// Use their own account ID for resources
 				c.Set("resource_account_id", accountID)

@@ -8,26 +8,26 @@ import (
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	authModels "lecritique/internal/auth/models"
+	authServices "lecritique/internal/auth/services"
 	sharedErrors "lecritique/internal/shared/errors"
 	sharedRepos "lecritique/internal/shared/repositories"
 	"lecritique/internal/shared/response"
 	"lecritique/internal/shared/validator"
 	"lecritique/internal/subscription/services"
 	"github.com/samber/do"
-	"gorm.io/gorm"
 )
 
 type SubscriptionHandler struct {
 	subscriptionService services.SubscriptionService
-	validator          *validator.Validator
-	db                 *gorm.DB
+	teamMemberService   authServices.TeamMemberServiceV2
+	validator           *validator.Validator
 }
 
 func NewSubscriptionHandler(i *do.Injector) (*SubscriptionHandler, error) {
 	return &SubscriptionHandler{
 		subscriptionService: do.MustInvoke[services.SubscriptionService](i),
-		validator:          validator.New(),
-		db:                 do.MustInvoke[*gorm.DB](i),
+		teamMemberService:   do.MustInvoke[authServices.TeamMemberServiceV2](i),
+		validator:           validator.New(),
 	}, nil
 }
 
@@ -74,21 +74,11 @@ func (h *SubscriptionHandler) GetUserSubscription(c echo.Context) error {
 
 	log.Printf("GetUserSubscription called for account: %s", accountID)
 
-	// Check if this user is a team member of another account
-	var teamMemberships []authModels.TeamMember
-	h.db.WithContext(ctx).
-		Preload("Account").
-		Where("member_id = ? AND accepted_at IS NOT NULL", accountID).
-		Find(&teamMemberships)
-	
-	log.Printf("Found %d team memberships for account %s", len(teamMemberships), accountID)
-	
-	// Filter out memberships where the user is a member of their own account
+	// Check if this user is a team member of another account using service
+	teamMember, err := h.teamMemberService.GetMemberByMemberID(ctx, accountID)
 	var externalMemberships []authModels.TeamMember
-	for _, tm := range teamMemberships {
-		if tm.AccountID != accountID {
-			externalMemberships = append(externalMemberships, tm)
-		}
+	if err == nil && teamMember != nil && teamMember.AccountID != accountID {
+		externalMemberships = []authModels.TeamMember{*teamMember}
 	}
 	
 	log.Printf("Found %d external team memberships for account %s", len(externalMemberships), accountID)
@@ -142,16 +132,12 @@ func (h *SubscriptionHandler) CanUserCreateRestaurant(c echo.Context) error {
 	ctx := c.Request().Context()
 	accountID := c.Get("account_id").(uuid.UUID)
 
-	// Check if this user is a team member of another account
-	var teamMemberships []authModels.TeamMember
-	h.db.WithContext(ctx).
-		Preload("Account").
-		Where("member_id = ? AND accepted_at IS NOT NULL", accountID).
-		Find(&teamMemberships)
+	// Check if this user is a team member of another account using service
+	teamMember, err := h.teamMemberService.GetMemberByMemberID(ctx, accountID)
 	
 	// If user is a team member, use the organization's account ID
-	if len(teamMemberships) > 0 {
-		orgAccountID := teamMemberships[0].AccountID
+	if err == nil && teamMember != nil && teamMember.AccountID != accountID {
+		orgAccountID := teamMember.AccountID
 		permission, err := h.subscriptionService.CanUserCreateRestaurant(ctx, orgAccountID)
 		if err != nil {
 			return response.Error(c, err)

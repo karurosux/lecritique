@@ -13,26 +13,25 @@ import (
 	"lecritique/internal/shared/errors"
 	"lecritique/internal/shared/response"
 	"lecritique/internal/shared/validator"
-	subscriptionModels "lecritique/internal/subscription/models"
+	subscriptionServices "lecritique/internal/subscription/services"
 	"github.com/samber/do"
-	"gorm.io/gorm"
 )
 
 type AuthHandler struct {
-	authService       services.AuthService
-	teamMemberService services.TeamMemberServiceV2
-	validator         *validator.Validator
-	config            *config.Config
-	db                *gorm.DB
+	authService         services.AuthService
+	teamMemberService   services.TeamMemberServiceV2
+	subscriptionService subscriptionServices.SubscriptionService
+	validator           *validator.Validator
+	config              *config.Config
 }
 
 func NewAuthHandler(i *do.Injector) (*AuthHandler, error) {
 	return &AuthHandler{
-		authService:       do.MustInvoke[services.AuthService](i),
-		teamMemberService: do.MustInvoke[services.TeamMemberServiceV2](i),
-		validator:         validator.New(),
-		config:            do.MustInvoke[*config.Config](i),
-		db:                do.MustInvoke[*gorm.DB](i),
+		authService:         do.MustInvoke[services.AuthService](i),
+		teamMemberService:   do.MustInvoke[services.TeamMemberServiceV2](i),
+		subscriptionService: do.MustInvoke[subscriptionServices.SubscriptionService](i),
+		validator:           validator.New(),
+		config:              do.MustInvoke[*config.Config](i),
 	}, nil
 }
 
@@ -132,26 +131,20 @@ func (h *AuthHandler) Login(c echo.Context) error {
 		return response.Error(c, err)
 	}
 
-	// TODO: Fetching in contorller? WTF.
-	// Fetch subscription data for the account
-	var subscription *subscriptionModels.Subscription
-	err = h.db.WithContext(ctx).
-		Preload("Plan").
-		Where("account_id = ?", account.ID).
-		First(&subscription).Error
-
-	if err != nil && err != gorm.ErrRecordNotFound {
-		// Log error but don't fail login
-		// This ensures backward compatibility
+	// Fetch subscription data for the account using service
+	subscription, err := h.subscriptionService.GetUserSubscription(ctx, account.ID)
+	if err != nil {
+		// Log error but don't fail login - this ensures backward compatibility
+		log.Printf("Error fetching subscription for account %s: %v", account.ID, err)
 		subscription = nil
 	}
 
-	// Check if this user is a team member of another account
+	// Check if this user is a team member of another account using service
+	teamMember, err := h.teamMemberService.GetMemberByMemberID(ctx, account.ID)
 	var teamMemberships []models.TeamMember
-	h.db.WithContext(ctx).
-		Preload("Account").
-		Where("member_id = ? AND accepted_at IS NOT NULL", account.ID).
-		Find(&teamMemberships)
+	if err == nil && teamMember != nil {
+		teamMemberships = []models.TeamMember{*teamMember}
+	}
 
 	log.Printf("Found %d team memberships for account %s", len(teamMemberships), account.ID)
 
@@ -171,12 +164,8 @@ func (h *AuthHandler) Login(c echo.Context) error {
 
 		log.Printf("Team member %s is member of org %s", account.Email, orgAccountID)
 
-		// Get the organization's subscription
-		var orgSubscription subscriptionModels.Subscription
-		err := h.db.WithContext(ctx).
-			Preload("Plan").
-			Where("account_id = ?", orgAccountID).
-			First(&orgSubscription).Error
+		// Get the organization's subscription using service
+		orgSubscription, err := h.subscriptionService.GetUserSubscription(ctx, orgAccountID)
 		if err != nil {
 			log.Printf("Error fetching org subscription: %v", err)
 			// Return without subscription if not found
@@ -186,28 +175,24 @@ func (h *AuthHandler) Login(c echo.Context) error {
 			})
 		}
 
-		log.Printf("Team member %s logged in, providing organization subscription from account %s: %+v", account.Email, orgAccountID, orgSubscription)
+		log.Printf("Team member %s logged in, providing organization subscription from account %s: %+v", account.Email, orgAccountID, *orgSubscription)
 
 		// Get the user's role in the organization
 		userRole := string(externalMemberships[0].Role)
 
 		return response.Success(c, EnhancedAuthResponse{
 			Token:        token,
-			Account:      account,          // Keep the user's own account
-			Subscription: &orgSubscription, // But use the organization's subscription
+			Account:      account,         // Keep the user's own account
+			Subscription: orgSubscription, // But use the organization's subscription
 			Role:         userRole,
 		})
 	}
 
-	// Get the user's role in their own account from team_members
+	// Get the user's role in their own account using service
 	var userRole string
-	var teamMember models.TeamMember
-	err = h.db.WithContext(ctx).
-		Where("account_id = ? AND member_id = ?", account.ID, account.ID).
-		First(&teamMember).Error
-
-	if err == nil {
-		userRole = string(teamMember.Role)
+	selfTeamMember, err := h.teamMemberService.GetMemberByID(ctx, account.ID, account.ID)
+	if err == nil && selfTeamMember != nil {
+		userRole = string(selfTeamMember.Role)
 	}
 
 	return response.Success(c, EnhancedAuthResponse{
