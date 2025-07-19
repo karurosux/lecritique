@@ -8,10 +8,11 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/lecritique/api/internal/qrcode/models"
-	qrcodeRepos "github.com/lecritique/api/internal/qrcode/repositories"
-	restaurantRepos "github.com/lecritique/api/internal/restaurant/repositories"
-	sharedRepos "github.com/lecritique/api/internal/shared/repositories"
+	"lecritique/internal/qrcode/models"
+	qrcodeRepos "lecritique/internal/qrcode/repositories"
+	restaurantRepos "lecritique/internal/restaurant/repositories"
+	sharedRepos "lecritique/internal/shared/repositories"
+	"github.com/samber/do"
 )
 
 type UpdateQRCodeRequest struct {
@@ -34,11 +35,11 @@ type qrCodeService struct {
 	restaurantRepo restaurantRepos.RestaurantRepository
 }
 
-func NewQRCodeService(qrCodeRepo qrcodeRepos.QRCodeRepository, restaurantRepo restaurantRepos.RestaurantRepository) QRCodeService {
+func NewQRCodeService(i *do.Injector) (QRCodeService, error) {
 	return &qrCodeService{
-		qrCodeRepo:     qrCodeRepo,
-		restaurantRepo: restaurantRepo,
-	}
+		qrCodeRepo:     do.MustInvoke[qrcodeRepos.QRCodeRepository](i),
+		restaurantRepo: do.MustInvoke[restaurantRepos.RestaurantRepository](i),
+	}, nil
 }
 
 func (s *qrCodeService) Generate(ctx context.Context, accountID uuid.UUID, restaurantID uuid.UUID, qrType models.QRCodeType, label string, location *string) (*models.QRCode, error) {

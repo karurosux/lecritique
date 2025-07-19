@@ -6,8 +6,9 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/lecritique/api/internal/subscription/models"
-	subscriptionRepos "github.com/lecritique/api/internal/subscription/repositories"
+	"lecritique/internal/subscription/models"
+	subscriptionRepos "lecritique/internal/subscription/repositories"
+	"github.com/samber/do"
 )
 
 type UsageService interface {
@@ -30,14 +31,11 @@ type usageService struct {
 	subscriptionRepo subscriptionRepos.SubscriptionRepository
 }
 
-func NewUsageService(
-	usageRepo subscriptionRepos.UsageRepository,
-	subscriptionRepo subscriptionRepos.SubscriptionRepository,
-) UsageService {
+func NewUsageService(i *do.Injector) (UsageService, error) {
 	return &usageService{
-		usageRepo:        usageRepo,
-		subscriptionRepo: subscriptionRepo,
-	}
+		usageRepo:        do.MustInvoke[subscriptionRepos.UsageRepository](i),
+		subscriptionRepo: do.MustInvoke[subscriptionRepos.SubscriptionRepository](i),
+	}, nil
 }
 
 func (s *usageService) TrackUsage(ctx context.Context, subscriptionID uuid.UUID, resourceType string, delta int) error {

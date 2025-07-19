@@ -8,11 +8,12 @@ import (
 
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
-	"github.com/lecritique/api/internal/auth/models"
-	"github.com/lecritique/api/internal/auth/repositories"
-	"github.com/lecritique/api/internal/shared/config"
-	"github.com/lecritique/api/internal/shared/errors"
-	"github.com/lecritique/api/internal/shared/services"
+	"lecritique/internal/auth/models"
+	"lecritique/internal/auth/repositories"
+	"lecritique/internal/shared/config"
+	"lecritique/internal/shared/errors"
+	"lecritique/internal/shared/services"
+	"github.com/samber/do"
 )
 
 type RegisterData struct {
@@ -58,14 +59,14 @@ type Claims struct {
 	jwt.RegisteredClaims
 }
 
-func NewAuthService(accountRepo repositories.AccountRepository, tokenRepo repositories.TokenRepository, emailService services.EmailService, teamService TeamMemberServiceV2, config *config.Config) AuthService {
+func NewAuthService(i *do.Injector) (AuthService, error) {
 	return &authService{
-		accountRepo:  accountRepo,
-		tokenRepo:    tokenRepo,
-		emailService: emailService,
-		teamService:  teamService,
-		config:       config,
-	}
+		accountRepo:  do.MustInvoke[repositories.AccountRepository](i),
+		tokenRepo:    do.MustInvoke[repositories.TokenRepository](i),
+		emailService: do.MustInvoke[services.EmailService](i),
+		teamService:  do.MustInvoke[TeamMemberServiceV2](i),
+		config:       do.MustInvoke[*config.Config](i),
+	}, nil
 }
 
 func (s *authService) Register(ctx context.Context, data RegisterData) (*models.Account, error) {

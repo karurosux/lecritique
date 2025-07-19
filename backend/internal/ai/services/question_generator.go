@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/lecritique/api/internal/feedback/models"
-	menuModels "github.com/lecritique/api/internal/menu/models"
-	"github.com/lecritique/api/internal/shared/config"
+	"lecritique/internal/feedback/models"
+	menuModels "lecritique/internal/menu/models"
+	"lecritique/internal/shared/config"
 )
 
 type QuestionGenerator struct {

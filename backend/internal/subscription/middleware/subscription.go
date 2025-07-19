@@ -3,10 +3,10 @@ package middleware
 import (
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
-	"github.com/lecritique/api/internal/shared/errors"
-	"github.com/lecritique/api/internal/shared/response"
-	"github.com/lecritique/api/internal/subscription/models"
-	"github.com/lecritique/api/internal/subscription/services"
+	"lecritique/internal/shared/errors"
+	"lecritique/internal/shared/response"
+	"lecritique/internal/subscription/models"
+	"lecritique/internal/subscription/services"
 )
 
 type SubscriptionMiddleware struct {

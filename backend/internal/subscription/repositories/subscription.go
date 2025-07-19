@@ -5,8 +5,9 @@ import (
 	"errors"
 
 	"github.com/google/uuid"
-	"github.com/lecritique/api/internal/subscription/models"
-	sharedRepos "github.com/lecritique/api/internal/shared/repositories"
+	"lecritique/internal/subscription/models"
+	sharedRepos "lecritique/internal/shared/repositories"
+	"github.com/samber/do"
 	"gorm.io/gorm"
 )
 
@@ -23,10 +24,11 @@ type subscriptionRepository struct {
 	*sharedRepos.BaseRepository[models.Subscription]
 }
 
-func NewSubscriptionRepository(db *gorm.DB) SubscriptionRepository {
+func NewSubscriptionRepository(i *do.Injector) (SubscriptionRepository, error) {
+	db := do.MustInvoke[*gorm.DB](i)
 	return &subscriptionRepository{
 		BaseRepository: sharedRepos.NewBaseRepository[models.Subscription](db),
-	}
+	}, nil
 }
 
 func (r *subscriptionRepository) FindByAccountID(ctx context.Context, accountID uuid.UUID) (*models.Subscription, error) {
@@ -64,10 +66,11 @@ type subscriptionPlanRepository struct {
 	*sharedRepos.BaseRepository[models.SubscriptionPlan]
 }
 
-func NewSubscriptionPlanRepository(db *gorm.DB) SubscriptionPlanRepository {
+func NewSubscriptionPlanRepository(i *do.Injector) (SubscriptionPlanRepository, error) {
+	db := do.MustInvoke[*gorm.DB](i)
 	return &subscriptionPlanRepository{
 		BaseRepository: sharedRepos.NewBaseRepository[models.SubscriptionPlan](db),
-	}
+	}, nil
 }
 
 func (r *subscriptionPlanRepository) FindAll(ctx context.Context) ([]models.SubscriptionPlan, error) {

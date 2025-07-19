@@ -4,11 +4,12 @@ import (
 	"context"
 
 	"github.com/google/uuid"
-	"github.com/lecritique/api/internal/restaurant/models"
-	restaurantRepos "github.com/lecritique/api/internal/restaurant/repositories"
-	"github.com/lecritique/api/internal/shared/errors"
-	sharedRepos "github.com/lecritique/api/internal/shared/repositories"
-	subscriptionRepos "github.com/lecritique/api/internal/subscription/repositories"
+	"lecritique/internal/restaurant/models"
+	restaurantRepos "lecritique/internal/restaurant/repositories"
+	"lecritique/internal/shared/errors"
+	sharedRepos "lecritique/internal/shared/repositories"
+	subscriptionRepos "lecritique/internal/subscription/repositories"
+	"github.com/samber/do"
 )
 
 type RestaurantService interface {
@@ -24,11 +25,11 @@ type restaurantService struct {
 	subscriptionRepo subscriptionRepos.SubscriptionRepository
 }
 
-func NewRestaurantService(restaurantRepo restaurantRepos.RestaurantRepository, subscriptionRepo subscriptionRepos.SubscriptionRepository) RestaurantService {
+func NewRestaurantService(i *do.Injector) (RestaurantService, error) {
 	return &restaurantService{
-		restaurantRepo:   restaurantRepo,
-		subscriptionRepo: subscriptionRepo,
-	}
+		restaurantRepo:   do.MustInvoke[restaurantRepos.RestaurantRepository](i),
+		subscriptionRepo: do.MustInvoke[subscriptionRepos.SubscriptionRepository](i),
+	}, nil
 }
 
 func (s *restaurantService) Create(ctx context.Context, accountID uuid.UUID, restaurant *models.Restaurant) error {

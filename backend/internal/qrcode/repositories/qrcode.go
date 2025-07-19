@@ -6,8 +6,9 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/lecritique/api/internal/qrcode/models"
-	sharedRepos "github.com/lecritique/api/internal/shared/repositories"
+	"lecritique/internal/qrcode/models"
+	sharedRepos "lecritique/internal/shared/repositories"
+	"github.com/samber/do"
 	"gorm.io/gorm"
 )
 
@@ -25,10 +26,11 @@ type qrCodeRepository struct {
 	*sharedRepos.BaseRepository[models.QRCode]
 }
 
-func NewQRCodeRepository(db *gorm.DB) QRCodeRepository {
+func NewQRCodeRepository(i *do.Injector) (QRCodeRepository, error) {
+	db := do.MustInvoke[*gorm.DB](i)
 	return &qrCodeRepository{
 		BaseRepository: sharedRepos.NewBaseRepository[models.QRCode](db),
-	}
+	}, nil
 }
 
 func (r *qrCodeRepository) FindByCode(ctx context.Context, code string) (*models.QRCode, error) {

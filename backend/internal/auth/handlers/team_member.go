@@ -6,13 +6,14 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
-	"github.com/lecritique/api/internal/auth/models"
-	"github.com/lecritique/api/internal/auth/services"
-	"github.com/lecritique/api/internal/shared/errors"
-	"github.com/lecritique/api/internal/shared/logger"
-	"github.com/lecritique/api/internal/shared/middleware"
-	"github.com/lecritique/api/internal/shared/response"
-	"github.com/lecritique/api/internal/shared/validator"
+	"lecritique/internal/auth/models"
+	"lecritique/internal/auth/services"
+	"lecritique/internal/shared/errors"
+	"lecritique/internal/shared/logger"
+	"lecritique/internal/shared/middleware"
+	"lecritique/internal/shared/response"
+	"lecritique/internal/shared/validator"
+	"github.com/samber/do"
 	"github.com/sirupsen/logrus"
 )
 
@@ -22,12 +23,12 @@ type TeamMemberHandler struct {
 	validator         *validator.Validator
 }
 
-func NewTeamMemberHandler(teamMemberService services.TeamMemberServiceV2, authService services.AuthService) *TeamMemberHandler {
+func NewTeamMemberHandler(i *do.Injector) (*TeamMemberHandler, error) {
 	return &TeamMemberHandler{
-		teamMemberService: teamMemberService,
-		authService:       authService,
+		teamMemberService: do.MustInvoke[services.TeamMemberServiceV2](i),
+		authService:       do.MustInvoke[services.AuthService](i),
 		validator:         validator.New(),
-	}
+	}, nil
 }
 
 type InviteMemberRequest struct {

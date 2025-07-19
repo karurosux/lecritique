@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/labstack/echo/v4"
-	"github.com/lecritique/api/internal/shared/errors"
+	"lecritique/internal/shared/errors"
 )
 
 type Response struct {

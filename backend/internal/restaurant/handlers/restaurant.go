@@ -5,12 +5,13 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
-	"github.com/lecritique/api/internal/restaurant/models"
-	"github.com/lecritique/api/internal/restaurant/services"
-	"github.com/lecritique/api/internal/shared/errors"
-	"github.com/lecritique/api/internal/shared/middleware"
-	"github.com/lecritique/api/internal/shared/response"
-	"github.com/lecritique/api/internal/shared/validator"
+	"lecritique/internal/restaurant/models"
+	"lecritique/internal/restaurant/services"
+	"lecritique/internal/shared/errors"
+	"lecritique/internal/shared/middleware"
+	"lecritique/internal/shared/response"
+	"lecritique/internal/shared/validator"
+	"github.com/samber/do"
 )
 
 type RestaurantHandler struct {
@@ -18,11 +19,11 @@ type RestaurantHandler struct {
 	validator         *validator.Validator
 }
 
-func NewRestaurantHandler(restaurantService services.RestaurantService) *RestaurantHandler {
+func NewRestaurantHandler(i *do.Injector) (*RestaurantHandler, error) {
 	return &RestaurantHandler{
-		restaurantService: restaurantService,
+		restaurantService: do.MustInvoke[services.RestaurantService](i),
 		validator:         validator.New(),
-	}
+	}, nil
 }
 
 type CreateRestaurantRequest struct {

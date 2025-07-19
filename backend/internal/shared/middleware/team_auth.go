@@ -3,14 +3,13 @@ package middleware
 import (
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
-	"github.com/lecritique/api/internal/auth/models"
-	"github.com/lecritique/api/internal/auth/repositories"
+	"lecritique/internal/auth/models"
 	"gorm.io/gorm"
 )
 
 // TeamAuthMiddleware adds team member information to the request context
+// Note: This should be called through MiddlewareProvider which provides proper DI
 func TeamAuthMiddleware(db *gorm.DB) echo.MiddlewareFunc {
-	teamMemberRepo := repositories.NewTeamMemberRepository(db)
 	
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
@@ -24,7 +23,10 @@ func TeamAuthMiddleware(db *gorm.DB) echo.MiddlewareFunc {
 			// In a real multi-user system, we'd need to track which user is logged in separately
 			
 			// Get team members for this account
-			members, err := teamMemberRepo.FindByAccountID(c.Request().Context(), accountID)
+			var members []models.TeamMember
+			err := db.WithContext(c.Request().Context()).
+				Where("account_id = ?", accountID).
+				Find(&members).Error
 			if err != nil {
 				// Continue without team info
 				return next(c)

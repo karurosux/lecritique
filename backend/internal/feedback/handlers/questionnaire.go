@@ -5,10 +5,11 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
-	"github.com/lecritique/api/internal/feedback/models"
-	"github.com/lecritique/api/internal/feedback/services"
-	menuServices "github.com/lecritique/api/internal/menu/services"
-	"github.com/lecritique/api/internal/shared/middleware"
+	"lecritique/internal/feedback/models"
+	"lecritique/internal/feedback/services"
+	menuServices "lecritique/internal/menu/services"
+	"lecritique/internal/shared/middleware"
+	"github.com/samber/do"
 )
 
 type QuestionnaireHandler struct {
@@ -16,11 +17,11 @@ type QuestionnaireHandler struct {
 	dishService         menuServices.DishService
 }
 
-func NewQuestionnaireHandler(questionnaireService *services.QuestionnaireService, dishService menuServices.DishService) *QuestionnaireHandler {
+func NewQuestionnaireHandler(i *do.Injector) (*QuestionnaireHandler, error) {
 	return &QuestionnaireHandler{
-		questionnaireService: questionnaireService,
-		dishService:         dishService,
-	}
+		questionnaireService: do.MustInvoke[*services.QuestionnaireService](i),
+		dishService:         do.MustInvoke[menuServices.DishService](i),
+	}, nil
 }
 
 // CreateQuestionnaire creates a new questionnaire

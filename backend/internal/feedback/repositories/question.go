@@ -4,7 +4,8 @@ import (
 	"context"
 
 	"github.com/google/uuid"
-	"github.com/lecritique/api/internal/feedback/models"
+	"lecritique/internal/feedback/models"
+	"github.com/samber/do"
 	"gorm.io/gorm"
 )
 
@@ -23,8 +24,9 @@ type questionRepository struct {
 	db *gorm.DB
 }
 
-func NewQuestionRepository(db *gorm.DB) QuestionRepository {
-	return &questionRepository{db: db}
+func NewQuestionRepository(i *do.Injector) (QuestionRepository, error) {
+	db := do.MustInvoke[*gorm.DB](i)
+	return &questionRepository{db: db}, nil
 }
 
 func (r *questionRepository) CreateQuestion(ctx context.Context, question *models.Question) error {

@@ -6,13 +6,14 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
-	analyticsServices "github.com/lecritique/api/internal/analytics/services"
-	feedbackRepos "github.com/lecritique/api/internal/feedback/repositories"
-	menuRepos "github.com/lecritique/api/internal/menu/repositories"
-	restaurantRepos "github.com/lecritique/api/internal/restaurant/repositories"
-	"github.com/lecritique/api/internal/shared/logger"
-	"github.com/lecritique/api/internal/shared/middleware"
-	"github.com/lecritique/api/internal/shared/models"
+	analyticsServices "lecritique/internal/analytics/services"
+	feedbackRepos "lecritique/internal/feedback/repositories"
+	menuRepos "lecritique/internal/menu/repositories"
+	restaurantRepos "lecritique/internal/restaurant/repositories"
+	"lecritique/internal/shared/logger"
+	"lecritique/internal/shared/middleware"
+	"lecritique/internal/shared/models"
+	"github.com/samber/do"
 	"github.com/sirupsen/logrus"
 )
 
@@ -23,18 +24,13 @@ type AnalyticsHandler struct {
 	analyticsService analyticsServices.AnalyticsService
 }
 
-func NewAnalyticsHandler(
-	feedbackRepo feedbackRepos.FeedbackRepository,
-	dishRepo menuRepos.DishRepository,
-	restaurantRepo restaurantRepos.RestaurantRepository,
-	analyticsService analyticsServices.AnalyticsService,
-) *AnalyticsHandler {
+func NewAnalyticsHandler(i *do.Injector) (*AnalyticsHandler, error) {
 	return &AnalyticsHandler{
-		feedbackRepo:     feedbackRepo,
-		dishRepo:         dishRepo,
-		restaurantRepo:   restaurantRepo,
-		analyticsService: analyticsService,
-	}
+		feedbackRepo:     do.MustInvoke[feedbackRepos.FeedbackRepository](i),
+		dishRepo:         do.MustInvoke[menuRepos.DishRepository](i),
+		restaurantRepo:   do.MustInvoke[restaurantRepos.RestaurantRepository](i),
+		analyticsService: do.MustInvoke[analyticsServices.AnalyticsService](i),
+	}, nil
 }
 
 type DishAnalytics struct {

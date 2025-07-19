@@ -4,8 +4,8 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	authModels "github.com/lecritique/api/internal/auth/models"
-	sharedModels "github.com/lecritique/api/internal/shared/models"
+	authModels "lecritique/internal/auth/models"
+	sharedModels "lecritique/internal/shared/models"
 )
 
 type Subscription struct {

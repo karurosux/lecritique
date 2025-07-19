@@ -4,8 +4,9 @@ import (
 	"context"
 
 	"github.com/google/uuid"
-	"github.com/lecritique/api/internal/auth/models"
-	"github.com/lecritique/api/internal/shared/repositories"
+	"lecritique/internal/auth/models"
+	"lecritique/internal/shared/repositories"
+	"github.com/samber/do"
 	"gorm.io/gorm"
 )
 
@@ -25,10 +26,11 @@ type teamInvitationRepository struct {
 	*repositories.BaseRepository[models.TeamInvitation]
 }
 
-func NewTeamInvitationRepository(db *gorm.DB) TeamInvitationRepository {
+func NewTeamInvitationRepository(i *do.Injector) (TeamInvitationRepository, error) {
+	db := do.MustInvoke[*gorm.DB](i)
 	return &teamInvitationRepository{
 		BaseRepository: repositories.NewBaseRepository[models.TeamInvitation](db),
-	}
+	}, nil
 }
 
 func (r *teamInvitationRepository) Create(ctx context.Context, invitation *models.TeamInvitation) error {

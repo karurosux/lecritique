@@ -4,8 +4,8 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	restaurantModels "github.com/lecritique/api/internal/restaurant/models"
-	sharedModels "github.com/lecritique/api/internal/shared/models"
+	restaurantModels "lecritique/internal/restaurant/models"
+	sharedModels "lecritique/internal/shared/models"
 )
 
 type QRCode struct {

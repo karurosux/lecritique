@@ -8,14 +8,15 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	analyticsModels "github.com/lecritique/api/internal/analytics/models"
-	feedbackModels "github.com/lecritique/api/internal/feedback/models"
-	feedbackRepos "github.com/lecritique/api/internal/feedback/repositories"
-	menuRepos "github.com/lecritique/api/internal/menu/repositories"
-	qrcodeRepos "github.com/lecritique/api/internal/qrcode/repositories"
-	restaurantRepos "github.com/lecritique/api/internal/restaurant/repositories"
-	"github.com/lecritique/api/internal/shared/logger"
-	sharedModels "github.com/lecritique/api/internal/shared/models"
+	analyticsModels "lecritique/internal/analytics/models"
+	feedbackModels "lecritique/internal/feedback/models"
+	feedbackRepos "lecritique/internal/feedback/repositories"
+	menuRepos "lecritique/internal/menu/repositories"
+	qrcodeRepos "lecritique/internal/qrcode/repositories"
+	restaurantRepos "lecritique/internal/restaurant/repositories"
+	"lecritique/internal/shared/logger"
+	sharedModels "lecritique/internal/shared/models"
+	"github.com/samber/do"
 	"github.com/sirupsen/logrus"
 )
 
@@ -36,18 +37,13 @@ type analyticsService struct {
 	restaurantRepo restaurantRepos.RestaurantRepository
 }
 
-func NewAnalyticsService(
-	feedbackRepo feedbackRepos.FeedbackRepository,
-	dishRepo menuRepos.DishRepository,
-	qrCodeRepo qrcodeRepos.QRCodeRepository,
-	restaurantRepo restaurantRepos.RestaurantRepository,
-) AnalyticsService {
+func NewAnalyticsService(i *do.Injector) (AnalyticsService, error) {
 	return &analyticsService{
-		feedbackRepo:   feedbackRepo,
-		dishRepo:       dishRepo,
-		qrCodeRepo:     qrCodeRepo,
-		restaurantRepo: restaurantRepo,
-	}
+		feedbackRepo:   do.MustInvoke[feedbackRepos.FeedbackRepository](i),
+		dishRepo:       do.MustInvoke[menuRepos.DishRepository](i),
+		qrCodeRepo:     do.MustInvoke[qrcodeRepos.QRCodeRepository](i),
+		restaurantRepo: do.MustInvoke[restaurantRepos.RestaurantRepository](i),
+	}, nil
 }
 
 func (s *analyticsService) GetDashboardMetrics(ctx context.Context, restaurantID uuid.UUID) (*analyticsModels.DashboardMetrics, error) {

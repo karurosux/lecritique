@@ -5,8 +5,8 @@ import (
 	"time"
 
 	"github.com/labstack/echo/v4"
-	"github.com/lecritique/api/internal/shared/errors"
-	"github.com/lecritique/api/internal/shared/response"
+	"lecritique/internal/shared/errors"
+	"lecritique/internal/shared/response"
 )
 
 type RateLimiter struct {

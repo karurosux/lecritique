@@ -3,9 +3,9 @@ package models
 import (
 	"github.com/google/uuid"
 	"github.com/lib/pq"
-	menuModels "github.com/lecritique/api/internal/menu/models"
-	restaurantModels "github.com/lecritique/api/internal/restaurant/models"
-	sharedModels "github.com/lecritique/api/internal/shared/models"
+	menuModels "lecritique/internal/menu/models"
+	restaurantModels "lecritique/internal/restaurant/models"
+	sharedModels "lecritique/internal/shared/models"
 )
 
 type Questionnaire struct {

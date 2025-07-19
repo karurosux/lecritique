@@ -7,10 +7,11 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/lecritique/api/internal/auth/models"
-	"github.com/lecritique/api/internal/auth/repositories"
-	"github.com/lecritique/api/internal/shared/errors"
-	"github.com/lecritique/api/internal/shared/services"
+	"lecritique/internal/auth/models"
+	"lecritique/internal/auth/repositories"
+	"lecritique/internal/shared/errors"
+	"lecritique/internal/shared/services"
+	"github.com/samber/do"
 )
 
 type TeamMemberServiceV2 interface {
@@ -41,18 +42,13 @@ type teamMemberServiceV2 struct {
 	emailService   services.EmailService
 }
 
-func NewTeamMemberServiceV2(
-	teamMemberRepo repositories.TeamMemberRepository,
-	invitationRepo repositories.TeamInvitationRepository,
-	accountRepo repositories.AccountRepository,
-	emailService services.EmailService,
-) TeamMemberServiceV2 {
+func NewTeamMemberServiceV2(i *do.Injector) (TeamMemberServiceV2, error) {
 	return &teamMemberServiceV2{
-		teamMemberRepo: teamMemberRepo,
-		invitationRepo: invitationRepo,
-		accountRepo:    accountRepo,
-		emailService:   emailService,
-	}
+		teamMemberRepo: do.MustInvoke[repositories.TeamMemberRepository](i),
+		invitationRepo: do.MustInvoke[repositories.TeamInvitationRepository](i),
+		accountRepo:    do.MustInvoke[repositories.AccountRepository](i),
+		emailService:   do.MustInvoke[services.EmailService](i),
+	}, nil
 }
 
 func (s *teamMemberServiceV2) GetMemberByMemberID(ctx context.Context, memberId uuid.UUID) (*models.TeamMember, error) {

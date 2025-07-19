@@ -6,12 +6,13 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/lecritique/api/internal/feedback/models"
-	feedbackRepos "github.com/lecritique/api/internal/feedback/repositories"
-	qrcodeRepos "github.com/lecritique/api/internal/qrcode/repositories"
-	restaurantRepos "github.com/lecritique/api/internal/restaurant/repositories"
-	sharedModels "github.com/lecritique/api/internal/shared/models"
-	sharedRepos "github.com/lecritique/api/internal/shared/repositories"
+	"lecritique/internal/feedback/models"
+	feedbackRepos "lecritique/internal/feedback/repositories"
+	qrcodeRepos "lecritique/internal/qrcode/repositories"
+	restaurantRepos "lecritique/internal/restaurant/repositories"
+	sharedModels "lecritique/internal/shared/models"
+	sharedRepos "lecritique/internal/shared/repositories"
+	"github.com/samber/do"
 )
 
 type FeedbackService interface {
@@ -34,12 +35,12 @@ type FeedbackStats struct {
 	FeedbacksThisWeek int64   `json:"feedbacks_this_week"`
 }
 
-func NewFeedbackService(feedbackRepo feedbackRepos.FeedbackRepository, restaurantRepo restaurantRepos.RestaurantRepository, qrCodeRepo qrcodeRepos.QRCodeRepository) FeedbackService {
+func NewFeedbackService(i *do.Injector) (FeedbackService, error) {
 	return &feedbackService{
-		feedbackRepo:   feedbackRepo,
-		restaurantRepo: restaurantRepo,
-		qrCodeRepo:     qrCodeRepo,
-	}
+		feedbackRepo:   do.MustInvoke[feedbackRepos.FeedbackRepository](i),
+		restaurantRepo: do.MustInvoke[restaurantRepos.RestaurantRepository](i),
+		qrCodeRepo:     do.MustInvoke[qrcodeRepos.QRCodeRepository](i),
+	}, nil
 }
 
 func (s *feedbackService) Submit(ctx context.Context, feedback *models.Feedback) error {

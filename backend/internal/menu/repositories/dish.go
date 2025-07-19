@@ -3,8 +3,9 @@ package repositories
 import (
 	"context"
 	"github.com/google/uuid"
-	"github.com/lecritique/api/internal/menu/models"
-	"github.com/lecritique/api/internal/shared/repositories"
+	"lecritique/internal/menu/models"
+	"lecritique/internal/shared/repositories"
+	"github.com/samber/do"
 	"gorm.io/gorm"
 )
 
@@ -22,10 +23,11 @@ type dishRepository struct {
 	*repositories.BaseRepository[models.Dish]
 }
 
-func NewDishRepository(db *gorm.DB) DishRepository {
+func NewDishRepository(i *do.Injector) (DishRepository, error) {
+	db := do.MustInvoke[*gorm.DB](i)
 	return &dishRepository{
 		BaseRepository: repositories.NewBaseRepository[models.Dish](db),
-	}
+	}, nil
 }
 
 func (r *dishRepository) FindByRestaurantID(ctx context.Context, restaurantID uuid.UUID) ([]models.Dish, error) {

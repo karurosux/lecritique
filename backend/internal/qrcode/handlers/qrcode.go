@@ -5,11 +5,12 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
-	"github.com/lecritique/api/internal/qrcode/models"
-	"github.com/lecritique/api/internal/qrcode/services"
-	"github.com/lecritique/api/internal/shared/logger"
-	"github.com/lecritique/api/internal/shared/middleware"
-	"github.com/lecritique/api/internal/shared/validator"
+	"lecritique/internal/qrcode/models"
+	"lecritique/internal/qrcode/services"
+	"lecritique/internal/shared/logger"
+	"lecritique/internal/shared/middleware"
+	"lecritique/internal/shared/validator"
+	"github.com/samber/do"
 	"github.com/sirupsen/logrus"
 )
 
@@ -18,11 +19,11 @@ type QRCodeHandler struct {
 	validator     *validator.Validator
 }
 
-func NewQRCodeHandler(qrCodeService services.QRCodeService) *QRCodeHandler {
+func NewQRCodeHandler(i *do.Injector) (*QRCodeHandler, error) {
 	return &QRCodeHandler{
-		qrCodeService: qrCodeService,
+		qrCodeService: do.MustInvoke[services.QRCodeService](i),
 		validator:     validator.New(),
-	}
+	}, nil
 }
 
 type GenerateQRCodeRequest struct {

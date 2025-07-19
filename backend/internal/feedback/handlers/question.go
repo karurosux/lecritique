@@ -5,17 +5,20 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
-	"github.com/lecritique/api/internal/feedback/models"
-	"github.com/lecritique/api/internal/feedback/services"
-	"github.com/lecritique/api/internal/shared/middleware"
+	"lecritique/internal/feedback/models"
+	"lecritique/internal/feedback/services"
+	"lecritique/internal/shared/middleware"
+	"github.com/samber/do"
 )
 
 type QuestionHandler struct {
 	questionService services.QuestionService
 }
 
-func NewQuestionHandler(questionService services.QuestionService) *QuestionHandler {
-	return &QuestionHandler{questionService: questionService}
+func NewQuestionHandler(i *do.Injector) (*QuestionHandler, error) {
+	return &QuestionHandler{
+		questionService: do.MustInvoke[services.QuestionService](i),
+	}, nil
 }
 
 // CreateQuestion creates a new question for a dish

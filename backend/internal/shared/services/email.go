@@ -8,7 +8,8 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/lecritique/api/internal/shared/config"
+	"lecritique/internal/shared/config"
+	"github.com/samber/do"
 )
 
 type EmailService interface {
@@ -25,8 +26,10 @@ type emailService struct {
 	config *config.Config
 }
 
-func NewEmailService(config *config.Config) EmailService {
-	return &emailService{config: config}
+func NewEmailService(i *do.Injector) (EmailService, error) {
+	return &emailService{
+		config: do.MustInvoke[*config.Config](i),
+	}, nil
 }
 
 func (s *emailService) SendVerificationEmail(ctx context.Context, email, token string) error {

@@ -7,10 +7,11 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
-	"github.com/lecritique/api/internal/feedback/models"
-	"github.com/lecritique/api/internal/feedback/repositories"
-	menuRepos "github.com/lecritique/api/internal/menu/repositories"
-	restaurantRepos "github.com/lecritique/api/internal/restaurant/repositories"
+	"lecritique/internal/feedback/models"
+	"lecritique/internal/feedback/repositories"
+	menuRepos "lecritique/internal/menu/repositories"
+	restaurantRepos "lecritique/internal/restaurant/repositories"
+	"github.com/samber/do"
 )
 
 type QuestionService interface {
@@ -29,12 +30,12 @@ type questionService struct {
 	restaurantRepo restaurantRepos.RestaurantRepository
 }
 
-func NewQuestionService(questionRepo repositories.QuestionRepository, dishRepo menuRepos.DishRepository, restaurantRepo restaurantRepos.RestaurantRepository) QuestionService {
+func NewQuestionService(i *do.Injector) (QuestionService, error) {
 	return &questionService{
-		questionRepo:   questionRepo,
-		dishRepo:       dishRepo,
-		restaurantRepo: restaurantRepo,
-	}
+		questionRepo:   do.MustInvoke[repositories.QuestionRepository](i),
+		dishRepo:       do.MustInvoke[menuRepos.DishRepository](i),
+		restaurantRepo: do.MustInvoke[restaurantRepos.RestaurantRepository](i),
+	}, nil
 }
 
 func (s *questionService) CreateQuestion(ctx context.Context, accountID, dishID uuid.UUID, request *models.CreateQuestionRequest) (*models.Question, error) {

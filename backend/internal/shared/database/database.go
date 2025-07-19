@@ -6,7 +6,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/lecritique/api/internal/shared/config"
+	"lecritique/internal/shared/config"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"

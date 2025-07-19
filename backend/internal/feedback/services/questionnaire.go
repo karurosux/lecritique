@@ -5,12 +5,12 @@ import (
 	"fmt"
 
 	"github.com/google/uuid"
-	aiServices "github.com/lecritique/api/internal/ai/services"
-	"github.com/lecritique/api/internal/feedback/models"
-	"github.com/lecritique/api/internal/feedback/repositories"
-	menuModels "github.com/lecritique/api/internal/menu/models"
-	"github.com/lecritique/api/internal/shared/config"
-	"gorm.io/gorm"
+	aiServices "lecritique/internal/ai/services"
+	"lecritique/internal/feedback/models"
+	"lecritique/internal/feedback/repositories"
+	menuModels "lecritique/internal/menu/models"
+	"lecritique/internal/shared/config"
+	"github.com/samber/do"
 )
 
 type QuestionnaireService struct {
@@ -18,7 +18,10 @@ type QuestionnaireService struct {
 	questionGenerator *aiServices.QuestionGenerator
 }
 
-func NewQuestionnaireService(db *gorm.DB, cfg *config.Config) (*QuestionnaireService, error) {
+func NewQuestionnaireService(i *do.Injector) (*QuestionnaireService, error) {
+	cfg := do.MustInvoke[*config.Config](i)
+	repo := do.MustInvoke[repositories.QuestionnaireRepository](i)
+	
 	generator, err := aiServices.NewQuestionGenerator(cfg)
 	if err != nil {
 		// AI is optional, so we continue without it
@@ -26,7 +29,7 @@ func NewQuestionnaireService(db *gorm.DB, cfg *config.Config) (*QuestionnaireSer
 	}
 
 	return &QuestionnaireService{
-		repo:              repositories.NewQuestionnaireRepository(db),
+		repo:              repo,
 		questionGenerator: generator,
 	}, nil
 }

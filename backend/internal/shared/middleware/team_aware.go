@@ -5,7 +5,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
-	authModels "github.com/lecritique/api/internal/auth/models"
+	authModels "lecritique/internal/auth/models"
 	"gorm.io/gorm"
 )
 

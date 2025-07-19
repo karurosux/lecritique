@@ -7,9 +7,10 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/lecritique/api/internal/feedback/models"
-	sharedModels "github.com/lecritique/api/internal/shared/models"
-	sharedRepos "github.com/lecritique/api/internal/shared/repositories"
+	"lecritique/internal/feedback/models"
+	sharedModels "lecritique/internal/shared/models"
+	sharedRepos "lecritique/internal/shared/repositories"
+	"github.com/samber/do"
 	"gorm.io/gorm"
 )
 
@@ -44,10 +45,11 @@ type feedbackRepository struct {
 	*sharedRepos.BaseRepository[models.Feedback]
 }
 
-func NewFeedbackRepository(db *gorm.DB) FeedbackRepository {
+func NewFeedbackRepository(i *do.Injector) (FeedbackRepository, error) {
+	db := do.MustInvoke[*gorm.DB](i)
 	return &feedbackRepository{
 		BaseRepository: sharedRepos.NewBaseRepository[models.Feedback](db),
-	}
+	}, nil
 }
 
 func (r *feedbackRepository) FindByRestaurantID(ctx context.Context, restaurantID uuid.UUID, req sharedModels.PageRequest) (*sharedModels.PageResponse[models.Feedback], error) {

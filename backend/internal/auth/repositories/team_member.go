@@ -4,8 +4,9 @@ import (
 	"context"
 
 	"github.com/google/uuid"
-	"github.com/lecritique/api/internal/auth/models"
-	"github.com/lecritique/api/internal/shared/repositories"
+	"lecritique/internal/auth/models"
+	"lecritique/internal/shared/repositories"
+	"github.com/samber/do"
 	"gorm.io/gorm"
 )
 
@@ -25,10 +26,11 @@ type teamMemberRepository struct {
 	*repositories.BaseRepository[models.TeamMember]
 }
 
-func NewTeamMemberRepository(db *gorm.DB) TeamMemberRepository {
+func NewTeamMemberRepository(i *do.Injector) (TeamMemberRepository, error) {
+	db := do.MustInvoke[*gorm.DB](i)
 	return &teamMemberRepository{
 		BaseRepository: repositories.NewBaseRepository[models.TeamMember](db),
-	}
+	}, nil
 }
 
 func (r *teamMemberRepository) FindByAccountID(ctx context.Context, accountID uuid.UUID) ([]models.TeamMember, error) {

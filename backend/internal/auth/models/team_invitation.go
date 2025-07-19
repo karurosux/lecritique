@@ -4,7 +4,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/lecritique/api/internal/shared/models"
+	"lecritique/internal/shared/models"
 )
 
 type TeamInvitation struct {

@@ -6,9 +6,10 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/lecritique/api/internal/restaurant/repositories"
-	"github.com/lecritique/api/internal/subscription/models"
-	subscriptionRepos "github.com/lecritique/api/internal/subscription/repositories"
+	"lecritique/internal/restaurant/repositories"
+	"lecritique/internal/subscription/models"
+	subscriptionRepos "lecritique/internal/subscription/repositories"
+	"github.com/samber/do"
 )
 
 type SubscriptionService interface {
@@ -27,16 +28,12 @@ type subscriptionService struct {
 	restaurantRepo      repositories.RestaurantRepository
 }
 
-func NewSubscriptionService(
-	subscriptionRepo subscriptionRepos.SubscriptionRepository,
-	planRepo subscriptionRepos.SubscriptionPlanRepository,
-	restaurantRepo repositories.RestaurantRepository,
-) SubscriptionService {
+func NewSubscriptionService(i *do.Injector) (SubscriptionService, error) {
 	return &subscriptionService{
-		subscriptionRepo: subscriptionRepo,
-		planRepo:        planRepo,
-		restaurantRepo:  restaurantRepo,
-	}
+		subscriptionRepo: do.MustInvoke[subscriptionRepos.SubscriptionRepository](i),
+		planRepo:        do.MustInvoke[subscriptionRepos.SubscriptionPlanRepository](i),
+		restaurantRepo:  do.MustInvoke[repositories.RestaurantRepository](i),
+	}, nil
 }
 
 type PermissionResponse struct {

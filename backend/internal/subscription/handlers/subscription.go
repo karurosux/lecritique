@@ -7,12 +7,13 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
-	authModels "github.com/lecritique/api/internal/auth/models"
-	sharedErrors "github.com/lecritique/api/internal/shared/errors"
-	sharedRepos "github.com/lecritique/api/internal/shared/repositories"
-	"github.com/lecritique/api/internal/shared/response"
-	"github.com/lecritique/api/internal/shared/validator"
-	"github.com/lecritique/api/internal/subscription/services"
+	authModels "lecritique/internal/auth/models"
+	sharedErrors "lecritique/internal/shared/errors"
+	sharedRepos "lecritique/internal/shared/repositories"
+	"lecritique/internal/shared/response"
+	"lecritique/internal/shared/validator"
+	"lecritique/internal/subscription/services"
+	"github.com/samber/do"
 	"gorm.io/gorm"
 )
 
@@ -22,12 +23,12 @@ type SubscriptionHandler struct {
 	db                 *gorm.DB
 }
 
-func NewSubscriptionHandler(subscriptionService services.SubscriptionService, db *gorm.DB) *SubscriptionHandler {
+func NewSubscriptionHandler(i *do.Injector) (*SubscriptionHandler, error) {
 	return &SubscriptionHandler{
-		subscriptionService: subscriptionService,
+		subscriptionService: do.MustInvoke[services.SubscriptionService](i),
 		validator:          validator.New(),
-		db:                 db,
-	}
+		db:                 do.MustInvoke[*gorm.DB](i),
+	}, nil
 }
 
 type CreateSubscriptionRequest struct {

@@ -7,10 +7,10 @@ import (
 	"os/signal"
 	"time"
 
-	_ "github.com/lecritique/api/docs"
-	"github.com/lecritique/api/internal/shared/config"
-	"github.com/lecritique/api/internal/shared/database"
-	"github.com/lecritique/api/internal/shared/server"
+	_ "lecritique/docs"
+	"lecritique/internal/shared/config"
+	"lecritique/internal/shared/database"
+	"lecritique/internal/shared/server"
 )
 
 // @title LeCritique API
@@ -41,8 +41,8 @@ func main() {
 		log.Fatalf("Failed to initialize database: %v", err)
 	}
 
-	// Initialize server
-	srv := server.New(cfg, db)
+	// Initialize server with dependency injection
+	srv := server.NewWithDI(cfg, db)
 
 	// Start server
 	go func() {

@@ -7,13 +7,14 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
-	"github.com/lecritique/api/internal/auth/models"
-	"github.com/lecritique/api/internal/auth/services"
-	"github.com/lecritique/api/internal/shared/config"
-	"github.com/lecritique/api/internal/shared/errors"
-	"github.com/lecritique/api/internal/shared/response"
-	"github.com/lecritique/api/internal/shared/validator"
-	subscriptionModels "github.com/lecritique/api/internal/subscription/models"
+	"lecritique/internal/auth/models"
+	"lecritique/internal/auth/services"
+	"lecritique/internal/shared/config"
+	"lecritique/internal/shared/errors"
+	"lecritique/internal/shared/response"
+	"lecritique/internal/shared/validator"
+	subscriptionModels "lecritique/internal/subscription/models"
+	"github.com/samber/do"
 	"gorm.io/gorm"
 )
 
@@ -25,14 +26,14 @@ type AuthHandler struct {
 	db                *gorm.DB
 }
 
-func NewAuthHandler(authService services.AuthService, teamMemberService services.TeamMemberServiceV2, config *config.Config, db *gorm.DB) *AuthHandler {
+func NewAuthHandler(i *do.Injector) (*AuthHandler, error) {
 	return &AuthHandler{
-		authService:       authService,
-		teamMemberService: teamMemberService,
+		authService:       do.MustInvoke[services.AuthService](i),
+		teamMemberService: do.MustInvoke[services.TeamMemberServiceV2](i),
 		validator:         validator.New(),
-		config:            config,
-		db:                db,
-	}
+		config:            do.MustInvoke[*config.Config](i),
+		db:                do.MustInvoke[*gorm.DB](i),
+	}, nil
 }
 
 type RegisterRequest struct {

@@ -5,8 +5,8 @@ import (
 	"log"
 	"os"
 
-	"github.com/lecritique/api/internal/shared/config"
-	"github.com/lecritique/api/internal/shared/database"
+	"lecritique/internal/shared/config"
+	"lecritique/internal/shared/database"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 )

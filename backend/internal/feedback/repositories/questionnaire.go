@@ -3,8 +3,9 @@ package repositories
 import (
 	"context"
 	"github.com/google/uuid"
-	"github.com/lecritique/api/internal/feedback/models"
-	sharedRepos "github.com/lecritique/api/internal/shared/repositories"
+	"lecritique/internal/feedback/models"
+	sharedRepos "lecritique/internal/shared/repositories"
+	"github.com/samber/do"
 	"gorm.io/gorm"
 )
 
@@ -31,10 +32,11 @@ type questionnaireRepository struct {
 	*sharedRepos.BaseRepository[models.Questionnaire]
 }
 
-func NewQuestionnaireRepository(db *gorm.DB) QuestionnaireRepository {
+func NewQuestionnaireRepository(i *do.Injector) (QuestionnaireRepository, error) {
+	db := do.MustInvoke[*gorm.DB](i)
 	return &questionnaireRepository{
 		BaseRepository: sharedRepos.NewBaseRepository[models.Questionnaire](db),
-	}
+	}, nil
 }
 
 func (r *questionnaireRepository) FindByID(ctx context.Context, id uuid.UUID) (*models.Questionnaire, error) {
@@ -153,10 +155,11 @@ type questionTemplateRepository struct {
 	*sharedRepos.BaseRepository[models.QuestionTemplate]
 }
 
-func NewQuestionTemplateRepository(db *gorm.DB) QuestionTemplateRepository {
+func NewQuestionTemplateRepository(i *do.Injector) (QuestionTemplateRepository, error) {
+	db := do.MustInvoke[*gorm.DB](i)
 	return &questionTemplateRepository{
 		BaseRepository: sharedRepos.NewBaseRepository[models.QuestionTemplate](db),
-	}
+	}, nil
 }
 
 func (r *questionTemplateRepository) FindAll(ctx context.Context) ([]models.QuestionTemplate, error) {

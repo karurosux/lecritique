@@ -4,9 +4,9 @@ import (
 	"strings"
 
 	"github.com/labstack/echo/v4"
-	"github.com/lecritique/api/internal/auth/services"
-	"github.com/lecritique/api/internal/shared/errors"
-	"github.com/lecritique/api/internal/shared/response"
+	"lecritique/internal/auth/services"
+	"lecritique/internal/shared/errors"
+	"lecritique/internal/shared/response"
 )
 
 func JWTAuth(authService services.AuthService) echo.MiddlewareFunc {

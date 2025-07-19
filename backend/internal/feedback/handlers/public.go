@@ -3,15 +3,16 @@ package handlers
 import (
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
-	feedbackModels "github.com/lecritique/api/internal/feedback/models"
-	feedbackRepos "github.com/lecritique/api/internal/feedback/repositories"
-	feedbackServices "github.com/lecritique/api/internal/feedback/services"
-	menuRepos "github.com/lecritique/api/internal/menu/repositories"
-	qrcodeServices "github.com/lecritique/api/internal/qrcode/services"
-	"github.com/lecritique/api/internal/shared/errors"
-	"github.com/lecritique/api/internal/shared/logger"
-	"github.com/lecritique/api/internal/shared/response"
-	"github.com/lecritique/api/internal/shared/utils"
+	feedbackModels "lecritique/internal/feedback/models"
+	feedbackRepos "lecritique/internal/feedback/repositories"
+	feedbackServices "lecritique/internal/feedback/services"
+	menuRepos "lecritique/internal/menu/repositories"
+	qrcodeServices "lecritique/internal/qrcode/services"
+	"lecritique/internal/shared/errors"
+	"lecritique/internal/shared/logger"
+	"lecritique/internal/shared/response"
+	"lecritique/internal/shared/utils"
+	"github.com/samber/do"
 	"github.com/sirupsen/logrus"
 )
 
@@ -23,20 +24,14 @@ type PublicHandler struct {
 	questionRepo      feedbackRepos.QuestionRepository
 }
 
-func NewPublicHandler(
-	qrCodeService qrcodeServices.QRCodeService,
-	feedbackService feedbackServices.FeedbackService,
-	dishRepo menuRepos.DishRepository,
-	questionnaireRepo feedbackRepos.QuestionnaireRepository,
-	questionRepo feedbackRepos.QuestionRepository,
-) *PublicHandler {
+func NewPublicHandler(i *do.Injector) (*PublicHandler, error) {
 	return &PublicHandler{
-		qrCodeService:     qrCodeService,
-		feedbackService:   feedbackService,
-		dishRepo:          dishRepo,
-		questionnaireRepo: questionnaireRepo,
-		questionRepo:      questionRepo,
-	}
+		qrCodeService:     do.MustInvoke[qrcodeServices.QRCodeService](i),
+		feedbackService:   do.MustInvoke[feedbackServices.FeedbackService](i),
+		dishRepo:          do.MustInvoke[menuRepos.DishRepository](i),
+		questionnaireRepo: do.MustInvoke[feedbackRepos.QuestionnaireRepository](i),
+		questionRepo:      do.MustInvoke[feedbackRepos.QuestionRepository](i),
+	}, nil
 }
 
 // ValidateQRCode validates a QR code

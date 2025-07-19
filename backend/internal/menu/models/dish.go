@@ -3,7 +3,7 @@ package models
 import (
 	"github.com/google/uuid"
 	"github.com/lib/pq"
-	"github.com/lecritique/api/internal/shared/models"
+	"lecritique/internal/shared/models"
 )
 
 type Dish struct {

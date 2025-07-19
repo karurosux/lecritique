@@ -5,12 +5,13 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
-	"github.com/lecritique/api/internal/menu/models"
-	"github.com/lecritique/api/internal/menu/services"
-	"github.com/lecritique/api/internal/shared/errors"
-	"github.com/lecritique/api/internal/shared/middleware"
-	"github.com/lecritique/api/internal/shared/response"
-	"github.com/lecritique/api/internal/shared/validator"
+	"lecritique/internal/menu/models"
+	"lecritique/internal/menu/services"
+	"lecritique/internal/shared/errors"
+	"lecritique/internal/shared/middleware"
+	"lecritique/internal/shared/response"
+	"lecritique/internal/shared/validator"
+	"github.com/samber/do"
 )
 
 type DishHandler struct {
@@ -18,11 +19,11 @@ type DishHandler struct {
 	validator   *validator.Validator
 }
 
-func NewDishHandler(dishService services.DishService) *DishHandler {
+func NewDishHandler(i *do.Injector) (*DishHandler, error) {
 	return &DishHandler{
-		dishService: dishService,
+		dishService: do.MustInvoke[services.DishService](i),
 		validator:   validator.New(),
-	}
+	}, nil
 }
 
 type CreateDishRequest struct {

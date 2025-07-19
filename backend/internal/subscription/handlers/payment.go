@@ -8,19 +8,20 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
-	"github.com/lecritique/api/internal/shared/errors"
-	"github.com/lecritique/api/internal/shared/response"
-	"github.com/lecritique/api/internal/subscription/services"
+	"lecritique/internal/shared/errors"
+	"lecritique/internal/shared/response"
+	"lecritique/internal/subscription/services"
+	"github.com/samber/do"
 )
 
 type PaymentHandler struct {
 	paymentService services.PaymentService
 }
 
-func NewPaymentHandler(paymentService services.PaymentService) *PaymentHandler {
+func NewPaymentHandler(i *do.Injector) (*PaymentHandler, error) {
 	return &PaymentHandler{
-		paymentService: paymentService,
-	}
+		paymentService: do.MustInvoke[services.PaymentService](i),
+	}, nil
 }
 
 // CreateCheckoutSession godoc

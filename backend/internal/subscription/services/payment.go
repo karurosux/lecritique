@@ -6,9 +6,10 @@ import (
 	"sync"
 
 	"github.com/google/uuid"
-	"github.com/lecritique/api/internal/shared/config"
-	"github.com/lecritique/api/internal/subscription/models"
-	subscriptionRepos "github.com/lecritique/api/internal/subscription/repositories"
+	"lecritique/internal/shared/config"
+	"lecritique/internal/subscription/models"
+	subscriptionRepos "lecritique/internal/subscription/repositories"
+	"github.com/samber/do"
 )
 
 // PaymentService handles payment operations using the configured provider
@@ -52,12 +53,14 @@ type paymentService struct {
 }
 
 // NewPaymentService creates a new payment service with the specified provider
-func NewPaymentService(
-	providerName string,
-	subscriptionRepo subscriptionRepos.SubscriptionRepository,
-	planRepo subscriptionRepos.SubscriptionPlanRepository,
-	config *config.Config,
-) (PaymentService, error) {
+func NewPaymentService(i *do.Injector) (PaymentService, error) {
+	config := do.MustInvoke[*config.Config](i)
+	subscriptionRepo := do.MustInvoke[subscriptionRepos.SubscriptionRepository](i)
+	planRepo := do.MustInvoke[subscriptionRepos.SubscriptionPlanRepository](i)
+	
+	// Default to stripe provider (for now, only stripe is supported)
+	providerName := "stripe"
+	
 	var provider PaymentProvider
 
 	switch providerName {

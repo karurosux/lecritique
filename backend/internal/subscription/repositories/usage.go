@@ -5,7 +5,8 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/lecritique/api/internal/subscription/models"
+	"lecritique/internal/subscription/models"
+	"github.com/samber/do"
 	"gorm.io/gorm"
 )
 
@@ -23,8 +24,9 @@ type usageRepository struct {
 	db *gorm.DB
 }
 
-func NewUsageRepository(db *gorm.DB) UsageRepository {
-	return &usageRepository{db: db}
+func NewUsageRepository(i *do.Injector) (UsageRepository, error) {
+	db := do.MustInvoke[*gorm.DB](i)
+	return &usageRepository{db: db}, nil
 }
 
 func (r *usageRepository) Create(ctx context.Context, usage *models.SubscriptionUsage) error {

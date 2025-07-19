@@ -5,8 +5,9 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/lecritique/api/internal/auth/models"
-	"github.com/lecritique/api/internal/shared/errors"
+	"lecritique/internal/auth/models"
+	"lecritique/internal/shared/errors"
+	"github.com/samber/do"
 	"gorm.io/gorm"
 )
 
@@ -23,8 +24,9 @@ type tokenRepository struct {
 	db *gorm.DB
 }
 
-func NewTokenRepository(db *gorm.DB) TokenRepository {
-	return &tokenRepository{db: db}
+func NewTokenRepository(i *do.Injector) (TokenRepository, error) {
+	db := do.MustInvoke[*gorm.DB](i)
+	return &tokenRepository{db: db}, nil
 }
 
 func (r *tokenRepository) Create(ctx context.Context, token *models.VerificationToken) error {

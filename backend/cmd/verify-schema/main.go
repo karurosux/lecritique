@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/lecritique/api/internal/shared/config"
-	"github.com/lecritique/api/internal/shared/database"
-	"github.com/lecritique/api/internal/subscription/models"
+	"lecritique/internal/shared/config"
+	"lecritique/internal/shared/database"
+	"lecritique/internal/subscription/models"
 )
 
 func main() {

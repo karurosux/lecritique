@@ -1,0 +1,38 @@
+package qrcode
+
+import (
+	"github.com/labstack/echo/v4"
+	"lecritique/internal/qrcode/handlers"
+	sharedMiddleware "lecritique/internal/shared/middleware"
+	"github.com/samber/do"
+)
+
+type Module struct {
+	injector *do.Injector
+}
+
+func NewModule(i *do.Injector) *Module {
+	return &Module{injector: i}
+}
+
+func (m *Module) RegisterRoutes(v1 *echo.Group) {
+	// Get handler from injector
+	qrCodeHandler := do.MustInvoke[*handlers.QRCodeHandler](m.injector)
+	
+	// Get middleware provider
+	middlewareProvider := do.MustInvoke[*sharedMiddleware.MiddlewareProvider](m.injector)
+	
+	// QR Code routes under restaurants
+	restaurants := v1.Group("/restaurants")
+	restaurants.Use(middlewareProvider.AuthMiddleware())
+	restaurants.Use(middlewareProvider.TeamAwareMiddleware())
+	restaurants.POST("/:restaurantId/qr-codes", qrCodeHandler.Generate)
+	restaurants.GET("/:restaurantId/qr-codes", qrCodeHandler.GetByRestaurant)
+	
+	// Direct QR code routes
+	qrCodes := v1.Group("/qr-codes")
+	qrCodes.Use(middlewareProvider.AuthMiddleware())
+	qrCodes.Use(middlewareProvider.TeamAwareMiddleware())
+	qrCodes.PATCH("/:id", qrCodeHandler.Update)
+	qrCodes.DELETE("/:id", qrCodeHandler.Delete)
+}

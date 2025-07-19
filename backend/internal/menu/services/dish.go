@@ -3,10 +3,11 @@ package services
 import (
 	"context"
 	"github.com/google/uuid"
-	"github.com/lecritique/api/internal/menu/models"
-	menuRepos "github.com/lecritique/api/internal/menu/repositories"
-	restaurantRepos "github.com/lecritique/api/internal/restaurant/repositories"
-	sharedRepos "github.com/lecritique/api/internal/shared/repositories"
+	"lecritique/internal/menu/models"
+	menuRepos "lecritique/internal/menu/repositories"
+	restaurantRepos "lecritique/internal/restaurant/repositories"
+	sharedRepos "lecritique/internal/shared/repositories"
+	"github.com/samber/do"
 )
 
 type DishService interface {
@@ -22,11 +23,11 @@ type dishService struct {
 	restaurantRepo restaurantRepos.RestaurantRepository
 }
 
-func NewDishService(dishRepo menuRepos.DishRepository, restaurantRepo restaurantRepos.RestaurantRepository) DishService {
+func NewDishService(i *do.Injector) (DishService, error) {
 	return &dishService{
-		dishRepo:       dishRepo,
-		restaurantRepo: restaurantRepo,
-	}
+		dishRepo:       do.MustInvoke[menuRepos.DishRepository](i),
+		restaurantRepo: do.MustInvoke[restaurantRepos.RestaurantRepository](i),
+	}, nil
 }
 
 func (s *dishService) Create(ctx context.Context, accountID uuid.UUID, dish *models.Dish) error {

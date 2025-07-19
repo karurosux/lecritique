@@ -6,9 +6,10 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/lecritique/api/internal/auth/models"
-	restaurantModels "github.com/lecritique/api/internal/restaurant/models"
-	"github.com/lecritique/api/internal/shared/repositories"
+	"lecritique/internal/auth/models"
+	restaurantModels "lecritique/internal/restaurant/models"
+	"lecritique/internal/shared/repositories"
+	"github.com/samber/do"
 	"gorm.io/gorm"
 )
 
@@ -27,10 +28,11 @@ type accountRepository struct {
 	*repositories.BaseRepository[models.Account]
 }
 
-func NewAccountRepository(db *gorm.DB) AccountRepository {
+func NewAccountRepository(i *do.Injector) (AccountRepository, error) {
+	db := do.MustInvoke[*gorm.DB](i)
 	return &accountRepository{
 		BaseRepository: repositories.NewBaseRepository[models.Account](db),
-	}
+	}, nil
 }
 
 func (r *accountRepository) FindByEmail(ctx context.Context, email string) (*models.Account, error) {

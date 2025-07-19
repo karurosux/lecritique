@@ -7,12 +7,13 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
-	"github.com/lecritique/api/internal/feedback/models"
-	"github.com/lecritique/api/internal/feedback/repositories"
-	"github.com/lecritique/api/internal/feedback/services"
-	"github.com/lecritique/api/internal/shared/logger"
-	"github.com/lecritique/api/internal/shared/middleware"
-	sharedModels "github.com/lecritique/api/internal/shared/models"
+	"lecritique/internal/feedback/models"
+	"lecritique/internal/feedback/repositories"
+	"lecritique/internal/feedback/services"
+	"lecritique/internal/shared/logger"
+	"lecritique/internal/shared/middleware"
+	sharedModels "lecritique/internal/shared/models"
+	"github.com/samber/do"
 	"github.com/sirupsen/logrus"
 )
 
@@ -20,10 +21,10 @@ type FeedbackHandler struct {
 	feedbackService services.FeedbackService
 }
 
-func NewFeedbackHandler(feedbackService services.FeedbackService) *FeedbackHandler {
+func NewFeedbackHandler(i *do.Injector) (*FeedbackHandler, error) {
 	return &FeedbackHandler{
-		feedbackService: feedbackService,
-	}
+		feedbackService: do.MustInvoke[services.FeedbackService](i),
+	}, nil
 }
 
 // GetByRestaurant gets feedback for a restaurant with optional filters
