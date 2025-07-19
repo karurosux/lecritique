@@ -26,12 +26,7 @@ func (m *Module) RegisterRoutes(v1 *echo.Group) {
 	// Public menu routes (no auth required)
 	v1.GET("/restaurant/:id/menu", publicHandler.GetRestaurantMenu)
 	
-	// Menu routes under restaurants
-	restaurants := v1.Group("/restaurants")
-	restaurants.Use(middlewareProvider.AuthMiddleware())
-	restaurants.Use(middlewareProvider.TeamAwareMiddleware())
-	restaurants.GET("/:restaurantId/dishes", dishHandler.GetByRestaurant)
-	restaurants.POST("/:restaurantId/dishes", dishHandler.Create)
+	// Menu routes under restaurants (moved to restaurant module)
 	
 	// Direct dish routes
 	dishes := v1.Group("/dishes")
