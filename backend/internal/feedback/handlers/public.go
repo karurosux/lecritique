@@ -7,7 +7,6 @@ import (
 	feedbackRepos "lecritique/internal/feedback/repositories"
 	feedbackServices "lecritique/internal/feedback/services"
 	menuRepos "lecritique/internal/menu/repositories"
-	qrcodeServices "lecritique/internal/qrcode/services"
 	"lecritique/internal/shared/errors"
 	"lecritique/internal/shared/logger"
 	"lecritique/internal/shared/response"
@@ -16,17 +15,15 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-type PublicHandler struct {
-	qrCodeService     qrcodeServices.QRCodeService
+type FeedbackPublicHandler struct {
 	feedbackService   feedbackServices.FeedbackService
 	dishRepo          menuRepos.DishRepository
 	questionnaireRepo feedbackRepos.QuestionnaireRepository
 	questionRepo      feedbackRepos.QuestionRepository
 }
 
-func NewPublicHandler(i *do.Injector) (*PublicHandler, error) {
-	return &PublicHandler{
-		qrCodeService:     do.MustInvoke[qrcodeServices.QRCodeService](i),
+func NewFeedbackPublicHandler(i *do.Injector) (*FeedbackPublicHandler, error) {
+	return &FeedbackPublicHandler{
 		feedbackService:   do.MustInvoke[feedbackServices.FeedbackService](i),
 		dishRepo:          do.MustInvoke[menuRepos.DishRepository](i),
 		questionnaireRepo: do.MustInvoke[feedbackRepos.QuestionnaireRepository](i),
@@ -34,66 +31,6 @@ func NewPublicHandler(i *do.Injector) (*PublicHandler, error) {
 	}, nil
 }
 
-// ValidateQRCode validates a QR code
-// @Summary Validate QR code
-// @Description Validate a QR code and return associated data
-// @Tags public
-// @Accept json
-// @Produce json
-// @Param code path string true "QR Code"
-// @Success 200 {object} map[string]interface{}
-// @Failure 400 {object} response.Response
-// @Failure 404 {object} response.Response
-// @Router /api/v1/public/qr/{code} [get]
-func (h *PublicHandler) ValidateQRCode(c echo.Context) error {
-	ctx := c.Request().Context()
-	code := c.Param("code")
-	if code == "" {
-		return response.Error(c, errors.BadRequest("QR code parameter is required"))
-	}
-
-	qrCode, err := h.qrCodeService.GetByCode(ctx, code)
-	if err != nil {
-		return response.Error(c, errors.NotFound("QR code"))
-	}
-
-	// Record the scan event for analytics
-	if err := h.qrCodeService.RecordScan(ctx, code); err != nil {
-		logger.Error("Failed to record QR scan", err, logrus.Fields{
-			"qr_code_id": qrCode.ID,
-			"code":       code,
-		})
-		// Don't fail the request if scan recording fails
-	}
-
-	return response.Success(c, qrCode)
-}
-
-// GetRestaurantMenu gets public restaurant menu
-// @Summary Get restaurant menu
-// @Description Get public menu for a restaurant
-// @Tags public
-// @Accept json
-// @Produce json
-// @Param id path string true "Restaurant ID"
-// @Success 200 {object} map[string]interface{}
-// @Failure 400 {object} response.Response
-// @Failure 404 {object} response.Response
-// @Router /api/v1/public/restaurant/{id}/menu [get]
-func (h *PublicHandler) GetRestaurantMenu(c echo.Context) error {
-	idStr := c.Param("id")
-	id, err := uuid.Parse(idStr)
-	if err != nil {
-		return response.Error(c, errors.ErrInvalidUUID)
-	}
-
-	// Implementation would get restaurant menu
-	// For now, return placeholder
-	return response.Success(c, map[string]interface{}{
-		"restaurant_id": id,
-		"message":       "Menu endpoint - to be implemented",
-	})
-}
 
 // GetQuestionnaire gets questionnaire for a dish
 // @Summary Get questionnaire
@@ -107,7 +44,7 @@ func (h *PublicHandler) GetRestaurantMenu(c echo.Context) error {
 // @Failure 400 {object} response.Response
 // @Failure 404 {object} response.Response
 // @Router /api/v1/public/questionnaire/{restaurantId}/{dishId} [get]
-func (h *PublicHandler) GetQuestionnaire(c echo.Context) error {
+func (h *FeedbackPublicHandler) GetQuestionnaire(c echo.Context) error {
 	restaurantIDStr := c.Param("restaurantId")
 	dishIDStr := c.Param("dishId")
 
@@ -141,7 +78,7 @@ func (h *PublicHandler) GetQuestionnaire(c echo.Context) error {
 // @Failure 400 {object} response.Response
 // @Failure 500 {object} response.Response
 // @Router /api/v1/public/feedback [post]
-func (h *PublicHandler) SubmitFeedback(c echo.Context) error {
+func (h *FeedbackPublicHandler) SubmitFeedback(c echo.Context) error {
 	ctx := c.Request().Context()
 	var feedback feedbackModels.Feedback
 	if err := c.Bind(&feedback); err != nil {
@@ -181,7 +118,7 @@ func (h *PublicHandler) SubmitFeedback(c echo.Context) error {
 // @Failure 404 {object} response.Response "Dish not found"
 // @Failure 500 {object} response.Response "Server error"
 // @Router /api/v1/public/restaurant/{restaurantId}/dishes/{dishId}/questions [get]
-func (h *PublicHandler) GetDishQuestions(c echo.Context) error {
+func (h *FeedbackPublicHandler) GetDishQuestions(c echo.Context) error {
 	ctx := c.Request().Context()
 
 	dishID, err := uuid.Parse(c.Param("dishId"))
@@ -221,7 +158,7 @@ func (h *PublicHandler) GetDishQuestions(c echo.Context) error {
 // @Failure 404 {object} response.Response "Restaurant not found"
 // @Failure 500 {object} response.Response "Server error"
 // @Router /api/v1/public/restaurant/{restaurantId}/questions/dishes-with-questions [get]
-func (h *PublicHandler) GetDishesWithQuestions(c echo.Context) error {
+func (h *FeedbackPublicHandler) GetDishesWithQuestions(c echo.Context) error {
 	ctx := c.Request().Context()
 
 	restaurantID, err := uuid.Parse(c.Param("restaurantId"))

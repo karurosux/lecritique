@@ -17,7 +17,7 @@ func NewModule(i *do.Injector) *Module {
 
 func (m *Module) RegisterRoutes(v1 *echo.Group) {
 	// Get handlers from injector
-	publicHandler := do.MustInvoke[*handlers.PublicHandler](m.injector)
+	publicHandler := do.MustInvoke[*handlers.FeedbackPublicHandler](m.injector)
 	feedbackHandler := do.MustInvoke[*handlers.FeedbackHandler](m.injector)
 	questionnaireHandler := do.MustInvoke[*handlers.QuestionnaireHandler](m.injector)
 	questionHandler := do.MustInvoke[*handlers.QuestionHandler](m.injector)
@@ -26,8 +26,6 @@ func (m *Module) RegisterRoutes(v1 *echo.Group) {
 	middlewareProvider := do.MustInvoke[*sharedMiddleware.MiddlewareProvider](m.injector)
 	
 	// Public feedback routes (no auth required)
-	v1.GET("/qr/:code", publicHandler.ValidateQRCode)
-	v1.GET("/restaurant/:id/menu", publicHandler.GetRestaurantMenu)
 	v1.GET("/questionnaire/:restaurantId/:dishId", publicHandler.GetQuestionnaire)
 	v1.GET("/restaurant/:restaurantId/dishes/:dishId/questions", publicHandler.GetDishQuestions)
 	v1.GET("/restaurant/:restaurantId/questions/dishes-with-questions", publicHandler.GetDishesWithQuestions)

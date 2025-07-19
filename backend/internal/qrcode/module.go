@@ -16,11 +16,15 @@ func NewModule(i *do.Injector) *Module {
 }
 
 func (m *Module) RegisterRoutes(v1 *echo.Group) {
-	// Get handler from injector
+	// Get handlers from injector
 	qrCodeHandler := do.MustInvoke[*handlers.QRCodeHandler](m.injector)
+	publicHandler := do.MustInvoke[*handlers.QRCodePublicHandler](m.injector)
 	
 	// Get middleware provider
 	middlewareProvider := do.MustInvoke[*sharedMiddleware.MiddlewareProvider](m.injector)
+	
+	// Public QR code routes (no auth required)
+	v1.GET("/qr/:code", publicHandler.ValidateQRCode)
 	
 	// QR Code routes under restaurants
 	restaurants := v1.Group("/restaurants")

@@ -18,9 +18,13 @@ func NewModule(i *do.Injector) *Module {
 func (m *Module) RegisterRoutes(v1 *echo.Group) {
 	// Get handlers from injector
 	dishHandler := do.MustInvoke[*handlers.DishHandler](m.injector)
+	publicHandler := do.MustInvoke[*handlers.MenuPublicHandler](m.injector)
 	
 	// Get middleware provider
 	middlewareProvider := do.MustInvoke[*sharedMiddleware.MiddlewareProvider](m.injector)
+	
+	// Public menu routes (no auth required)
+	v1.GET("/restaurant/:id/menu", publicHandler.GetRestaurantMenu)
 	
 	// Menu routes under restaurants
 	restaurants := v1.Group("/restaurants")

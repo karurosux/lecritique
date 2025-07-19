@@ -74,6 +74,7 @@ func RegisterAll(i *do.Injector, cfg *config.Config, db *gorm.DB) {
 	do.Provide(i, menuRepos.NewDishRepository)
 	do.Provide(i, menuServices.NewDishService)
 	do.Provide(i, menuHandlers.NewDishHandler)
+	do.Provide(i, menuHandlers.NewMenuPublicHandler)
 	
 	// Feedback domain
 	do.Provide(i, feedbackRepos.NewFeedbackRepository)
@@ -86,12 +87,13 @@ func RegisterAll(i *do.Injector, cfg *config.Config, db *gorm.DB) {
 	do.Provide(i, feedbackHandlers.NewFeedbackHandler)
 	do.Provide(i, feedbackHandlers.NewQuestionnaireHandler)
 	do.Provide(i, feedbackHandlers.NewQuestionHandler)
-	do.Provide(i, feedbackHandlers.NewPublicHandler)
+	do.Provide(i, feedbackHandlers.NewFeedbackPublicHandler)
 	
 	// QR Code domain
 	do.Provide(i, qrcodeRepos.NewQRCodeRepository)
 	do.Provide(i, qrcodeServices.NewQRCodeService)
 	do.Provide(i, qrcodeHandlers.NewQRCodeHandler)
+	do.Provide(i, qrcodeHandlers.NewQRCodePublicHandler)
 	
 	// Analytics domain
 	do.Provide(i, analyticsServices.NewAnalyticsService)
