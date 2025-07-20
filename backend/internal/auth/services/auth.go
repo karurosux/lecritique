@@ -19,11 +19,11 @@ import (
 )
 
 type RegisterData struct {
-	Email       string
-	Password    string
-	CompanyName string
-	FirstName   string
-	LastName    string
+	Email     string
+	Password  string
+	Name      string
+	FirstName string
+	LastName  string
 }
 
 type AuthService interface {
@@ -96,9 +96,9 @@ func (s *authService) Register(ctx context.Context, data RegisterData) (*models.
 
 	// Create new account
 	account := &models.Account{
-		Email:       data.Email,
-		CompanyName: data.CompanyName,
-		FirstName:   data.FirstName,
+		Email:     data.Email,
+		Name:      data.Name,
+		FirstName: data.FirstName,
 		LastName:    data.LastName,
 		IsActive:    true,
 	}
@@ -117,7 +117,7 @@ func (s *authService) Register(ctx context.Context, data RegisterData) (*models.
 	// This ensures the owner appears in the team members list
 	// The migration script will handle existing accounts
 	// For new accounts, the frontend should handle creating the owner team member
-	if data.CompanyName != "" {
+	if data.Name != "" {
 		log.Printf("New organization account created: %s. Owner team member should be created.", account.ID)
 	}
 
@@ -174,7 +174,7 @@ func (s *authService) generateToken(account *models.Account) (string, error) {
 	claims := &Claims{
 		AccountID: account.ID,
 		MemberID:  account.ID,
-		Name:      account.CompanyName,
+		Name:      account.Name,
 		Email:     account.Email,
 		Role:      models.RoleOwner,
 		RegisteredClaims: jwt.RegisteredClaims{
@@ -188,7 +188,8 @@ func (s *authService) generateToken(account *models.Account) (string, error) {
 
 	teamMember, err := s.teamService.GetMemberByMemberID(context.Background(), account.ID)
 	if err != nil {
-		return "", err
+		// Log the error but don't fail token generation - user might be an owner
+		log.Printf("Could not get team member for account %s: %v", account.ID, err)
 	}
 
 	if teamMember != nil {
@@ -199,7 +200,8 @@ func (s *authService) generateToken(account *models.Account) (string, error) {
 	// Get subscription features
 	subscription, err := s.subscriptionService.GetUserSubscription(context.Background(), claims.AccountID)
 	if err != nil {
-		return "", err
+		// Log the error but don't fail token generation - user might not have a subscription yet
+		log.Printf("Could not get subscription for account %s: %v", claims.AccountID, err)
 	}
 
 	if subscription != nil && subscription.IsActive() {
@@ -659,8 +661,8 @@ func (s *authService) UpdateProfile(ctx context.Context, accountID uuid.UUID, up
 	}
 
 	// Update the account fields manually
-	if companyName, ok := updates["company_name"].(string); ok {
-		account.CompanyName = companyName
+	if name, ok := updates["name"].(string); ok {
+		account.Name = name
 	}
 	if phone, ok := updates["phone"].(string); ok {
 		account.Phone = phone

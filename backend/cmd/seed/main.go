@@ -77,7 +77,7 @@ func main() {
 	}
 	
 	err = db.Raw(`
-		INSERT INTO accounts (email, password_hash, company_name, is_active, email_verified, email_verified_at)
+		INSERT INTO accounts (email, password_hash, name, is_active, email_verified, email_verified_at)
 		VALUES (?, ?, ?, true, true, NOW())
 		RETURNING id
 	`, email, string(hashedPassword), companyName).Scan(&newAccount).Error

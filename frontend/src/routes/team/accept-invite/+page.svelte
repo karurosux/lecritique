@@ -42,7 +42,7 @@
 					// Invitation was accepted (user was authenticated)
 					success = true;
 					setTimeout(() => {
-						goto('/settings/team');
+						goto('/login');
 					}, 2000);
 				} else if (data.status === 'needs_registration' || data.status === 'pending') {
 					// User needs to login or register
@@ -82,7 +82,7 @@
 					</h2>
 					<p class="text-gray-600 mb-6">
 						{#if invitationStatus === 'accepted'}
-							You've successfully joined the team. Redirecting to team settings...
+							You've successfully joined the team. Please login to access your account.
 						{:else}
 							Please login or register to join the team. Redirecting...
 						{/if}
@@ -90,9 +90,9 @@
 					<Button
 						variant="gradient"
 						class="w-full"
-						onclick={() => goto(invitationStatus === 'accepted' ? '/settings/team' : '/login')}
+						onclick={() => goto('/login')}
 					>
-						{invitationStatus === 'accepted' ? 'Go to Team Settings' : 'Go to Login'}
+						Go to Login
 					</Button>
 				</div>
 			{:else if error}

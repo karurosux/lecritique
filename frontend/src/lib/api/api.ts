@@ -161,12 +161,12 @@ export interface HandlersQRCodeListResponse {
 }
 
 export interface HandlersRegisterRequest {
-  company_name?: string;
   email: string;
   first_name?: string;
   /** Optional invitation token */
   invitation_token?: string;
   last_name?: string;
+  name?: string;
   /** @minLength 8 */
   password: string;
 }
@@ -187,11 +187,7 @@ export interface HandlersSetDefaultPaymentRequest {
 
 export interface HandlersUpdateProfileRequest {
   /** @minLength 1 */
-  company_name?: string;
-  /** @minLength 1 */
-  first_name?: string;
-  /** @minLength 1 */
-  last_name?: string;
+  name?: string;
   phone?: string;
 }
 
@@ -218,7 +214,6 @@ export interface HandlersUpdateRoleRequest {
 export type LecritiqueInternalMenuModelsDish = object;
 
 export interface ModelsAccount {
-  company_name?: string;
   created_at?: string;
   deactivation_requested_at?: string;
   email?: string;
@@ -228,6 +223,7 @@ export interface ModelsAccount {
   id?: string;
   is_active?: boolean;
   last_name?: string;
+  name?: string;
   phone?: string;
   /** Populated when needed */
   subscription?: any;

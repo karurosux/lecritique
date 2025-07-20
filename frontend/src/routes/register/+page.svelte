@@ -42,7 +42,7 @@
     }
     
     if (!name) {
-      formErrors.name = 'Company name is required';
+      formErrors.name = 'Name is required';
     }
     
     return Object.keys(formErrors).length === 0;
@@ -113,10 +113,10 @@
         <Input
           id="name"
           type="text"
-          label="Company Name"
+          label="Name"
           bind:value={name}
           required
-          placeholder="Enter your restaurant/company name"
+          placeholder="Enter your name"
           disabled={isSubmitting}
           error={formErrors.name}
           on:keydown={handleKeyDown}

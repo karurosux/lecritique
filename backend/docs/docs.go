@@ -5309,9 +5309,6 @@ const docTemplate = `{
                 "password"
             ],
             "properties": {
-                "company_name": {
-                    "type": "string"
-                },
                 "email": {
                     "type": "string"
                 },
@@ -5323,6 +5320,9 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "last_name": {
+                    "type": "string"
+                },
+                "name": {
                     "type": "string"
                 },
                 "password": {
@@ -5372,15 +5372,7 @@ const docTemplate = `{
         "handlers.UpdateProfileRequest": {
             "type": "object",
             "properties": {
-                "company_name": {
-                    "type": "string",
-                    "minLength": 1
-                },
-                "first_name": {
-                    "type": "string",
-                    "minLength": 1
-                },
-                "last_name": {
+                "name": {
                     "type": "string",
                     "minLength": 1
                 },
@@ -5443,9 +5435,6 @@ const docTemplate = `{
         "models.Account": {
             "type": "object",
             "properties": {
-                "company_name": {
-                    "type": "string"
-                },
                 "created_at": {
                     "type": "string"
                 },
@@ -5471,6 +5460,9 @@ const docTemplate = `{
                     "type": "boolean"
                 },
                 "last_name": {
+                    "type": "string"
+                },
+                "name": {
                     "type": "string"
                 },
                 "phone": {

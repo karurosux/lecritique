@@ -13,7 +13,7 @@ type Account struct {
 	models.BaseModel
 	Email                   string        `gorm:"uniqueIndex;not null" json:"email"`
 	PasswordHash            string        `gorm:"not null" json:"-"`
-	CompanyName             string        `gorm:"not null" json:"company_name"`
+	Name                    string        `gorm:"not null" json:"name"`
 	FirstName               string        `json:"first_name"`
 	LastName                string        `json:"last_name"`
 	Phone                   string        `json:"phone"`
@@ -46,8 +46,8 @@ func (a *Account) DisplayName() string {
 	if a.FirstName != "" || a.LastName != "" {
 		return strings.TrimSpace(a.FirstName + " " + a.LastName)
 	}
-	if a.CompanyName != "" {
-		return a.CompanyName
+	if a.Name != "" {
+		return a.Name
 	}
 	return a.Email
 }

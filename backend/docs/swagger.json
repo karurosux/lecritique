@@ -5302,9 +5302,6 @@
                 "password"
             ],
             "properties": {
-                "company_name": {
-                    "type": "string"
-                },
                 "email": {
                     "type": "string"
                 },
@@ -5316,6 +5313,9 @@
                     "type": "string"
                 },
                 "last_name": {
+                    "type": "string"
+                },
+                "name": {
                     "type": "string"
                 },
                 "password": {
@@ -5365,15 +5365,7 @@
         "handlers.UpdateProfileRequest": {
             "type": "object",
             "properties": {
-                "company_name": {
-                    "type": "string",
-                    "minLength": 1
-                },
-                "first_name": {
-                    "type": "string",
-                    "minLength": 1
-                },
-                "last_name": {
+                "name": {
                     "type": "string",
                     "minLength": 1
                 },
@@ -5436,9 +5428,6 @@
         "models.Account": {
             "type": "object",
             "properties": {
-                "company_name": {
-                    "type": "string"
-                },
                 "created_at": {
                     "type": "string"
                 },
@@ -5464,6 +5453,9 @@
                     "type": "boolean"
                 },
                 "last_name": {
+                    "type": "string"
+                },
+                "name": {
                     "type": "string"
                 },
                 "phone": {

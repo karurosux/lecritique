@@ -48,6 +48,10 @@ func (m *Module) RegisterRoutes(v1 *echo.Group) {
 	team := v1.Group("/team")
 	team.Use(middlewareProvider.AuthMiddleware())
 	team.GET("/members", teamMemberHandler.ListMembers)
+	team.POST("/members/invite", teamMemberHandler.InviteMember)
+	team.POST("/members/:id/resend-invitation", teamMemberHandler.ResendInvitation)
+	team.PUT("/members/:id/role", teamMemberHandler.UpdateRole)
+	team.DELETE("/members/:id", teamMemberHandler.RemoveMember)
 	
 	// Team member routes (specific team ID) - kept for compatibility
 	teams := v1.Group("/teams")
@@ -59,4 +63,7 @@ func (m *Module) RegisterRoutes(v1 *echo.Group) {
 	teams.PUT("/:teamId/members/:memberId", teamMemberHandler.UpdateRole)
 	teams.DELETE("/:teamId/members/:memberId", teamMemberHandler.RemoveMember)
 	teams.POST("/accept-invitation", teamMemberHandler.AcceptInvitation)
+	
+	// Public team invitation acceptance endpoint (no auth required)
+	v1.POST("/team/accept-invite", teamMemberHandler.AcceptInvitation)
 }

@@ -93,14 +93,17 @@ func (h *TeamMemberHandler) InviteMember(c echo.Context) error {
 	}
 
 	// Get current user ID (inviter)
-	userID, ok := c.Get("user_id").(uuid.UUID)
-	if !ok {
-		return response.Error(c, errors.ErrUnauthorized)
+	userID, err := middleware.GetUserID(c)
+	if err != nil {
+		return response.Error(c, err)
 	}
 
 	// Check user role - only owners and admins can invite
-	userRole, ok := c.Get("user_role").(string)
-	if !ok || (userRole != string(models.RoleOwner) && userRole != string(models.RoleAdmin)) {
+	userRole, err := middleware.GetRole(c)
+	if err != nil {
+		return response.Error(c, err)
+	}
+	if userRole != models.RoleOwner && userRole != models.RoleAdmin {
 		return response.Error(c, errors.Forbidden("invite team members"))
 	}
 
@@ -150,8 +153,11 @@ func (h *TeamMemberHandler) UpdateRole(c echo.Context) error {
 	}
 
 	// Check user role - only owners and admins can update roles
-	userRole, ok := c.Get("user_role").(string)
-	if !ok || (userRole != string(models.RoleOwner) && userRole != string(models.RoleAdmin)) {
+	userRole, err := middleware.GetRole(c)
+	if err != nil {
+		return response.Error(c, err)
+	}
+	if userRole != models.RoleOwner && userRole != models.RoleAdmin {
 		return response.Error(c, errors.Forbidden("update team member roles"))
 	}
 
@@ -201,8 +207,11 @@ func (h *TeamMemberHandler) RemoveMember(c echo.Context) error {
 	}
 
 	// Check user role - only owners and admins can remove members
-	userRole, ok := c.Get("user_role").(string)
-	if !ok || (userRole != string(models.RoleOwner) && userRole != string(models.RoleAdmin)) {
+	userRole, err := middleware.GetRole(c)
+	if err != nil {
+		return response.Error(c, err)
+	}
+	if userRole != models.RoleOwner && userRole != models.RoleAdmin {
 		return response.Error(c, errors.Forbidden("remove team members"))
 	}
 
@@ -242,8 +251,11 @@ func (h *TeamMemberHandler) ResendInvitation(c echo.Context) error {
 	}
 
 	// Check user role - only owners and admins can resend invitations
-	userRole, ok := c.Get("user_role").(string)
-	if !ok || (userRole != string(models.RoleOwner) && userRole != string(models.RoleAdmin)) {
+	userRole, err := middleware.GetRole(c)
+	if err != nil {
+		return response.Error(c, err)
+	}
+	if userRole != models.RoleOwner && userRole != models.RoleAdmin {
 		return response.Error(c, errors.Forbidden("resend invitations"))
 	}
 

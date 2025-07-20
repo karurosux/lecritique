@@ -34,7 +34,7 @@ func NewAuthHandler(i *do.Injector) (*AuthHandler, error) {
 type RegisterRequest struct {
 	Email           string `json:"email" validate:"required,email"`
 	Password        string `json:"password" validate:"required,min=8"`
-	CompanyName     string `json:"company_name" validate:"required_without=InvitationToken"`
+	Name            string `json:"name" validate:"required_without=InvitationToken"`
 	FirstName       string `json:"first_name,omitempty"`
 	LastName        string `json:"last_name,omitempty"`
 	InvitationToken string `json:"invitation_token,omitempty"` // Optional invitation token
@@ -80,7 +80,7 @@ func (h *AuthHandler) Register(c echo.Context) error {
 	registerData := services.RegisterData{
 		Email:       req.Email,
 		Password:    req.Password,
-		CompanyName: req.CompanyName,
+		Name:        req.Name,
 		FirstName:   req.FirstName,
 		LastName:    req.LastName,
 	}
@@ -489,10 +489,8 @@ func (h *AuthHandler) CancelDeactivation(c echo.Context) error {
 }
 
 type UpdateProfileRequest struct {
-	CompanyName string `json:"company_name,omitempty" validate:"omitempty,min=1"`
-	Phone       string `json:"phone,omitempty" validate:"omitempty"`
-	FirstName   string `json:"first_name,omitempty" validate:"omitempty,min=1"`
-	LastName    string `json:"last_name,omitempty" validate:"omitempty,min=1"`
+	Name  string `json:"name,omitempty" validate:"omitempty,min=1"`
+	Phone string `json:"phone,omitempty" validate:"omitempty"`
 }
 
 // UpdateProfile godoc
@@ -528,16 +526,12 @@ func (h *AuthHandler) UpdateProfile(c echo.Context) error {
 
 	// Update account fields
 	updates := make(map[string]interface{})
-	if req.CompanyName != "" {
-		updates["company_name"] = req.CompanyName
+	if req.Name != "" {
+		updates["name"] = req.Name
 	}
 	if req.Phone != "" {
 		updates["phone"] = req.Phone
 	}
-
-	// Note: FirstName and LastName would be updated on the User model
-	// This requires fetching the user associated with the account
-	// For now, we'll just update Account fields
 
 	updatedAccount, err := h.authService.UpdateProfile(ctx, accountID, updates)
 	if err != nil {

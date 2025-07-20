@@ -213,8 +213,6 @@ definitions:
     type: object
   handlers.RegisterRequest:
     properties:
-      company_name:
-        type: string
       email:
         type: string
       first_name:
@@ -223,6 +221,8 @@ definitions:
         description: Optional invitation token
         type: string
       last_name:
+        type: string
+      name:
         type: string
       password:
         minLength: 8
@@ -258,13 +258,7 @@ definitions:
     type: object
   handlers.UpdateProfileRequest:
     properties:
-      company_name:
-        minLength: 1
-        type: string
-      first_name:
-        minLength: 1
-        type: string
-      last_name:
+      name:
         minLength: 1
         type: string
       phone:
@@ -305,8 +299,6 @@ definitions:
     type: object
   models.Account:
     properties:
-      company_name:
-        type: string
       created_at:
         type: string
       deactivation_requested_at:
@@ -324,6 +316,8 @@ definitions:
       is_active:
         type: boolean
       last_name:
+        type: string
+      name:
         type: string
       phone:
         type: string

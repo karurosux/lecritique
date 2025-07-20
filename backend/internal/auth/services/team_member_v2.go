@@ -160,7 +160,7 @@ func (s *teamMemberServiceV2) InviteMember(ctx context.Context, accountID uuid.U
 	org, _ := s.accountRepo.FindByID(ctx, accountID)
 	companyName := "LeCritique"
 	if org != nil {
-		companyName = org.CompanyName
+		companyName = org.Name
 	}
 
 	// Send invitation email
@@ -219,7 +219,7 @@ func (s *teamMemberServiceV2) ResendInvitation(ctx context.Context, accountID uu
 	org, _ := s.accountRepo.FindByID(ctx, invitation.AccountID)
 	companyName := "LeCritique"
 	if org != nil {
-		companyName = org.CompanyName
+		companyName = org.Name
 	}
 
 	// Send invitation email again

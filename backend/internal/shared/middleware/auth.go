@@ -37,6 +37,7 @@ func JWTAuth(authService services.AuthService) echo.MiddlewareFunc {
 			// Set all claims data in context
 			c.Set("account_id", claims.AccountID)
 			c.Set("member_id", claims.MemberID)
+			c.Set("user_id", claims.AccountID) // For compatibility
 			c.Set("email", claims.Email)
 			c.Set("role", claims.Role)
 			c.Set("claims", claims) // Store full claims for easy access
@@ -69,6 +70,15 @@ func GetMemberID(c echo.Context) (uuid.UUID, error) {
 		return uuid.Nil, errors.ErrUnauthorized
 	}
 	return memberID, nil
+}
+
+// GetUserID retrieves the user ID from context (alias for account_id)
+func GetUserID(c echo.Context) (uuid.UUID, error) {
+	userID, ok := c.Get("user_id").(uuid.UUID)
+	if !ok {
+		return uuid.Nil, errors.ErrUnauthorized
+	}
+	return userID, nil
 }
 
 // GetEmail retrieves the email from context
