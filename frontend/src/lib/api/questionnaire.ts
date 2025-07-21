@@ -8,7 +8,6 @@ import type {
   ModelsQuestion
 } from './api';
 
-// Re-export types for easy access
 export type Questionnaire = ModelsQuestionnaire;
 export type CreateQuestionnaireRequest = ModelsCreateQuestionnaireRequest;
 export type GenerateQuestionnaireRequest = ModelsGenerateQuestionnaireRequest;
@@ -16,10 +15,8 @@ export type GeneratedQuestion = ModelsGeneratedQuestion;
 export type QuestionType = ModelsQuestionType;
 export type Question = ModelsQuestion;
 
-// Use the generated API client
 export class QuestionnaireApi {
   
-  // List all questionnaires for a restaurant
   static async listQuestionnaires(restaurantId: string): Promise<Questionnaire[]> {
     try {
       const api = getApiClient();
@@ -30,7 +27,6 @@ export class QuestionnaireApi {
     }
   }
 
-  // Create a new questionnaire
   static async createQuestionnaire(restaurantId: string, data: CreateQuestionnaireRequest): Promise<Questionnaire> {
     try {
       const api = getApiClient();
@@ -41,7 +37,6 @@ export class QuestionnaireApi {
     }
   }
 
-  // Get questionnaire by ID
   static async getQuestionnaire(restaurantId: string, questionnaireId: string): Promise<Questionnaire> {
     try {
       const api = getApiClient();
@@ -52,7 +47,6 @@ export class QuestionnaireApi {
     }
   }
 
-  // Update questionnaire
   static async updateQuestionnaire(restaurantId: string, questionnaireId: string, data: Partial<Questionnaire>): Promise<Questionnaire> {
     try {
       const api = getApiClient();
@@ -63,7 +57,6 @@ export class QuestionnaireApi {
     }
   }
 
-  // Delete questionnaire
   static async deleteQuestionnaire(restaurantId: string, questionnaireId: string): Promise<void> {
     try {
       const api = getApiClient();
@@ -73,7 +66,6 @@ export class QuestionnaireApi {
     }
   }
 
-  // Generate AI questions for a dish (preview only)
   static async generateQuestions(dishId: string): Promise<GeneratedQuestion[]> {
     try {
       const api = getApiClient();
@@ -84,7 +76,6 @@ export class QuestionnaireApi {
     }
   }
 
-  // Generate and save complete questionnaire for a dish
   static async generateAndSaveQuestionnaire(dishId: string, data: GenerateQuestionnaireRequest): Promise<Questionnaire> {
     try {
       const api = getApiClient();
@@ -95,7 +86,6 @@ export class QuestionnaireApi {
     }
   }
 
-  // Add a question to a questionnaire
   static async addQuestion(restaurantId: string, questionnaireId: string, question: Question): Promise<Question> {
     try {
       const api = getApiClient();

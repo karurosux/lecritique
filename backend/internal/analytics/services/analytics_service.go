@@ -49,7 +49,6 @@ func NewAnalyticsService(i *do.Injector) (AnalyticsService, error) {
 func (s *analyticsService) GetDashboardMetrics(ctx context.Context, restaurantID uuid.UUID) (*analyticsModels.DashboardMetrics, error) {
 	metrics := &analyticsModels.DashboardMetrics{}
 	
-	// Get total feedback count (operational metric)
 	totalCount, err := s.feedbackRepo.CountByRestaurantID(ctx, restaurantID, time.Time{})
 	if err != nil {
 		logger.Error("Failed to get total feedback count", err, logrus.Fields{
@@ -58,7 +57,6 @@ func (s *analyticsService) GetDashboardMetrics(ctx context.Context, restaurantID
 	}
 	metrics.TotalFeedbacks = totalCount
 	
-	// Get today's feedback count (operational metric)
 	todayStart := time.Now().Truncate(24 * time.Hour)
 	todayCount, err := s.feedbackRepo.CountByRestaurantID(ctx, restaurantID, todayStart)
 	if err != nil {
@@ -68,14 +66,12 @@ func (s *analyticsService) GetDashboardMetrics(ctx context.Context, restaurantID
 	}
 	metrics.TodaysFeedback = todayCount
 	
-	// Get yesterday's count for trend (operational metric)
 	yesterdayStart := todayStart.AddDate(0, 0, -1)
 	yesterdayCount, _ := s.feedbackRepo.CountByRestaurantID(ctx, restaurantID, yesterdayStart)
 	if yesterdayCount > 0 {
 		metrics.TrendVsYesterday = float64(todayCount-yesterdayCount) / float64(yesterdayCount) * 100
 	}
 	
-	// Get QR code metrics (operational)
 	qrMetrics, err := s.getQRCodeMetrics(ctx, restaurantID)
 	if err != nil {
 		logger.Error("Failed to get QR code metrics", err, logrus.Fields{
@@ -106,7 +102,6 @@ func (s *analyticsService) GetDashboardMetrics(ctx context.Context, restaurantID
 		metrics.CompletionRate = 0.0
 	}
 	
-	// Get device/platform analytics (operational)
 	deviceMetrics, err := s.getDeviceMetrics(ctx, restaurantID)
 	if err != nil {
 		logger.Error("Failed to get device metrics", err, logrus.Fields{
@@ -116,7 +111,6 @@ func (s *analyticsService) GetDashboardMetrics(ctx context.Context, restaurantID
 		metrics.DeviceBreakdown = deviceMetrics
 	}
 	
-	// Get response time analytics (operational)
 	responseTime, err := s.getAverageResponseTime(ctx, restaurantID)
 	if err != nil {
 		logger.Error("Failed to get response time", err, logrus.Fields{
@@ -126,7 +120,6 @@ func (s *analyticsService) GetDashboardMetrics(ctx context.Context, restaurantID
 		metrics.AverageResponseTime = responseTime
 	}
 	
-	// Get peak usage hours (operational)
 	peakHours, err := s.getPeakUsageHours(ctx, restaurantID)
 	if err != nil {
 		logger.Error("Failed to get peak hours", err, logrus.Fields{
@@ -136,7 +129,6 @@ func (s *analyticsService) GetDashboardMetrics(ctx context.Context, restaurantID
 		metrics.PeakHours = peakHours
 	}
 	
-	// Get QR code performance analytics
 	qrPerformance, err := s.getQRCodePerformance(ctx, restaurantID)
 	if err != nil {
 		logger.Error("Failed to get QR performance", err, logrus.Fields{
@@ -150,13 +142,11 @@ func (s *analyticsService) GetDashboardMetrics(ctx context.Context, restaurantID
 }
 
 func (s *analyticsService) GetDishInsights(ctx context.Context, dishID uuid.UUID) (*analyticsModels.DishInsights, error) {
-	// Get dish info
 	dish, err := s.dishRepo.FindByID(ctx, dishID)
 	if err != nil {
 		return nil, err
 	}
 	
-	// Get all feedback for this dish
 	allFeedback, err := s.feedbackRepo.FindByDishIDForAnalytics(ctx, dishID, 500)
 	if err != nil {
 		return nil, err
@@ -172,17 +162,14 @@ func (s *analyticsService) GetDishInsights(ctx context.Context, dishID uuid.UUID
 		return insights, nil
 	}
 	
-	// Get questionnaire to understand questions
 	questions, err := s.feedbackRepo.GetQuestionsByDishID(ctx, dishID)
 	if err != nil {
 		logger.Error("Failed to get questions", err, logrus.Fields{"dish_id": dishID})
 	}
 	
-	// Aggregate metrics by question
 	questionMetrics := s.aggregateQuestionMetrics(allFeedback, questions)
 	insights.Questions = questionMetrics
 	
-	// Calculate overall score from numeric questions
 	var totalScore float64
 	var scoreCount int
 	for _, q := range questionMetrics {
@@ -195,20 +182,16 @@ func (s *analyticsService) GetDishInsights(ctx context.Context, dishID uuid.UUID
 		insights.OverallScore = totalScore / float64(scoreCount)
 	}
 	
-	// Identify best aspects and needs attention
 	insights.BestAspects = s.identifyBestAspects(questionMetrics)
 	insights.NeedsAttention = s.identifyNeedsAttention(questionMetrics)
 	
-	// Calculate completion rate
 	// TODO: Track started vs completed questionnaires
 	insights.CompletionRate = 100.0 // Placeholder
 	
-	// Get last feedback time
 	if len(allFeedback) > 0 {
 		insights.LastFeedback = allFeedback[0].CreatedAt
 	}
 	
-	// Calculate weekly change
 	weekAgo := time.Now().AddDate(0, 0, -7)
 	weekAgoFeedback := filterFeedbackByDate(allFeedback, weekAgo)
 	if len(weekAgoFeedback) > 0 {
@@ -216,7 +199,6 @@ func (s *analyticsService) GetDishInsights(ctx context.Context, dishID uuid.UUID
 		insights.WeeklyChange = ((insights.OverallScore - weekScore) / weekScore) * 100
 	}
 	
-	// Determine trend
 	if insights.WeeklyChange > 5 {
 		insights.ScoreTrend = "improving"
 	} else if insights.WeeklyChange < -5 {
@@ -229,8 +211,6 @@ func (s *analyticsService) GetDishInsights(ctx context.Context, dishID uuid.UUID
 }
 
 func (s *analyticsService) GetRestaurantInsights(ctx context.Context, restaurantID uuid.UUID, period string) (*analyticsModels.RestaurantInsights, error) {
-	// Implementation would be similar to dashboard metrics but more comprehensive
-	// This is a placeholder for now
 	return &analyticsModels.RestaurantInsights{
 		RestaurantID:   restaurantID,
 		Period:         period,
@@ -253,7 +233,6 @@ func (s *analyticsService) calculateOverallMetrics(feedback []feedbackModels.Fee
 	var positiveCount int
 	
 	for _, f := range feedback {
-		// Use the overall_rating field for satisfaction calculation
 		if f.OverallRating > 0 {
 			totalScore += float64(f.OverallRating)
 			scoreCount++
@@ -262,9 +241,7 @@ func (s *analyticsService) calculateOverallMetrics(feedback []feedbackModels.Fee
 			}
 		}
 		
-		// Still process responses for recommendation rate and other metrics
 		for _, response := range f.Responses {
-			// Handle different response types
 			switch v := response.Answer.(type) {
 			case bool:
 				// Yes/No responses - need to check question text from questionnaire
@@ -303,7 +280,6 @@ func (s *analyticsService) calculateOverallMetrics(feedback []feedbackModels.Fee
 func (s *analyticsService) aggregateQuestionMetrics(feedback []feedbackModels.Feedback, questions []feedbackModels.Question) []analyticsModels.QuestionMetric {
 	metricsMap := make(map[uuid.UUID]*analyticsModels.QuestionMetric)
 	
-	// Initialize metrics for each question
 	for _, q := range questions {
 		metric := &analyticsModels.QuestionMetric{
 			QuestionID:         q.ID,
@@ -314,7 +290,6 @@ func (s *analyticsService) aggregateQuestionMetrics(feedback []feedbackModels.Fe
 		metricsMap[q.ID] = metric
 	}
 	
-	// Aggregate responses
 	for _, f := range feedback {
 		for _, response := range f.Responses {
 			metric, exists := metricsMap[response.QuestionID]
@@ -324,10 +299,8 @@ func (s *analyticsService) aggregateQuestionMetrics(feedback []feedbackModels.Fe
 			
 			metric.ResponseCount++
 			
-			// Process based on answer type
 			switch v := response.Answer.(type) {
 			case float64:
-				// Numeric response (rating, scale)
 				if metric.AverageScore == nil {
 					avg := v
 					min := v
@@ -336,9 +309,7 @@ func (s *analyticsService) aggregateQuestionMetrics(feedback []feedbackModels.Fe
 					metric.MinScore = &min
 					metric.MaxScore = &max
 				} else {
-					// Update average
 					*metric.AverageScore = (*metric.AverageScore * float64(metric.ResponseCount-1) + v) / float64(metric.ResponseCount)
-					// Update min/max
 					if v < *metric.MinScore {
 						*metric.MinScore = v
 					}
@@ -347,7 +318,6 @@ func (s *analyticsService) aggregateQuestionMetrics(feedback []feedbackModels.Fe
 					}
 				}
 				
-				// Calculate sentiment
 				if v >= 4 {
 					metric.PositiveRate++
 				} else if v >= 3 {
@@ -357,16 +327,13 @@ func (s *analyticsService) aggregateQuestionMetrics(feedback []feedbackModels.Fe
 				}
 				
 			case string:
-				// Text or choice response
 				if metric.QuestionType == string(feedbackModels.QuestionTypeText) {
 					metric.TextResponses = append(metric.TextResponses, v)
 				} else {
-					// Choice response
 					metric.OptionDistribution[v]++
 				}
 				
 			case bool:
-				// Yes/No response
 				if v {
 					metric.OptionDistribution["Yes"]++
 					metric.PositiveRate++
@@ -378,7 +345,6 @@ func (s *analyticsService) aggregateQuestionMetrics(feedback []feedbackModels.Fe
 		}
 	}
 	
-	// Convert sentiment counts to rates
 	for _, metric := range metricsMap {
 		if metric.ResponseCount > 0 {
 			total := float64(metric.ResponseCount)
@@ -388,13 +354,11 @@ func (s *analyticsService) aggregateQuestionMetrics(feedback []feedbackModels.Fe
 		}
 	}
 	
-	// Convert map to slice
 	var metrics []analyticsModels.QuestionMetric
 	for _, m := range metricsMap {
 		metrics = append(metrics, *m)
 	}
 	
-	// Sort by display order or response count
 	sort.Slice(metrics, func(i, j int) bool {
 		return metrics[i].ResponseCount > metrics[j].ResponseCount
 	})
@@ -405,7 +369,6 @@ func (s *analyticsService) aggregateQuestionMetrics(feedback []feedbackModels.Fe
 func (s *analyticsService) identifyTopIssues(feedback []feedbackModels.Feedback) []analyticsModels.QuickIssue {
 	issues := []analyticsModels.QuickIssue{}
 	
-	// Count low ratings
 	lowRatingCount := 0
 	for _, f := range feedback {
 		if f.OverallRating <= 2 {
@@ -487,7 +450,6 @@ func (s *analyticsService) getBottomDishes(dishMap map[uuid.UUID]*analyticsModel
 }
 
 func (s *analyticsService) getRecentFeedbackSummaries(feedback []feedbackModels.Feedback, limit int) []analyticsModels.FeedbackSummary {
-	// Sort by date
 	sort.Slice(feedback, func(i, j int) bool {
 		return feedback[i].CreatedAt.After(feedback[j].CreatedAt)
 	})
@@ -506,7 +468,6 @@ func (s *analyticsService) getRecentFeedbackSummaries(feedback []feedbackModels.
 			CreatedAt:    f.CreatedAt,
 		}
 		
-		// Determine sentiment
 		if f.OverallRating >= 4 {
 			summary.Sentiment = "positive"
 		} else if f.OverallRating >= 3 {
@@ -515,7 +476,6 @@ func (s *analyticsService) getRecentFeedbackSummaries(feedback []feedbackModels.
 			summary.Sentiment = "negative"
 		}
 		
-		// Extract highlight from text responses
 		for _, r := range f.Responses {
 			if str, ok := r.Answer.(string); ok && len(str) > 20 {
 				summary.Highlight = str
@@ -587,7 +547,6 @@ type QRMetrics struct {
 }
 
 func (s *analyticsService) getQRCodeMetrics(ctx context.Context, restaurantID uuid.UUID) (*QRMetrics, error) {
-	// Get all QR codes for restaurant
 	qrCodes, err := s.qrCodeRepo.FindByRestaurantID(ctx, restaurantID)
 	if err != nil {
 		return nil, err
@@ -602,7 +561,6 @@ func (s *analyticsService) getQRCodeMetrics(ctx context.Context, restaurantID uu
 		}
 		metrics.TotalScans += int64(qr.ScansCount)
 		
-		// Count today's scans (approximation based on last_scanned_at)
 		if qr.LastScannedAt != nil && qr.LastScannedAt.After(todayStart) {
 			// This is an approximation - ideally we'd have daily scan logs
 			metrics.ScansToday++
@@ -623,18 +581,15 @@ func (s *analyticsService) getDeviceMetrics(ctx context.Context, restaurantID uu
 	platformBreakdown := make(map[string]int64)
 	
 	for _, f := range feedback {
-		// Count by platform
 		if f.DeviceInfo.Platform != "" {
 			platformBreakdown[f.DeviceInfo.Platform]++
 		}
 		
-		// Count by browser
 		if f.DeviceInfo.Browser != "" {
 			deviceBreakdown[f.DeviceInfo.Browser]++
 		}
 	}
 	
-	// Combine results - you might want to separate these
 	result := make(map[string]int64)
 	for k, v := range platformBreakdown {
 		result[k] = v
@@ -647,7 +602,6 @@ func (s *analyticsService) getDeviceMetrics(ctx context.Context, restaurantID uu
 }
 
 func (s *analyticsService) getAverageResponseTime(ctx context.Context, restaurantID uuid.UUID) (float64, error) {
-	// Get feedback with QR code info
 	feedback, err := s.feedbackRepo.FindByRestaurantIDForAnalytics(ctx, restaurantID, 500)
 	if err != nil {
 		return 0, err
@@ -657,13 +611,11 @@ func (s *analyticsService) getAverageResponseTime(ctx context.Context, restauran
 	var count int
 	
 	for _, f := range feedback {
-		// Get QR code last scanned time
 		qrCode, err := s.qrCodeRepo.FindByID(ctx, f.QRCodeID)
 		if err != nil || qrCode.LastScannedAt == nil {
 			continue
 		}
 		
-		// Calculate time between scan and submission
 		responseTime := f.CreatedAt.Sub(*qrCode.LastScannedAt)
 		if responseTime > 0 && responseTime < 24*time.Hour { // Reasonable bounds
 			totalTime += responseTime.Minutes()
@@ -679,24 +631,20 @@ func (s *analyticsService) getAverageResponseTime(ctx context.Context, restauran
 }
 
 func (s *analyticsService) getPeakUsageHours(ctx context.Context, restaurantID uuid.UUID) ([]int, error) {
-	// Get feedback from last 7 days
 	weekAgo := time.Now().AddDate(0, 0, -7)
 	feedback, err := s.feedbackRepo.FindByRestaurantIDForAnalytics(ctx, restaurantID, 1000)
 	if err != nil {
 		return nil, err
 	}
 	
-	// Filter to last week
 	recentFeedback := filterFeedbackByDate(feedback, weekAgo)
 	
-	// Count by hour
 	hourCounts := make(map[int]int64)
 	for _, f := range recentFeedback {
 		hour := f.CreatedAt.Hour()
 		hourCounts[hour]++
 	}
 	
-	// Find top 3 hours
 	type hourCount struct {
 		hour  int
 		count int64
@@ -711,7 +659,6 @@ func (s *analyticsService) getPeakUsageHours(ctx context.Context, restaurantID u
 		return hours[i].count > hours[j].count
 	})
 	
-	// Return top 3 hours
 	var peakHours []int
 	for i, h := range hours {
 		if i >= 3 {
@@ -724,13 +671,11 @@ func (s *analyticsService) getPeakUsageHours(ctx context.Context, restaurantID u
 }
 
 func (s *analyticsService) getQRCodePerformance(ctx context.Context, restaurantID uuid.UUID) ([]analyticsModels.QRCodePerformance, error) {
-	// Get restaurant name first
 	restaurant, err := s.restaurantRepo.FindByID(ctx, restaurantID)
 	if err != nil {
 		return nil, err
 	}
 	
-	// Get all QR codes for restaurant
 	qrCodes, err := s.qrCodeRepo.FindByRestaurantID(ctx, restaurantID)
 	if err != nil {
 		return nil, err
@@ -739,7 +684,6 @@ func (s *analyticsService) getQRCodePerformance(ctx context.Context, restaurantI
 	var performance []analyticsModels.QRCodePerformance
 	
 	for _, qr := range qrCodes {
-		// Count feedback for this QR code
 		feedbackCount, err := s.feedbackRepo.CountByQRCodeID(ctx, qr.ID)
 		if err != nil {
 			logger.Error("Failed to count feedback for QR code", err, logrus.Fields{
@@ -748,7 +692,6 @@ func (s *analyticsService) getQRCodePerformance(ctx context.Context, restaurantI
 			feedbackCount = 0
 		}
 		
-		// Calculate conversion rate with safety caps
 		conversionRate := 0.0
 		if qr.ScansCount > 0 && feedbackCount > 0 {
 			rate := (float64(feedbackCount) / float64(qr.ScansCount)) * 100
@@ -772,7 +715,6 @@ func (s *analyticsService) getQRCodePerformance(ctx context.Context, restaurantI
 			IsActive:       qr.IsActive,
 		}
 		
-		// Add location if available
 		if qr.Location != nil {
 			perf.Location = *qr.Location
 		}
@@ -780,7 +722,6 @@ func (s *analyticsService) getQRCodePerformance(ctx context.Context, restaurantI
 		performance = append(performance, perf)
 	}
 	
-	// Sort by scan count (most used first)
 	sort.Slice(performance, func(i, j int) bool {
 		return performance[i].ScansCount > performance[j].ScansCount
 	})
@@ -791,10 +732,8 @@ func (s *analyticsService) getQRCodePerformance(ctx context.Context, restaurantI
 // Chart aggregation implementations
 
 func (s *analyticsService) GetRestaurantChartData(ctx context.Context, restaurantID uuid.UUID, filters map[string]interface{}) (*analyticsModels.RestaurantChartData, error) {
-	// Build filter struct from map
 	feedbackFilters := s.buildFeedbackFilters(filters)
 	
-	// Get filtered feedback data  
 	feedback, err := s.feedbackRepo.FindByRestaurantIDWithFilters(ctx, restaurantID, sharedModels.PageRequest{
 		Page: 1, Limit: 10000, // Large limit to get all relevant data
 	}, feedbackFilters)
@@ -802,13 +741,11 @@ func (s *analyticsService) GetRestaurantChartData(ctx context.Context, restauran
 		return nil, err
 	}
 	
-	// Get all dishes for this restaurant to map dish names
 	dishes, err := s.dishRepo.FindByRestaurantID(ctx, restaurantID)
 	if err != nil {
 		logger.Error("Failed to get dishes", err, logrus.Fields{"restaurant_id": restaurantID})
 	}
 	
-	// Create dish ID to name map
 	dishMap := make(map[uuid.UUID]string)
 	if dishes != nil {
 		for _, dish := range dishes {
@@ -816,13 +753,11 @@ func (s *analyticsService) GetRestaurantChartData(ctx context.Context, restauran
 		}
 	}
 	
-	// Aggregate chart data by question across all dishes
 	chartData := &analyticsModels.RestaurantChartData{
 		RestaurantID: restaurantID,
 		Charts:       []analyticsModels.ChartData{},
 	}
 	
-	// Group responses by question_id and dish_id combination
 	type questionDishKey struct {
 		QuestionID uuid.UUID
 		DishID     uuid.UUID
@@ -860,11 +795,9 @@ func (s *analyticsService) GetRestaurantChartData(ctx context.Context, restauran
 		}
 	}
 	
-	// Generate chart data for each question-dish combination
 	for key, responses := range questionDishResponses {
 		meta := questionDishMeta[key]
 		chart := s.aggregateQuestionResponses(key.QuestionID, meta.Text, meta.Type, responses)
-		// Add dish information
 		if meta.DishID != uuid.Nil {
 			chart.DishID = &meta.DishID
 			chart.DishName = meta.DishName
@@ -872,11 +805,9 @@ func (s *analyticsService) GetRestaurantChartData(ctx context.Context, restauran
 		chartData.Charts = append(chartData.Charts, chart)
 	}
 	
-	// Set summary information
 	chartData.Summary.TotalResponses = int64(len(feedback.Data))
 	chartData.Summary.FiltersApplied = filters
 	
-	// Set date range based on data
 	if len(feedback.Data) > 0 {
 		chartData.Summary.DateRange.Start = feedback.Data[len(feedback.Data)-1].CreatedAt
 		chartData.Summary.DateRange.End = feedback.Data[0].CreatedAt
@@ -886,14 +817,9 @@ func (s *analyticsService) GetRestaurantChartData(ctx context.Context, restauran
 }
 
 func (s *analyticsService) GetQuestionChartData(ctx context.Context, questionID uuid.UUID, filters map[string]interface{}) (*analyticsModels.ChartData, error) {
-	// Build filter struct
 	feedbackFilters := s.buildFeedbackFilters(filters)
 	
-	// Get question details first to understand dish context
-	// Note: We'd need to add a method to get question by ID, for now we'll work with what we have
 	
-	// For now, get all feedback that contains this question
-	// This is not optimal - ideally we'd have a direct question-to-feedback lookup
 	allFeedback, err := s.feedbackRepo.FindByRestaurantIDWithFilters(ctx, uuid.UUID{}, sharedModels.PageRequest{
 		Page: 1, Limit: 10000,
 	}, feedbackFilters)
@@ -901,7 +827,6 @@ func (s *analyticsService) GetQuestionChartData(ctx context.Context, questionID 
 		return nil, err
 	}
 	
-	// Filter responses for this specific question
 	var responses []feedbackModels.Response
 	var questionText, questionType string
 	
@@ -1006,7 +931,6 @@ func (s *analyticsService) aggregateRatingResponses(responses []feedbackModels.R
 		}
 	}
 	
-	// Calculate percentages
 	percentages := make(map[string]float64)
 	for key, count := range distribution {
 		if total > 0 {
@@ -1056,7 +980,6 @@ func (s *analyticsService) aggregateScaleResponses(responses []feedbackModels.Re
 		}
 	}
 	
-	// Calculate percentages
 	percentages := make(map[string]float64)
 	for key, count := range distribution {
 		if total > 0 {
@@ -1122,7 +1045,6 @@ func (s *analyticsService) aggregateChoiceResponses(responses []feedbackModels.R
 		}
 	}
 	
-	// Calculate percentages
 	percentages := make(map[string]float64)
 	for option, count := range options {
 		if total > 0 {
@@ -1167,7 +1089,6 @@ func (s *analyticsService) aggregateYesNoResponses(responses []feedbackModels.Re
 				options["No"]++
 			}
 		case string:
-			// Handle string representations
 			lower := strings.ToLower(v)
 			if lower == "yes" || lower == "true" || lower == "1" {
 				options["Yes"]++
@@ -1177,7 +1098,6 @@ func (s *analyticsService) aggregateYesNoResponses(responses []feedbackModels.Re
 		}
 	}
 	
-	// Calculate percentages
 	percentages := make(map[string]float64)
 	for option, count := range options {
 		if total > 0 {
@@ -1198,7 +1118,6 @@ func (s *analyticsService) aggregateTextResponses(responses []feedbackModels.Res
 	var samples []string
 	keywords := make(map[string]int)
 	
-	// Simple keyword-based sentiment analysis
 	positiveWords := []string{"excellent", "great", "amazing", "love", "perfect", "fantastic", "wonderful"}
 	negativeWords := []string{"terrible", "awful", "bad", "hate", "horrible", "disgusting", "worst"}
 	
@@ -1206,7 +1125,6 @@ func (s *analyticsService) aggregateTextResponses(responses []feedbackModels.Res
 		if text, ok := response.Answer.(string); ok && text != "" {
 			lower := strings.ToLower(text)
 			
-			// Simple sentiment detection
 			hasPositive := false
 			hasNegative := false
 			
@@ -1226,7 +1144,6 @@ func (s *analyticsService) aggregateTextResponses(responses []feedbackModels.Res
 				}
 			}
 			
-			// Classify sentiment
 			if hasPositive && !hasNegative {
 				positive++
 			} else if hasNegative && !hasPositive {
@@ -1235,14 +1152,12 @@ func (s *analyticsService) aggregateTextResponses(responses []feedbackModels.Res
 				neutral++
 			}
 			
-			// Add to samples (limit to 5)
 			if len(samples) < 5 {
 				samples = append(samples, text)
 			}
 		}
 	}
 	
-	// Get top keywords
 	var topKeywords []string
 	for word := range keywords {
 		topKeywords = append(topKeywords, word)

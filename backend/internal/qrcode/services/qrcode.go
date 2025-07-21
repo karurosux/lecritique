@@ -43,7 +43,6 @@ func NewQRCodeService(i *do.Injector) (QRCodeService, error) {
 }
 
 func (s *qrCodeService) Generate(ctx context.Context, accountID uuid.UUID, restaurantID uuid.UUID, qrType models.QRCodeType, label string, location *string) (*models.QRCode, error) {
-	// Verify restaurant ownership
 	restaurant, err := s.restaurantRepo.FindByID(ctx, restaurantID)
 	if err != nil {
 		return nil, err
@@ -53,13 +52,11 @@ func (s *qrCodeService) Generate(ctx context.Context, accountID uuid.UUID, resta
 		return nil, sharedRepos.ErrRecordNotFound
 	}
 
-	// Generate unique code
 	code, err := generateUniqueCode()
 	if err != nil {
 		return nil, err
 	}
 
-	// Create QR code
 	qrCode := &models.QRCode{
 		RestaurantID: restaurantID,
 		Code:         code,
@@ -90,7 +87,6 @@ func (s *qrCodeService) GetByCode(ctx context.Context, code string) (*models.QRC
 }
 
 func (s *qrCodeService) GetByRestaurantID(ctx context.Context, accountID uuid.UUID, restaurantID uuid.UUID) ([]models.QRCode, error) {
-	// Verify restaurant ownership
 	restaurant, err := s.restaurantRepo.FindByID(ctx, restaurantID)
 	if err != nil {
 		return nil, err

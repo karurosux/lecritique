@@ -47,7 +47,6 @@ func (s *QuestionnaireService) Create(ctx context.Context, accountID, restaurant
 		IsActive:     true,
 	}
 
-	// If it's a default questionnaire, deactivate other defaults
 	if questionnaire.IsDefault {
 		if err := s.repo.DeactivateDefaultQuestionnaires(ctx, restaurantID); err != nil {
 			return nil, err
@@ -127,7 +126,6 @@ func (s *QuestionnaireService) AddQuestion(ctx context.Context, accountID, quest
 
 	// TODO: Validate questionnaire belongs to account
 
-	// Get the next display order
 	maxOrder, err := s.repo.GetMaxQuestionOrder(ctx, questionnaireID)
 	if err != nil {
 		return nil, err
@@ -185,7 +183,6 @@ func (s *QuestionnaireService) ReorderQuestions(ctx context.Context, accountID, 
 	return s.repo.ReorderQuestions(ctx, questionnaireID, questionIDs)
 }
 
-// GenerateQuestionsForDish uses AI to generate questions based on dish details
 func (s *QuestionnaireService) GenerateQuestionsForDish(ctx context.Context, accountID uuid.UUID, dish *menuModels.Dish) ([]aiServices.GeneratedQuestion, error) {
 	if s.questionGenerator == nil {
 		return nil, fmt.Errorf("AI question generation is not configured")
@@ -201,19 +198,16 @@ func (s *QuestionnaireService) GenerateQuestionsForDish(ctx context.Context, acc
 	return questions, nil
 }
 
-// GenerateAndSaveQuestionnaireForDish generates AI questions and creates a complete questionnaire for a dish
 func (s *QuestionnaireService) GenerateAndSaveQuestionnaireForDish(ctx context.Context, accountID uuid.UUID, dish *menuModels.Dish, name, description string, isDefault bool) (*models.Questionnaire, error) {
 	if s.questionGenerator == nil {
 		return nil, fmt.Errorf("AI question generation is not configured")
 	}
 
-	// Generate questions using AI
 	generatedQuestions, err := s.questionGenerator.GenerateQuestionsForDish(ctx, dish)
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate questions: %w", err)
 	}
 
-	// Create the questionnaire
 	questionnaire := &models.Questionnaire{
 		RestaurantID: dish.RestaurantID,
 		DishID:       &dish.ID,
@@ -223,19 +217,16 @@ func (s *QuestionnaireService) GenerateAndSaveQuestionnaireForDish(ctx context.C
 		IsActive:     true,
 	}
 
-	// If it's a default questionnaire, deactivate other defaults
 	if questionnaire.IsDefault {
 		if err := s.repo.DeactivateDefaultQuestionnaires(ctx, dish.RestaurantID); err != nil {
 			return nil, err
 		}
 	}
 
-	// Create the questionnaire
 	if err := s.repo.Create(ctx, questionnaire); err != nil {
 		return nil, err
 	}
 
-	// Convert generated questions to database questions and add them
 	for i, genQ := range generatedQuestions {
 		question := &models.Question{
 			// TODO: Update this to use new Question structure with DishID
@@ -256,6 +247,5 @@ func (s *QuestionnaireService) GenerateAndSaveQuestionnaireForDish(ctx context.C
 		}
 	}
 
-	// Reload the questionnaire with questions
 	return s.repo.FindByIDWithQuestions(ctx, questionnaire.ID)
 }

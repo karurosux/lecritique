@@ -88,13 +88,11 @@ func NewAuthService(i *do.Injector) (AuthService, error) {
 }
 
 func (s *authService) Register(ctx context.Context, data RegisterData) (*models.Account, error) {
-	// Check if account already exists
 	existing, _ := s.accountRepo.FindByEmail(ctx, data.Email)
 	if existing != nil {
 		return nil, errors.ErrConflict
 	}
 
-	// Create new account
 	account := &models.Account{
 		Email:     data.Email,
 		Name:      data.Name,
@@ -103,25 +101,18 @@ func (s *authService) Register(ctx context.Context, data RegisterData) (*models.
 		IsActive:    true,
 	}
 
-	// Hash password
 	if err := account.SetPassword(data.Password); err != nil {
 		return nil, err
 	}
 
-	// Save account
 	if err := s.accountRepo.Create(ctx, account); err != nil {
 		return nil, err
 	}
 
-	// If this is not a team member registration (no invitation), create owner team member record
-	// This ensures the owner appears in the team members list
-	// The migration script will handle existing accounts
-	// For new accounts, the frontend should handle creating the owner team member
 	if data.Name != "" {
 		log.Printf("New organization account created: %s. Owner team member should be created.", account.ID)
 	}
 
-	// Send verification email
 	if err := s.SendEmailVerification(ctx, account.ID); err != nil {
 		// Log error but don't fail registration
 		log.Printf("Failed to send verification email for new account %s: %v", account.ID, err)
@@ -131,23 +122,19 @@ func (s *authService) Register(ctx context.Context, data RegisterData) (*models.
 }
 
 func (s *authService) Login(ctx context.Context, email, password string) (string, *models.Account, error) {
-	// Find account
 	account, err := s.accountRepo.FindByEmail(ctx, email)
 	if err != nil {
 		return "", nil, errors.ErrInvalidCredentials
 	}
 
-	// Check password
 	if !account.CheckPassword(password) {
 		return "", nil, errors.ErrInvalidCredentials
 	}
 
-	// Check if account is active
 	if !account.IsActive {
 		return "", nil, errors.ErrUnauthorized
 	}
 
-	// Check if email is verified
 	if !account.EmailVerified {
 		return "", nil, errors.NewWithDetails("EMAIL_NOT_VERIFIED", "Please verify your email address before logging in", 401, nil)
 	}
@@ -161,7 +148,6 @@ func (s *authService) Login(ctx context.Context, email, password string) (string
 		}
 	}
 
-	// Generate token
 	token, err := s.generateToken(account)
 	if err != nil {
 		return "", nil, err
@@ -197,7 +183,6 @@ func (s *authService) generateToken(account *models.Account) (string, error) {
 		claims.Role = teamMember.Role
 	}
 
-	// Get subscription features
 	subscription, err := s.subscriptionService.GetUserSubscription(context.Background(), claims.AccountID)
 	if err != nil {
 		// Log the error but don't fail token generation - user might not have a subscription yet
@@ -243,35 +228,29 @@ func (s *authService) RefreshToken(ctx context.Context, oldToken string) (string
 		return "", err
 	}
 
-	// Get account
 	account, err := s.accountRepo.FindByID(ctx, claims.MemberID)
 	if err != nil {
 		return "", err
 	}
 
-	// Generate new token
 	return s.generateToken(account)
 }
 
 func (s *authService) SendEmailVerification(ctx context.Context, accountID uuid.UUID) error {
-	// Get account
 	account, err := s.accountRepo.FindByID(ctx, accountID)
 	if err != nil {
 		return err
 	}
 
-	// Check if already verified
 	if account.EmailVerified {
 		return errors.NewWithDetails("EMAIL_ALREADY_VERIFIED", "Email already verified", 400, nil)
 	}
 
-	// Generate token
 	token, err := models.GenerateToken()
 	if err != nil {
 		return err
 	}
 
-	// Create verification token (24 hours expiry)
 	verificationToken := &models.VerificationToken{
 		AccountID: accountID,
 		Token:     token,
@@ -279,17 +258,14 @@ func (s *authService) SendEmailVerification(ctx context.Context, accountID uuid.
 		ExpiresAt: time.Now().Add(24 * time.Hour),
 	}
 
-	// Save token
 	if err := s.tokenRepo.Create(ctx, verificationToken); err != nil {
 		return err
 	}
 
-	// Send email
 	return s.emailService.SendVerificationEmail(ctx, account.Email, token)
 }
 
 func (s *authService) ResendVerificationEmail(ctx context.Context, email string) error {
-	// Find account by email
 	account, err := s.accountRepo.FindByEmail(ctx, email)
 	if err != nil {
 		// Don't reveal if email exists - just log and return nil
@@ -297,19 +273,16 @@ func (s *authService) ResendVerificationEmail(ctx context.Context, email string)
 		return nil
 	}
 
-	// Check if already verified
 	if account.EmailVerified {
 		log.Printf("Resend verification requested for already verified account: %s", account.ID)
 		return nil
 	}
 
-	// Delete any existing verification tokens for this account
 	if err := s.tokenRepo.DeleteByAccountAndType(ctx, account.ID, models.TokenTypeEmailVerification); err != nil {
 		log.Printf("Failed to delete existing verification tokens: %v", err)
 		// Continue anyway
 	}
 
-	// Generate new verification token
 	token, err := models.GenerateToken()
 	if err != nil {
 		return err
@@ -321,57 +294,47 @@ func (s *authService) ResendVerificationEmail(ctx context.Context, email string)
 		ExpiresAt: time.Now().Add(24 * time.Hour),
 	}
 
-	// Save token
 	if err := s.tokenRepo.Create(ctx, verificationToken); err != nil {
 		return err
 	}
 
-	// Send email
 	return s.emailService.SendVerificationEmail(ctx, account.Email, token)
 }
 
 func (s *authService) VerifyEmail(ctx context.Context, token string) error {
-	// Find token
 	verificationToken, err := s.tokenRepo.FindByToken(ctx, token)
 	if err != nil {
 		return errors.NewWithDetails("INVALID_TOKEN", "Invalid or expired verification token", 400, nil)
 	}
 
-	// Check if token is valid
 	if !verificationToken.IsValid() {
 		return errors.NewWithDetails("INVALID_TOKEN", "Invalid or expired verification token", 400, nil)
 	}
 
-	// Check token type
 	if verificationToken.Type != models.TokenTypeEmailVerification {
 		return errors.NewWithDetails("INVALID_TOKEN", "Invalid token type", 400, nil)
 	}
 
-	// Mark account as verified
 	err = s.accountRepo.UpdateEmailVerification(ctx, verificationToken.AccountID, true)
 	if err != nil {
 		return err
 	}
 
-	// Mark token as used
 	return s.tokenRepo.MarkAsUsed(ctx, verificationToken.ID)
 }
 
 func (s *authService) SendPasswordReset(ctx context.Context, email string) error {
-	// Find account
 	account, err := s.accountRepo.FindByEmail(ctx, email)
 	if err != nil {
 		// Don't reveal if email exists or not for security
 		return nil
 	}
 
-	// Generate token
 	token, err := models.GenerateToken()
 	if err != nil {
 		return err
 	}
 
-	// Create reset token (1 hour expiry)
 	resetToken := &models.VerificationToken{
 		AccountID: account.ID,
 		Token:     token,
@@ -379,66 +342,54 @@ func (s *authService) SendPasswordReset(ctx context.Context, email string) error
 		ExpiresAt: time.Now().Add(1 * time.Hour),
 	}
 
-	// Save token
 	if err := s.tokenRepo.Create(ctx, resetToken); err != nil {
 		return err
 	}
 
-	// Send email
 	return s.emailService.SendPasswordResetEmail(ctx, email, token)
 }
 
 func (s *authService) ResetPassword(ctx context.Context, token, newPassword string) error {
-	// Find token
 	resetToken, err := s.tokenRepo.FindByToken(ctx, token)
 	if err != nil {
 		return errors.NewWithDetails("INVALID_TOKEN", "Invalid or expired reset token", 400, nil)
 	}
 
-	// Check if token is valid
 	if !resetToken.IsValid() {
 		return errors.NewWithDetails("INVALID_TOKEN", "Invalid or expired reset token", 400, nil)
 	}
 
-	// Check token type
 	if resetToken.Type != models.TokenTypePasswordReset {
 		return errors.NewWithDetails("INVALID_TOKEN", "Invalid token type", 400, nil)
 	}
 
-	// Get account
 	account, err := s.accountRepo.FindByID(ctx, resetToken.AccountID)
 	if err != nil {
 		return err
 	}
 
-	// Update password
 	if err := account.SetPassword(newPassword); err != nil {
 		return err
 	}
 
-	// Save account
 	if err := s.accountRepo.Update(ctx, account); err != nil {
 		return err
 	}
 
-	// Mark token as used
 	return s.tokenRepo.MarkAsUsed(ctx, resetToken.ID)
 }
 
 func (s *authService) RequestEmailChange(ctx context.Context, accountID uuid.UUID, newEmail string) (string, error) {
-	// Check if new email is already in use
 	existingAccount, _ := s.accountRepo.FindByEmail(ctx, newEmail)
 	if existingAccount != nil {
 		return "", errors.NewWithDetails("EMAIL_EXISTS", "Email already in use", 400, nil)
 	}
 
-	// Get current account
 	account, err := s.accountRepo.FindByID(ctx, accountID)
 	if err != nil {
 		return "", err
 	}
 
-	// Check if new email is same as current
 	if account.Email == newEmail {
 		return "", errors.NewWithDetails("SAME_EMAIL", "New email must be different from current email", 400, nil)
 	}
@@ -447,18 +398,15 @@ func (s *authService) RequestEmailChange(ctx context.Context, accountID uuid.UUI
 	if s.config.IsDevMode() && !s.config.IsSMTPConfigured() {
 		oldEmail := account.Email
 
-		// Update email directly
 		account.Email = newEmail
 		account.EmailVerified = true
 		now := time.Now()
 		account.EmailVerifiedAt = &now
 
-		// Save account
-		if err := s.accountRepo.Update(ctx, account); err != nil {
+			if err := s.accountRepo.Update(ctx, account); err != nil {
 			return "", err
 		}
 
-		// Generate new JWT token with updated email
 		newToken, err := s.generateToken(account)
 		if err != nil {
 			return "", err
@@ -470,14 +418,11 @@ func (s *authService) RequestEmailChange(ctx context.Context, accountID uuid.UUI
 		return newToken, nil
 	}
 
-	// Production mode or SMTP configured - use token verification
-	// Generate token
 	token, err := models.GenerateToken()
 	if err != nil {
 		return "", err
 	}
 
-	// Create email change token (24 hour expiry)
 	changeToken := &models.VerificationToken{
 		AccountID: accountID,
 		Token:     token,
@@ -486,12 +431,10 @@ func (s *authService) RequestEmailChange(ctx context.Context, accountID uuid.UUI
 		NewEmail:  newEmail,
 	}
 
-	// Save token
 	if err := s.tokenRepo.Create(ctx, changeToken); err != nil {
 		return "", err
 	}
 
-	// Send verification email to new address
 	if err := s.emailService.SendEmailChangeVerification(ctx, newEmail, token); err != nil {
 		return "", err
 	}
@@ -500,51 +443,42 @@ func (s *authService) RequestEmailChange(ctx context.Context, accountID uuid.UUI
 }
 
 func (s *authService) ConfirmEmailChange(ctx context.Context, token string) (string, error) {
-	// Find token
 	changeToken, err := s.tokenRepo.FindByToken(ctx, token)
 	if err != nil {
 		return "", errors.NewWithDetails("INVALID_TOKEN", "Invalid or expired token", 400, nil)
 	}
 
-	// Check if token is valid
 	if !changeToken.IsValid() {
 		return "", errors.NewWithDetails("INVALID_TOKEN", "Invalid or expired token", 400, nil)
 	}
 
-	// Check token type
 	if changeToken.Type != models.TokenTypeEmailChange {
 		return "", errors.NewWithDetails("INVALID_TOKEN", "Invalid token type", 400, nil)
 	}
 
-	// Check if new email is still available
 	existingAccount, _ := s.accountRepo.FindByEmail(ctx, changeToken.NewEmail)
 	if existingAccount != nil {
 		return "", errors.NewWithDetails("EMAIL_EXISTS", "Email is no longer available", 400, nil)
 	}
 
-	// Get account
 	account, err := s.accountRepo.FindByID(ctx, changeToken.AccountID)
 	if err != nil {
 		return "", err
 	}
 
-	// Update email
 	account.Email = changeToken.NewEmail
 	account.EmailVerified = true
 	now := time.Now()
 	account.EmailVerifiedAt = &now
 
-	// Save account
 	if err := s.accountRepo.Update(ctx, account); err != nil {
 		return "", err
 	}
 
-	// Mark token as used
 	if err := s.tokenRepo.MarkAsUsed(ctx, changeToken.ID); err != nil {
 		return "", err
 	}
 
-	// Generate new JWT token with updated email
 	newToken, err := s.generateToken(account)
 	if err != nil {
 		return "", err
@@ -554,27 +488,22 @@ func (s *authService) ConfirmEmailChange(ctx context.Context, token string) (str
 }
 
 func (s *authService) RequestDeactivation(ctx context.Context, accountID uuid.UUID) error {
-	// Find account
 	account, err := s.accountRepo.FindByID(ctx, accountID)
 	if err != nil {
 		return errors.ErrNotFound
 	}
 
-	// Check if already has pending deactivation
 	if account.IsPendingDeactivation() {
 		return errors.NewWithDetails("DEACTIVATION_EXISTS", "Account already has a pending deactivation request", 400, nil)
 	}
 
-	// Set deactivation request timestamp
 	now := time.Now()
 	account.DeactivationRequestedAt = &now
 
-	// Update account
 	if err := s.accountRepo.Update(ctx, account); err != nil {
 		return err
 	}
 
-	// Send notification email
 	deactivationDate := account.GetDeactivationDate()
 	if deactivationDate != nil {
 		err = s.emailService.SendDeactivationRequest(ctx, account.Email, deactivationDate.Format("January 2, 2006"))
@@ -588,26 +517,21 @@ func (s *authService) RequestDeactivation(ctx context.Context, accountID uuid.UU
 }
 
 func (s *authService) CancelDeactivation(ctx context.Context, accountID uuid.UUID) error {
-	// Find account
 	account, err := s.accountRepo.FindByID(ctx, accountID)
 	if err != nil {
 		return errors.ErrNotFound
 	}
 
-	// Check if has pending deactivation
 	if !account.IsPendingDeactivation() {
 		return errors.NewWithDetails("NO_DEACTIVATION", "No pending deactivation request found", 400, nil)
 	}
 
-	// Clear deactivation request
 	account.DeactivationRequestedAt = nil
 
-	// Update account
 	if err := s.accountRepo.Update(ctx, account); err != nil {
 		return err
 	}
 
-	// Send confirmation email
 	err = s.emailService.SendDeactivationCancelled(ctx, account.Email)
 	if err != nil {
 		// Log error but don't fail the cancellation
@@ -618,7 +542,6 @@ func (s *authService) CancelDeactivation(ctx context.Context, accountID uuid.UUI
 }
 
 func (s *authService) ProcessPendingDeactivations(ctx context.Context) error {
-	// Find all accounts that should be deactivated
 	accounts, err := s.accountRepo.FindAccountsPendingDeactivation(ctx)
 	if err != nil {
 		return err
@@ -626,7 +549,6 @@ func (s *authService) ProcessPendingDeactivations(ctx context.Context) error {
 
 	for _, account := range accounts {
 		if account.ShouldBeDeactivated() {
-			// Deactivate the account
 			account.IsActive = false
 			account.DeactivationRequestedAt = nil
 
@@ -635,7 +557,6 @@ func (s *authService) ProcessPendingDeactivations(ctx context.Context) error {
 				continue
 			}
 
-			// Send final notification
 			err = s.emailService.SendAccountDeactivated(ctx, account.Email)
 			if err != nil {
 				log.Printf("Failed to send deactivation completion email for account %s: %v", account.ID, err)
@@ -649,18 +570,15 @@ func (s *authService) ProcessPendingDeactivations(ctx context.Context) error {
 }
 
 func (s *authService) UpdateProfile(ctx context.Context, accountID uuid.UUID, updates map[string]interface{}) (*models.Account, error) {
-	// Validate that we have at least one update
 	if len(updates) == 0 {
 		return nil, errors.New("BAD_REQUEST", "No updates provided", http.StatusBadRequest)
 	}
 
-	// Get the account first
 	account, err := s.accountRepo.FindByID(ctx, accountID)
 	if err != nil {
 		return nil, err
 	}
 
-	// Update the account fields manually
 	if name, ok := updates["name"].(string); ok {
 		account.Name = name
 	}
@@ -668,7 +586,6 @@ func (s *authService) UpdateProfile(ctx context.Context, accountID uuid.UUID, up
 		account.Phone = phone
 	}
 
-	// Save the updated account
 	err = s.accountRepo.Update(ctx, account)
 	if err != nil {
 		return nil, err

@@ -26,7 +26,6 @@ export interface AuthState {
   error: string | null;
 }
 
-// Check for stored auth data to set initial state properly
 const getInitialState = (): AuthState => {
   const baseState = {
     user: null,
@@ -54,7 +53,6 @@ const getInitialState = (): AuthState => {
           isAuthenticated: true
         };
       } catch (error) {
-        // Clear invalid stored data
         localStorage.removeItem(APP_CONFIG.localStorageKeys.authToken);
         localStorage.removeItem(APP_CONFIG.localStorageKeys.authUser);
       }
@@ -69,7 +67,6 @@ const initialState = getInitialState();
 function createAuthStore() {
   const { subscribe, set, update } = writable<AuthState>(initialState);
 
-  // Initialize API client
   const api = new Api({
     baseURL: 'http://localhost:8080',
     securityWorker: (securityData) => {
@@ -83,7 +80,6 @@ function createAuthStore() {
     }
   });
 
-  // Set initial API security data if we have a token
   if (initialState.token) {
     api.setSecurityData(initialState.token);
   }
@@ -101,16 +97,13 @@ function createAuthStore() {
           const { token } = response.data.data;
 
           if (token) {
-            // Decode JWT to extract all user data
             const payload = decodeJwt(token);
             if (!payload) {
               throw new Error('Invalid token received');
             }
 
-            // Extract subscription features from JWT token
             const subscriptionFeatures = getSubscriptionFeaturesFromToken(token);
 
-            // Create user object from JWT payload
             const user: User = {
               id: payload.member_id || payload.account_id,
               email: payload.email,
@@ -122,13 +115,11 @@ function createAuthStore() {
               role: payload.role as UserRole
             };
 
-            // Store in localStorage
             if (browser) {
               localStorage.setItem(APP_CONFIG.localStorageKeys.authToken, token);
               localStorage.setItem(APP_CONFIG.localStorageKeys.authUser, JSON.stringify(user));
             }
 
-            // Set security data for API client
             api.setSecurityData(token);
 
             update(state => ({
@@ -153,7 +144,6 @@ function createAuthStore() {
         const errorCode = error.response?.data?.error?.code;
         const errorMessage = error.response?.data?.error?.message || error.message || 'Login failed';
 
-        // Check if it's an email verification error
         if (errorCode === 'EMAIL_NOT_VERIFIED') {
           update(state => ({
             ...state,
@@ -205,20 +195,16 @@ function createAuthStore() {
     },
 
     async logout() {
-      // Clear localStorage
       if (browser) {
         localStorage.removeItem(APP_CONFIG.localStorageKeys.authToken);
         localStorage.removeItem(APP_CONFIG.localStorageKeys.authUser);
       }
 
-      // Clear security data
       api.setSecurityData(null);
 
-      // Reset subscription data
       const { subscription } = await import('./subscription');
       subscription.reset();
 
-      // Reset store to clean initial state
       set({
         user: null,
         token: null,
@@ -228,7 +214,6 @@ function createAuthStore() {
         error: null
       });
 
-      // Return a promise to ensure async completion
       return Promise.resolve();
     },
 
@@ -239,15 +224,12 @@ function createAuthStore() {
         if (response.data.success && response.data.data?.token) {
           const newToken = response.data.data.token;
 
-          // Extract subscription features from new token
           const subscriptionFeatures = getSubscriptionFeaturesFromToken(newToken);
 
-          // Update stored token
           if (browser) {
             localStorage.setItem('auth_token', newToken);
           }
 
-          // Update security data
           api.setSecurityData(newToken);
 
           update(state => ({
@@ -272,21 +254,17 @@ function createAuthStore() {
     },
 
     updateToken(newToken: string) {
-      // Validate the token first
       try {
         const payload = decodeJwt(newToken);
         if (!payload) {
           throw new Error('Invalid token payload');
         }
 
-        // Extract subscription features from new token
         const subscriptionFeatures = getSubscriptionFeaturesFromToken(newToken);
 
-        // Update stored token
         if (browser) {
           localStorage.setItem(APP_CONFIG.localStorageKeys.authToken, newToken);
 
-          // Update user info from token if email changed
           const storedUser = localStorage.getItem(APP_CONFIG.localStorageKeys.authUser);
           if (storedUser && payload.email) {
             const user = JSON.parse(storedUser);
@@ -295,7 +273,6 @@ function createAuthStore() {
           }
         }
 
-        // Update security data
         api.setSecurityData(newToken);
 
         update(state => ({
@@ -318,37 +295,29 @@ function createAuthStore() {
         user: updatedUser
       }));
 
-      // Update stored user
       if (browser) {
         localStorage.setItem(APP_CONFIG.localStorageKeys.authUser, JSON.stringify(updatedUser));
       }
     },
 
-    // Expose API client for authenticated requests
     getApi() {
       return api;
     }
   };
 
-  // Add response interceptor to handle authentication errors
   const originalRequest = api.request.bind(api);
   api.request = async (params: any) => {
     try {
       return await originalRequest(params);
     } catch (error: any) {
-      // Check for authentication errors
       if (error.response?.status === 401 || error.response?.status === 403) {
-        // Check if it's an email verification error - don't logout for this
         const errorCode = error.response?.data?.error?.code;
         if (errorCode === 'EMAIL_NOT_VERIFIED') {
-          // Don't logout or redirect, let the login handler deal with it
           throw error;
         }
 
-        // Token is invalid, logout user
         await authStore.logout();
 
-        // Redirect to login if we're in the browser
         if (browser && typeof window !== 'undefined') {
           window.location.href = '/login';
         }

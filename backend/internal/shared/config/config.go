@@ -67,10 +67,8 @@ type AIConfig struct {
 }
 
 func Load() (*Config, error) {
-	// Load .env file
 	_ = godotenv.Load()
 
-	// Set defaults
 	viper.SetDefault("APP_NAME", "LeCritique")
 	viper.SetDefault("APP_ENV", "development")
 	viper.SetDefault("APP_PORT", "8080")
@@ -86,16 +84,13 @@ func Load() (*Config, error) {
 	viper.SetDefault("AI_PROVIDER", "anthropic")
 	viper.SetDefault("AI_MODEL", "claude-3-haiku-20240307")
 
-	// Read from environment
 	viper.AutomaticEnv()
 
-	// Parse JWT expiration
 	expDuration, err := time.ParseDuration(viper.GetString("JWT_EXPIRATION"))
 	if err != nil {
 		return nil, fmt.Errorf("invalid JWT_EXPIRATION: %w", err)
 	}
 
-	// SMTP config (optional)
 	var smtpConfig *SMTPConfig
 	if viper.GetString("SMTP_HOST") != "" {
 		smtpConfig = &SMTPConfig{

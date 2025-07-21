@@ -12,19 +12,16 @@ import (
 )
 
 func main() {
-	// Load configuration
 	cfg, err := config.Load()
 	if err != nil {
 		log.Fatal("Failed to load configuration:", err)
 	}
 
-	// Connect to database
 	db, err := database.Initialize(cfg)
 	if err != nil {
 		log.Fatal("Failed to connect to database:", err)
 	}
 
-	// Default test user data
 	email := "admin@lecritique.com"
 	password := "admin123"
 	companyName := "LeCritique Demo Restaurant"
@@ -33,7 +30,6 @@ func main() {
 	fmt.Printf("Company: %s\n", companyName)
 	fmt.Printf("Password: %s\n", password)
 
-	// Check if user already exists
 	var existingAccount struct {
 		ID string `gorm:"column:id"`
 	}
@@ -53,13 +49,11 @@ func main() {
 		log.Fatal("Failed to check existing user:", result.Error)
 	}
 
-	// Hash password
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
 		log.Fatal("Failed to hash password:", err)
 	}
 
-	// Get starter subscription plan ID
 	var subscriptionPlan struct {
 		ID string `gorm:"column:id"`
 	}
@@ -71,7 +65,6 @@ func main() {
 		subscriptionPlanID = subscriptionPlan.ID
 	}
 
-	// Insert the account
 	var newAccount struct {
 		ID string `gorm:"column:id"`
 	}
@@ -88,7 +81,6 @@ func main() {
 	
 	accountID := newAccount.ID
 
-	// Create a subscription if we have a plan
 	if subscriptionPlanID != "" {
 		err = db.Exec(`
 			INSERT INTO subscriptions (account_id, plan_id, status, current_period_start, current_period_end)
@@ -102,7 +94,6 @@ func main() {
 		}
 	}
 
-	// Create a sample restaurant
 	var newRestaurant struct {
 		ID string `gorm:"column:id"`
 	}
@@ -118,7 +109,6 @@ func main() {
 		restaurantID := newRestaurant.ID
 		fmt.Println("✅ Created sample restaurant")
 
-		// Create a sample location
 		var newLocation struct {
 			ID string `gorm:"column:id"`
 		}
@@ -134,7 +124,6 @@ func main() {
 			locationID := newLocation.ID
 			fmt.Println("✅ Created sample location")
 
-			// Create a sample QR code
 			err = db.Exec(`
 				INSERT INTO qr_codes (restaurant_id, location_id, code, label, type, is_active, expires_at)
 				VALUES (?, ?, ?, ?, ?, true, NOW() + INTERVAL '1 year')
@@ -147,7 +136,6 @@ func main() {
 			}
 		}
 
-		// Create sample dishes
 		dishes := []struct {
 			name        string
 			description string

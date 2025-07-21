@@ -76,21 +76,18 @@
   let teamMembers = $derived(subscriptionState.subscription?.team_members || []);
   let hasInitialized = $state(false);
 
-  // Handle authentication and initial load
   $effect(() => {
     if (!authState.isAuthenticated) {
       goto("/login");
       return;
     }
     
-    // Only load restaurants once when authenticated
     if (authState.isAuthenticated && !hasInitialized) {
       hasInitialized = true;
       loadRestaurants();
     }
   });
 
-  // Update permissions when restaurants change
   $effect(() => {
     if (authState.isAuthenticated && restaurants.length >= 0) {
       checkCreatePermission();

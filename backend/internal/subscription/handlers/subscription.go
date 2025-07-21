@@ -80,7 +80,6 @@ func (h *SubscriptionHandler) GetUserSubscription(c echo.Context) error {
 
 	log.Printf("GetUserSubscription called for account: %s", accountID)
 
-	// Check if this user is a team member of another account using service
 	teamMember, err := h.teamMemberService.GetMemberByMemberID(ctx, accountID)
 	var externalMemberships []authModels.TeamMember
 	if err == nil && teamMember != nil && teamMember.AccountID != accountID {
@@ -91,13 +90,11 @@ func (h *SubscriptionHandler) GetUserSubscription(c echo.Context) error {
 	
 	// If user is a team member of another organization, get that organization's subscription
 	if len(externalMemberships) > 0 {
-		// Use the organization's account ID
 		orgAccountID := externalMemberships[0].AccountID
 		log.Printf("Team member detected, fetching subscription for organization: %s", orgAccountID)
 		subscription, err := h.subscriptionService.GetUserSubscription(ctx, orgAccountID)
 		if err != nil {
 			log.Printf("Failed to get organization subscription: %v", err)
-			// If no subscription found, return null instead of error
 			if errors.Is(err, sharedRepos.ErrRecordNotFound) {
 				return response.Success(c, nil)
 			}
@@ -107,12 +104,10 @@ func (h *SubscriptionHandler) GetUserSubscription(c echo.Context) error {
 		return response.Success(c, subscription)
 	}
 
-	// Otherwise, get the user's own subscription
 	log.Printf("Not a team member, fetching own subscription for account: %s", accountID)
 	subscription, err := h.subscriptionService.GetUserSubscription(ctx, accountID)
 	if err != nil {
 		log.Printf("Failed to get user subscription: %v", err)
-		// If no subscription found, return null instead of error
 		if errors.Is(err, sharedRepos.ErrRecordNotFound) {
 			return response.Success(c, nil)
 		}
@@ -144,7 +139,6 @@ func (h *SubscriptionHandler) GetUserUsage(c echo.Context) error {
 
 	log.Printf("GetUserUsage called for account: %s", accountID)
 
-	// Check if this user is a team member of another account using service
 	teamMember, err := h.teamMemberService.GetMemberByMemberID(ctx, accountID)
 	var targetAccountID uuid.UUID
 	
@@ -196,7 +190,6 @@ func (h *SubscriptionHandler) CanUserCreateRestaurant(c echo.Context) error {
 		return response.Error(c, err)
 	}
 
-	// Check if this user is a team member of another account using service
 	teamMember, err := h.teamMemberService.GetMemberByMemberID(ctx, accountID)
 	
 	// If user is a team member, use the organization's account ID

@@ -77,7 +77,6 @@
 
       const response = await api.api.v1RestaurantsCreate(restaurantData);
       
-      // Create restaurant object matching the expected interface
       const newRestaurant = {
         id: response.data.id,
         name: response.data.name,
@@ -109,7 +108,6 @@
     }
   }
 
-  // Bind keyboard shortcut on mount
   import { onMount, onDestroy } from 'svelte';
   import { browser } from '$app/environment';
   

@@ -44,22 +44,17 @@ type Server struct {
 func NewWithDI(cfg *config.Config, db *gorm.DB) *Server {
 	e := echo.New()
 	
-	// Configure Echo
 	e.HideBanner = false
 	e.HidePort = false
 	
-	// Set logger level based on environment
 	if cfg.App.Env == "development" {
 		logger.SetLevel("debug")
 	}
 	
-	// Custom error handler
 	e.HTTPErrorHandler = customErrorHandler
 	
-	// Setup middleware
 	setupMiddleware(e, cfg)
 	
-	// Create injector and register all services
 	injector := do.New()
 	providers.RegisterAll(injector, cfg, db)
 	
@@ -70,20 +65,16 @@ func NewWithDI(cfg *config.Config, db *gorm.DB) *Server {
 		injector: injector,
 	}
 	
-	// Setup routes
 	s.setupRoutes()
 	
-	// Setup cron jobs
 	s.setupCronJobs()
 	
 	return s
 }
 
 func (s *Server) setupRoutes() {
-	// Health check route
 	s.echo.GET("/api/health", s.healthCheck)
 
-	// Swagger documentation
 	swaggerGroup := s.echo.Group("/swagger")
 	swaggerGroup.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
@@ -94,14 +85,11 @@ func (s *Server) setupRoutes() {
 	})
 	swaggerGroup.GET("/*", echoSwagger.WrapHandler)
 
-	// Rate limiter
 	rateLimiter := sharedMiddleware.NewRateLimiter(100, time.Minute)
 
-	// API v1 routes
 	v1 := s.echo.Group("/api/v1")
 	v1.Use(rateLimiter.Middleware())
 
-	// Create and register domain modules
 	authMod := authModule.NewModule(s.injector)
 	authMod.RegisterRoutes(v1)
 	
@@ -125,7 +113,6 @@ func (s *Server) setupRoutes() {
 }
 
 func (s *Server) setupCronJobs() {
-	// Get auth service from injector for cron jobs
 	authService := do.MustInvoke[authServices.AuthService](s.injector)
 	s.cron = cron.SetupDeactivationCron(authService)
 	logger.Info("Cron jobs initialized", logrus.Fields{

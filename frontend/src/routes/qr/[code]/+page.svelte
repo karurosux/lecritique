@@ -93,18 +93,15 @@
     
     try {
       loadingDishes = true;
-      // Create a new API instance for public endpoints
       const publicApi = new Api({
         baseURL: 'http://localhost:8080'
       });
       const response = await publicApi.api.v1PublicRestaurantQuestionsDishesWithQuestionsList(qrData.restaurant.id);
       
       if (response.data.success && response.data.data) {
-        // The endpoint now returns full dish objects, not just IDs
         dishesWithQuestions = response.data.data;
       }
     } catch (error) {
-      // Error is handled silently
     } finally {
       loadingDishes = false;
     }
@@ -124,11 +121,9 @@
       const api = getApiClient();
       const response = await api.api.v1PublicQrDetail(code);
       
-      // Handle response format - backend returns { success: true, data: QRCode }
       if (response.data && response.data.success && response.data.data) {
         const qrCodeData = response.data.data;
         
-        // Transform QRCode object to QRValidationData format
         qrData = {
           valid: qrCodeData.is_active === true,
           restaurant: qrCodeData.restaurant ? {
@@ -153,7 +148,6 @@
         if (qrData && !qrData.valid) {
           error = 'This QR code is invalid or has expired';
         } else if (qrData && qrData.valid) {
-          // Load dishes with questions after successful validation
           await loadDishesWithQuestions();
         }
       } else {
@@ -209,7 +203,6 @@
       if (response.data.success && response.data.data) {
         questions = response.data.data.questions || [];
         
-        // Initialize responses based on fetched questions
         questions.forEach(question => {
           if (question.type === 'rating' || question.type === 'scale') {
             responses[question.id] = question.min_value || 0;
@@ -240,7 +233,6 @@
   }
 
   function validateForm(): boolean {
-    // Check required questions
     for (const question of questions) {
       if (question.is_required) {
         const response = responses[question.id];
@@ -256,7 +248,6 @@
             return false;
           }
         } else if (!response && response !== false) {
-          // For yes/no, false is a valid response
           error = `Please answer: ${question.text}`;
           return false;
         }
@@ -269,7 +260,6 @@
   async function handleSubmit(event: SubmitEvent) {
     event.preventDefault();
     
-    // Let native validation handle required fields
     if (!event.currentTarget?.checkValidity()) {
       return;
     }
@@ -279,7 +269,6 @@
     try {
       const api = getApiClient();
       
-      // Transform responses from object to array format with question types
       const responseArray = Object.entries(responses).map(([questionId, answer]) => {
         const question = questions.find(q => q.id === questionId);
         return {
@@ -299,7 +288,6 @@
         customer_email: customerEmail
       };
 
-      // Add comment as a separate response if provided
       if (comment && comment.trim()) {
         feedbackData.responses.push({
           question_id: 'comment',
@@ -311,7 +299,6 @@
 
       await api.api.v1PublicFeedbackCreate(feedbackData as any);
       
-      // Show success state
       goto('/feedback/success');
     } catch (err) {
       error = handleApiError(err);

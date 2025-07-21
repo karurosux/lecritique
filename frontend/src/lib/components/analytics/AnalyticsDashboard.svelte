@@ -5,17 +5,14 @@
   import { ANALYTICS_CONTEXT_KEY } from '$lib/stores/analytics';
   import { TrendingUpIcon, TrendingDownIcon, MinusIcon } from 'lucide-svelte';
   
-  // Get analytics store from context
   const analytics = getContext<typeof AnalyticsStoreType>(ANALYTICS_CONTEXT_KEY);
   const { filters, filteredData, computedMetrics, comparisonData } = analytics;
   
-  // Reactive data
   let data = $derived($filteredData);
   let metrics = $derived($computedMetrics);
   let comparison = $derived($comparisonData);
   let timeframe = $derived($filters.timeframe);
   
-  // Calculate key metrics with comparisons
   const keyMetrics = $derived(() => {
     if (!data || !metrics) return [];
     

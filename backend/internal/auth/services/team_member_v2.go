@@ -66,26 +66,22 @@ func (s *teamMemberServiceV2) GetMemberByMemberID(ctx context.Context, memberId 
 
 func (s *teamMemberServiceV2) ListMembers(ctx context.Context, accountID uuid.UUID) ([]models.TeamMember, error) {
 	fmt.Println("acccount id => ", accountID)
-	// Get active members
 	members, err := s.teamMemberRepo.FindByAccountID(ctx, accountID)
 	if err != nil {
 		return nil, err
 	}
 
-	// Get pending invitations and convert them to TeamMember format
 	invitations, err := s.invitationRepo.FindPendingByAccountID(ctx, accountID)
 	if err != nil {
 		return nil, err
 	}
 
-	// Convert invitations to TeamMember format with a pending status
 	for _, inv := range invitations {
 		member := models.TeamMember{
 			AccountID: inv.AccountID,
 			Role:      inv.Role,
 			InvitedBy: inv.InvitedBy,
 			InvitedAt: inv.CreatedAt,
-			// Set MemberAccount with email for display
 			MemberAccount: models.Account{
 				Email: inv.Email,
 			},
@@ -94,7 +90,6 @@ func (s *teamMemberServiceV2) ListMembers(ctx context.Context, accountID uuid.UU
 		member.CreatedAt = inv.CreatedAt
 		member.UpdatedAt = inv.UpdatedAt
 
-		// Add to members list
 		members = append(members, member)
 	}
 
@@ -107,7 +102,6 @@ func (s *teamMemberServiceV2) GetMemberByID(ctx context.Context, accountID uuid.
 		return nil, err
 	}
 
-	// Verify member belongs to the account
 	if member.AccountID != accountID {
 		return nil, errors.New("NOT_FOUND", "Member not found", http.StatusNotFound)
 	}
@@ -116,12 +110,10 @@ func (s *teamMemberServiceV2) GetMemberByID(ctx context.Context, accountID uuid.
 }
 
 func (s *teamMemberServiceV2) InviteMember(ctx context.Context, accountID uuid.UUID, inviterID uuid.UUID, email string, role models.MemberRole) (*models.TeamInvitation, error) {
-	// Validate role
 	if role == models.RoleOwner {
 		return nil, errors.New("FORBIDDEN", "Cannot invite another owner", http.StatusForbidden)
 	}
 
-	// Check if already a member
 	existingAccount, _ := s.accountRepo.FindByEmail(ctx, email)
 	if existingAccount != nil {
 		existingMember, _ := s.teamMemberRepo.FindByMemberAndAccount(ctx, existingAccount.ID, accountID)
@@ -130,19 +122,16 @@ func (s *teamMemberServiceV2) InviteMember(ctx context.Context, accountID uuid.U
 		}
 	}
 
-	// Check for existing pending invitation
 	existingInvite, _ := s.invitationRepo.FindByAccountAndEmail(ctx, accountID, email)
 	if existingInvite != nil && existingInvite.IsValid() {
 		return nil, errors.New("CONFLICT", "Invitation already sent to this email", http.StatusConflict)
 	}
 
-	// Generate invitation token
 	token, err := models.GenerateToken()
 	if err != nil {
 		return nil, err
 	}
 
-	// Create invitation
 	invitation := &models.TeamInvitation{
 		AccountID: accountID,
 		Email:     email,
@@ -156,16 +145,13 @@ func (s *teamMemberServiceV2) InviteMember(ctx context.Context, accountID uuid.U
 		return nil, err
 	}
 
-	// Get organization name for email
 	org, _ := s.accountRepo.FindByID(ctx, accountID)
 	companyName := "LeCritique"
 	if org != nil {
 		companyName = org.Name
 	}
 
-	// Send invitation email
 	if err := s.emailService.SendTeamInviteEmail(ctx, email, token, companyName); err != nil {
-		// Log error but don't fail the invitation
 		fmt.Printf("Failed to send invitation email to %s: %v\n", email, err)
 	}
 
@@ -178,7 +164,6 @@ func (s *teamMemberServiceV2) UpdateRole(ctx context.Context, accountID uuid.UUI
 		return err
 	}
 
-	// Cannot change owner role
 	if member.Role == models.RoleOwner || newRole == models.RoleOwner {
 		return errors.New("FORBIDDEN", "Cannot change owner role", http.StatusForbidden)
 	}
@@ -193,7 +178,6 @@ func (s *teamMemberServiceV2) RemoveMember(ctx context.Context, accountID uuid.U
 		return err
 	}
 
-	// Cannot remove owner
 	if member.Role == models.RoleOwner {
 		return errors.New("FORBIDDEN", "Cannot remove owner", http.StatusForbidden)
 	}
@@ -215,14 +199,12 @@ func (s *teamMemberServiceV2) ResendInvitation(ctx context.Context, accountID uu
 		return errors.New("BAD_REQUEST", "Invitation is no longer valid", http.StatusBadRequest)
 	}
 
-	// Get organization name for email
 	org, _ := s.accountRepo.FindByID(ctx, invitation.AccountID)
 	companyName := "LeCritique"
 	if org != nil {
 		companyName = org.Name
 	}
 
-	// Send invitation email again
 	return s.emailService.SendTeamInviteEmail(ctx, invitation.Email, invitation.Token, companyName)
 }
 
@@ -249,7 +231,6 @@ func (s *teamMemberServiceV2) GetInvitationByToken(ctx context.Context, token st
 		return nil, errors.New("INVALID_TOKEN", "Invalid or expired invitation token", http.StatusBadRequest)
 	}
 
-	// Check if invitation is still valid
 	if !invitation.IsValid() {
 		return nil, errors.New("EXPIRED_TOKEN", "This invitation has expired", http.StatusBadRequest)
 	}
@@ -262,7 +243,6 @@ func (s *teamMemberServiceV2) CheckPendingInvitations(ctx context.Context, email
 }
 
 func (s *teamMemberServiceV2) AcceptInvitation(ctx context.Context, invitationToken string, memberAccountID uuid.UUID) error {
-	// Find invitation
 	invitation, err := s.invitationRepo.FindByToken(ctx, invitationToken)
 	if err != nil {
 		fmt.Printf("Error finding invitation by token: %v\n", err)
@@ -271,12 +251,10 @@ func (s *teamMemberServiceV2) AcceptInvitation(ctx context.Context, invitationTo
 
 	fmt.Printf("Found invitation: ID=%s, Email=%s, AcceptedAt=%v\n", invitation.ID, invitation.Email, invitation.AcceptedAt)
 
-	// Validate invitation
 	if !invitation.IsValid() {
 		return errors.New("EXPIRED_TOKEN", "Invitation has expired", http.StatusBadRequest)
 	}
 
-	// Get member account to verify email matches
 	memberAccount, err := s.accountRepo.FindByID(ctx, memberAccountID)
 	if err != nil {
 		fmt.Printf("Error finding member account: %v\n", err)
@@ -290,7 +268,6 @@ func (s *teamMemberServiceV2) AcceptInvitation(ctx context.Context, invitationTo
 		return errors.New("EMAIL_MISMATCH", "Invitation email does not match account email", http.StatusBadRequest)
 	}
 
-	// Check if already a member
 	existingMember, err := s.teamMemberRepo.FindByMemberAndAccount(ctx, memberAccountID, invitation.AccountID)
 	if err == nil && existingMember != nil {
 		fmt.Printf("User is already a member of this team\n")
@@ -317,7 +294,6 @@ func (s *teamMemberServiceV2) AcceptInvitation(ctx context.Context, invitationTo
 		return err
 	}
 
-	// Mark invitation as accepted
 	now := time.Now()
 	invitation.AcceptedAt = &now
 	fmt.Printf("Updating invitation with AcceptedAt=%v\n", now)
@@ -330,7 +306,6 @@ func (s *teamMemberServiceV2) AcceptInvitation(ctx context.Context, invitationTo
 	return nil
 }
 
-// UpdateInvitation updates an invitation
 func (s *teamMemberServiceV2) UpdateInvitation(ctx context.Context, invitation *models.TeamInvitation) error {
 	return s.invitationRepo.Update(ctx, invitation)
 }

@@ -34,3 +34,6 @@
 
 ## 💻 Development Principles
 - Use good coding principles like SOLID, YAGNI, KISS, and DRY, don't over-engineer solutions
+
+## 💬 Code Commentary
+- Dont add AI comments to the code

@@ -311,13 +311,11 @@ func (h *AuthHandler) ResetPassword(c echo.Context) error {
 func (h *AuthHandler) RefreshToken(c echo.Context) error {
 	ctx := c.Request().Context()
 
-	// Get token from header
 	tokenString := c.Request().Header.Get("Authorization")
 	if tokenString == "" {
 		return response.Error(c, errors.ErrUnauthorized)
 	}
 
-	// Remove "Bearer " prefix
 	if len(tokenString) > 7 && tokenString[:7] == "Bearer " {
 		tokenString = tokenString[7:]
 	}
@@ -355,7 +353,6 @@ type ConfirmEmailChangeRequest struct {
 func (h *AuthHandler) ChangeEmail(c echo.Context) error {
 	ctx := c.Request().Context()
 
-	// Get account ID from context (set by auth middleware)
 	accountID, ok := c.Get("member_id").(uuid.UUID)
 	if !ok {
 		return response.Error(c, errors.ErrUnauthorized)
@@ -375,7 +372,6 @@ func (h *AuthHandler) ChangeEmail(c echo.Context) error {
 		return response.Error(c, err)
 	}
 
-	// Check if we're in dev mode without SMTP
 	message := "Email change request sent. Please check your new email for verification."
 	responseData := map[string]string{
 		"message": message,
@@ -440,7 +436,6 @@ func (h *AuthHandler) ConfirmEmailChange(c echo.Context) error {
 func (h *AuthHandler) RequestDeactivation(c echo.Context) error {
 	ctx := c.Request().Context()
 
-	// Get account ID from context (set by auth middleware)
 	accountID, err := middleware.GetAccountID(c)
 	if err != nil {
 		return response.Error(c, err)
@@ -450,7 +445,6 @@ func (h *AuthHandler) RequestDeactivation(c echo.Context) error {
 		return response.Error(c, err)
 	}
 
-	// Calculate deactivation date
 	deactivationDate := time.Now().Add(15 * 24 * time.Hour)
 
 	return response.Success(c, map[string]interface{}{
@@ -473,7 +467,6 @@ func (h *AuthHandler) RequestDeactivation(c echo.Context) error {
 func (h *AuthHandler) CancelDeactivation(c echo.Context) error {
 	ctx := c.Request().Context()
 
-	// Get account ID from context (set by auth middleware)
 	accountID, err := middleware.GetAccountID(c)
 	if err != nil {
 		return response.Error(c, err)
@@ -509,7 +502,6 @@ type UpdateProfileRequest struct {
 func (h *AuthHandler) UpdateProfile(c echo.Context) error {
 	ctx := c.Request().Context()
 
-	// Get account ID from context (set by auth middleware)
 	accountID, err := middleware.GetAccountID(c)
 	if err != nil {
 		return response.Error(c, err)
@@ -524,7 +516,6 @@ func (h *AuthHandler) UpdateProfile(c echo.Context) error {
 		return response.Error(c, err)
 	}
 
-	// Update account fields
 	updates := make(map[string]interface{})
 	if req.Name != "" {
 		updates["name"] = req.Name
