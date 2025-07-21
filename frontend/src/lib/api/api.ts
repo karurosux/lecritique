@@ -1174,34 +1174,6 @@ export class Api<
       }),
 
     /**
-     * @description Create a new dish for a restaurant
-     *
-     * @tags dishes
-     * @name V1DishesCreate
-     * @summary Create a new dish
-     * @request POST:/api/v1/dishes
-     * @secure
-     */
-    v1DishesCreate: (
-      dish: HandlersCreateDishRequest,
-      params: RequestParams = {},
-    ) =>
-      this.request<
-        ResponseResponse & {
-          data?: LecritiqueInternalMenuModelsDish;
-        },
-        ResponseResponse
-      >({
-        path: `/api/v1/dishes`,
-        method: "POST",
-        body: dish,
-        secure: true,
-        type: ContentType.Json,
-        format: "json",
-        ...params,
-      }),
-
-    /**
      * @description Get a specific dish by its ID
      *
      * @tags dishes
@@ -1797,6 +1769,35 @@ export class Api<
       >({
         path: `/api/v1/restaurants/${restaurantId}/dishes`,
         method: "GET",
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description Create a new dish for a restaurant
+     *
+     * @tags dishes
+     * @name V1RestaurantsDishesCreate
+     * @summary Create a new dish
+     * @request POST:/api/v1/restaurants/{restaurantId}/dishes
+     * @secure
+     */
+    v1RestaurantsDishesCreate: (
+      restaurantId: string,
+      dish: HandlersCreateDishRequest,
+      params: RequestParams = {},
+    ) =>
+      this.request<
+        ResponseResponse & {
+          data?: LecritiqueInternalMenuModelsDish;
+        },
+        ResponseResponse
+      >({
+        path: `/api/v1/restaurants/${restaurantId}/dishes`,
+        method: "POST",
+        body: dish,
         secure: true,
         type: ContentType.Json,
         format: "json",

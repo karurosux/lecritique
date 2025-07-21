@@ -45,8 +45,9 @@
   let filteredRestaurants = $derived(
     restaurants
       .filter((restaurant) => {
+        if (!restaurant) return false;
         const matchesSearch =
-          restaurant.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          restaurant.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
           restaurant.description
             ?.toLowerCase()
             .includes(searchQuery.toLowerCase()) ||
@@ -56,15 +57,16 @@
         return matchesSearch && matchesStatus;
       })
       .sort((a, b) => {
+        if (!a || !b) return 0;
         switch (sortBy) {
           case "created_at":
             return (
-              new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+              new Date(b.created_at || '').getTime() - new Date(a.created_at || '').getTime()
             );
           case "status":
-            return a.status.localeCompare(b.status);
+            return (a.status || '').localeCompare(b.status || '');
           default:
-            return a.name.localeCompare(b.name);
+            return (a.name || '').localeCompare(b.name || '');
         }
       })
   );
@@ -229,9 +231,10 @@
   }
 
   function handleRestaurantCreated(event: CustomEvent) {
-    const newRestaurant = event.detail;
-    // Add to the beginning of the array for immediate visibility
-    restaurants = [newRestaurant, ...restaurants];
+    // Reload the full list to ensure data consistency and get updated permissions
+    loadRestaurants();
+    // Refresh permissions since restaurant count changed
+    checkCreatePermission();
   }
 
   function handleClearFilters() {

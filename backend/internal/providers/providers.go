@@ -114,6 +114,7 @@ func RegisterAll(i *do.Injector, cfg *config.Config, db *gorm.DB) {
 		return subscriptionMiddleware.NewSubscriptionMiddleware(
 			do.MustInvoke[subscriptionServices.SubscriptionService](i),
 			do.MustInvoke[subscriptionServices.UsageService](i),
+			do.MustInvoke[restaurantServices.RestaurantService](i),
 		), nil
 	})
 }

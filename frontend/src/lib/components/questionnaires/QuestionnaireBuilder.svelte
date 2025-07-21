@@ -1,44 +1,54 @@
 <script lang="ts">
-  import { createEventDispatcher } from 'svelte';
-  import { questionnaireStore, type Question, type GeneratedQuestion } from '$lib/stores/questionnaires';
-  import { Button, Input, Card } from '$lib/components/ui';
-  import { Plus, Trash2, Sparkles, X, Loader2 } from 'lucide-svelte';
+  import { onMount } from 'svelte';
+  import { Button, Card, ConfirmDialog } from '$lib/components/ui';
+  import { Plus, Trash2, Sparkles, Loader2, Edit2, GripVertical } from 'lucide-svelte';
   import QuestionEditor from './QuestionEditor.svelte';
-  import { getApiClient } from '$lib/api';
+  import { QuestionApi } from '$lib/api/question';
+  import type { Question, GeneratedQuestion } from '$lib/api/questionnaire';
+  import { toast } from 'svelte-sonner';
 
   let { 
     restaurantId,
-    dishId,
-    initialData = null
+    dishId
   }: {
     restaurantId: string;
     dishId: string;
-    initialData?: any;
   } = $props();
 
-  const dispatch = createEventDispatcher();
-
-  // Form state
-  let selectedDishId = $state(dishId || initialData?.dish_id);
-  let questions = $state<Question[]>(initialData?.questions || []);
-  let generatedQuestions = $state<GeneratedQuestion[]>([]);
-  
-  // Auto-generate name from dish - we'll set this when saving
-
-  // UI state
+  // State
+  let questions = $state<Question[]>([]);
   let loading = $state(false);
   let error = $state('');
   let showQuestionEditor = $state(false);
   let editingQuestion = $state<Question | null>(null);
   let editingIndex = $state(-1);
-  let showGeneratedPreview = $state(false);
   let generatingQuestions = $state(false);
+  let showDeleteConfirm = $state(false);
+  let questionToDelete = $state<Question | null>(null);
+  let draggingIndex = $state<number | null>(null);
+  let dragOverIndex = $state<number | null>(null);
+  let reordering = $state(false);
 
-  // Subscribe to store
-  let storeError = $derived($questionnaireStore?.error);
-  let storeLoading = $derived($questionnaireStore?.loading);
+  onMount(async () => {
+    await loadQuestionnaire();
+  });
 
-
+  async function loadQuestionnaire() {
+    try {
+      loading = true;
+      error = '';
+      
+      // Load existing questions for this dish directly
+      const dishQuestions = await QuestionApi.getQuestionsByDish(restaurantId, dishId);
+      questions = dishQuestions || [];
+      
+    } catch (err: any) {
+      error = err.message || 'Failed to load questions';
+      console.error('Error loading questions:', err);
+    } finally {
+      loading = false;
+    }
+  }
 
   function addQuestion() {
     editingQuestion = {
@@ -58,163 +68,121 @@
     showQuestionEditor = true;
   }
 
-  async function saveQuestion(question: Question) {
-    // If we're editing an existing questionnaire, save questions directly to backend
-    if (initialData?.id) {
-      loading = true;
-      try {
-        if (editingIndex >= 0 && questions[editingIndex]?.id) {
-          // Update existing question
-          const updatedQuestion = await questionnaireStore.updateQuestion(
-            restaurantId, 
-            initialData.id, 
-            questions[editingIndex].id!,
-            question
-          );
-          questions[editingIndex] = updatedQuestion;
-        } else {
-          // Add new question
-          const newQuestion = await questionnaireStore.addQuestion(
-            restaurantId,
-            initialData.id,
-            { ...question, display_order: questions.length + 1 }
-          );
-          questions = [...questions, newQuestion];
-        }
-      } catch (err) {
-        error = err.message;
-      } finally {
-        loading = false;
-      }
-    } else {
-      // For new questionnaires, just update local state
-      if (editingIndex >= 0) {
-        questions[editingIndex] = question;
-      } else {
-        questions = [...questions, { ...question, display_order: questions.length + 1 }];
-      }
-    }
-    
-    showQuestionEditor = false;
-    editingQuestion = null;
-    editingIndex = -1;
-  }
-
-  async function deleteQuestion(index: number) {
-    const question = questions[index];
-    
-    // If we're editing an existing questionnaire and the question has an ID, delete from backend
-    if (initialData?.id && question?.id) {
-      loading = true;
-      try {
-        await questionnaireStore.deleteQuestion(restaurantId, initialData.id, question.id);
-      } catch (err) {
-        error = err.message;
-        return;
-      } finally {
-        loading = false;
-      }
-    }
-    
-    questions = questions.filter((_, i) => i !== index);
-    // Reorder remaining questions
-    questions = questions.map((q, i) => ({ ...q, display_order: i + 1 }));
-  }
-
-  async function generateAIQuestions() {
-    if (!selectedDishId) {
-      error = 'Please select a dish for AI question generation';
-      return;
-    }
-
-    generatingQuestions = true;
-    error = '';
-
+  async function saveQuestion(questionData: Question) {
     try {
-      generatedQuestions = await questionnaireStore.generateQuestions(selectedDishId);
-      showGeneratedPreview = true;
-    } catch (err) {
-      error = err.message;
-    } finally {
-      generatingQuestions = false;
-    }
-  }
+      loading = true;
+      error = '';
 
-  function addGeneratedQuestions() {
-    const newQuestions: Question[] = generatedQuestions.map((gq, index) => ({
-      text: gq.text,
-      type: gq.type,
-      is_required: true,
-      display_order: questions.length + index + 1,
-      options: gq.options || [],
-      min_value: gq.min_value,
-      max_value: gq.max_value,
-      min_label: gq.min_label,
-      max_label: gq.max_label
-    }));
-
-    questions = [...questions, ...newQuestions];
-    showGeneratedPreview = false;
-    generatedQuestions = [];
-  }
-
-  async function save() {
-    if (!selectedDishId) {
-      error = 'Please select a dish for this questionnaire';
-      return;
-    }
-
-    loading = true;
-    error = '';
-
-    try {
-      // Auto-generate name from existing data or use default
-      const questionnaireData = {
-        name: initialData?.name || 'Feedback Questionnaire',
-        dish_id: selectedDishId
-      };
-
-      let questionnaire;
-      if (initialData?.id) {
-        // Update existing questionnaire
-        questionnaire = await questionnaireStore.updateQuestionnaire(restaurantId, initialData.id, questionnaireData);
-        
-        // For existing questionnaires, we need to manage questions differently
-        // This is a simplified approach - in production you'd want to handle adds/updates/deletes separately
-        
-        // For now, we'll just dispatch success - the questions management needs to be improved
-        // TODO: Implement proper question update logic
+      if (editingIndex === -1) {
+        // Create new question directly for the dish
+        const newQuestion = await QuestionApi.createQuestion(restaurantId, dishId, {
+          text: questionData.text!,
+          type: questionData.type!,
+          is_required: questionData.is_required || false,
+          options: questionData.options || [],
+          min_value: questionData.min_value,
+          max_value: questionData.max_value,
+          min_label: questionData.min_label || '',
+          max_label: questionData.max_label || ''
+        });
+        questions = [...questions, newQuestion];
+        toast.success('Question added successfully');
       } else {
-        // Create new questionnaire
-        questionnaire = await questionnaireStore.createQuestionnaire(restaurantId, questionnaireData);
-        
-        // Add questions to the new questionnaire
-        for (const question of questions) {
-          await questionnaireStore.addQuestion(restaurantId, questionnaire.id!, question);
-        }
+        // Update existing question
+        const updatedQuestion = await QuestionApi.updateQuestion(
+          restaurantId,
+          dishId,
+          questions[editingIndex].id!,
+          {
+            text: questionData.text!,
+            type: questionData.type!,
+            is_required: questionData.is_required || false,
+            options: questionData.options || [],
+            min_value: questionData.min_value,
+            max_value: questionData.max_value,
+            min_label: questionData.min_label || '',
+            max_label: questionData.max_label || ''
+          }
+        );
+        questions[editingIndex] = updatedQuestion;
+        toast.success('Question updated successfully');
       }
-
-      dispatch('success', questionnaire);
-    } catch (err) {
-      error = err.message;
+      
+      showQuestionEditor = false;
+      editingQuestion = null;
+      editingIndex = -1;
+    } catch (err: any) {
+      error = err.message || 'Failed to save question';
+      toast.error('Failed to save question');
+      console.error('Error saving question:', err);
     } finally {
       loading = false;
     }
   }
 
-  function cancel() {
-    dispatch('cancel');
+  function handleDeleteQuestion(question: Question) {
+    questionToDelete = question;
+    showDeleteConfirm = true;
   }
 
-  function getQuestionTypeIcon(type: string) {
-    switch (type) {
-      case 'rating': return 'Rating';
-      case 'scale': return 'Scale';
-      case 'multi_choice': return 'Multi';
-      case 'single_choice': return 'Single';
-      case 'text': return 'Text';
-      case 'yes_no': return 'Y/N';
-      default: return 'Other';
+  async function confirmDeleteQuestion() {
+    if (!questionToDelete) return;
+    
+    try {
+      loading = true;
+      await QuestionApi.deleteQuestion(restaurantId, dishId, questionToDelete.id!);
+      questions = questions.filter(q => q.id !== questionToDelete.id);
+      toast.success('Question deleted successfully');
+    } catch (err: any) {
+      error = err.message || 'Failed to delete question';
+      toast.error('Failed to delete question');
+      console.error('Error deleting question:', err);
+    } finally {
+      loading = false;
+      questionToDelete = null;
+      showDeleteConfirm = false;
+    }
+  }
+
+  function cancelEdit() {
+    showQuestionEditor = false;
+    editingQuestion = null;
+    editingIndex = -1;
+  }
+
+  async function generateAIQuestions() {
+    try {
+      generatingQuestions = true;
+      error = '';
+      
+      const generatedQuestions = await QuestionApi.generateQuestions(restaurantId, dishId);
+      
+      if (generatedQuestions && generatedQuestions.length > 0) {
+        // Add generated questions directly to the dish
+        for (const genQuestion of generatedQuestions) {
+          const newQuestion = await QuestionApi.createQuestion(restaurantId, dishId, {
+            text: genQuestion.text!,
+            type: genQuestion.type!,
+            is_required: genQuestion.is_required || false,
+            options: genQuestion.options || [],
+            min_value: genQuestion.min_value,
+            max_value: genQuestion.max_value,
+            min_label: genQuestion.min_label || '',
+            max_label: genQuestion.max_label || ''
+          });
+          questions = [...questions, newQuestion];
+        }
+        
+        toast.success(`Added ${generatedQuestions.length} AI-generated questions!`);
+      } else {
+        toast.error('No questions were generated. Please try again.');
+      }
+    } catch (err: any) {
+      console.error('AI generation error:', err);
+      error = err.message || 'Failed to generate AI questions';
+      toast.error('Failed to generate AI questions. Please try again.');
+    } finally {
+      generatingQuestions = false;
     }
   }
 
@@ -229,19 +197,134 @@
       default: return type;
     }
   }
+
+  // Drag and drop handlers
+  function handleDragStart(e: DragEvent, index: number) {
+    draggingIndex = index;
+    if (e.dataTransfer) {
+      e.dataTransfer.effectAllowed = 'move';
+    }
+  }
+
+  function handleDragOver(e: DragEvent, index: number) {
+    e.preventDefault();
+    if (e.dataTransfer) {
+      e.dataTransfer.dropEffect = 'move';
+    }
+    dragOverIndex = index;
+  }
+
+  function handleDragLeave() {
+    dragOverIndex = null;
+  }
+
+  async function handleDrop(e: DragEvent, dropIndex: number) {
+    e.preventDefault();
+    
+    if (draggingIndex === null || draggingIndex === dropIndex) {
+      draggingIndex = null;
+      dragOverIndex = null;
+      return;
+    }
+
+    // Reorder the questions array
+    const newQuestions = [...questions];
+    const [draggedQuestion] = newQuestions.splice(draggingIndex, 1);
+    newQuestions.splice(dropIndex, 0, draggedQuestion);
+    
+    questions = newQuestions;
+    
+    // Reset drag state
+    draggingIndex = null;
+    dragOverIndex = null;
+    
+    // Save the new order to the backend
+    await saveQuestionOrder();
+  }
+
+  async function saveQuestionOrder() {
+    try {
+      reordering = true;
+      const questionIds = questions.map(q => q.id!);
+      await QuestionApi.reorderQuestions(restaurantId, dishId, questionIds);
+      toast.success('Question order updated');
+    } catch (err: any) {
+      error = err.message || 'Failed to update question order';
+      toast.error('Failed to update question order');
+      // Reload questions to restore original order
+      await loadQuestionnaire();
+    } finally {
+      reordering = false;
+    }
+  }
 </script>
 
-<div class="space-y-6">
+<style>
+  :global(.animate-modal-enter) {
+    animation: modal-enter 0.2s ease-out forwards;
+  }
+  
+  @keyframes modal-enter {
+    from {
+      opacity: 0;
+      transform: scale(0.95) translateY(-10px);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1) translateY(0);
+    }
+  }
+</style>
 
-  {#if error || storeError}
+<div class="question-builder space-y-6">
+  <!-- Error Display -->
+  {#if error}
     <div class="bg-red-50 border border-red-200 rounded-md p-4">
-      <div class="flex">
-        <div class="flex-shrink-0">
-          <X class="h-5 w-5 text-red-400" />
+      <p class="text-sm text-red-800">{error}</p>
+    </div>
+  {/if}
+
+  <!-- Loading overlay for AI generation -->
+  {#if generatingQuestions}
+    <div 
+      class="fixed inset-0 z-[50000] flex items-center justify-center transition-all duration-200"
+      style="background: linear-gradient(135deg, rgb(243 244 246 / 0.6), rgb(209 213 219 / 0.6)); backdrop-filter: blur(16px);"
+      role="dialog"
+      aria-modal="true"
+      tabindex="-1"
+    >
+      <div class="relative bg-white rounded-lg shadow-xl max-w-md w-full mx-4 p-8 text-center animate-modal-enter">
+        <!-- Animated AI Icon -->
+        <div class="relative mb-6">
+          <div class="w-20 h-20 mx-auto bg-gradient-to-br from-purple-500 to-blue-600 rounded-full flex items-center justify-center shadow-lg shadow-purple-500/25">
+            <Sparkles class="h-10 w-10 text-white animate-pulse" />
+          </div>
+          <div class="absolute inset-0 w-20 h-20 mx-auto">
+            <div class="w-full h-full border-4 border-purple-200 rounded-full animate-spin border-t-purple-500"></div>
+          </div>
         </div>
-        <div class="ml-3">
-          <p class="text-sm text-red-800">{error || storeError}</p>
+        
+        <!-- Title with gradient -->
+        <h3 class="text-xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent mb-3">
+          Generating AI Questions...
+        </h3>
+        
+        <!-- Description -->
+        <p class="text-gray-600 mb-4 leading-relaxed">
+          Our AI is analyzing your dish and creating relevant feedback questions for your customers
+        </p>
+        
+        <!-- Progress dots -->
+        <div class="flex justify-center space-x-2">
+          <div class="w-2 h-2 bg-purple-500 rounded-full animate-bounce" style="animation-delay: 0ms"></div>
+          <div class="w-2 h-2 bg-purple-500 rounded-full animate-bounce" style="animation-delay: 150ms"></div>
+          <div class="w-2 h-2 bg-purple-500 rounded-full animate-bounce" style="animation-delay: 300ms"></div>
         </div>
+        
+        <!-- Estimated time -->
+        <p class="text-xs text-gray-500 mt-4">
+          This usually takes 5-10 seconds
+        </p>
       </div>
     </div>
   {/if}
@@ -251,171 +334,134 @@
     <div class="p-6">
       <div class="flex items-center justify-between mb-4">
         <h3 class="text-lg font-medium text-gray-900">Questions ({questions.length})</h3>
-      <div class="flex gap-2">
-        <Button
-          onclick={generateAIQuestions}
-          disabled={generatingQuestions || !selectedDishId}
-          variant="secondary"
-          class="flex items-center gap-2"
-          title={!selectedDishId ? 'Select a dish to generate AI questions' : ''}
-        >
-          {#if generatingQuestions}
-            <Loader2 class="h-4 w-4 animate-spin" />
-          {:else}
-            <Sparkles class="h-4 w-4" />
-          {/if}
-          AI Questions
-        </Button>
-        <Button onclick={addQuestion} variant="gradient" class="flex items-center gap-2">
-          <Plus class="h-4 w-4" />
-          Add Question
-        </Button>
+        <div class="flex items-center gap-2">
+          <div class="relative group">
+            <Button 
+              onclick={generateAIQuestions} 
+              disabled={loading || generatingQuestions || questions.length > 0}
+              variant="outline" 
+              class="flex items-center gap-2"
+            >
+              {#if generatingQuestions}
+                <Loader2 class="h-4 w-4 animate-spin" />
+              {:else}
+                <Sparkles class="h-4 w-4" />
+              {/if}
+              {generatingQuestions ? 'Generating...' : 'Generate AI Questions'}
+            </Button>
+            {#if questions.length > 0 && !generatingQuestions}
+              <div class="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-sm rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-10">
+                AI generation is available when starting from scratch. Delete existing questions to use this feature.
+                <div class="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-gray-900"></div>
+              </div>
+            {/if}
+          </div>
+          <Button 
+            onclick={addQuestion} 
+            disabled={loading || generatingQuestions || reordering}
+            variant="gradient" 
+            class="flex items-center gap-2"
+          >
+            <Plus class="h-4 w-4" />
+            Add Question
+          </Button>
+        </div>
       </div>
-    </div>
 
-      {#if questions.length === 0}
+      {#if loading && !generatingQuestions}
+        <div class="text-center py-8">
+          <Loader2 class="h-8 w-8 animate-spin mx-auto mb-4 text-blue-600" />
+          <p class="text-gray-600">Loading...</p>
+        </div>
+      {:else if questions.length === 0}
         <div class="text-center py-8 text-gray-500">
           <p>No questions added yet.</p>
-          <p class="text-sm mt-1">Click "Add Question" or "AI Questions" to get started.</p>
+          <p class="text-sm mt-1">Click "Add Question" to get started or use AI to generate questions automatically.</p>
         </div>
       {:else}
         <div class="space-y-3">
           {#each questions as question, index}
-            <div class="flex items-center gap-3 p-4 bg-gray-50 rounded-lg border border-gray-200">
-            <div class="flex-1">
-              <div class="flex items-center gap-2 mb-1">
-                <span class="px-2 py-1 bg-gray-100 text-xs font-medium rounded">
-                  {getQuestionTypeLabel(question.type)}
-                </span>
-                {#if question.is_required}
-                  <span class="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded">Required</span>
+            <div 
+              class="flex items-center gap-3 p-4 bg-gray-50 rounded-lg border border-gray-200 transition-all duration-200 {draggingIndex === index ? 'opacity-50' : ''} {dragOverIndex === index ? 'border-blue-400 border-2' : ''}"
+              draggable="true"
+              ondragstart={(e) => handleDragStart(e, index)}
+              ondragover={(e) => handleDragOver(e, index)}
+              ondragleave={handleDragLeave}
+              ondrop={(e) => handleDrop(e, index)}
+            >
+              <div class="cursor-move" class:opacity-50={loading || generatingQuestions || reordering}>
+                <GripVertical class="h-5 w-5 text-gray-400" />
+              </div>
+              <div class="flex-1">
+                <div class="flex items-center gap-2 mb-1">
+                  <span class="px-2 py-1 bg-gray-100 text-xs font-medium rounded">
+                    {getQuestionTypeLabel(question.type!)}
+                  </span>
+                  {#if question.is_required}
+                    <span class="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded">Required</span>
+                  {/if}
+                </div>
+                <p class="font-medium text-gray-900">{question.text}</p>
+                {#if question.options && question.options.length > 0}
+                  <p class="text-sm text-gray-500">
+                    Options: {Array.isArray(question.options) ? question.options.join(', ') : 'Invalid options'}
+                  </p>
+                {/if}
+                {#if question.min_value !== undefined && question.max_value !== undefined}
+                  <p class="text-sm text-gray-500">
+                    Scale: {question.min_value} to {question.max_value}
+                  </p>
                 {/if}
               </div>
-              <p class="font-medium text-gray-900">{question.text}</p>
-              {#if question.options && question.options.length > 0}
-                <p class="text-sm text-gray-500">
-                  Options: {question.options.join(', ')}
-                </p>
-              {/if}
-              {#if question.min_value !== undefined && question.max_value !== undefined}
-                <p class="text-sm text-gray-500">
-                  Scale: {question.min_value} to {question.max_value}
-                </p>
-              {/if}
+              <div class="flex items-center gap-2">
+                <Button 
+                  onclick={() => editQuestion(question, index)}
+                  disabled={loading || generatingQuestions || reordering}
+                  variant="ghost" 
+                  size="sm"
+                  class="p-2"
+                >
+                  <Edit2 class="h-4 w-4" />
+                </Button>
+                <Button 
+                  onclick={() => handleDeleteQuestion(question)}
+                  disabled={loading || generatingQuestions || reordering}
+                  variant="ghost" 
+                  size="sm"
+                  class="p-2 text-red-600 hover:text-red-700"
+                >
+                  <Trash2 class="h-4 w-4" />
+                </Button>
+              </div>
             </div>
-
-            <div class="flex gap-1">
-              <Button
-                onclick={() => editQuestion(question, index)}
-                variant="secondary"
-                class="text-sm"
-              >
-                Edit
-              </Button>
-              <Button
-                onclick={async () => await deleteQuestion(index)}
-                variant="secondary"
-                class="text-red-600 hover:text-red-700"
-              >
-                <Trash2 class="h-4 w-4" />
-              </Button>
-            </div>
-          </div>
-        {/each}
+          {/each}
         </div>
       {/if}
     </div>
   </Card>
-
-  <!-- Actions -->
-  <div class="flex items-center justify-end space-x-4 pt-6 border-t border-gray-200">
-    <Button onclick={cancel} variant="outline">
-      Cancel
-    </Button>
-    <Button 
-      onclick={save} 
-      disabled={loading || storeLoading}
-      variant="gradient"
-      class="min-w-32 shadow-lg"
-    >
-      {#if loading || storeLoading}
-        <Loader2 class="h-4 w-4 mr-2 animate-spin" />
-      {/if}
-      {initialData?.id ? 'Update' : 'Create'} Questionnaire
-    </Button>
-  </div>
 </div>
 
 <!-- Question Editor Modal -->
 {#if showQuestionEditor && editingQuestion}
   <QuestionEditor
     bind:question={editingQuestion}
+    bind:isOpen={showQuestionEditor}
     on:save={async (e) => await saveQuestion(e.detail)}
-    on:cancel={() => { showQuestionEditor = false; editingQuestion = null; }}
+    on:cancel={cancelEdit}
   />
 {/if}
 
-<!-- Generated Questions Preview -->
-{#if showGeneratedPreview && generatedQuestions.length > 0}
-  <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-    <Card class="w-full max-w-2xl max-h-[80vh] overflow-y-auto m-4">
-      <div class="p-6">
-        <div class="flex items-center justify-between mb-4">
-          <h3 class="text-lg font-medium flex items-center gap-2">
-            <Sparkles class="h-5 w-5" />
-            AI Generated Questions
-          </h3>
-          <Button
-            onclick={() => { showGeneratedPreview = false; generatedQuestions = []; }}
-            variant="secondary"
-          >
-            <X class="h-4 w-4" />
-          </Button>
-        </div>
-
-        <div class="space-y-3 mb-6">
-          {#each generatedQuestions as question, index}
-            <div class="p-4 bg-gray-50 rounded-lg border border-gray-200">
-              <div class="flex items-center gap-2 mb-2">
-                <span class="px-2 py-1 bg-gray-100 text-xs font-medium rounded">
-                  {getQuestionTypeLabel(question.type)}
-                </span>
-              </div>
-              <p class="font-medium text-gray-900">{question.text}</p>
-              {#if question.options && question.options.length > 0}
-                <p class="text-sm text-gray-500 mt-1">
-                  Options: {question.options.join(', ')}
-                </p>
-              {/if}
-              {#if question.min_value !== undefined && question.max_value !== undefined}
-                <p class="text-sm text-gray-500 mt-1">
-                  Scale: {question.min_value} to {question.max_value}
-                  {#if question.min_label || question.max_label}
-                    ({question.min_label || ''} - {question.max_label || ''})
-                  {/if}
-                </p>
-              {/if}
-            </div>
-          {/each}
-        </div>
-
-        <div class="flex items-center justify-end space-x-4 pt-6 border-t border-gray-200">
-          <Button
-            onclick={() => { showGeneratedPreview = false; generatedQuestions = []; }}
-            variant="outline"
-          >
-            Cancel
-          </Button>
-          <Button 
-            onclick={addGeneratedQuestions} 
-            variant="gradient"
-            class="min-w-32 shadow-lg"
-          >
-            <Plus class="h-4 w-4 mr-2" />
-            Add All Questions
-          </Button>
-        </div>
-      </div>
-    </Card>
-  </div>
-{/if}
+<!-- Delete Confirmation Dialog -->
+<ConfirmDialog
+  bind:isOpen={showDeleteConfirm}
+  title="Delete Question?"
+  message={questionToDelete ? `Are you sure you want to delete "${questionToDelete.text}"? This action cannot be undone.` : 'Are you sure you want to delete this question?'}
+  confirmText="Delete"
+  cancelText="Cancel"
+  variant="danger"
+  onConfirm={confirmDeleteQuestion}
+  onCancel={() => {
+    showDeleteConfirm = false;
+    questionToDelete = null;
+  }}
+/>

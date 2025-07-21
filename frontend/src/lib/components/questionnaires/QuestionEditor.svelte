@@ -1,10 +1,11 @@
 <script lang="ts">
   import { createEventDispatcher } from 'svelte';
-  import type { Question } from '$lib/stores/questionnaires';
-  import { Button, Input, Card, Select } from '$lib/components/ui';
+  import type { Question } from '$lib/api/question';
+  import { Button, Input, Card, Select, Modal, Textarea, Checkbox } from '$lib/components/ui';
   import { Plus, Trash2, X, Star, BarChart3, CheckSquare, Circle, MessageSquare, ToggleLeft } from 'lucide-svelte';
 
   export let question: Question;
+  export let isOpen = true;
 
   const dispatch = createEventDispatcher();
 
@@ -97,19 +98,13 @@
   }
 </script>
 
-<div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-  <Card class="w-full max-w-2xl max-h-[90vh] overflow-y-auto m-4">
-    <div class="p-6">
-      <div class="flex items-center justify-between mb-6">
-        <h3 class="text-xl font-semibold text-gray-900">{question.text ? 'Edit' : 'Add'} Question</h3>
-        <button
-          onclick={cancel}
-          class="p-1 rounded-lg hover:bg-gray-100 transition-colors"
-          type="button"
-        >
-          <X class="h-5 w-5 text-gray-500" />
-        </button>
-      </div>
+<Modal
+  bind:isOpen
+  title="{question.text ? 'Edit' : 'Add'} Question"
+  size="lg"
+  onclose={cancel}
+>
+  <div class="p-6">
 
       <div class="space-y-6">
         <!-- Question Text -->
@@ -117,14 +112,13 @@
           <label for="question-text" class="block text-sm font-medium text-gray-700 mb-2">
             Question Text <span class="text-red-500">*</span>
           </label>
-          <textarea
+          <Textarea
             id="question-text"
             bind:value={localQuestion.text}
             placeholder="What would you like to ask your customers?"
-            rows="3"
-            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+            rows={3}
             required
-          ></textarea>
+          />
         </div>
 
         <!-- Question Type -->
@@ -146,11 +140,9 @@
 
         <!-- Required Toggle -->
         <div class="flex items-center space-x-2">
-          <input
-            type="checkbox"
+          <Checkbox
             id="required"
             bind:checked={localQuestion.is_required}
-            class="rounded"
           />
           <label for="required" class="text-sm font-medium text-gray-700">Required question</label>
         </div>
@@ -301,7 +293,7 @@
                 {/each}
               </div>
             {:else if localQuestion.type === 'text'}
-              <textarea class="w-full p-2 border border-gray-300 rounded-lg" rows="3" placeholder="Customer's response will appear here..."></textarea>
+              <Textarea rows={3} placeholder="Customer's response will appear here..." disabled />
             {:else if localQuestion.type === 'yes_no'}
               <div class="flex gap-4">
                 <label class="flex items-center gap-2">
@@ -334,6 +326,5 @@
           {question.text ? 'Update' : 'Add'} Question
         </Button>
       </div>
-    </div>
-  </Card>
-</div>
+  </div>
+</Modal>

@@ -1623,47 +1623,6 @@ paths:
       summary: Verify email address
       tags:
       - auth
-  /api/v1/dishes:
-    post:
-      consumes:
-      - application/json
-      description: Create a new dish for a restaurant
-      parameters:
-      - description: Dish information
-        in: body
-        name: dish
-        required: true
-        schema:
-          $ref: '#/definitions/handlers.CreateDishRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            allOf:
-            - $ref: '#/definitions/response.Response'
-            - properties:
-                data:
-                  $ref: '#/definitions/lecritique_internal_menu_models.Dish'
-              type: object
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/response.Response'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/response.Response'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/response.Response'
-      security:
-      - ApiKeyAuth: []
-      summary: Create a new dish
-      tags:
-      - dishes
   /api/v1/dishes/{id}:
     delete:
       consumes:
@@ -2577,6 +2536,51 @@ paths:
       security:
       - ApiKeyAuth: []
       summary: Get dishes by restaurant
+      tags:
+      - dishes
+    post:
+      consumes:
+      - application/json
+      description: Create a new dish for a restaurant
+      parameters:
+      - description: Restaurant ID
+        in: path
+        name: restaurantId
+        required: true
+        type: string
+      - description: Dish information
+        in: body
+        name: dish
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.CreateDishRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/lecritique_internal_menu_models.Dish'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - ApiKeyAuth: []
+      summary: Create a new dish
       tags:
       - dishes
   /api/v1/restaurants/{restaurantId}/dishes/{dishId}/questions:

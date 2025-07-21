@@ -1,4 +1,4 @@
-import { getApiClient, handleApiError } from './client';
+import { getApiClient, handleApiError, getAuthToken } from './client';
 import type { 
   ModelsQuestion,
   ModelsCreateQuestionRequest,
@@ -91,11 +91,27 @@ export class QuestionApi {
   }
 
   // Generate AI questions for a dish (preview only)
-  static async generateQuestions(dishId: string): Promise<any[]> {
+  static async generateQuestions(restaurantId: string, dishId: string): Promise<any[]> {
     try {
-      const api = getApiClient();
-      const response = await api.api.v1AiGenerateQuestionsCreate(dishId);
-      return response.data.data || [];
+      const token = getAuthToken();
+      if (!token) {
+        throw new Error('No authentication token available');
+      }
+
+      const response = await fetch(`http://localhost:8080/api/v1/restaurants/${restaurantId}/dishes/${dishId}/ai/generate-questions`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      return data?.data || [];
     } catch (error) {
       throw new Error(handleApiError(error));
     }

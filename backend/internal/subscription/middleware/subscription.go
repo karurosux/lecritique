@@ -1,26 +1,31 @@
 package middleware
 
 import (
+	"fmt"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"lecritique/internal/shared/errors"
 	"lecritique/internal/shared/response"
 	"lecritique/internal/subscription/models"
 	"lecritique/internal/subscription/services"
+	restaurantServices "lecritique/internal/restaurant/services"
 )
 
 type SubscriptionMiddleware struct {
 	subscriptionService services.SubscriptionService
 	usageService        services.UsageService
+	restaurantService   restaurantServices.RestaurantService
 }
 
 func NewSubscriptionMiddleware(
 	subscriptionService services.SubscriptionService,
 	usageService services.UsageService,
+	restaurantService restaurantServices.RestaurantService,
 ) *SubscriptionMiddleware {
 	return &SubscriptionMiddleware{
 		subscriptionService: subscriptionService,
 		usageService:        usageService,
+		restaurantService:   restaurantService,
 	}
 }
 
@@ -100,14 +105,31 @@ func (m *SubscriptionMiddleware) CheckResourceLimit(resourceType string) echo.Mi
 				c.Set("subscription", subscription)
 			}
 
-			// Check usage limits
-			canAdd, reason, err := m.usageService.CanAddResource(c.Request().Context(), subscription.ID, resourceType)
-			if err != nil {
-				return response.Error(c, errors.BadRequest("Failed to check resource limits"))
-			}
+			// For restaurants, check actual count instead of usage tracking
+			if resourceType == models.ResourceTypeRestaurant {
+				accountID, ok := c.Get("account_id").(uuid.UUID)
+				if !ok {
+					return response.Error(c, errors.ErrUnauthorized)
+				}
 
-			if !canAdd {
-				return response.Error(c, errors.Forbidden(reason))
+				currentCount, err := m.restaurantService.CountByAccountID(c.Request().Context(), accountID)
+				if err != nil {
+					return response.Error(c, errors.BadRequest("Failed to check restaurant count"))
+				}
+
+				if int(currentCount) >= subscription.Plan.MaxRestaurants {
+					return response.Error(c, errors.Forbidden(fmt.Sprintf("Restaurant limit reached (%d/%d)", int(currentCount), subscription.Plan.MaxRestaurants)))
+				}
+			} else {
+				// Check usage limits for other resources
+				canAdd, reason, err := m.usageService.CanAddResource(c.Request().Context(), subscription.ID, resourceType)
+				if err != nil {
+					return response.Error(c, errors.BadRequest("Failed to check resource limits"))
+				}
+
+				if !canAdd {
+					return response.Error(c, errors.Forbidden(reason))
+				}
 			}
 
 			// Store resource type for tracking after successful creation

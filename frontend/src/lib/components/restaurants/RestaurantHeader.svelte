@@ -23,8 +23,8 @@
     onaddrestaurant?: () => void;
   } = $props();
 
-  let activeCount = $derived(restaurants.filter(r => r.status === 'active').length);
-  let inactiveCount = $derived(restaurants.filter(r => r.status === 'inactive').length);
+  let activeCount = $derived(restaurants.filter(r => r?.status === 'active').length);
+  let inactiveCount = $derived(restaurants.filter(r => r?.status === 'inactive').length);
 </script>
 
 <div class="mb-8">

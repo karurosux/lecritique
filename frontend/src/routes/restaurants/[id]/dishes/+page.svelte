@@ -5,7 +5,7 @@
 	import DishCard from '$lib/components/dishes/DishCard.svelte';
 	import AddDishModal from '$lib/components/dishes/AddDishModal.svelte';
 	import { RoleGate } from '$lib/components/auth';
-	import { getApiClient } from '$lib/api';
+	import { getApiClient, getAuthToken } from '$lib/api';
 	import { toast } from 'svelte-sonner';
 	import { onMount } from 'svelte';
 	import { page } from '$app/stores';
@@ -322,8 +322,8 @@
 					});
 					toast.success('Dish updated successfully');
 				} else {
-					// Create new dish
-					await api.api.v1DishesCreate({
+					// Create new dish using the correct nested endpoint
+					await api.api.v1RestaurantsDishesCreate(restaurantId, {
 						...dishData,
 						restaurant_id: restaurantId
 					});

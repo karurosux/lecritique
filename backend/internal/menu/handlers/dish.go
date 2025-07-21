@@ -42,12 +42,13 @@ type CreateDishRequest struct {
 // @Accept json
 // @Produce json
 // @Security ApiKeyAuth
+// @Param restaurantId path string true "Restaurant ID"
 // @Param dish body CreateDishRequest true "Dish information"
 // @Success 200 {object} response.Response{data=models.Dish}
 // @Failure 400 {object} response.Response
 // @Failure 401 {object} response.Response
 // @Failure 500 {object} response.Response
-// @Router /api/v1/dishes [post]
+// @Router /api/v1/restaurants/{restaurantId}/dishes [post]
 func (h *DishHandler) Create(c echo.Context) error {
 	ctx := c.Request().Context()
 	accountID := middleware.GetResourceAccountID(c)

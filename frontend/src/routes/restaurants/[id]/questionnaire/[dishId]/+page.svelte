@@ -3,7 +3,7 @@
   import { goto } from '$app/navigation';
   import { Button, Card } from '$lib/components/ui';
   import { ArrowLeft, ClipboardList } from 'lucide-svelte';
-  import QuestionBuilder from '$lib/components/questions/QuestionBuilder.svelte';
+  import QuestionnaireBuilder from '$lib/components/questionnaires/QuestionnaireBuilder.svelte';
   import { getApiClient } from '$lib/api';
   import { onMount } from 'svelte';
 
@@ -81,7 +81,7 @@
     {/if}
 
     {#if !loading && !error}
-      <QuestionBuilder
+      <QuestionnaireBuilder
         {restaurantId}
         {dishId}
       />

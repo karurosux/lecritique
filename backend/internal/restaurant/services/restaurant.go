@@ -18,6 +18,7 @@ type RestaurantService interface {
 	Delete(ctx context.Context, accountID uuid.UUID, restaurantID uuid.UUID) error
 	GetByID(ctx context.Context, accountID uuid.UUID, restaurantID uuid.UUID) (*models.Restaurant, error)
 	GetByAccountID(ctx context.Context, accountID uuid.UUID) ([]models.Restaurant, error)
+	CountByAccountID(ctx context.Context, accountID uuid.UUID) (int64, error)
 }
 
 type restaurantService struct {
@@ -160,4 +161,12 @@ func (s *restaurantService) GetByAccountID(ctx context.Context, accountID uuid.U
 		return nil, errors.Wrap(err, "DATABASE_ERROR", "Unable to retrieve restaurants", 500)
 	}
 	return restaurants, nil
+}
+
+func (s *restaurantService) CountByAccountID(ctx context.Context, accountID uuid.UUID) (int64, error) {
+	count, err := s.restaurantRepo.CountByAccountID(ctx, accountID)
+	if err != nil {
+		return 0, errors.Wrap(err, "DATABASE_ERROR", "Unable to count restaurants", 500)
+	}
+	return count, nil
 }
