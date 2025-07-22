@@ -2,44 +2,44 @@ package providers
 
 import (
 	// Auth
-	authHandlers "lecritique/internal/auth/handlers"
-	authRepos "lecritique/internal/auth/repositories"
-	authServices "lecritique/internal/auth/services"
+	authHandlers "kyooar/internal/auth/handlers"
+	authRepos "kyooar/internal/auth/repositories"
+	authServices "kyooar/internal/auth/services"
 	
 	// Organization
-	organizationHandlers "lecritique/internal/organization/handlers"
-	organizationRepos "lecritique/internal/organization/repositories"
-	organizationServices "lecritique/internal/organization/services"
+	organizationHandlers "kyooar/internal/organization/handlers"
+	organizationRepos "kyooar/internal/organization/repositories"
+	organizationServices "kyooar/internal/organization/services"
 	
 	// Menu
-	menuHandlers "lecritique/internal/menu/handlers"
-	menuRepos "lecritique/internal/menu/repositories"
-	menuServices "lecritique/internal/menu/services"
+	menuHandlers "kyooar/internal/menu/handlers"
+	menuRepos "kyooar/internal/menu/repositories"
+	menuServices "kyooar/internal/menu/services"
 	
 	// Feedback
-	feedbackHandlers "lecritique/internal/feedback/handlers"
-	feedbackRepos "lecritique/internal/feedback/repositories"
-	feedbackServices "lecritique/internal/feedback/services"
+	feedbackHandlers "kyooar/internal/feedback/handlers"
+	feedbackRepos "kyooar/internal/feedback/repositories"
+	feedbackServices "kyooar/internal/feedback/services"
 	
 	// QR Code
-	qrcodeHandlers "lecritique/internal/qrcode/handlers"
-	qrcodeRepos "lecritique/internal/qrcode/repositories"
-	qrcodeServices "lecritique/internal/qrcode/services"
+	qrcodeHandlers "kyooar/internal/qrcode/handlers"
+	qrcodeRepos "kyooar/internal/qrcode/repositories"
+	qrcodeServices "kyooar/internal/qrcode/services"
 	
 	// Analytics
-	analyticsHandlers "lecritique/internal/analytics/handlers"
-	analyticsServices "lecritique/internal/analytics/services"
+	analyticsHandlers "kyooar/internal/analytics/handlers"
+	analyticsServices "kyooar/internal/analytics/services"
 	
 	// Subscription
-	subscriptionHandlers "lecritique/internal/subscription/handlers"
-	subscriptionMiddleware "lecritique/internal/subscription/middleware"
-	subscriptionRepos "lecritique/internal/subscription/repositories"
-	subscriptionServices "lecritique/internal/subscription/services"
+	subscriptionHandlers "kyooar/internal/subscription/handlers"
+	subscriptionMiddleware "kyooar/internal/subscription/middleware"
+	subscriptionRepos "kyooar/internal/subscription/repositories"
+	subscriptionServices "kyooar/internal/subscription/services"
 	
 	// Shared
-	"lecritique/internal/shared/config"
-	"lecritique/internal/shared/middleware"
-	sharedServices "lecritique/internal/shared/services"
+	"kyooar/internal/shared/config"
+	"kyooar/internal/shared/middleware"
+	sharedServices "kyooar/internal/shared/services"
 	
 	"github.com/samber/do"
 	"gorm.io/gorm"

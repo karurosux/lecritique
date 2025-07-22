@@ -6,13 +6,13 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
-	analyticsServices "lecritique/internal/analytics/services"
-	feedbackRepos "lecritique/internal/feedback/repositories"
-	menuRepos "lecritique/internal/menu/repositories"
-	organizationRepos "lecritique/internal/organization/repositories"
-	"lecritique/internal/shared/logger"
-	"lecritique/internal/shared/middleware"
-	"lecritique/internal/shared/models"
+	analyticsServices "kyooar/internal/analytics/services"
+	feedbackRepos "kyooar/internal/feedback/repositories"
+	menuRepos "kyooar/internal/menu/repositories"
+	organizationRepos "kyooar/internal/organization/repositories"
+	"kyooar/internal/shared/logger"
+	"kyooar/internal/shared/middleware"
+	"kyooar/internal/shared/models"
 	"github.com/samber/do"
 	"github.com/sirupsen/logrus"
 )
@@ -48,8 +48,8 @@ type OrganizationAnalytics struct {
 	FeedbackToday     int64           `json:"feedback_today"`
 	FeedbackThisWeek  int64           `json:"feedback_this_week"`
 	FeedbackThisMonth int64           `json:"feedback_this_month"`
-	TopRatedProductes    []ProductAnalytics `json:"top_rated_products"`
-	LowestRatedProductes []ProductAnalytics `json:"lowest_rated_products"`
+	TopRatedProducts    []ProductAnalytics `json:"top_rated_products"`
+	LowestRatedProducts []ProductAnalytics `json:"lowest_rated_products"`
 }
 
 // GetOrganizationAnalytics gets analytics for a organization
@@ -156,7 +156,7 @@ func (h *AnalyticsHandler) GetOrganizationAnalytics(c echo.Context) error {
 			if len(productAnalytics) < topCount {
 				topCount = len(productAnalytics)
 			}
-			analytics.TopRatedProductes = productAnalytics[:topCount]
+			analytics.TopRatedProducts = productAnalytics[:topCount]
 
 			// Get bottom 5
 			bottomStart := len(productAnalytics) - 5
@@ -164,9 +164,9 @@ func (h *AnalyticsHandler) GetOrganizationAnalytics(c echo.Context) error {
 				bottomStart = 0
 			}
 			if bottomStart < topCount {
-				analytics.LowestRatedProductes = []ProductAnalytics{}
+				analytics.LowestRatedProducts = []ProductAnalytics{}
 			} else {
-				analytics.LowestRatedProductes = productAnalytics[bottomStart:]
+				analytics.LowestRatedProducts = productAnalytics[bottomStart:]
 			}
 		}
 	}

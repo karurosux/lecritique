@@ -5,8 +5,8 @@ import (
 	"log"
 	"os"
 
-	"lecritique/internal/shared/config"
-	"lecritique/internal/shared/database"
+	"kyooar/internal/shared/config"
+	"kyooar/internal/shared/database"
 )
 
 func main() {

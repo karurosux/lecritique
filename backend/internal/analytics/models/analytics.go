@@ -62,7 +62,7 @@ type OrganizationInsights struct {
 	
 	// Overall metrics
 	TotalFeedback     int64             `json:"total_feedback"`
-	ActiveProductes      int               `json:"active_products"`
+	ActiveProducts      int               `json:"active_products"`
 	AverageSatisfaction float64         `json:"average_satisfaction"`
 	RecommendationRate float64          `json:"recommendation_rate"`
 	SentimentScore    float64           `json:"sentiment_score"`
@@ -72,8 +72,8 @@ type OrganizationInsights struct {
 	SatisfactionTrend []TrendPoint      `json:"satisfaction_trend"`
 	
 	// Top/Bottom performers
-	TopProductes         []ProductSummary     `json:"top_products"`
-	BottomProductes      []ProductSummary     `json:"bottom_products"`
+	TopProducts         []ProductSummary     `json:"top_products"`
+	BottomProducts      []ProductSummary     `json:"bottom_products"`
 	
 	// Issues requiring attention
 	CriticalIssues    []Issue           `json:"critical_issues"`

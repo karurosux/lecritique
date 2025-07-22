@@ -76,7 +76,7 @@
 </script>
 
 <svelte:head>
-  <title>Analytics Comparison - LeCritique</title>
+  <title>Analytics Comparison - Kyooar</title>
 </svelte:head>
 
 <div class="analytics-comparison max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-8">

@@ -3,9 +3,9 @@ package models
 import (
 	"github.com/google/uuid"
 	"github.com/lib/pq"
-	menuModels "lecritique/internal/menu/models"
-	organizationModels "lecritique/internal/organization/models"
-	sharedModels "lecritique/internal/shared/models"
+	menuModels "kyooar/internal/menu/models"
+	organizationModels "kyooar/internal/organization/models"
+	sharedModels "kyooar/internal/shared/models"
 )
 
 type Questionnaire struct {

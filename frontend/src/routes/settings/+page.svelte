@@ -93,10 +93,10 @@
 </script>
 
 <svelte:head>
-  <title>Settings - LeCritique</title>
+  <title>Settings - Kyooar</title>
   <meta
     name="description"
-    content="Manage your LeCritique account settings and preferences"
+    content="Manage your Kyooar account settings and preferences"
   />
 </svelte:head>
 

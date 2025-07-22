@@ -4,7 +4,7 @@ import (
 	"context"
 	"log"
 
-	"lecritique/internal/auth/services"
+	"kyooar/internal/auth/services"
 	"github.com/robfig/cron/v3"
 )
 

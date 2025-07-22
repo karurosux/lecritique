@@ -1,12 +1,12 @@
 package handlers
 
 import (
-	"lecritique/internal/auth/services"
-	"lecritique/internal/shared/config"
-	"lecritique/internal/shared/errors"
-	"lecritique/internal/shared/middleware"
-	"lecritique/internal/shared/response"
-	"lecritique/internal/shared/validator"
+	"kyooar/internal/auth/services"
+	"kyooar/internal/shared/config"
+	"kyooar/internal/shared/errors"
+	"kyooar/internal/shared/middleware"
+	"kyooar/internal/shared/response"
+	"kyooar/internal/shared/validator"
 	"net/http"
 	"time"
 

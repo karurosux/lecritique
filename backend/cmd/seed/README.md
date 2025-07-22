@@ -1,4 +1,4 @@
-# LeCritique Database Seeder
+# Kyooar Database Seeder
 
 This seeder creates a default test user and sample data for development and testing purposes.
 
@@ -17,18 +17,18 @@ make seed-force
 ## What gets created:
 
 ### 👤 Test User Account
-- **Email:** `admin@lecritique.com`
+- **Email:** `admin@kyooar.com`
 - **Password:** `admin123`
-- **Company:** `LeCritique Demo Organization`
+- **Company:** `Kyooar Demo Organization`
 - **Status:** Active & Email Verified
 - **Subscription:** Starter Plan (if available)
 
 ### 🏢 Sample Organization
 - **Name:** Demo Organization
-- **Description:** A sample organization for testing LeCritique
-- **Email:** admin@lecritique.com
+- **Description:** A sample organization for testing Kyooar
+- **Email:** admin@kyooar.com
 - **Phone:** +1-555-0123
-- **Website:** https://demo.lecritique.com
+- **Website:** https://demo.kyooar.com
 
 ### 📍 Sample Location
 - **Name:** Main Location
@@ -40,7 +40,7 @@ make seed-force
 - **Type:** table
 - **Valid for:** 1 year
 
-### 🍽️ Sample Productes
+### 🍽️ Sample Products
 1. **Classic Burger** - $12.99 (Mains)
 2. **Caesar Salad** - $8.99 (Salads)  
 3. **Chocolate Cake** - $6.99 (Desserts)
@@ -57,5 +57,5 @@ make seed-force
 After running the seeder, you can immediately test the frontend authentication:
 
 1. Visit: `http://localhost:5173/login`
-2. Login with: `admin@lecritique.com` / `admin123`
+2. Login with: `admin@kyooar.com` / `admin123`
 3. Explore the dashboard with sample data!

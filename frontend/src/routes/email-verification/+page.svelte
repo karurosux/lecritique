@@ -51,8 +51,8 @@
 </script>
 
 <svelte:head>
-  <title>Email Verification Required - LeCritique</title>
-  <meta name="description" content="Please verify your email address to access LeCritique" />
+  <title>Email Verification Required - Kyooar</title>
+  <meta name="description" content="Please verify your email address to access Kyooar" />
 </svelte:head>
 
 <div class="min-h-screen bg-gradient-to-b from-white to-gray-50/50 flex items-center justify-center px-4">
@@ -80,7 +80,7 @@
             Verify Your Email
           </h1>
           <p class="text-lg text-gray-600">
-            Please verify your email address to access your LeCritique account
+            Please verify your email address to access your Kyooar account
           </p>
         </div>
         

@@ -5,10 +5,10 @@ import (
 	"encoding/json"
 
 	"github.com/google/uuid"
-	menuModels "lecritique/internal/menu/models"
-	qrcodeModels "lecritique/internal/qrcode/models"
-	organizationModels "lecritique/internal/organization/models"
-	sharedModels "lecritique/internal/shared/models"
+	menuModels "kyooar/internal/menu/models"
+	qrcodeModels "kyooar/internal/qrcode/models"
+	organizationModels "kyooar/internal/organization/models"
+	sharedModels "kyooar/internal/shared/models"
 )
 
 type Feedback struct {

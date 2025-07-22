@@ -2,16 +2,16 @@ package services
 
 import (
 	"context"
-	"lecritique/internal/auth/models"
-	"lecritique/internal/auth/repositories"
-	"lecritique/internal/shared/config"
-	"lecritique/internal/shared/errors"
-	"lecritique/internal/shared/services"
+	"kyooar/internal/auth/models"
+	"kyooar/internal/auth/repositories"
+	"kyooar/internal/shared/config"
+	"kyooar/internal/shared/errors"
+	"kyooar/internal/shared/services"
 	"log"
 	"net/http"
 	"time"
 
-	subscriptionServices "lecritique/internal/subscription/services"
+	subscriptionServices "kyooar/internal/subscription/services"
 
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"

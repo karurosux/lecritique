@@ -4,7 +4,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/samber/do"
 	"gorm.io/gorm"
-	authServices "lecritique/internal/auth/services"
+	authServices "kyooar/internal/auth/services"
 )
 
 // MiddlewareProvider provides middleware functions with injected dependencies

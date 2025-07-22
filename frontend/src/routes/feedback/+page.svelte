@@ -169,7 +169,7 @@
 </script>
 
 <svelte:head>
-  <title>Give Feedback - LeCritique</title>
+  <title>Give Feedback - Kyooar</title>
   <meta name="description" content="Share your dining experience and help us improve" />
 </svelte:head>
 

@@ -7,14 +7,14 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
-	authModels "lecritique/internal/auth/models"
-	authServices "lecritique/internal/auth/services"
-	sharedErrors "lecritique/internal/shared/errors"
-	"lecritique/internal/shared/middleware"
-	sharedRepos "lecritique/internal/shared/repositories"
-	"lecritique/internal/shared/response"
-	"lecritique/internal/shared/validator"
-	"lecritique/internal/subscription/services"
+	authModels "kyooar/internal/auth/models"
+	authServices "kyooar/internal/auth/services"
+	sharedErrors "kyooar/internal/shared/errors"
+	"kyooar/internal/shared/middleware"
+	sharedRepos "kyooar/internal/shared/repositories"
+	"kyooar/internal/shared/response"
+	"kyooar/internal/shared/validator"
+	"kyooar/internal/subscription/services"
 	"github.com/samber/do"
 )
 

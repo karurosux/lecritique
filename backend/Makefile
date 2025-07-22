@@ -1,10 +1,10 @@
 .PHONY: build run test clean migrate-up migrate-down migrate-create docker-build docker-up docker-down swagger generate-frontend-api seed seed-force setup
 
 # Variables
-APP_NAME=lecritique
+APP_NAME=kyooar
 BUILD_DIR=bin
 MAIN_FILE=cmd/api/main.go
-DB_URL=postgres://postgres:postgres@localhost:5432/lecritique?sslmode=disable
+DB_URL=postgres://postgres:postgres@localhost:5432/kyooar?sslmode=disable
 
 # Build
 build:
@@ -40,6 +40,15 @@ migrate-down:
 migrate-create:
 	@migrate create -ext sql -dir migrations $(name)
 
+# Generate migration from current database state using Atlas
+migrate-from-db:
+	@echo "Generating migration from current database state..."
+	@../atlas migrate diff init_from_current_state \
+		--dir "file://migrations" \
+		--to "$(DB_URL)" \
+		--dev-url "postgres://postgres:postgres@localhost:5432/kyooar_atlas_dev?sslmode=disable" \
+		--format golang-migrate
+
 # Docker
 docker-build:
 	@docker-compose build
@@ -71,13 +80,22 @@ generate-frontend-api: swagger
 	@echo "Generating TypeScript API client..."
 	@cd ../frontend && npm run generate-api
 
+# Seed subscription plans
+seed-plans:
+	@echo "Creating subscription plans..."
+	@go run cmd/seed-plans/main.go
+
 # Seed database with default test data
 seed:
+	@echo "Creating subscription plans..."
+	@go run cmd/seed-plans/main.go
 	@echo "Creating default test user..."
 	@go run cmd/seed/main.go
 
 # Force recreate default test user
 seed-force:
+	@echo "Creating subscription plans..."
+	@go run cmd/seed-plans/main.go
 	@echo "Force recreating default test user..."
 	@go run cmd/seed/main.go --force
 

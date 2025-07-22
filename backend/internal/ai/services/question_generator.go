@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"strings"
 
-	"lecritique/internal/feedback/models"
-	menuModels "lecritique/internal/menu/models"
-	"lecritique/internal/shared/config"
+	"kyooar/internal/feedback/models"
+	menuModels "kyooar/internal/menu/models"
+	"kyooar/internal/shared/config"
 )
 
 type QuestionGenerator struct {

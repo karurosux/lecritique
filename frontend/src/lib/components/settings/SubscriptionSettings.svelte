@@ -230,7 +230,7 @@
         No Active Subscription
       </h3>
       <p class="text-gray-600 mb-6">
-        Choose a plan to get started with LeCritique
+        Choose a plan to get started with Kyooar
       </p>
 
       <div class="mt-8">

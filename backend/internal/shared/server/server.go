@@ -8,23 +8,23 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
-	"lecritique/internal/shared/config"
-	"lecritique/internal/shared/logger"
-	sharedMiddleware "lecritique/internal/shared/middleware"
-	"lecritique/internal/shared/cron"
-	"lecritique/internal/providers"
+	"kyooar/internal/shared/config"
+	"kyooar/internal/shared/logger"
+	sharedMiddleware "kyooar/internal/shared/middleware"
+	"kyooar/internal/shared/cron"
+	"kyooar/internal/providers"
 	
 	// Domain modules
-	authModule "lecritique/internal/auth"
-	organizationModule "lecritique/internal/organization"
-	menuModule "lecritique/internal/menu"
-	feedbackModule "lecritique/internal/feedback"
-	qrcodeModule "lecritique/internal/qrcode"
-	analyticsModule "lecritique/internal/analytics"
-	subscriptionModule "lecritique/internal/subscription"
+	authModule "kyooar/internal/auth"
+	organizationModule "kyooar/internal/organization"
+	menuModule "kyooar/internal/menu"
+	feedbackModule "kyooar/internal/feedback"
+	qrcodeModule "kyooar/internal/qrcode"
+	analyticsModule "kyooar/internal/analytics"
+	subscriptionModule "kyooar/internal/subscription"
 	
 	// Services needed for cron
-	authServices "lecritique/internal/auth/services"
+	authServices "kyooar/internal/auth/services"
 	
 	"github.com/samber/do"
 	"github.com/sirupsen/logrus"
@@ -123,7 +123,7 @@ func (s *Server) setupCronJobs() {
 func (s *Server) healthCheck(c echo.Context) error {
 	return c.JSON(http.StatusOK, map[string]interface{}{
 		"status":  "healthy",
-		"service": "lecritique-api",
+		"service": "kyooar-api",
 		"time":    time.Now(),
 	})
 }

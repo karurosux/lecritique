@@ -5,10 +5,10 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/google/uuid"
-	"lecritique/internal/auth/services"
-	"lecritique/internal/auth/models"
-	"lecritique/internal/shared/errors"
-	"lecritique/internal/shared/response"
+	"kyooar/internal/auth/services"
+	"kyooar/internal/auth/models"
+	"kyooar/internal/shared/errors"
+	"kyooar/internal/shared/response"
 )
 
 func JWTAuth(authService services.AuthService) echo.MiddlewareFunc {

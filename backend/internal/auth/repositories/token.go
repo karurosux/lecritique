@@ -5,8 +5,8 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"lecritique/internal/auth/models"
-	"lecritique/internal/shared/errors"
+	"kyooar/internal/auth/models"
+	"kyooar/internal/shared/errors"
 	"github.com/samber/do"
 	"gorm.io/gorm"
 )

@@ -295,7 +295,7 @@ definitions:
     required:
     - role
     type: object
-  lecritique_internal_menu_models.Product:
+  kyooar_internal_menu_models.Product:
     type: object
   models.Account:
     properties:
@@ -547,7 +547,7 @@ definitions:
           type: string
         type: array
       product:
-        $ref: '#/definitions/lecritique_internal_menu_models.Product'
+        $ref: '#/definitions/kyooar_internal_menu_models.Product'
       product_id:
         type: string
       text:
@@ -599,7 +599,7 @@ definitions:
       organization_id:
         type: string
       product:
-        $ref: '#/definitions/lecritique_internal_menu_models.Product'
+        $ref: '#/definitions/kyooar_internal_menu_models.Product'
       product_id:
         type: string
       questions:
@@ -843,7 +843,7 @@ info:
     name: API Support
   description: Organization feedback management system API
   termsOfService: http://swagger.io/terms/
-  title: LeCritique API
+  title: Kyooar API
   version: "1.0"
 paths:
   /api/v1/ai/generate-questionnaire/{productId}:
@@ -1945,7 +1945,7 @@ paths:
             - properties:
                 data:
                   items:
-                    $ref: '#/definitions/lecritique_internal_menu_models.Product'
+                    $ref: '#/definitions/kyooar_internal_menu_models.Product'
                   type: array
               type: object
         "400":
@@ -1995,7 +1995,7 @@ paths:
             - $ref: '#/definitions/response.Response'
             - properties:
                 data:
-                  $ref: '#/definitions/lecritique_internal_menu_models.Product'
+                  $ref: '#/definitions/kyooar_internal_menu_models.Product'
               type: object
         "400":
           description: Bad Request
@@ -2664,7 +2664,7 @@ paths:
       - application/json
       responses:
         "200":
-          description: Productes with questions retrieved successfully
+          description: Products with questions retrieved successfully
           schema:
             additionalProperties: true
             type: object
@@ -2983,7 +2983,7 @@ paths:
             - $ref: '#/definitions/response.Response'
             - properties:
                 data:
-                  $ref: '#/definitions/lecritique_internal_menu_models.Product'
+                  $ref: '#/definitions/kyooar_internal_menu_models.Product'
               type: object
         "400":
           description: Bad Request
@@ -3171,7 +3171,7 @@ paths:
       - application/json
       responses:
         "200":
-          description: Productes with questions retrieved successfully
+          description: Products with questions retrieved successfully
           schema:
             additionalProperties: true
             type: object

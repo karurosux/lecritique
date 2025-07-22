@@ -7,13 +7,13 @@ import (
 	"os/signal"
 	"time"
 
-	_ "lecritique/docs"
-	"lecritique/internal/shared/config"
-	"lecritique/internal/shared/database"
-	"lecritique/internal/shared/server"
+	_ "kyooar/docs"
+	"kyooar/internal/shared/config"
+	"kyooar/internal/shared/database"
+	"kyooar/internal/shared/server"
 )
 
-// @title LeCritique API
+// @title Kyooar API
 // @version 1.0
 // @description Organization feedback management system API
 // @termsOfService http://swagger.io/terms/

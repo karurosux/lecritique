@@ -102,7 +102,7 @@
   $effect(() => {
     if (!isFirstLoad && selectedOrganization !== undefined) {
       selectedProduct = ''; // Clear product selection when organization changes
-      loadProductes();
+      loadProducts();
     }
   });
 
@@ -120,7 +120,7 @@
     const loadedOrganizations = await loadOrganizations();
     // Load products after organizations are loaded
     if (loadedOrganizations.length > 0) {
-      await loadProductes();
+      await loadProducts();
     }
     await loadFeedback();
     
@@ -144,7 +144,7 @@
     }
   }
 
-  async function loadProductes() {
+  async function loadProducts() {
     try {
       const api = getApiClient();
       
@@ -155,7 +155,7 @@
       
       // If a organization is selected, load products for that organization
       if (selectedOrganization) {
-        const response = await api.api.v1OrganizationsProductesList(selectedOrganization);
+        const response = await api.api.v1OrganizationsProductsList(selectedOrganization);
         if (response.data.success && response.data.data) {
           products = response.data.data;
         }
@@ -163,7 +163,7 @@
         // Load products from all organizations
         const productPromises = organizations.map(async (organization) => {
           try {
-            const response = await api.api.v1OrganizationsProductesList(organization.id);
+            const response = await api.api.v1OrganizationsProductsList(organization.id);
             return response.data.data || [];
           } catch (err) {
             console.error(`Error loading products for organization ${organization.id}:`, err);
@@ -172,17 +172,17 @@
         });
         
         const productArrays = await Promise.all(productPromises);
-        const allProductes = productArrays.flat();
+        const allProducts = productArrays.flat();
         
         // Remove duplicates by name
-        const uniqueProductes = allProductes.reduce((acc: any[], product: any) => {
+        const uniqueProducts = allProducts.reduce((acc: any[], product: any) => {
           if (!acc.find(d => d.name === product.name)) {
             acc.push(product);
           }
           return acc;
         }, []);
         
-        products = uniqueProductes.sort((a, b) => a.name.localeCompare(b.name));
+        products = uniqueProducts.sort((a, b) => a.name.localeCompare(b.name));
       }
     } catch (err) {
       console.error('Error loading products:', err);
@@ -445,7 +445,7 @@
 </script>
 
 <svelte:head>
-  <title>Feedback Management - LeCritique</title>
+  <title>Feedback Management - Kyooar</title>
   <meta name="description" content="Manage and analyze customer feedback" />
 </svelte:head>
 
@@ -539,7 +539,7 @@
             <Select
               bind:value={selectedProduct}
               options={[
-                { value: '', label: 'All Productes' },
+                { value: '', label: 'All Products' },
                 ...products.map(d => ({ value: d.id, label: d.name }))
               ]}
               minWidth="min-w-full"

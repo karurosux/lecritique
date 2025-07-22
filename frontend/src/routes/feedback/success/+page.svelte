@@ -20,7 +20,7 @@
 </script>
 
 <svelte:head>
-  <title>Thank You! - LeCritique</title>
+  <title>Thank You! - Kyooar</title>
   <meta name="description" content="Thank you for your feedback" />
 </svelte:head>
 

@@ -7,9 +7,9 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"lecritique/internal/feedback/models"
-	sharedModels "lecritique/internal/shared/models"
-	sharedRepos "lecritique/internal/shared/repositories"
+	"kyooar/internal/feedback/models"
+	sharedModels "kyooar/internal/shared/models"
+	sharedRepos "kyooar/internal/shared/repositories"
 	"github.com/samber/do"
 	"gorm.io/gorm"
 )

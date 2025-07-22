@@ -19,7 +19,7 @@ export class QuestionApi {
   static async getQuestionsByProduct(organizationId: string, productId: string): Promise<Question[]> {
     try {
       const api = getApiClient();
-      const response = await api.api.v1OrganizationsProductesQuestionsList(organizationId, productId);
+      const response = await api.api.v1OrganizationsProductsQuestionsList(organizationId, productId);
       return response.data.data || [];
     } catch (error) {
       throw new Error(handleApiError(error));
@@ -30,7 +30,7 @@ export class QuestionApi {
   static async createQuestion(organizationId: string, productId: string, data: CreateQuestionRequest): Promise<Question> {
     try {
       const api = getApiClient();
-      const response = await api.api.v1OrganizationsProductesQuestionsCreate(organizationId, productId, data);
+      const response = await api.api.v1OrganizationsProductsQuestionsCreate(organizationId, productId, data);
       return response.data.data!;
     } catch (error) {
       throw new Error(handleApiError(error));
@@ -41,7 +41,7 @@ export class QuestionApi {
   static async getQuestion(organizationId: string, productId: string, questionId: string): Promise<Question> {
     try {
       const api = getApiClient();
-      const response = await api.api.v1OrganizationsProductesQuestionsDetail(organizationId, productId, questionId);
+      const response = await api.api.v1OrganizationsProductsQuestionsDetail(organizationId, productId, questionId);
       return response.data.data!;
     } catch (error) {
       throw new Error(handleApiError(error));
@@ -52,7 +52,7 @@ export class QuestionApi {
   static async updateQuestion(organizationId: string, productId: string, questionId: string, data: UpdateQuestionRequest): Promise<Question> {
     try {
       const api = getApiClient();
-      const response = await api.api.v1OrganizationsProductesQuestionsUpdate(organizationId, productId, questionId, data);
+      const response = await api.api.v1OrganizationsProductsQuestionsUpdate(organizationId, productId, questionId, data);
       return response.data.data!;
     } catch (error) {
       throw new Error(handleApiError(error));
@@ -63,7 +63,7 @@ export class QuestionApi {
   static async deleteQuestion(organizationId: string, productId: string, questionId: string): Promise<void> {
     try {
       const api = getApiClient();
-      await api.api.v1OrganizationsProductesQuestionsDelete(organizationId, productId, questionId);
+      await api.api.v1OrganizationsProductsQuestionsDelete(organizationId, productId, questionId);
     } catch (error) {
       throw new Error(handleApiError(error));
     }
@@ -73,7 +73,7 @@ export class QuestionApi {
   static async reorderQuestions(organizationId: string, productId: string, questionIds: string[]): Promise<void> {
     try {
       const api = getApiClient();
-      await api.api.v1OrganizationsProductesQuestionsReorderCreate(organizationId, productId, questionIds);
+      await api.api.v1OrganizationsProductsQuestionsReorderCreate(organizationId, productId, questionIds);
     } catch (error) {
       throw new Error(handleApiError(error));
     }

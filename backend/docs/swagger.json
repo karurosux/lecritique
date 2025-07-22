@@ -2,7 +2,7 @@
     "swagger": "2.0",
     "info": {
         "description": "Organization feedback management system API",
-        "title": "LeCritique API",
+        "title": "Kyooar API",
         "termsOfService": "http://swagger.io/terms/",
         "contact": {
             "name": "API Support",
@@ -1795,7 +1795,7 @@
                                         "data": {
                                             "type": "array",
                                             "items": {
-                                                "$ref": "#/definitions/lecritique_internal_menu_models.Product"
+                                                "$ref": "#/definitions/kyooar_internal_menu_models.Product"
                                             }
                                         }
                                     }
@@ -1876,7 +1876,7 @@
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/lecritique_internal_menu_models.Product"
+                                            "$ref": "#/definitions/kyooar_internal_menu_models.Product"
                                         }
                                     }
                                 }
@@ -2909,7 +2909,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Productes with questions retrieved successfully",
+                        "description": "Products with questions retrieved successfully",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
@@ -3356,7 +3356,7 @@
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/lecritique_internal_menu_models.Product"
+                                            "$ref": "#/definitions/kyooar_internal_menu_models.Product"
                                         }
                                     }
                                 }
@@ -3716,7 +3716,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Productes with questions retrieved successfully",
+                        "description": "Products with questions retrieved successfully",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
@@ -5427,7 +5427,7 @@
                 }
             }
         },
-        "lecritique_internal_menu_models.Product": {
+        "kyooar_internal_menu_models.Product": {
             "type": "object"
         },
         "models.Account": {
@@ -5796,7 +5796,7 @@
                     }
                 },
                 "product": {
-                    "$ref": "#/definitions/lecritique_internal_menu_models.Product"
+                    "$ref": "#/definitions/kyooar_internal_menu_models.Product"
                 },
                 "product_id": {
                     "type": "string"
@@ -5867,7 +5867,7 @@
                     "type": "string"
                 },
                 "product": {
-                    "$ref": "#/definitions/lecritique_internal_menu_models.Product"
+                    "$ref": "#/definitions/kyooar_internal_menu_models.Product"
                 },
                 "product_id": {
                     "type": "string"

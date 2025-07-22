@@ -2,13 +2,13 @@ package organization
 
 import (
 	"github.com/labstack/echo/v4"
-	"lecritique/internal/organization/handlers"
-	feedbackHandlers "lecritique/internal/feedback/handlers"
-	menuHandlers "lecritique/internal/menu/handlers"
-	qrcodeHandlers "lecritique/internal/qrcode/handlers"
-	sharedMiddleware "lecritique/internal/shared/middleware"
-	subscriptionMiddleware "lecritique/internal/subscription/middleware"
-	subscriptionModels "lecritique/internal/subscription/models"
+	"kyooar/internal/organization/handlers"
+	feedbackHandlers "kyooar/internal/feedback/handlers"
+	menuHandlers "kyooar/internal/menu/handlers"
+	qrcodeHandlers "kyooar/internal/qrcode/handlers"
+	sharedMiddleware "kyooar/internal/shared/middleware"
+	subscriptionMiddleware "kyooar/internal/subscription/middleware"
+	subscriptionModels "kyooar/internal/subscription/models"
 	"github.com/samber/do"
 )
 
@@ -77,7 +77,7 @@ func (m *Module) RegisterRoutes(v1 *echo.Group) {
 	organizations.PUT("/:organizationId/products/:productId/questions/:questionId", questionHandler.UpdateQuestion)
 	organizations.DELETE("/:organizationId/products/:productId/questions/:questionId", questionHandler.DeleteQuestion)
 	organizations.POST("/:organizationId/products/:productId/questions/reorder", questionHandler.ReorderQuestions)
-	organizations.GET("/:organizationId/questions/products-with-questions", questionHandler.GetProductesWithQuestions)
+	organizations.GET("/:organizationId/questions/products-with-questions", questionHandler.GetProductsWithQuestions)
 	
 	// AI question generation routes under organizations (moved from feedback module)
 	organizations.POST("/:organizationId/products/:productId/ai/generate-questions", questionnaireHandler.GenerateQuestions)

@@ -152,7 +152,7 @@ function createQuestionnaireStore() {
       const api = getApiClient();
       
       // Fetch product questions from the public API
-      const response = await api.api.v1PublicOrganizationProductesQuestionsDetail(organizationId, productId);
+      const response = await api.api.v1PublicOrganizationProductsQuestionsDetail(organizationId, productId);
       
       if (response.data && response.data.success && response.data.data) {
         const { product, questions } = response.data.data;

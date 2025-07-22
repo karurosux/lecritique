@@ -16,7 +16,7 @@
 	let loading = $state(!organization && browser);
 
 	const navItems = [
-		{ href: `/organizations/${organizationId}/products`, label: 'Menu', icon: UtensilsCrossed },
+		{ href: `/organizations/${organizationId}/products`, label: 'Products', icon: UtensilsCrossed },
 		{ href: `/organizations/${organizationId}/qr-codes`, label: 'QR Codes', icon: QrCode }
 	];
 

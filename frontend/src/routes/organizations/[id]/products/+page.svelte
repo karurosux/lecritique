@@ -34,16 +34,16 @@
 	// Fetch products when organization becomes available
 	onMount(async () => {
 		if (organization) {
-			await fetchProductes();
-			await fetchProductesWithQuestions();
+			await fetchProducts();
+			await fetchProductsWithQuestions();
 		}
 	});
 
-	async function fetchProductes() {
+	async function fetchProducts() {
 		try {
 			loading = true;
 			const api = getApiClient();
-			const response = await api.api.v1OrganizationsProductesList(organizationId);
+			const response = await api.api.v1OrganizationsProductsList(organizationId);
 			
 			if (response.data.success && response.data.data) {
 				products = response.data.data.map((product: any) => ({
@@ -88,7 +88,7 @@
 	);
 
 	// Filter and sort products
-	let filteredProductes = $derived(
+	let filteredProducts = $derived(
 		productsWithQuestionnaires
 			.filter((product: any) => {
 				const matchesSearch = product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -142,9 +142,9 @@
 
 		try {
 			const api = getApiClient();
-			await api.api.v1ProductesDelete(deletingProduct.id);
+			await api.api.v1ProductsDelete(deletingProduct.id);
 			toast.success('Product deleted successfully');
-			await fetchProductes();
+			await fetchProducts();
 		} catch (error) {
 			toast.error('Failed to delete product');
 			console.error(error);
@@ -164,12 +164,12 @@
 	async function handleToggleAvailability(product: any) {
 		try {
 			const api = getApiClient();
-			await api.api.v1ProductesUpdate(product.id, {
+			await api.api.v1ProductsUpdate(product.id, {
 				...product,
 				is_available: !product.is_available
 			});
 			toast.success(`${product.name} ${product.is_available ? 'disabled' : 'enabled'}`);
-			await fetchProductes();
+			await fetchProducts();
 		} catch (error) {
 			toast.error('Failed to update product availability');
 			console.error(error);
@@ -182,10 +182,10 @@
 	}
 	
 
-	async function fetchProductesWithQuestions() {
+	async function fetchProductsWithQuestions() {
 		try {
 			const api = getApiClient();
-			const response = await api.api.v1OrganizationsQuestionsProductesWithQuestionsList(organizationId);
+			const response = await api.api.v1OrganizationsQuestionsProductsWithQuestionsList(organizationId);
 			productsWithQuestions = response.data.data || [];
 		} catch (error) {
 			console.error('Failed to fetch products with questions:', error);
@@ -194,7 +194,7 @@
 </script>
 
 <svelte:head>
-	<title>Menu - {organization?.name || 'Organization'} | LeCritique</title>
+	<title>Products - {organization?.name || 'Organization'} | Kyooar</title>
 </svelte:head>
 
 {#if !organization}
@@ -259,8 +259,8 @@
 		</div>
 	</Card>
 
-	<!-- Productes Grid -->
-	{#if filteredProductes.length === 0}
+	<!-- Products Grid -->
+	{#if filteredProducts.length === 0}
 		<div class="text-center py-12">
 			<div class="w-24 h-24 mx-auto bg-gray-100 rounded-full flex items-center justify-center mb-4">
 				<Plus class="h-8 w-8 text-gray-400" />
@@ -270,7 +270,7 @@
 			</h3>
 			<p class="text-gray-500 mb-4">
 				{productsWithQuestionnaires.length === 0 
-					? 'Start building your menu by adding your first product'
+					? 'Start building your product catalog by adding your first product'
 					: 'Try adjusting your search or filters'
 				}
 			</p>
@@ -285,7 +285,7 @@
 		</div>
 	{:else}
 		<div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-			{#each filteredProductes as product (product.id)}
+			{#each filteredProducts as product (product.id)}
 				<ProductCard
 					{product}
 					onedit={handleEditProduct}
@@ -316,14 +316,14 @@
 				const api = getApiClient();
 				if (editingProduct) {
 					// Update existing product
-					await api.api.v1ProductesUpdate(editingProduct.id, {
+					await api.api.v1ProductsUpdate(editingProduct.id, {
 						...productData,
 						organization_id: organizationId
 					});
 					toast.success('Product updated successfully');
 				} else {
 					// Create new product using the correct nested endpoint
-					await api.api.v1OrganizationsProductesCreate(organizationId, {
+					await api.api.v1OrganizationsProductsCreate(organizationId, {
 						...productData,
 						organization_id: organizationId
 					});
@@ -331,8 +331,8 @@
 				}
 				showAddProductModal = false;
 				editingProduct = null;
-				await fetchProductes();
-				await fetchProductesWithQuestions();
+				await fetchProducts();
+				await fetchProductsWithQuestions();
 			} catch (error) {
 				console.error('Error saving product:', error);
 				toast.error('Failed to save product');

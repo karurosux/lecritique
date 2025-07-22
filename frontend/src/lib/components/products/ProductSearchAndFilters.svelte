@@ -13,7 +13,7 @@
     availabilityFilter = $bindable('all'),
     sortBy = $bindable('name'),
     categories = [],
-    totalProductes = 0,
+    totalProducts = 0,
     filteredCount = 0
   }: {
     searchQuery?: string;
@@ -21,7 +21,7 @@
     availabilityFilter?: string;
     sortBy?: string;
     categories?: Category[];
-    totalProductes?: number;
+    totalProducts?: number;
     filteredCount?: number;
   } = $props();
 

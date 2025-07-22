@@ -7,10 +7,10 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
-	"lecritique/internal/feedback/models"
-	"lecritique/internal/feedback/repositories"
-	menuRepos "lecritique/internal/menu/repositories"
-	organizationRepos "lecritique/internal/organization/repositories"
+	"kyooar/internal/feedback/models"
+	"kyooar/internal/feedback/repositories"
+	menuRepos "kyooar/internal/menu/repositories"
+	organizationRepos "kyooar/internal/organization/repositories"
 	"github.com/samber/do"
 )
 
@@ -21,7 +21,7 @@ type QuestionService interface {
 	UpdateQuestion(ctx context.Context, accountID, questionID uuid.UUID, request *models.UpdateQuestionRequest) (*models.Question, error)
 	DeleteQuestion(ctx context.Context, accountID, questionID uuid.UUID) error
 	ReorderQuestions(ctx context.Context, accountID, productID uuid.UUID, questionIDs []uuid.UUID) error
-	GetProductesWithQuestions(ctx context.Context, accountID, organizationID uuid.UUID) ([]uuid.UUID, error)
+	GetProductsWithQuestions(ctx context.Context, accountID, organizationID uuid.UUID) ([]uuid.UUID, error)
 }
 
 type questionService struct {
@@ -205,7 +205,7 @@ func (s *questionService) ReorderQuestions(ctx context.Context, accountID, produ
 	return nil
 }
 
-func (s *questionService) GetProductesWithQuestions(ctx context.Context, accountID, organizationID uuid.UUID) ([]uuid.UUID, error) {
+func (s *questionService) GetProductsWithQuestions(ctx context.Context, accountID, organizationID uuid.UUID) ([]uuid.UUID, error) {
 	// Verify organization ownership
 	organization, err := s.organizationRepo.FindByID(ctx, organizationID)
 	if err != nil {
@@ -220,5 +220,5 @@ func (s *questionService) GetProductesWithQuestions(ctx context.Context, account
 		return nil, echo.NewHTTPError(http.StatusNotFound, "Organization not found")
 	}
 
-	return s.questionRepo.GetProductesWithQuestions(ctx, organizationID)
+	return s.questionRepo.GetProductsWithQuestions(ctx, organizationID)
 }

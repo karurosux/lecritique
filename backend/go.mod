@@ -1,4 +1,4 @@
-module lecritique
+module kyooar
 
 go 1.23.0
 

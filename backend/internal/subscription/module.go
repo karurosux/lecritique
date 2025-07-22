@@ -2,8 +2,8 @@ package subscription
 
 import (
 	"github.com/labstack/echo/v4"
-	"lecritique/internal/subscription/handlers"
-	sharedMiddleware "lecritique/internal/shared/middleware"
+	"kyooar/internal/subscription/handlers"
+	sharedMiddleware "kyooar/internal/shared/middleware"
 	"github.com/samber/do"
 )
 

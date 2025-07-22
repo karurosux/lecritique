@@ -1,8 +1,8 @@
-# LeCritique - Organization Feedback Platform
+# Kyooar - Organization Feedback Platform
 
 ## Project Overview
 
-LeCritique is a SaaS platform that enables organizations to collect detailed, product-specific feedback from customers through QR code-driven questionnaires. The platform helps organization owners gain actionable insights to improve their service, menu offerings, and overall customer experience.
+Kyooar is a SaaS platform that enables organizations to collect detailed, product-specific feedback from customers through QR code-driven questionnaires. The platform helps organization owners gain actionable insights to improve their service, menu offerings, and overall customer experience.
 
 ## Core Concept
 
@@ -177,7 +177,7 @@ make dev
 ### Project Structure
 
 ```
-lecritique-api/
+kyooar-api/
 ├── cmd/api/          # Application entry point
 ├── internal/         # Private application code
 │   ├── config/       # Configuration management
@@ -303,6 +303,6 @@ lecritique-api/
 ## Contact & Support
 
 - **Documentation**: API_ENDPOINTS.md
-- **Support Email**: <support@lecritique.com>
-- **Developer Portal**: docs.lecritique.com
-- **Status Page**: status.lecritique.com
+- **Support Email**: <support@kyooar.com>
+- **Developer Portal**: docs.kyooar.com
+- **Status Page**: status.kyooar.com

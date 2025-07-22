@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"lecritique/internal/shared/models"
+	"kyooar/internal/shared/models"
 )
 
 type TokenType string

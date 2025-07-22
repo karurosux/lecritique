@@ -97,7 +97,7 @@ SET features = jsonb_set(
     '{custom,webhook_urls}',
     CASE 
         WHEN code = 'starter' THEN '[]'::jsonb
-        WHEN code = 'professional' THEN '["https://api.lecritique.com/webhook"]'::jsonb
+        WHEN code = 'professional' THEN '["https://api.kyooar.com/webhook"]'::jsonb
         WHEN code = 'enterprise' THEN '["custom"]'::jsonb
     END
 );

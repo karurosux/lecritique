@@ -20,7 +20,7 @@
   });
   
   let authState = $derived($auth);
-  let availableProductes = $state<any[]>([]);
+  let availableProducts = $state<any[]>([]);
 
   $effect(() => {
     if (!authState.isAuthenticated) {
@@ -43,7 +43,7 @@
         organizations = response.data.data;
         if (organizations.length > 0) {
           selectedOrganization = organizations[0].id;
-          await loadProductes();
+          await loadProducts();
           loadAnalytics();
         }
       }
@@ -52,15 +52,15 @@
     }
   }
 
-  async function loadProductes() {
+  async function loadProducts() {
     if (!selectedOrganization) return;
     
     try {
       const api = getApiClient();
-      const response = await api.api.v1OrganizationsProductesList(selectedOrganization);
+      const response = await api.api.v1OrganizationsProductsList(selectedOrganization);
       
       if (response.data.success && response.data.data) {
-        availableProductes = response.data.data;
+        availableProducts = response.data.data;
       }
     } catch (err) {
       console.error('Error loading products:', err);
@@ -111,7 +111,7 @@
 
   function handleOrganizationChange() {
     resetFilters();
-    loadProductes();
+    loadProducts();
     loadAnalytics();
   }
 
@@ -130,7 +130,7 @@
 </script>
 
 <svelte:head>
-  <title>Grouped Analytics Demo - LeCritique</title>
+  <title>Grouped Analytics Demo - Kyooar</title>
 </svelte:head>
 
 <div class="analytics-grouped-demo max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -268,8 +268,8 @@
           <Select
             bind:value={filters.productId}
             options={[
-              { value: '', label: 'All Productes' },
-              ...availableProductes.map(d => ({ value: d.id, label: d.name }))
+              { value: '', label: 'All Products' },
+              ...availableProducts.map(d => ({ value: d.id, label: d.name }))
             ]}
             onchange={applyFilters}
             minWidth="min-w-48"

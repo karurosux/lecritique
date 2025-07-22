@@ -14,8 +14,8 @@
 </script>
 
 <svelte:head>
-  <title>Registration Successful - LeCritique</title>
-  <meta name="description" content="Your LeCritique account has been created successfully" />
+  <title>Registration Successful - Kyooar</title>
+  <meta name="description" content="Your Kyooar account has been created successfully" />
 </svelte:head>
 
 <div class="min-h-screen bg-gradient-to-b from-white to-gray-50/50 flex items-center justify-center px-4">
@@ -43,7 +43,7 @@
             Registration Successful!
           </h1>
           <p class="text-lg text-gray-600">
-            Welcome to LeCritique. Your account has been created successfully.
+            Welcome to Kyooar. Your account has been created successfully.
           </p>
         </div>
         

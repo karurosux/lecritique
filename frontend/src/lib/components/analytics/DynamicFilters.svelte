@@ -38,7 +38,7 @@
   const comparisonModes = [
     { value: 'none', label: 'No Comparison' },
     { value: 'period', label: 'Period over Period' },
-    { value: 'product', label: 'Compare Productes' },
+    { value: 'product', label: 'Compare Products' },
     { value: 'question', label: 'Compare Questions' }
   ];
   

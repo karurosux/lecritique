@@ -4,11 +4,11 @@ import (
 	"context"
 
 	"github.com/google/uuid"
-	"lecritique/internal/organization/models"
-	organizationRepos "lecritique/internal/organization/repositories"
-	"lecritique/internal/shared/errors"
-	sharedRepos "lecritique/internal/shared/repositories"
-	subscriptionRepos "lecritique/internal/subscription/repositories"
+	"kyooar/internal/organization/models"
+	organizationRepos "kyooar/internal/organization/repositories"
+	"kyooar/internal/shared/errors"
+	sharedRepos "kyooar/internal/shared/repositories"
+	subscriptionRepos "kyooar/internal/subscription/repositories"
 	"github.com/samber/do"
 )
 

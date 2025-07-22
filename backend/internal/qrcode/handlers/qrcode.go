@@ -5,11 +5,11 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
-	"lecritique/internal/qrcode/models"
-	"lecritique/internal/qrcode/services"
-	"lecritique/internal/shared/logger"
-	"lecritique/internal/shared/middleware"
-	"lecritique/internal/shared/validator"
+	"kyooar/internal/qrcode/models"
+	"kyooar/internal/qrcode/services"
+	"kyooar/internal/shared/logger"
+	"kyooar/internal/shared/middleware"
+	"kyooar/internal/shared/validator"
 	"github.com/samber/do"
 	"github.com/sirupsen/logrus"
 )

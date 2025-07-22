@@ -6,9 +6,9 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"lecritique/internal/auth/models"
-	organizationModels "lecritique/internal/organization/models"
-	"lecritique/internal/shared/repositories"
+	"kyooar/internal/auth/models"
+	organizationModels "kyooar/internal/organization/models"
+	"kyooar/internal/shared/repositories"
 	"github.com/samber/do"
 	"gorm.io/gorm"
 )

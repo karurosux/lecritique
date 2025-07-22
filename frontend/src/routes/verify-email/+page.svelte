@@ -39,8 +39,8 @@
 </script>
 
 <svelte:head>
-  <title>Verify Email - LeCritique</title>
-  <meta name="description" content="Verify your email address for LeCritique" />
+  <title>Verify Email - Kyooar</title>
+  <meta name="description" content="Verify your email address for Kyooar" />
 </svelte:head>
 
 <div class="min-h-screen bg-gradient-to-b from-white to-gray-50/50 flex items-center justify-center px-4">

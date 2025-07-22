@@ -1,7 +1,7 @@
 package providers
 
 import (
-	"lecritique/internal/shared/config"
+	"kyooar/internal/shared/config"
 	"github.com/samber/do"
 	"gorm.io/gorm"
 )

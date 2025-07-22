@@ -277,7 +277,7 @@
 </script>
 
 <svelte:head>
-  <title>Organizations - LeCritique</title>
+  <title>Organizations - Kyooar</title>
   <meta name="description" content="Manage your organizations" />
 </svelte:head>
 

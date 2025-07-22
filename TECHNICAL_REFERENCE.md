@@ -1,4 +1,4 @@
-# Technical Reference - LeCritique
+# Technical Reference - Kyooar
 
 ## API Endpoints
 
@@ -39,7 +39,7 @@
 - `PUT /api/v1/organizations/:id` - Update organization
 - `DELETE /api/v1/organizations/:id` - Delete organization
 
-#### Productes
+#### Products
 - `POST /api/v1/products` - Create product
 - `GET /api/v1/products/:id` - Get product
 - `PUT /api/v1/products/:id` - Update product
@@ -132,5 +132,5 @@ type Service interface {
 ```ts
 import { getApiClient } from '$lib/api';
 const api = getApiClient();
-const response = await api.api.v1OrganizationsProductesList(organizationId);
+const response = await api.api.v1OrganizationsProductsList(organizationId);
 ```

@@ -2,10 +2,10 @@ package handlers
 
 import (
 	"github.com/labstack/echo/v4"
-	qrcodeServices "lecritique/internal/qrcode/services"
-	"lecritique/internal/shared/errors"
-	"lecritique/internal/shared/logger"
-	"lecritique/internal/shared/response"
+	qrcodeServices "kyooar/internal/qrcode/services"
+	"kyooar/internal/shared/errors"
+	"kyooar/internal/shared/logger"
+	"kyooar/internal/shared/response"
 	"github.com/samber/do"
 	"github.com/sirupsen/logrus"
 )

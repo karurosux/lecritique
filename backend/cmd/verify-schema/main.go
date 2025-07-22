@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"log"
 
-	"lecritique/internal/shared/config"
-	"lecritique/internal/shared/database"
-	"lecritique/internal/subscription/models"
+	"kyooar/internal/shared/config"
+	"kyooar/internal/shared/database"
+	"kyooar/internal/subscription/models"
 )
 
 func main() {

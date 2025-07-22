@@ -2,8 +2,8 @@ package menu
 
 import (
 	"github.com/labstack/echo/v4"
-	"lecritique/internal/menu/handlers"
-	sharedMiddleware "lecritique/internal/shared/middleware"
+	"kyooar/internal/menu/handlers"
+	sharedMiddleware "kyooar/internal/shared/middleware"
 	"github.com/samber/do"
 )
 

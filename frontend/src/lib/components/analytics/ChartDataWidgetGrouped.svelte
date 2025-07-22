@@ -160,10 +160,10 @@
   const summaryStats = $derived(() => {
     if (!chartData?.charts) return null;
     
-    const totalProductes = new Set(chartData.charts.map(c => c.product_id || 'no-product')).size;
+    const totalProducts = new Set(chartData.charts.map(c => c.product_id || 'no-product')).size;
     const totalQuestions = chartData.charts.length;
     const totalResponses = chartData.summary.total_responses;
-    const avgResponsesPerProduct = totalProductes > 0 ? Math.round(totalResponses / totalProductes) : 0;
+    const avgResponsesPerProduct = totalProducts > 0 ? Math.round(totalResponses / totalProducts) : 0;
     
     // Calculate overall average score
     let scoreSum = 0;
@@ -177,7 +177,7 @@
     const overallAvgScore = scoreCount > 0 ? scoreSum / scoreCount : 0;
     
     return {
-      totalProductes,
+      totalProducts,
       totalQuestions,
       totalResponses,
       avgResponsesPerProduct,

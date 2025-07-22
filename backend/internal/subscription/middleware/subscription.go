@@ -4,11 +4,11 @@ import (
 	"fmt"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
-	"lecritique/internal/shared/errors"
-	"lecritique/internal/shared/response"
-	"lecritique/internal/subscription/models"
-	"lecritique/internal/subscription/services"
-	organizationServices "lecritique/internal/organization/services"
+	"kyooar/internal/shared/errors"
+	"kyooar/internal/shared/response"
+	"kyooar/internal/subscription/models"
+	"kyooar/internal/subscription/services"
+	organizationServices "kyooar/internal/organization/services"
 )
 
 type SubscriptionMiddleware struct {

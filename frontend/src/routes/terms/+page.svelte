@@ -16,8 +16,8 @@
 </script>
 
 <svelte:head>
-  <title>Terms of Service - LeCritique</title>
-  <meta name="description" content="LeCritique Terms of Service - Read our terms and conditions for using our organization feedback management platform" />
+  <title>Terms of Service - Kyooar</title>
+  <meta name="description" content="Kyooar Terms of Service - Read our terms and conditions for using our organization feedback management platform" />
 </svelte:head>
 
 <div class="min-h-screen bg-gradient-to-b from-white to-gray-50/50">
@@ -51,7 +51,7 @@
           Terms of Service
         </h1>
         <p class="text-xl text-gray-600 max-w-2xl mx-auto">
-          Everything you need to know about using LeCritique's organization feedback platform
+          Everything you need to know about using Kyooar's organization feedback platform
         </p>
       </div>
 
@@ -74,7 +74,7 @@
         <div class="mt-16 pt-12 border-t border-gray-200">
           <div class="bg-gradient-to-br from-blue-50 to-purple-50 rounded-xl p-8">
             <p class="text-center text-gray-700 mb-6">
-              By using LeCritique, you acknowledge that you have read, understood, and agree to be bound by these Terms of Service.
+              By using Kyooar, you acknowledge that you have read, understood, and agree to be bound by these Terms of Service.
             </p>
             <div class="flex flex-col sm:flex-row gap-4 justify-center">
               <a 

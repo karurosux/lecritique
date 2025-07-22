@@ -184,7 +184,7 @@
 </script>
 
 <svelte:head>
-  <title>Edit Organization - LeCritique</title>
+  <title>Edit Organization - Kyooar</title>
   <meta name="description" content="Edit organization information" />
 </svelte:head>
 

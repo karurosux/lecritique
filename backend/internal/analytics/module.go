@@ -2,8 +2,8 @@ package analytics
 
 import (
 	"github.com/labstack/echo/v4"
-	"lecritique/internal/analytics/handlers"
-	sharedMiddleware "lecritique/internal/shared/middleware"
+	"kyooar/internal/analytics/handlers"
+	sharedMiddleware "kyooar/internal/shared/middleware"
 	"github.com/samber/do"
 )
 

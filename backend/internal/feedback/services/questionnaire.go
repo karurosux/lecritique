@@ -5,11 +5,11 @@ import (
 	"fmt"
 
 	"github.com/google/uuid"
-	aiServices "lecritique/internal/ai/services"
-	"lecritique/internal/feedback/models"
-	"lecritique/internal/feedback/repositories"
-	menuModels "lecritique/internal/menu/models"
-	"lecritique/internal/shared/config"
+	aiServices "kyooar/internal/ai/services"
+	"kyooar/internal/feedback/models"
+	"kyooar/internal/feedback/repositories"
+	menuModels "kyooar/internal/menu/models"
+	"kyooar/internal/shared/config"
 	"github.com/samber/do"
 )
 

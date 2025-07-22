@@ -6,8 +6,8 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"lecritique/internal/subscription/models"
-	subscriptionRepos "lecritique/internal/subscription/repositories"
+	"kyooar/internal/subscription/models"
+	subscriptionRepos "kyooar/internal/subscription/repositories"
 	"github.com/samber/do"
 )
 

@@ -5,10 +5,10 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
-	"lecritique/internal/feedback/models"
-	"lecritique/internal/feedback/services"
-	menuServices "lecritique/internal/menu/services"
-	"lecritique/internal/shared/middleware"
+	"kyooar/internal/feedback/models"
+	"kyooar/internal/feedback/services"
+	menuServices "kyooar/internal/menu/services"
+	"kyooar/internal/shared/middleware"
 	"github.com/samber/do"
 )
 

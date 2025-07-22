@@ -3,9 +3,9 @@ version: '3.8'
 services:
   postgres:
     image: postgres:16-alpine
-    container_name: lecritique_postgres
+    container_name: kyooar_postgres
     environment:
-      POSTGRES_DB: lecritique
+      POSTGRES_DB: kyooar
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
     ports:
@@ -13,27 +13,27 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     networks:
-      - lecritique_network
+      - kyooar_network
 
   redis:
     image: redis:7-alpine
-    container_name: lecritique_redis
+    container_name: kyooar_redis
     ports:
       - "6379:6379"
     networks:
-      - lecritique_network
+      - kyooar_network
 
   api:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: lecritique_api
+    container_name: kyooar_api
     environment:
       - DB_HOST=postgres
       - DB_PORT=5432
       - DB_USER=postgres
       - DB_PASSWORD=postgres
-      - DB_NAME=lecritique
+      - DB_NAME=kyooar
       - REDIS_HOST=redis
       - REDIS_PORT=6379
     ports:
@@ -42,11 +42,11 @@ services:
       - postgres
       - redis
     networks:
-      - lecritique_network
+      - kyooar_network
 
 volumes:
   postgres_data:
 
 networks:
-  lecritique_network:
+  kyooar_network:
     driver: bridge

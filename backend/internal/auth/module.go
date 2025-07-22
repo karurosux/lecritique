@@ -2,8 +2,8 @@ package auth
 
 import (
 	"github.com/labstack/echo/v4"
-	"lecritique/internal/auth/handlers"
-	sharedMiddleware "lecritique/internal/shared/middleware"
+	"kyooar/internal/auth/handlers"
+	sharedMiddleware "kyooar/internal/shared/middleware"
 	"github.com/samber/do"
 )
 

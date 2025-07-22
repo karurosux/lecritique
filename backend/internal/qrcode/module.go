@@ -2,8 +2,8 @@ package qrcode
 
 import (
 	"github.com/labstack/echo/v4"
-	"lecritique/internal/qrcode/handlers"
-	sharedMiddleware "lecritique/internal/shared/middleware"
+	"kyooar/internal/qrcode/handlers"
+	sharedMiddleware "kyooar/internal/shared/middleware"
 	"github.com/samber/do"
 )
 

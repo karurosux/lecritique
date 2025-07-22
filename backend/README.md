@@ -1,4 +1,4 @@
-# LeCritique API
+# Kyooar API
 
 A subscription-based feedback platform that enables organizations to collect product-specific insights through QR code-driven questionnaires.
 

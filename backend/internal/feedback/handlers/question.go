@@ -5,9 +5,9 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
-	"lecritique/internal/feedback/models"
-	"lecritique/internal/feedback/services"
-	"lecritique/internal/shared/middleware"
+	"kyooar/internal/feedback/models"
+	"kyooar/internal/feedback/services"
+	"kyooar/internal/shared/middleware"
 	"github.com/samber/do"
 )
 
@@ -249,20 +249,20 @@ func (h *QuestionHandler) ReorderQuestions(c echo.Context) error {
 	})
 }
 
-// GetProductesWithQuestions returns product IDs that have questions for a organization
+// GetProductsWithQuestions returns product IDs that have questions for a organization
 // @Summary Get products that have questions
 // @Description Get list of product IDs that have questions for a organization
 // @Tags questions
 // @Produce json
 // @Param organizationId path string true "Organization ID"
-// @Success 200 {object} map[string]interface{} "Productes with questions retrieved successfully"
+// @Success 200 {object} map[string]interface{} "Products with questions retrieved successfully"
 // @Failure 400 {object} map[string]interface{} "Invalid request"
 // @Failure 401 {object} map[string]interface{} "Unauthorized"
 // @Failure 403 {object} map[string]interface{} "Access denied"
 // @Failure 500 {object} map[string]interface{} "Server error"
 // @Router /api/v1/organizations/{organizationId}/questions/products-with-questions [get]
 // @Security BearerAuth
-func (h *QuestionHandler) GetProductesWithQuestions(c echo.Context) error {
+func (h *QuestionHandler) GetProductsWithQuestions(c echo.Context) error {
 	accountID := middleware.GetResourceAccountID(c)
 
 	organizationID, err := uuid.Parse(c.Param("organizationId"))
@@ -270,7 +270,7 @@ func (h *QuestionHandler) GetProductesWithQuestions(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, "Invalid organization ID")
 	}
 
-	productsWithQuestions, err := h.questionService.GetProductesWithQuestions(c.Request().Context(), accountID, organizationID)
+	productsWithQuestions, err := h.questionService.GetProductsWithQuestions(c.Request().Context(), accountID, organizationID)
 	if err != nil {
 		return err
 	}

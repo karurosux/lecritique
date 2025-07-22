@@ -30,8 +30,8 @@
 </script>
 
 <svelte:head>
-	<title>Forgot Password - LeCritique</title>
-	<meta name="description" content="Reset your LeCritique account password" />
+	<title>Forgot Password - Kyooar</title>
+	<meta name="description" content="Reset your Kyooar account password" />
 </svelte:head>
 
 <div class="min-h-screen flex flex-col justify-center py-12 sm:px-6 lg:px-8">

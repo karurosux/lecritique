@@ -1,4 +1,4 @@
-# LeCritique Tasks
+# Kyooar Tasks
 
 ## 🚧 Active Development
 
@@ -67,7 +67,7 @@
 - [ ] Implement proper caching strategy
 
 ## 📝 Development Notes
-- **Test User**: admin@lecritique.com / admin123
+- **Test User**: admin@kyooar.com / admin123
 - **Commands**: `make seed` or `make seed-force`
 - **Remember**: Questionnaires are product-specific (core feature!)
 - **Always**: Check subscription limits before operations

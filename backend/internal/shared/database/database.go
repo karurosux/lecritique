@@ -6,7 +6,7 @@ import (
 	"os"
 	"time"
 
-	"lecritique/internal/shared/config"
+	"kyooar/internal/shared/config"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"

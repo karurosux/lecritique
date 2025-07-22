@@ -1802,7 +1802,7 @@ const docTemplate = `{
                                         "data": {
                                             "type": "array",
                                             "items": {
-                                                "$ref": "#/definitions/lecritique_internal_menu_models.Product"
+                                                "$ref": "#/definitions/kyooar_internal_menu_models.Product"
                                             }
                                         }
                                     }
@@ -1883,7 +1883,7 @@ const docTemplate = `{
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/lecritique_internal_menu_models.Product"
+                                            "$ref": "#/definitions/kyooar_internal_menu_models.Product"
                                         }
                                     }
                                 }
@@ -2916,7 +2916,7 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "Productes with questions retrieved successfully",
+                        "description": "Products with questions retrieved successfully",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
@@ -3363,7 +3363,7 @@ const docTemplate = `{
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/lecritique_internal_menu_models.Product"
+                                            "$ref": "#/definitions/kyooar_internal_menu_models.Product"
                                         }
                                     }
                                 }
@@ -3723,7 +3723,7 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "Productes with questions retrieved successfully",
+                        "description": "Products with questions retrieved successfully",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
@@ -5434,7 +5434,7 @@ const docTemplate = `{
                 }
             }
         },
-        "lecritique_internal_menu_models.Product": {
+        "kyooar_internal_menu_models.Product": {
             "type": "object"
         },
         "models.Account": {
@@ -5803,7 +5803,7 @@ const docTemplate = `{
                     }
                 },
                 "product": {
-                    "$ref": "#/definitions/lecritique_internal_menu_models.Product"
+                    "$ref": "#/definitions/kyooar_internal_menu_models.Product"
                 },
                 "product_id": {
                     "type": "string"
@@ -5874,7 +5874,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "product": {
-                    "$ref": "#/definitions/lecritique_internal_menu_models.Product"
+                    "$ref": "#/definitions/kyooar_internal_menu_models.Product"
                 },
                 "product_id": {
                     "type": "string"
@@ -6247,7 +6247,7 @@ var SwaggerInfo = &swag.Spec{
 	Host:             "localhost:8080",
 	BasePath:         "",
 	Schemes:          []string{},
-	Title:            "LeCritique API",
+	Title:            "Kyooar API",
 	Description:      "Organization feedback management system API",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,

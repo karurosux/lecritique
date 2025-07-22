@@ -5,8 +5,8 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
-	authModels "lecritique/internal/auth/models"
-	"lecritique/internal/auth/services"
+	authModels "kyooar/internal/auth/models"
+	"kyooar/internal/auth/services"
 )
 
 // TeamAware middleware checks if the user is a team member and sets the appropriate account IDs in context

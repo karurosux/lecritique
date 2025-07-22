@@ -16,8 +16,8 @@
 </script>
 
 <svelte:head>
-  <title>Privacy Policy - LeCritique</title>
-  <meta name="description" content="LeCritique Privacy Policy - Learn how we collect, use, and protect your data on our organization feedback management platform" />
+  <title>Privacy Policy - Kyooar</title>
+  <meta name="description" content="Kyooar Privacy Policy - Learn how we collect, use, and protect your data on our organization feedback management platform" />
 </svelte:head>
 
 <div class="min-h-screen bg-gradient-to-b from-white to-gray-50/50">
@@ -51,7 +51,7 @@
           Privacy Policy
         </h1>
         <p class="text-xl text-gray-600 max-w-2xl mx-auto">
-          Your privacy matters. Learn how LeCritique protects and manages your data
+          Your privacy matters. Learn how Kyooar protects and manages your data
         </p>
       </div>
 
@@ -74,7 +74,7 @@
         <div class="mt-16 pt-12 border-t border-gray-200">
           <div class="bg-gradient-to-br from-blue-50 to-purple-50 rounded-xl p-8">
             <p class="text-center text-gray-700 mb-6">
-              By using LeCritique, you acknowledge that you have read and understood our Privacy Policy.
+              By using Kyooar, you acknowledge that you have read and understood our Privacy Policy.
             </p>
             <div class="flex flex-col sm:flex-row gap-4 justify-center">
               <a 

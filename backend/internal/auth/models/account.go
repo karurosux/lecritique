@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"lecritique/internal/shared/models"
+	"kyooar/internal/shared/models"
 	"golang.org/x/crypto/bcrypt"
 )
 

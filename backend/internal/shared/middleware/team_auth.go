@@ -2,8 +2,8 @@ package middleware
 
 import (
 	"github.com/labstack/echo/v4"
-	"lecritique/internal/auth/models"
-	"lecritique/internal/auth/services"
+	"kyooar/internal/auth/models"
+	"kyooar/internal/auth/services"
 )
 
 // TeamAuthMiddleware adds team member information to the request context

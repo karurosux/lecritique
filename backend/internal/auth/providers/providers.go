@@ -1,8 +1,8 @@
 package providers
 
 import (
-	"lecritique/internal/auth/repositories"
-	"lecritique/internal/auth/services"
+	"kyooar/internal/auth/repositories"
+	"kyooar/internal/auth/services"
 	"github.com/samber/do"
 )
 

@@ -146,7 +146,7 @@
 </script>
 
 <svelte:head>
-  <title>Add Organization - LeCritique</title>
+  <title>Add Organization - Kyooar</title>
   <meta name="description" content="Add a new organization" />
 </svelte:head>
 

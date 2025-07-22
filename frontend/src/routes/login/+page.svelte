@@ -44,8 +44,8 @@
 </script>
 
 <svelte:head>
-  <title>Login - LeCritique</title>
-  <meta name="description" content="Login to your LeCritique organization management account" />
+  <title>Login - Kyooar</title>
+  <meta name="description" content="Login to your Kyooar organization management account" />
 </svelte:head>
 
 <div class="min-h-screen flex flex-col justify-center py-12 sm:px-6 lg:px-8">

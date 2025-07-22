@@ -1,6 +1,6 @@
 #!/bin/bash
 
-echo "🎉 LeCritique API setup complete!"
+echo "🎉 Kyooar API setup complete!"
 echo ""
 echo "Next steps:"
 echo "1. Initialize go modules: go mod tidy"

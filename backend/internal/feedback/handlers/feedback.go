@@ -7,12 +7,12 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
-	"lecritique/internal/feedback/models"
-	"lecritique/internal/feedback/repositories"
-	"lecritique/internal/feedback/services"
-	"lecritique/internal/shared/logger"
-	"lecritique/internal/shared/middleware"
-	sharedModels "lecritique/internal/shared/models"
+	"kyooar/internal/feedback/models"
+	"kyooar/internal/feedback/repositories"
+	"kyooar/internal/feedback/services"
+	"kyooar/internal/shared/logger"
+	"kyooar/internal/shared/middleware"
+	sharedModels "kyooar/internal/shared/models"
 	"github.com/samber/do"
 	"github.com/sirupsen/logrus"
 )

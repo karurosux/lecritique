@@ -2,14 +2,14 @@ package services
 
 import (
 	"context"
-	"lecritique/internal/feedback/models"
+	"kyooar/internal/feedback/models"
 	"time"
 
-	feedbackRepos "lecritique/internal/feedback/repositories"
-	organizationRepos "lecritique/internal/organization/repositories"
-	qrcodeRepos "lecritique/internal/qrcode/repositories"
-	sharedModels "lecritique/internal/shared/models"
-	sharedRepos "lecritique/internal/shared/repositories"
+	feedbackRepos "kyooar/internal/feedback/repositories"
+	organizationRepos "kyooar/internal/organization/repositories"
+	qrcodeRepos "kyooar/internal/qrcode/repositories"
+	sharedModels "kyooar/internal/shared/models"
+	sharedRepos "kyooar/internal/shared/repositories"
 
 	"github.com/google/uuid"
 	"github.com/samber/do"

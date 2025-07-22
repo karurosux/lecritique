@@ -229,8 +229,8 @@
 </script>
 
 <svelte:head>
-  <title>Dashboard - LeCritique</title>
-  <meta name="description" content="LeCritique organization management dashboard" />
+  <title>Dashboard - Kyooar</title>
+  <meta name="description" content="Kyooar organization management dashboard" />
 </svelte:head>
 
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">

@@ -3,10 +3,10 @@ package services
 import (
 	"context"
 	"github.com/google/uuid"
-	"lecritique/internal/menu/models"
-	menuRepos "lecritique/internal/menu/repositories"
-	organizationRepos "lecritique/internal/organization/repositories"
-	sharedRepos "lecritique/internal/shared/repositories"
+	"kyooar/internal/menu/models"
+	menuRepos "kyooar/internal/menu/repositories"
+	organizationRepos "kyooar/internal/organization/repositories"
+	sharedRepos "kyooar/internal/shared/repositories"
 	"github.com/samber/do"
 )
 

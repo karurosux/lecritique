@@ -5,8 +5,8 @@ import (
 	"log"
 	"os"
 
-	"lecritique/internal/shared/config"
-	"lecritique/internal/shared/database"
+	"kyooar/internal/shared/config"
+	"kyooar/internal/shared/database"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 )
@@ -22,9 +22,9 @@ func main() {
 		log.Fatal("Failed to connect to database:", err)
 	}
 
-	email := "admin@lecritique.com"
+	email := "admin@kyooar.com"
 	password := "admin123"
-	companyName := "LeCritique Demo Organization"
+	companyName := "Kyooar Demo Organization"
 
 	fmt.Printf("Creating default user: %s\n", email)
 	fmt.Printf("Company: %s\n", companyName)
@@ -101,7 +101,7 @@ func main() {
 		INSERT INTO organizations (account_id, name, description, email, phone, website, is_active)
 		VALUES (?, ?, ?, ?, ?, ?, true)
 		RETURNING id
-	`, accountID, "Demo Organization", "A sample organization for testing LeCritique", email, "+1-555-0123", "https://demo.lecritique.com").Scan(&newOrganization).Error
+	`, accountID, "Demo Organization", "A sample organization for testing Kyooar", email, "+1-555-0123", "https://demo.kyooar.com").Scan(&newOrganization).Error
 	
 	if err != nil {
 		log.Printf("⚠️  Warning: Failed to create sample organization: %v\n", err)
@@ -109,25 +109,20 @@ func main() {
 		organizationID := newOrganization.ID
 		fmt.Println("✅ Created sample organization")
 
-		var newLocation struct {
-			ID string `gorm:"column:id"`
-		}
-		err = db.Raw(`
+		err = db.Exec(`
 			INSERT INTO locations (organization_id, name, address, city, state, country, postal_code, is_active)
 			VALUES (?, ?, ?, ?, ?, ?, ?, true)
-			RETURNING id
-		`, organizationID, "Main Location", "123 Organization St", "Food City", "CA", "USA", "12345").Scan(&newLocation).Error
+		`, organizationID, "Main Location", "123 Organization St", "Food City", "CA", "USA", "12345").Error
 		
 		if err != nil {
 			log.Printf("⚠️  Warning: Failed to create sample location: %v\n", err)
 		} else {
-			locationID := newLocation.ID
 			fmt.Println("✅ Created sample location")
 
 			err = db.Exec(`
-				INSERT INTO qr_codes (organization_id, location_id, code, label, type, is_active, expires_at)
+				INSERT INTO qr_codes (organization_id, location, code, label, type, is_active, expires_at)
 				VALUES (?, ?, ?, ?, ?, true, NOW() + INTERVAL '1 year')
-			`, organizationID, locationID, "DEMO001", "Table 1", "table").Error
+			`, organizationID, "Main Location", "DEMO001", "Table 1", "table").Error
 			
 			if err != nil {
 				log.Printf("⚠️  Warning: Failed to create sample QR code: %v\n", err)

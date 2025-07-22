@@ -8,14 +8,14 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	analyticsModels "lecritique/internal/analytics/models"
-	feedbackModels "lecritique/internal/feedback/models"
-	feedbackRepos "lecritique/internal/feedback/repositories"
-	menuRepos "lecritique/internal/menu/repositories"
-	qrcodeRepos "lecritique/internal/qrcode/repositories"
-	organizationRepos "lecritique/internal/organization/repositories"
-	"lecritique/internal/shared/logger"
-	sharedModels "lecritique/internal/shared/models"
+	analyticsModels "kyooar/internal/analytics/models"
+	feedbackModels "kyooar/internal/feedback/models"
+	feedbackRepos "kyooar/internal/feedback/repositories"
+	menuRepos "kyooar/internal/menu/repositories"
+	qrcodeRepos "kyooar/internal/qrcode/repositories"
+	organizationRepos "kyooar/internal/organization/repositories"
+	"kyooar/internal/shared/logger"
+	sharedModels "kyooar/internal/shared/models"
 	"github.com/samber/do"
 	"github.com/sirupsen/logrus"
 )
@@ -215,7 +215,7 @@ func (s *analyticsService) GetOrganizationInsights(ctx context.Context, organiza
 		OrganizationID:   organizationID,
 		Period:         period,
 		TotalFeedback:  0,
-		ActiveProductes:   0,
+		ActiveProducts:   0,
 	}, nil
 }
 
@@ -413,7 +413,7 @@ func (s *analyticsService) aggregateByProduct(feedback []feedbackModels.Feedback
 	return productMap
 }
 
-func (s *analyticsService) getTopProductes(productMap map[uuid.UUID]*analyticsModels.ProductSummary, limit int) []analyticsModels.ProductSummary {
+func (s *analyticsService) getTopProducts(productMap map[uuid.UUID]*analyticsModels.ProductSummary, limit int) []analyticsModels.ProductSummary {
 	var products []analyticsModels.ProductSummary
 	for _, d := range productMap {
 		products = append(products, *d)
@@ -430,7 +430,7 @@ func (s *analyticsService) getTopProductes(productMap map[uuid.UUID]*analyticsMo
 	return products
 }
 
-func (s *analyticsService) getBottomProductes(productMap map[uuid.UUID]*analyticsModels.ProductSummary, limit int) []analyticsModels.ProductSummary {
+func (s *analyticsService) getBottomProducts(productMap map[uuid.UUID]*analyticsModels.ProductSummary, limit int) []analyticsModels.ProductSummary {
 	var products []analyticsModels.ProductSummary
 	for _, d := range productMap {
 		if d.Score < 3.5 { // Only show products that need attention

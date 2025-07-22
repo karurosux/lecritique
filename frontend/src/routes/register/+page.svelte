@@ -78,8 +78,8 @@
 </script>
 
 <svelte:head>
-  <title>Register - LeCritique</title>
-  <meta name="description" content="Create your LeCritique organization management account" />
+  <title>Register - Kyooar</title>
+  <meta name="description" content="Create your Kyooar organization management account" />
 </svelte:head>
 
 <div class="min-h-full flex flex-col justify-center py-12 sm:px-6 lg:px-8">
@@ -93,7 +93,7 @@
     
     <div class="text-center space-y-3">
       <h2 class="text-4xl font-bold bg-gradient-to-r from-gray-900 via-blue-800 to-purple-800 bg-clip-text text-transparent">
-        Join LeCritique
+        Join Kyooar
       </h2>
       <p class="text-gray-600 text-lg">
         Create your organization management account

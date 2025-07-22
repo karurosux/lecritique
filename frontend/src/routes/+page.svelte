@@ -14,7 +14,7 @@
 </script>
 
 <svelte:head>
-  <title>LeCritique - Organization Feedback Management</title>
+  <title>Kyooar - Organization Feedback Management</title>
   <meta
     name="description"
     content="Collect and manage customer feedback for your organization with QR code technology"
@@ -27,7 +27,7 @@
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="flex justify-between items-center py-6">
         <div>
-          <h1 class="text-3xl font-bold text-gray-900">LeCritique</h1>
+          <h1 class="text-3xl font-bold text-gray-900">Kyooar</h1>
         </div>
         <div class="flex space-x-4">
           <Button variant="outline" href="/login">Sign In</Button>

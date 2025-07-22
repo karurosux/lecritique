@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	sharedModels "lecritique/internal/shared/models"
+	sharedModels "kyooar/internal/shared/models"
 )
 
 // SubscriptionUsage tracks usage metrics for a subscription billing period

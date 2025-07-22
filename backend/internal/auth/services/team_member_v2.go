@@ -7,10 +7,10 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"lecritique/internal/auth/models"
-	"lecritique/internal/auth/repositories"
-	"lecritique/internal/shared/errors"
-	"lecritique/internal/shared/services"
+	"kyooar/internal/auth/models"
+	"kyooar/internal/auth/repositories"
+	"kyooar/internal/shared/errors"
+	"kyooar/internal/shared/services"
 	"github.com/samber/do"
 )
 
@@ -146,7 +146,7 @@ func (s *teamMemberServiceV2) InviteMember(ctx context.Context, accountID uuid.U
 	}
 
 	org, _ := s.accountRepo.FindByID(ctx, accountID)
-	companyName := "LeCritique"
+	companyName := "Kyooar"
 	if org != nil {
 		companyName = org.Name
 	}
@@ -200,7 +200,7 @@ func (s *teamMemberServiceV2) ResendInvitation(ctx context.Context, accountID uu
 	}
 
 	org, _ := s.accountRepo.FindByID(ctx, invitation.AccountID)
-	companyName := "LeCritique"
+	companyName := "Kyooar"
 	if org != nil {
 		companyName = org.Name
 	}

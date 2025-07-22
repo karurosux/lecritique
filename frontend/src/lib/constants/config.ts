@@ -6,16 +6,16 @@
 export const APP_CONFIG = {
   // Company Information
   company: {
-    name: 'LeCritique',
-    website: 'https://lecritique.com'
+    name: 'Kyooar',
+    website: 'https://kyooar.com'
   },
 
   // Contact Emails
   emails: {
-    support: 'support@lecritique.com',
-    privacy: 'privacy@lecritique.com',
-    billing: 'support@lecritique.com', // Can be different if needed
-    noreply: 'noreply@lecritique.com'
+    support: 'support@kyooar.com',
+    privacy: 'privacy@kyooar.com',
+    billing: 'support@kyooar.com', // Can be different if needed
+    noreply: 'noreply@kyooar.com'
   },
 
   // Client Storage
@@ -35,7 +35,7 @@ export const APP_CONFIG = {
   // External Links
   links: {
     github: 'https://github.com/anthropics/claude-code/issues',
-    documentation: 'https://docs.lecritique.com'
+    documentation: 'https://docs.kyooar.com'
   },
 
   // Locales related config

@@ -120,13 +120,13 @@
 
 	function getFeedbackUrl(qrCode: typeof qrCodes[0]) {
 		// TODO: Update with actual domain
-		const baseUrl = 'https://lecritique.com';
+		const baseUrl = 'https://kyooar.com';
 		return `${baseUrl}/feedback/${qrCode.code}`;
 	}
 </script>
 
 <svelte:head>
-	<title>QR Codes - {organization?.name || 'Organization'} | LeCritique</title>
+	<title>QR Codes - {organization?.name || 'Organization'} | Kyooar</title>
 </svelte:head>
 
 {#if !organization}

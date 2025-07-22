@@ -49,10 +49,10 @@
         
         <div>
           <h1 class="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
-            {organizationName} Menu
+            {organizationName} Products
           </h1>
           <div class="flex items-center space-x-4 mt-1">
-            <p class="text-gray-600 font-medium">Manage your products and menu items</p>
+            <p class="text-gray-600 font-medium">Manage your products and catalog</p>
             {#if !loading}
               <div class="flex items-center space-x-3 text-sm">
                 <div class="flex items-center space-x-1">

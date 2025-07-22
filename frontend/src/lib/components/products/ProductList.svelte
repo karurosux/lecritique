@@ -117,7 +117,7 @@
         </div>
         <h3 class="text-2xl font-semibold text-gray-900 mb-3">No products found</h3>
         <p class="text-gray-600 mb-8 max-w-md mx-auto">
-          Start building your menu by adding your first product. Create categories and organize your offerings to provide the best experience for your customers.
+          Start building your product catalog by adding your first product. Create categories and organize your offerings to provide the best experience for your customers.
         </p>
         <Button onclick={onaddproduct} variant="gradient" class="shadow-lg">
           <svg class="h-5 w-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -129,7 +129,7 @@
     </Card>
 
   {:else}
-    <!-- Productes Grid -->
+    <!-- Products Grid -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       {#each products as product, productIndex}
         <div class="animate-fade-in-up" style="animation-delay: {productIndex * 50}ms">

@@ -6,7 +6,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/lib/pq"
-	"lecritique/internal/shared/models"
+	"kyooar/internal/shared/models"
 )
 
 type Organization struct {
@@ -22,7 +22,7 @@ type Organization struct {
 	IsActive    bool           `gorm:"default:true" json:"is_active"`
 	Settings    Settings       `gorm:"type:jsonb" json:"settings"`
 	Locations   []Location     `json:"locations,omitempty"`
-	// Productes      []Product         `json:"products,omitempty"`     // TODO: Add when menu domain is ready
+	// Products      []Product         `json:"products,omitempty"`     // TODO: Add when menu domain is ready
 	// QRCodes     []QRCode       `json:"qr_codes,omitempty"`  // TODO: Add when qrcode domain is ready
 }
 

@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"lecritique/internal/subscription/models"
+	"kyooar/internal/subscription/models"
 	"github.com/samber/do"
 	"gorm.io/gorm"
 )

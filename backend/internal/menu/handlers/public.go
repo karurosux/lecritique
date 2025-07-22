@@ -3,8 +3,8 @@ package handlers
 import (
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
-	"lecritique/internal/shared/errors"
-	"lecritique/internal/shared/response"
+	"kyooar/internal/shared/errors"
+	"kyooar/internal/shared/response"
 	"github.com/samber/do"
 )
 

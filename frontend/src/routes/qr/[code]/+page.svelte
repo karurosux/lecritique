@@ -61,7 +61,7 @@
   let error = $state('');
   let qrData = $state<QRValidationData | null>(null);
   let productsWithQuestions = $state<Product[]>([]);
-  let loadingProductes = $state(false);
+  let loadingProducts = $state(false);
   
   // Questionnaire state
   let selectedProduct = $state<Product | null>(null);
@@ -78,32 +78,32 @@
   const code = $derived($page.params.code);
   const pageTitle = $derived(
     qrData?.organization?.name 
-      ? `${qrData.organization.name} - LeCritique`
-      : 'QR Code Validation - LeCritique'
+      ? `${qrData.organization.name} - Kyooar`
+      : 'QR Code Validation - Kyooar'
   );
 
   $effect(() => {
     validateQRCode();
   });
 
-  async function loadProductesWithQuestions() {
+  async function loadProductsWithQuestions() {
     if (!qrData?.organization?.id) {
       return;
     }
     
     try {
-      loadingProductes = true;
+      loadingProducts = true;
       const publicApi = new Api({
         baseURL: 'http://localhost:8080'
       });
-      const response = await publicApi.api.v1PublicOrganizationQuestionsProductesWithQuestionsList(qrData.organization.id);
+      const response = await publicApi.api.v1PublicOrganizationQuestionsProductsWithQuestionsList(qrData.organization.id);
       
       if (response.data.success && response.data.data) {
         productsWithQuestions = response.data.data;
       }
     } catch (error) {
     } finally {
-      loadingProductes = false;
+      loadingProducts = false;
     }
   }
 
@@ -148,7 +148,7 @@
         if (qrData && !qrData.valid) {
           error = 'This QR code is invalid or has expired';
         } else if (qrData && qrData.valid) {
-          await loadProductesWithQuestions();
+          await loadProductsWithQuestions();
         }
       } else {
         error = 'Invalid QR code';
@@ -195,7 +195,7 @@
         baseURL: 'http://localhost:8080'
       });
       
-      const response = await publicApi.api.v1PublicOrganizationProductesQuestionsList(
+      const response = await publicApi.api.v1PublicOrganizationProductsQuestionsList(
         qrData.organization.id,
         productId
       );
@@ -218,7 +218,7 @@
     }
   }
 
-  function handleBackToProductes() {
+  function handleBackToProducts() {
     selectedProduct = null;
     questions = [];
     responses = {};
@@ -321,7 +321,7 @@
 
 <div class="min-h-screen bg-gradient-to-br from-blue-100 via-purple-50 to-pink-100 py-2 px-3 sm:py-4 sm:px-4">
   <div class="max-w-lg mx-auto qr-page">
-    <!-- LeCritique Logo -->
+    <!-- Kyooar Logo -->
     <div class="flex justify-center pt-2 pb-4">
       <Logo size="md" class="opacity-80" />
     </div>
@@ -422,7 +422,7 @@
             <p class="text-gray-600 text-sm px-2">Select the product you'd like to give feedback on</p>
           </div>
           
-          {#if loadingProductes}
+          {#if loadingProducts}
             <div class="text-center py-8">
               <Loader2 class="animate-spin h-8 w-8 text-blue-600 mx-auto mb-4" />
               <p class="text-gray-600">Loading products...</p>
@@ -484,7 +484,7 @@
           <Button
             variant="ghost"
             size="sm"
-            onclick={handleBackToProductes}
+            onclick={handleBackToProducts}
             class="flex items-center gap-2 hover:bg-white/50"
           >
             <ArrowLeft class="h-4 w-4" />

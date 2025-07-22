@@ -62,7 +62,7 @@
   }
 
   // Process products from analytics data or feedbacks
-  const processedProductes = $derived(() => {
+  const processedProducts = $derived(() => {
     if (analyticsData?.top_products || analyticsData?.top_rated_products) {
       const products = analyticsData.top_products || analyticsData.top_rated_products || [];
       return {
@@ -172,7 +172,7 @@
         <div class="space-y-2">
           <p class="text-sm font-semibold text-gray-600 uppercase tracking-wide">Top Rated</p>
           <p class="text-3xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
-            {processedProductes().top.length}
+            {processedProducts().top.length}
           </p>
           <p class="text-sm text-gray-600">High-performing products</p>
         </div>
@@ -187,7 +187,7 @@
         <div class="space-y-2">
           <p class="text-sm font-semibold text-gray-600 uppercase tracking-wide">Need Attention</p>
           <p class="text-3xl font-bold bg-gradient-to-r from-red-600 to-pink-600 bg-clip-text text-transparent">
-            {processedProductes().bottom.length}
+            {processedProducts().bottom.length}
           </p>
           <p class="text-sm text-gray-600">Below expectations</p>
         </div>
@@ -210,7 +210,7 @@
 
   {#if loading}
     <div class="space-y-6">
-      <!-- Productes loading -->
+      <!-- Products loading -->
       <div class="space-y-4">
         {#each Array(5) as _}
           <div class="animate-pulse">
@@ -224,13 +224,13 @@
         {/each}
       </div>
     </div>
-  {:else if processedProductes().top.length > 0 || processedProductes().bottom.length > 0}
-    <!-- Top Performing Productes -->
-    {#if processedProductes().top.length > 0}
+  {:else if processedProducts().top.length > 0 || processedProducts().bottom.length > 0}
+    <!-- Top Performing Products -->
+    {#if processedProducts().top.length > 0}
     <div class="mb-6">
-      <h4 class="font-medium text-gray-900 mb-3">Top Performing Productes</h4>
+      <h4 class="font-medium text-gray-900 mb-3">Top Performing Products</h4>
       <div class="space-y-3">
-        {#each processedProductes().top as product, index}
+        {#each processedProducts().top as product, index}
           <div class="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
             <div class="flex items-center justify-between">
               <div class="flex-1">
@@ -278,12 +278,12 @@
     </div>
     {/if}
 
-    <!-- Bottom Performing Productes -->
-    {#if processedProductes().bottom.length > 0}
+    <!-- Bottom Performing Products -->
+    {#if processedProducts().bottom.length > 0}
       <div>
         <h4 class="font-medium text-gray-900 mb-3">Areas for Improvement</h4>
         <div class="space-y-3">
-          {#each processedProductes().bottom as product, index}
+          {#each processedProducts().bottom as product, index}
             <div class="bg-red-50 border border-red-200 rounded-lg p-4">
               <div class="flex items-center justify-between">
                 <div class="flex-1">

@@ -1,4 +1,4 @@
-# LeCritique API Documentation
+# Kyooar API Documentation
 
 ## Base URL
 ```
@@ -116,14 +116,14 @@ PUT /organizations/:id
 DELETE /organizations/:id
 ```
 
-#### Productes
+#### Products
 
 ##### Create Product
 ```
 POST /products
 ```
 
-##### Get Productes by Organization
+##### Get Products by Organization
 ```
 GET /organizations/:organizationId/products
 ```

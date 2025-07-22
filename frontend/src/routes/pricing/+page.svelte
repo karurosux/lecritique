@@ -37,8 +37,8 @@
 </script>
 
 <svelte:head>
-	<title>Choose Your Plan - LeCritique</title>
-	<meta name="description" content="Select the perfect LeCritique plan for your organization feedback needs." />
+	<title>Choose Your Plan - Kyooar</title>
+	<meta name="description" content="Select the perfect Kyooar plan for your organization feedback needs." />
 </svelte:head>
 
 <div class="min-h-screen relative bg-gray-50">

@@ -5,12 +5,12 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
-	"lecritique/internal/organization/models"
-	"lecritique/internal/organization/services"
-	"lecritique/internal/shared/errors"
-	"lecritique/internal/shared/middleware"
-	"lecritique/internal/shared/response"
-	"lecritique/internal/shared/validator"
+	"kyooar/internal/organization/models"
+	"kyooar/internal/organization/services"
+	"kyooar/internal/shared/errors"
+	"kyooar/internal/shared/middleware"
+	"kyooar/internal/shared/response"
+	"kyooar/internal/shared/validator"
 	"github.com/samber/do"
 )
 

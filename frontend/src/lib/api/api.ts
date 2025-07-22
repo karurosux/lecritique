@@ -78,22 +78,22 @@ export interface HandlersCreateCheckoutRequest {
   plan_id: string;
 }
 
-export interface HandlersCreateProductRequest {
-  category?: string;
-  currency?: string;
-  description?: string;
-  name: string;
-  /** @min 0 */
-  price?: number;
-  organization_id: string;
-}
-
 export interface HandlersCreateOrganizationRequest {
   description?: string;
   email?: string;
   name: string;
   phone?: string;
   website?: string;
+}
+
+export interface HandlersCreateProductRequest {
+  category?: string;
+  currency?: string;
+  description?: string;
+  name: string;
+  organization_id: string;
+  /** @min 0 */
+  price?: number;
 }
 
 export interface HandlersCreateSubscriptionRequest {
@@ -211,7 +211,7 @@ export interface HandlersUpdateRoleRequest {
   role: "ADMIN" | "MANAGER" | "VIEWER";
 }
 
-export type LecritiqueInternalMenuModelsProduct = object;
+export type KyooarInternalMenuModelsProduct = object;
 
 export interface ModelsAccount {
   created_at?: string;
@@ -246,9 +246,9 @@ export interface ModelsCreateQuestionRequest {
 
 export interface ModelsCreateQuestionnaireRequest {
   description?: string;
-  product_id?: string;
   is_default?: boolean;
   name: string;
+  product_id?: string;
 }
 
 export type ModelsFeedback = object;
@@ -279,11 +279,28 @@ export interface ModelsLocation {
   latitude?: number;
   longitude?: number;
   name?: string;
-  postal_code?: string;
   organization?: ModelsOrganization;
   organization_id?: string;
+  postal_code?: string;
   state?: string;
   updated_at?: string;
+}
+
+export interface ModelsOrganization {
+  account_id?: string;
+  created_at?: string;
+  description?: string;
+  email?: string;
+  id?: string;
+  is_active?: boolean;
+  locations?: ModelsLocation[];
+  logo?: string;
+  /** Account     Account        `json:"account,omitempty"` // TODO: Add when cross-domain refs are ready */
+  name?: string;
+  phone?: string;
+  settings?: ModelsSettings;
+  updated_at?: string;
+  website?: string;
 }
 
 export interface ModelsQRCode {
@@ -306,8 +323,6 @@ export interface ModelsQRCode {
 
 export interface ModelsQuestion {
   created_at?: string;
-  product?: LecritiqueInternalMenuModelsProduct;
-  product_id?: string;
   display_order?: number;
   id?: string;
   is_required?: boolean;
@@ -316,6 +331,8 @@ export interface ModelsQuestion {
   min_label?: string;
   min_value?: number;
   options?: string[];
+  product?: KyooarInternalMenuModelsProduct;
+  product_id?: string;
   text?: string;
   type?: ModelsQuestionType;
   updated_at?: string;
@@ -324,33 +341,16 @@ export interface ModelsQuestion {
 export interface ModelsQuestionnaire {
   created_at?: string;
   description?: string;
-  product?: LecritiqueInternalMenuModelsProduct;
-  product_id?: string;
   id?: string;
   is_active?: boolean;
   is_default?: boolean;
   name?: string;
-  questions?: ModelsQuestion[];
   organization?: ModelsOrganization;
   organization_id?: string;
+  product?: KyooarInternalMenuModelsProduct;
+  product_id?: string;
+  questions?: ModelsQuestion[];
   updated_at?: string;
-}
-
-export interface ModelsOrganization {
-  account_id?: string;
-  created_at?: string;
-  description?: string;
-  email?: string;
-  id?: string;
-  is_active?: boolean;
-  locations?: ModelsLocation[];
-  logo?: string;
-  /** Account     Account        `json:"account,omitempty"` // TODO: Add when cross-domain refs are ready */
-  name?: string;
-  phone?: string;
-  settings?: ModelsSettings;
-  updated_at?: string;
-  website?: string;
 }
 
 export interface ModelsSettings {
@@ -391,9 +391,9 @@ export interface ModelsSubscriptionPlan {
   is_active?: boolean;
   is_visible?: boolean;
   max_feedbacks_per_month?: number;
-  max_qr_codes?: number;
   /** Limits (as columns) */
   max_organizations?: number;
+  max_qr_codes?: number;
   max_team_members?: number;
   name?: string;
   price?: number;
@@ -407,10 +407,10 @@ export interface ModelsSubscriptionUsage {
   id?: string;
   last_updated_at?: string;
   locations_count?: number;
+  organizations_count?: number;
   period_end?: string;
   period_start?: string;
   qr_codes_count?: number;
-  organizations_count?: number;
   subscription?: ModelsSubscription;
   subscription_id?: string;
   team_members_count?: number;
@@ -655,7 +655,7 @@ export class HttpClient<SecurityDataType = unknown> {
 }
 
 /**
- * @title LeCritique API
+ * @title Kyooar API
  * @version 1.0
  * @termsOfService http://swagger.io/terms/
  * @baseUrl //localhost:8080
@@ -705,7 +705,10 @@ export class Api<
      * @request POST:/api/v1/ai/generate-questions/{productId}
      * @secure
      */
-    v1AiGenerateQuestionsCreate: (productId: string, params: RequestParams = {}) =>
+    v1AiGenerateQuestionsCreate: (
+      productId: string,
+      params: RequestParams = {},
+    ) =>
       this.request<
         ResponseResponse & {
           data?: ModelsGeneratedQuestion[];
@@ -735,47 +738,6 @@ export class Api<
     ) =>
       this.request<Record<string, any>, ResponseResponse>({
         path: `/api/v1/analytics/dashboard/${organizationId}`,
-        method: "GET",
-        secure: true,
-        type: ContentType.Json,
-        format: "json",
-        ...params,
-      }),
-
-    /**
-     * @description Get detailed analytics data for a specific product including ratings, feedback count, and recent feedback
-     *
-     * @tags analytics
-     * @name V1AnalyticsProductesDetail
-     * @summary Get product analytics
-     * @request GET:/api/v1/analytics/products/{productId}
-     * @secure
-     */
-    v1AnalyticsProductesDetail: (productId: string, params: RequestParams = {}) =>
-      this.request<Record<string, any>, ResponseResponse>({
-        path: `/api/v1/analytics/products/${productId}`,
-        method: "GET",
-        secure: true,
-        type: ContentType.Json,
-        format: "json",
-        ...params,
-      }),
-
-    /**
-     * @description Get detailed insights for a specific product including question-level analytics
-     *
-     * @tags analytics
-     * @name V1AnalyticsProductesInsightsList
-     * @summary Get product insights
-     * @request GET:/api/v1/analytics/products/{productId}/insights
-     * @secure
-     */
-    v1AnalyticsProductesInsightsList: (
-      productId: string,
-      params: RequestParams = {},
-    ) =>
-      this.request<Record<string, any>, ResponseResponse>({
-        path: `/api/v1/analytics/products/${productId}/insights`,
         method: "GET",
         secure: true,
         type: ContentType.Json,
@@ -830,6 +792,50 @@ export class Api<
         path: `/api/v1/analytics/organizations/${organizationId}/charts`,
         method: "GET",
         query: query,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description Get detailed analytics data for a specific product including ratings, feedback count, and recent feedback
+     *
+     * @tags analytics
+     * @name V1AnalyticsProductsDetail
+     * @summary Get product analytics
+     * @request GET:/api/v1/analytics/products/{productId}
+     * @secure
+     */
+    v1AnalyticsProductsDetail: (
+      productId: string,
+      params: RequestParams = {},
+    ) =>
+      this.request<Record<string, any>, ResponseResponse>({
+        path: `/api/v1/analytics/products/${productId}`,
+        method: "GET",
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description Get detailed insights for a specific product including question-level analytics
+     *
+     * @tags analytics
+     * @name V1AnalyticsProductsInsightsList
+     * @summary Get product insights
+     * @request GET:/api/v1/analytics/products/{productId}/insights
+     * @secure
+     */
+    v1AnalyticsProductsInsightsList: (
+      productId: string,
+      params: RequestParams = {},
+    ) =>
+      this.request<Record<string, any>, ResponseResponse>({
+        path: `/api/v1/analytics/products/${productId}/insights`,
+        method: "GET",
         secure: true,
         type: ContentType.Json,
         format: "json",
@@ -1174,22 +1180,73 @@ export class Api<
       }),
 
     /**
-     * @description Get a specific product by its ID
+     * @description Get all organizations for the authenticated account
      *
-     * @tags products
-     * @name V1ProductesDetail
-     * @summary Get product by ID
-     * @request GET:/api/v1/products/{id}
+     * @tags organizations
+     * @name V1OrganizationsList
+     * @summary Get all organizations
+     * @request GET:/api/v1/organizations
      * @secure
      */
-    v1ProductesDetail: (id: string, params: RequestParams = {}) =>
+    v1OrganizationsList: (params: RequestParams = {}) =>
       this.request<
         ResponseResponse & {
-          data?: LecritiqueInternalMenuModelsProduct;
+          data?: ModelsOrganization[];
         },
         ResponseResponse
       >({
-        path: `/api/v1/products/${id}`,
+        path: `/api/v1/organizations`,
+        method: "GET",
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description Create a new organization for the authenticated account
+     *
+     * @tags organizations
+     * @name V1OrganizationsCreate
+     * @summary Create a new organization
+     * @request POST:/api/v1/organizations
+     * @secure
+     */
+    v1OrganizationsCreate: (
+      request: HandlersCreateOrganizationRequest,
+      params: RequestParams = {},
+    ) =>
+      this.request<
+        ResponseResponse & {
+          data?: ModelsOrganization;
+        },
+        ResponseResponse
+      >({
+        path: `/api/v1/organizations`,
+        method: "POST",
+        body: request,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description Get a specific organization by its ID
+     *
+     * @tags organizations
+     * @name V1OrganizationsDetail
+     * @summary Get organization by ID
+     * @request GET:/api/v1/organizations/{id}
+     * @secure
+     */
+    v1OrganizationsDetail: (id: string, params: RequestParams = {}) =>
+      this.request<
+        ResponseResponse & {
+          data?: ModelsOrganization;
+        },
+        ResponseResponse
+      >({
+        path: `/api/v1/organizations/${id}`,
         method: "GET",
         secure: true,
         type: ContentType.Json,
@@ -1198,15 +1255,15 @@ export class Api<
       }),
 
     /**
-     * @description Update a product's information
+     * @description Update a organization's information
      *
-     * @tags products
-     * @name V1ProductesUpdate
-     * @summary Update a product
-     * @request PUT:/api/v1/products/{id}
+     * @tags organizations
+     * @name V1OrganizationsUpdate
+     * @summary Update organization
+     * @request PUT:/api/v1/organizations/{id}
      * @secure
      */
-    v1ProductesUpdate: (
+    v1OrganizationsUpdate: (
       id: string,
       updates: Record<string, any>,
       params: RequestParams = {},
@@ -1217,7 +1274,7 @@ export class Api<
         },
         ResponseResponse
       >({
-        path: `/api/v1/products/${id}`,
+        path: `/api/v1/organizations/${id}`,
         method: "PUT",
         body: updates,
         secure: true,
@@ -1227,25 +1284,494 @@ export class Api<
       }),
 
     /**
-     * @description Delete a product from the system
+     * @description Delete a organization from the system
      *
-     * @tags products
-     * @name V1ProductesDelete
-     * @summary Delete a product
-     * @request DELETE:/api/v1/products/{id}
+     * @tags organizations
+     * @name V1OrganizationsDelete
+     * @summary Delete organization
+     * @request DELETE:/api/v1/organizations/{id}
      * @secure
      */
-    v1ProductesDelete: (id: string, params: RequestParams = {}) =>
+    v1OrganizationsDelete: (id: string, params: RequestParams = {}) =>
       this.request<
         ResponseResponse & {
           data?: Record<string, string>;
         },
         ResponseResponse
       >({
-        path: `/api/v1/products/${id}`,
+        path: `/api/v1/organizations/${id}`,
         method: "DELETE",
         secure: true,
         type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description Get feedback analytics and statistics for a organization
+     *
+     * @tags feedback
+     * @name V1OrganizationsAnalyticsList
+     * @summary Get feedback statistics
+     * @request GET:/api/v1/organizations/{organizationId}/analytics
+     * @secure
+     */
+    v1OrganizationsAnalyticsList: (
+      organizationId: string,
+      params: RequestParams = {},
+    ) =>
+      this.request<Record<string, any>, ResponseResponse>({
+        path: `/api/v1/organizations/${organizationId}/analytics`,
+        method: "GET",
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description Get all feedback for a specific organization with pagination and optional filters
+     *
+     * @tags feedback
+     * @name V1OrganizationsFeedbackList
+     * @summary Get organization feedback with filters
+     * @request GET:/api/v1/organizations/{organizationId}/feedback
+     * @secure
+     */
+    v1OrganizationsFeedbackList: (
+      organizationId: string,
+      query?: {
+        /** Page number (default: 1) */
+        page?: number;
+        /** Items per page (default: 20, max: 100) */
+        limit?: number;
+        /** Search in comments, customer name, or email */
+        search?: string;
+        /** Minimum rating (1-5) */
+        rating_min?: number;
+        /** Maximum rating (1-5) */
+        rating_max?: number;
+        /** Start date (YYYY-MM-DD format) */
+        date_from?: string;
+        /** End date (YYYY-MM-DD format) */
+        date_to?: string;
+        /** Filter by specific product ID */
+        product_id?: string;
+        /** Filter by completion status */
+        is_complete?: boolean;
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<Record<string, any>, ResponseResponse>({
+        path: `/api/v1/organizations/${organizationId}/feedback`,
+        method: "GET",
+        query: query,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description Get all products for a specific organization
+     *
+     * @tags products
+     * @name V1OrganizationsProductsList
+     * @summary Get products by organization
+     * @request GET:/api/v1/organizations/{organizationId}/products
+     * @secure
+     */
+    v1OrganizationsProductsList: (
+      organizationId: string,
+      params: RequestParams = {},
+    ) =>
+      this.request<
+        ResponseResponse & {
+          data?: KyooarInternalMenuModelsProduct[];
+        },
+        ResponseResponse
+      >({
+        path: `/api/v1/organizations/${organizationId}/products`,
+        method: "GET",
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description Create a new product for a organization
+     *
+     * @tags products
+     * @name V1OrganizationsProductsCreate
+     * @summary Create a new product
+     * @request POST:/api/v1/organizations/{organizationId}/products
+     * @secure
+     */
+    v1OrganizationsProductsCreate: (
+      organizationId: string,
+      product: HandlersCreateProductRequest,
+      params: RequestParams = {},
+    ) =>
+      this.request<
+        ResponseResponse & {
+          data?: KyooarInternalMenuModelsProduct;
+        },
+        ResponseResponse
+      >({
+        path: `/api/v1/organizations/${organizationId}/products`,
+        method: "POST",
+        body: product,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description Get all feedback questions for a specific product
+     *
+     * @tags questions
+     * @name V1OrganizationsProductsQuestionsList
+     * @summary Get questions for a product
+     * @request GET:/api/v1/organizations/{organizationId}/products/{productId}/questions
+     * @secure
+     */
+    v1OrganizationsProductsQuestionsList: (
+      organizationId: string,
+      productId: string,
+      params: RequestParams = {},
+    ) =>
+      this.request<Record<string, any>, Record<string, any>>({
+        path: `/api/v1/organizations/${organizationId}/products/${productId}/questions`,
+        method: "GET",
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description Add a new feedback question to a specific product
+     *
+     * @tags questions
+     * @name V1OrganizationsProductsQuestionsCreate
+     * @summary Add a question to a product
+     * @request POST:/api/v1/organizations/{organizationId}/products/{productId}/questions
+     * @secure
+     */
+    v1OrganizationsProductsQuestionsCreate: (
+      organizationId: string,
+      productId: string,
+      question: ModelsCreateQuestionRequest,
+      params: RequestParams = {},
+    ) =>
+      this.request<Record<string, any>, Record<string, any>>({
+        path: `/api/v1/organizations/${organizationId}/products/${productId}/questions`,
+        method: "POST",
+        body: question,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description Reorder questions for a specific product
+     *
+     * @tags questions
+     * @name V1OrganizationsProductsQuestionsReorderCreate
+     * @summary Reorder questions
+     * @request POST:/api/v1/organizations/{organizationId}/products/{productId}/questions/reorder
+     * @secure
+     */
+    v1OrganizationsProductsQuestionsReorderCreate: (
+      organizationId: string,
+      productId: string,
+      order: string[],
+      params: RequestParams = {},
+    ) =>
+      this.request<Record<string, any>, Record<string, any>>({
+        path: `/api/v1/organizations/${organizationId}/products/${productId}/questions/reorder`,
+        method: "POST",
+        body: order,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description Get details of a specific question
+     *
+     * @tags questions
+     * @name V1OrganizationsProductsQuestionsDetail
+     * @summary Get a specific question
+     * @request GET:/api/v1/organizations/{organizationId}/products/{productId}/questions/{questionId}
+     * @secure
+     */
+    v1OrganizationsProductsQuestionsDetail: (
+      organizationId: string,
+      productId: string,
+      questionId: string,
+      params: RequestParams = {},
+    ) =>
+      this.request<Record<string, any>, Record<string, any>>({
+        path: `/api/v1/organizations/${organizationId}/products/${productId}/questions/${questionId}`,
+        method: "GET",
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description Update an existing question for a product
+     *
+     * @tags questions
+     * @name V1OrganizationsProductsQuestionsUpdate
+     * @summary Update a question
+     * @request PUT:/api/v1/organizations/{organizationId}/products/{productId}/questions/{questionId}
+     * @secure
+     */
+    v1OrganizationsProductsQuestionsUpdate: (
+      organizationId: string,
+      productId: string,
+      questionId: string,
+      question: ModelsUpdateQuestionRequest,
+      params: RequestParams = {},
+    ) =>
+      this.request<Record<string, any>, Record<string, any>>({
+        path: `/api/v1/organizations/${organizationId}/products/${productId}/questions/${questionId}`,
+        method: "PUT",
+        body: question,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description Delete a feedback question from a product
+     *
+     * @tags questions
+     * @name V1OrganizationsProductsQuestionsDelete
+     * @summary Delete a question
+     * @request DELETE:/api/v1/organizations/{organizationId}/products/{productId}/questions/{questionId}
+     * @secure
+     */
+    v1OrganizationsProductsQuestionsDelete: (
+      organizationId: string,
+      productId: string,
+      questionId: string,
+      params: RequestParams = {},
+    ) =>
+      this.request<Record<string, any>, Record<string, any>>({
+        path: `/api/v1/organizations/${organizationId}/products/${productId}/questions/${questionId}`,
+        method: "DELETE",
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description Get all QR codes for a specific organization
+     *
+     * @tags qr-codes
+     * @name V1OrganizationsQrCodesList
+     * @summary Get QR codes by organization
+     * @request GET:/api/v1/organizations/{organizationId}/qr-codes
+     * @secure
+     */
+    v1OrganizationsQrCodesList: (
+      organizationId: string,
+      params: RequestParams = {},
+    ) =>
+      this.request<HandlersQRCodeListResponse, ResponseResponse>({
+        path: `/api/v1/organizations/${organizationId}/qr-codes`,
+        method: "GET",
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description Generate a new QR code for a organization
+     *
+     * @tags qr-codes
+     * @name V1OrganizationsQrCodesCreate
+     * @summary Generate QR code
+     * @request POST:/api/v1/organizations/{organizationId}/qr-codes
+     * @secure
+     */
+    v1OrganizationsQrCodesCreate: (
+      organizationId: string,
+      qr_code: HandlersGenerateQRCodeRequest,
+      params: RequestParams = {},
+    ) =>
+      this.request<HandlersGenerateQRCodeResponse, ResponseResponse>({
+        path: `/api/v1/organizations/${organizationId}/qr-codes`,
+        method: "POST",
+        body: qr_code,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description Get all questionnaires for a organization
+     *
+     * @tags questionnaires
+     * @name V1OrganizationsQuestionnairesList
+     * @summary List questionnaires
+     * @request GET:/api/v1/organizations/{organizationId}/questionnaires
+     * @secure
+     */
+    v1OrganizationsQuestionnairesList: (
+      organizationId: string,
+      params: RequestParams = {},
+    ) =>
+      this.request<
+        ResponseResponse & {
+          data?: ModelsQuestionnaire[];
+        },
+        ResponseResponse
+      >({
+        path: `/api/v1/organizations/${organizationId}/questionnaires`,
+        method: "GET",
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description Create a new questionnaire for a organization
+     *
+     * @tags questionnaires
+     * @name V1OrganizationsQuestionnairesCreate
+     * @summary Create questionnaire
+     * @request POST:/api/v1/organizations/{organizationId}/questionnaires
+     * @secure
+     */
+    v1OrganizationsQuestionnairesCreate: (
+      organizationId: string,
+      questionnaire: ModelsCreateQuestionnaireRequest,
+      params: RequestParams = {},
+    ) =>
+      this.request<
+        ResponseResponse & {
+          data?: ModelsQuestionnaire;
+        },
+        ResponseResponse
+      >({
+        path: `/api/v1/organizations/${organizationId}/questionnaires`,
+        method: "POST",
+        body: questionnaire,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description Get a specific questionnaire by ID
+     *
+     * @tags questionnaires
+     * @name V1OrganizationsQuestionnairesDetail
+     * @summary Get questionnaire
+     * @request GET:/api/v1/organizations/{organizationId}/questionnaires/{id}
+     * @secure
+     */
+    v1OrganizationsQuestionnairesDetail: (
+      organizationId: string,
+      id: string,
+      params: RequestParams = {},
+    ) =>
+      this.request<
+        ResponseResponse & {
+          data?: ModelsQuestionnaire;
+        },
+        ResponseResponse
+      >({
+        path: `/api/v1/organizations/${organizationId}/questionnaires/${id}`,
+        method: "GET",
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description Update an existing questionnaire
+     *
+     * @tags questionnaires
+     * @name V1OrganizationsQuestionnairesUpdate
+     * @summary Update questionnaire
+     * @request PUT:/api/v1/organizations/{organizationId}/questionnaires/{id}
+     * @secure
+     */
+    v1OrganizationsQuestionnairesUpdate: (
+      organizationId: string,
+      id: string,
+      questionnaire: ModelsQuestionnaire,
+      params: RequestParams = {},
+    ) =>
+      this.request<
+        ResponseResponse & {
+          data?: ModelsQuestionnaire;
+        },
+        ResponseResponse
+      >({
+        path: `/api/v1/organizations/${organizationId}/questionnaires/${id}`,
+        method: "PUT",
+        body: questionnaire,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description Delete a questionnaire
+     *
+     * @tags questionnaires
+     * @name V1OrganizationsQuestionnairesDelete
+     * @summary Delete questionnaire
+     * @request DELETE:/api/v1/organizations/{organizationId}/questionnaires/{id}
+     * @secure
+     */
+    v1OrganizationsQuestionnairesDelete: (
+      organizationId: string,
+      id: string,
+      params: RequestParams = {},
+    ) =>
+      this.request<ResponseResponse, ResponseResponse>({
+        path: `/api/v1/organizations/${organizationId}/questionnaires/${id}`,
+        method: "DELETE",
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description Get list of product IDs that have questions for a organization
+     *
+     * @tags questions
+     * @name V1OrganizationsQuestionsProductsWithQuestionsList
+     * @summary Get products that have questions
+     * @request GET:/api/v1/organizations/{organizationId}/questions/products-with-questions
+     * @secure
+     */
+    v1OrganizationsQuestionsProductsWithQuestionsList: (
+      organizationId: string,
+      params: RequestParams = {},
+    ) =>
+      this.request<Record<string, any>, Record<string, any>>({
+        path: `/api/v1/organizations/${organizationId}/questions/products-with-questions`,
+        method: "GET",
+        secure: true,
         format: "json",
         ...params,
       }),
@@ -1441,6 +1967,83 @@ export class Api<
       }),
 
     /**
+     * @description Get a specific product by its ID
+     *
+     * @tags products
+     * @name V1ProductsDetail
+     * @summary Get product by ID
+     * @request GET:/api/v1/products/{id}
+     * @secure
+     */
+    v1ProductsDetail: (id: string, params: RequestParams = {}) =>
+      this.request<
+        ResponseResponse & {
+          data?: KyooarInternalMenuModelsProduct;
+        },
+        ResponseResponse
+      >({
+        path: `/api/v1/products/${id}`,
+        method: "GET",
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description Update a product's information
+     *
+     * @tags products
+     * @name V1ProductsUpdate
+     * @summary Update a product
+     * @request PUT:/api/v1/products/{id}
+     * @secure
+     */
+    v1ProductsUpdate: (
+      id: string,
+      updates: Record<string, any>,
+      params: RequestParams = {},
+    ) =>
+      this.request<
+        ResponseResponse & {
+          data?: Record<string, string>;
+        },
+        ResponseResponse
+      >({
+        path: `/api/v1/products/${id}`,
+        method: "PUT",
+        body: updates,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description Delete a product from the system
+     *
+     * @tags products
+     * @name V1ProductsDelete
+     * @summary Delete a product
+     * @request DELETE:/api/v1/products/{id}
+     * @secure
+     */
+    v1ProductsDelete: (id: string, params: RequestParams = {}) =>
+      this.request<
+        ResponseResponse & {
+          data?: Record<string, string>;
+        },
+        ResponseResponse
+      >({
+        path: `/api/v1/products/${id}`,
+        method: "DELETE",
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
      * @description Submit customer feedback for a product
      *
      * @tags public
@@ -1457,6 +2060,62 @@ export class Api<
         method: "POST",
         body: feedback,
         type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description Get public menu for a organization
+     *
+     * @tags public
+     * @name V1PublicOrganizationMenuList
+     * @summary Get organization menu
+     * @request GET:/api/v1/public/organization/{id}/menu
+     */
+    v1PublicOrganizationMenuList: (id: string, params: RequestParams = {}) =>
+      this.request<Record<string, any>, ResponseResponse>({
+        path: `/api/v1/public/organization/${id}/menu`,
+        method: "GET",
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description Get all feedback questions for a specific product (public access for customer feedback)
+     *
+     * @tags public
+     * @name V1PublicOrganizationProductsQuestionsList
+     * @summary Get questions for a product
+     * @request GET:/api/v1/public/organization/{organizationId}/products/{productId}/questions
+     */
+    v1PublicOrganizationProductsQuestionsList: (
+      organizationId: string,
+      productId: string,
+      params: RequestParams = {},
+    ) =>
+      this.request<Record<string, any>, ResponseResponse>({
+        path: `/api/v1/public/organization/${organizationId}/products/${productId}/questions`,
+        method: "GET",
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description Get all products that have feedback questions for a organization (public access for QR code scans)
+     *
+     * @tags public
+     * @name V1PublicOrganizationQuestionsProductsWithQuestionsList
+     * @summary Get products with questions
+     * @request GET:/api/v1/public/organization/{organizationId}/questions/products-with-questions
+     */
+    v1PublicOrganizationQuestionsProductsWithQuestionsList: (
+      organizationId: string,
+      params: RequestParams = {},
+    ) =>
+      this.request<Record<string, any>, ResponseResponse>({
+        path: `/api/v1/public/organization/${organizationId}/questions/products-with-questions`,
+        method: "GET",
         format: "json",
         ...params,
       }),
@@ -1500,62 +2159,6 @@ export class Api<
       }),
 
     /**
-     * @description Get public menu for a organization
-     *
-     * @tags public
-     * @name V1PublicOrganizationMenuList
-     * @summary Get organization menu
-     * @request GET:/api/v1/public/organization/{id}/menu
-     */
-    v1PublicOrganizationMenuList: (id: string, params: RequestParams = {}) =>
-      this.request<Record<string, any>, ResponseResponse>({
-        path: `/api/v1/public/organization/${id}/menu`,
-        method: "GET",
-        type: ContentType.Json,
-        format: "json",
-        ...params,
-      }),
-
-    /**
-     * @description Get all feedback questions for a specific product (public access for customer feedback)
-     *
-     * @tags public
-     * @name V1PublicOrganizationProductesQuestionsList
-     * @summary Get questions for a product
-     * @request GET:/api/v1/public/organization/{organizationId}/products/{productId}/questions
-     */
-    v1PublicOrganizationProductesQuestionsList: (
-      organizationId: string,
-      productId: string,
-      params: RequestParams = {},
-    ) =>
-      this.request<Record<string, any>, ResponseResponse>({
-        path: `/api/v1/public/organization/${organizationId}/products/${productId}/questions`,
-        method: "GET",
-        format: "json",
-        ...params,
-      }),
-
-    /**
-     * @description Get all products that have feedback questions for a organization (public access for QR code scans)
-     *
-     * @tags public
-     * @name V1PublicOrganizationQuestionsProductesWithQuestionsList
-     * @summary Get products with questions
-     * @request GET:/api/v1/public/organization/{organizationId}/questions/products-with-questions
-     */
-    v1PublicOrganizationQuestionsProductesWithQuestionsList: (
-      organizationId: string,
-      params: RequestParams = {},
-    ) =>
-      this.request<Record<string, any>, ResponseResponse>({
-        path: `/api/v1/public/organization/${organizationId}/questions/products-with-questions`,
-        method: "GET",
-        format: "json",
-        ...params,
-      }),
-
-    /**
      * @description Delete a QR code from the system
      *
      * @tags qr-codes
@@ -1594,603 +2197,6 @@ export class Api<
         body: qr_code,
         secure: true,
         type: ContentType.Json,
-        format: "json",
-        ...params,
-      }),
-
-    /**
-     * @description Get all organizations for the authenticated account
-     *
-     * @tags organizations
-     * @name V1OrganizationsList
-     * @summary Get all organizations
-     * @request GET:/api/v1/organizations
-     * @secure
-     */
-    v1OrganizationsList: (params: RequestParams = {}) =>
-      this.request<
-        ResponseResponse & {
-          data?: ModelsOrganization[];
-        },
-        ResponseResponse
-      >({
-        path: `/api/v1/organizations`,
-        method: "GET",
-        secure: true,
-        format: "json",
-        ...params,
-      }),
-
-    /**
-     * @description Create a new organization for the authenticated account
-     *
-     * @tags organizations
-     * @name V1OrganizationsCreate
-     * @summary Create a new organization
-     * @request POST:/api/v1/organizations
-     * @secure
-     */
-    v1OrganizationsCreate: (
-      request: HandlersCreateOrganizationRequest,
-      params: RequestParams = {},
-    ) =>
-      this.request<
-        ResponseResponse & {
-          data?: ModelsOrganization;
-        },
-        ResponseResponse
-      >({
-        path: `/api/v1/organizations`,
-        method: "POST",
-        body: request,
-        secure: true,
-        type: ContentType.Json,
-        format: "json",
-        ...params,
-      }),
-
-    /**
-     * @description Get a specific organization by its ID
-     *
-     * @tags organizations
-     * @name V1OrganizationsDetail
-     * @summary Get organization by ID
-     * @request GET:/api/v1/organizations/{id}
-     * @secure
-     */
-    v1OrganizationsDetail: (id: string, params: RequestParams = {}) =>
-      this.request<
-        ResponseResponse & {
-          data?: ModelsOrganization;
-        },
-        ResponseResponse
-      >({
-        path: `/api/v1/organizations/${id}`,
-        method: "GET",
-        secure: true,
-        type: ContentType.Json,
-        format: "json",
-        ...params,
-      }),
-
-    /**
-     * @description Update a organization's information
-     *
-     * @tags organizations
-     * @name V1OrganizationsUpdate
-     * @summary Update organization
-     * @request PUT:/api/v1/organizations/{id}
-     * @secure
-     */
-    v1OrganizationsUpdate: (
-      id: string,
-      updates: Record<string, any>,
-      params: RequestParams = {},
-    ) =>
-      this.request<
-        ResponseResponse & {
-          data?: Record<string, string>;
-        },
-        ResponseResponse
-      >({
-        path: `/api/v1/organizations/${id}`,
-        method: "PUT",
-        body: updates,
-        secure: true,
-        type: ContentType.Json,
-        format: "json",
-        ...params,
-      }),
-
-    /**
-     * @description Delete a organization from the system
-     *
-     * @tags organizations
-     * @name V1OrganizationsDelete
-     * @summary Delete organization
-     * @request DELETE:/api/v1/organizations/{id}
-     * @secure
-     */
-    v1OrganizationsDelete: (id: string, params: RequestParams = {}) =>
-      this.request<
-        ResponseResponse & {
-          data?: Record<string, string>;
-        },
-        ResponseResponse
-      >({
-        path: `/api/v1/organizations/${id}`,
-        method: "DELETE",
-        secure: true,
-        type: ContentType.Json,
-        format: "json",
-        ...params,
-      }),
-
-    /**
-     * @description Get feedback analytics and statistics for a organization
-     *
-     * @tags feedback
-     * @name V1OrganizationsAnalyticsList
-     * @summary Get feedback statistics
-     * @request GET:/api/v1/organizations/{organizationId}/analytics
-     * @secure
-     */
-    v1OrganizationsAnalyticsList: (
-      organizationId: string,
-      params: RequestParams = {},
-    ) =>
-      this.request<Record<string, any>, ResponseResponse>({
-        path: `/api/v1/organizations/${organizationId}/analytics`,
-        method: "GET",
-        secure: true,
-        type: ContentType.Json,
-        format: "json",
-        ...params,
-      }),
-
-    /**
-     * @description Get all products for a specific organization
-     *
-     * @tags products
-     * @name V1OrganizationsProductesList
-     * @summary Get products by organization
-     * @request GET:/api/v1/organizations/{organizationId}/products
-     * @secure
-     */
-    v1OrganizationsProductesList: (
-      organizationId: string,
-      params: RequestParams = {},
-    ) =>
-      this.request<
-        ResponseResponse & {
-          data?: LecritiqueInternalMenuModelsProduct[];
-        },
-        ResponseResponse
-      >({
-        path: `/api/v1/organizations/${organizationId}/products`,
-        method: "GET",
-        secure: true,
-        type: ContentType.Json,
-        format: "json",
-        ...params,
-      }),
-
-    /**
-     * @description Create a new product for a organization
-     *
-     * @tags products
-     * @name V1OrganizationsProductesCreate
-     * @summary Create a new product
-     * @request POST:/api/v1/organizations/{organizationId}/products
-     * @secure
-     */
-    v1OrganizationsProductesCreate: (
-      organizationId: string,
-      product: HandlersCreateProductRequest,
-      params: RequestParams = {},
-    ) =>
-      this.request<
-        ResponseResponse & {
-          data?: LecritiqueInternalMenuModelsProduct;
-        },
-        ResponseResponse
-      >({
-        path: `/api/v1/organizations/${organizationId}/products`,
-        method: "POST",
-        body: product,
-        secure: true,
-        type: ContentType.Json,
-        format: "json",
-        ...params,
-      }),
-
-    /**
-     * @description Get all feedback questions for a specific product
-     *
-     * @tags questions
-     * @name V1OrganizationsProductesQuestionsList
-     * @summary Get questions for a product
-     * @request GET:/api/v1/organizations/{organizationId}/products/{productId}/questions
-     * @secure
-     */
-    v1OrganizationsProductesQuestionsList: (
-      organizationId: string,
-      productId: string,
-      params: RequestParams = {},
-    ) =>
-      this.request<Record<string, any>, Record<string, any>>({
-        path: `/api/v1/organizations/${organizationId}/products/${productId}/questions`,
-        method: "GET",
-        secure: true,
-        format: "json",
-        ...params,
-      }),
-
-    /**
-     * @description Add a new feedback question to a specific product
-     *
-     * @tags questions
-     * @name V1OrganizationsProductesQuestionsCreate
-     * @summary Add a question to a product
-     * @request POST:/api/v1/organizations/{organizationId}/products/{productId}/questions
-     * @secure
-     */
-    v1OrganizationsProductesQuestionsCreate: (
-      organizationId: string,
-      productId: string,
-      question: ModelsCreateQuestionRequest,
-      params: RequestParams = {},
-    ) =>
-      this.request<Record<string, any>, Record<string, any>>({
-        path: `/api/v1/organizations/${organizationId}/products/${productId}/questions`,
-        method: "POST",
-        body: question,
-        secure: true,
-        type: ContentType.Json,
-        format: "json",
-        ...params,
-      }),
-
-    /**
-     * @description Reorder questions for a specific product
-     *
-     * @tags questions
-     * @name V1OrganizationsProductesQuestionsReorderCreate
-     * @summary Reorder questions
-     * @request POST:/api/v1/organizations/{organizationId}/products/{productId}/questions/reorder
-     * @secure
-     */
-    v1OrganizationsProductesQuestionsReorderCreate: (
-      organizationId: string,
-      productId: string,
-      order: string[],
-      params: RequestParams = {},
-    ) =>
-      this.request<Record<string, any>, Record<string, any>>({
-        path: `/api/v1/organizations/${organizationId}/products/${productId}/questions/reorder`,
-        method: "POST",
-        body: order,
-        secure: true,
-        type: ContentType.Json,
-        format: "json",
-        ...params,
-      }),
-
-    /**
-     * @description Get details of a specific question
-     *
-     * @tags questions
-     * @name V1OrganizationsProductesQuestionsDetail
-     * @summary Get a specific question
-     * @request GET:/api/v1/organizations/{organizationId}/products/{productId}/questions/{questionId}
-     * @secure
-     */
-    v1OrganizationsProductesQuestionsDetail: (
-      organizationId: string,
-      productId: string,
-      questionId: string,
-      params: RequestParams = {},
-    ) =>
-      this.request<Record<string, any>, Record<string, any>>({
-        path: `/api/v1/organizations/${organizationId}/products/${productId}/questions/${questionId}`,
-        method: "GET",
-        secure: true,
-        format: "json",
-        ...params,
-      }),
-
-    /**
-     * @description Update an existing question for a product
-     *
-     * @tags questions
-     * @name V1OrganizationsProductesQuestionsUpdate
-     * @summary Update a question
-     * @request PUT:/api/v1/organizations/{organizationId}/products/{productId}/questions/{questionId}
-     * @secure
-     */
-    v1OrganizationsProductesQuestionsUpdate: (
-      organizationId: string,
-      productId: string,
-      questionId: string,
-      question: ModelsUpdateQuestionRequest,
-      params: RequestParams = {},
-    ) =>
-      this.request<Record<string, any>, Record<string, any>>({
-        path: `/api/v1/organizations/${organizationId}/products/${productId}/questions/${questionId}`,
-        method: "PUT",
-        body: question,
-        secure: true,
-        type: ContentType.Json,
-        format: "json",
-        ...params,
-      }),
-
-    /**
-     * @description Delete a feedback question from a product
-     *
-     * @tags questions
-     * @name V1OrganizationsProductesQuestionsDelete
-     * @summary Delete a question
-     * @request DELETE:/api/v1/organizations/{organizationId}/products/{productId}/questions/{questionId}
-     * @secure
-     */
-    v1OrganizationsProductesQuestionsDelete: (
-      organizationId: string,
-      productId: string,
-      questionId: string,
-      params: RequestParams = {},
-    ) =>
-      this.request<Record<string, any>, Record<string, any>>({
-        path: `/api/v1/organizations/${organizationId}/products/${productId}/questions/${questionId}`,
-        method: "DELETE",
-        secure: true,
-        format: "json",
-        ...params,
-      }),
-
-    /**
-     * @description Get all feedback for a specific organization with pagination and optional filters
-     *
-     * @tags feedback
-     * @name V1OrganizationsFeedbackList
-     * @summary Get organization feedback with filters
-     * @request GET:/api/v1/organizations/{organizationId}/feedback
-     * @secure
-     */
-    v1OrganizationsFeedbackList: (
-      organizationId: string,
-      query?: {
-        /** Page number (default: 1) */
-        page?: number;
-        /** Items per page (default: 20, max: 100) */
-        limit?: number;
-        /** Search in comments, customer name, or email */
-        search?: string;
-        /** Minimum rating (1-5) */
-        rating_min?: number;
-        /** Maximum rating (1-5) */
-        rating_max?: number;
-        /** Start date (YYYY-MM-DD format) */
-        date_from?: string;
-        /** End date (YYYY-MM-DD format) */
-        date_to?: string;
-        /** Filter by specific product ID */
-        product_id?: string;
-        /** Filter by completion status */
-        is_complete?: boolean;
-      },
-      params: RequestParams = {},
-    ) =>
-      this.request<Record<string, any>, ResponseResponse>({
-        path: `/api/v1/organizations/${organizationId}/feedback`,
-        method: "GET",
-        query: query,
-        secure: true,
-        type: ContentType.Json,
-        format: "json",
-        ...params,
-      }),
-
-    /**
-     * @description Get all QR codes for a specific organization
-     *
-     * @tags qr-codes
-     * @name V1OrganizationsQrCodesList
-     * @summary Get QR codes by organization
-     * @request GET:/api/v1/organizations/{organizationId}/qr-codes
-     * @secure
-     */
-    v1OrganizationsQrCodesList: (
-      organizationId: string,
-      params: RequestParams = {},
-    ) =>
-      this.request<HandlersQRCodeListResponse, ResponseResponse>({
-        path: `/api/v1/organizations/${organizationId}/qr-codes`,
-        method: "GET",
-        secure: true,
-        type: ContentType.Json,
-        format: "json",
-        ...params,
-      }),
-
-    /**
-     * @description Generate a new QR code for a organization
-     *
-     * @tags qr-codes
-     * @name V1OrganizationsQrCodesCreate
-     * @summary Generate QR code
-     * @request POST:/api/v1/organizations/{organizationId}/qr-codes
-     * @secure
-     */
-    v1OrganizationsQrCodesCreate: (
-      organizationId: string,
-      qr_code: HandlersGenerateQRCodeRequest,
-      params: RequestParams = {},
-    ) =>
-      this.request<HandlersGenerateQRCodeResponse, ResponseResponse>({
-        path: `/api/v1/organizations/${organizationId}/qr-codes`,
-        method: "POST",
-        body: qr_code,
-        secure: true,
-        type: ContentType.Json,
-        format: "json",
-        ...params,
-      }),
-
-    /**
-     * @description Get all questionnaires for a organization
-     *
-     * @tags questionnaires
-     * @name V1OrganizationsQuestionnairesList
-     * @summary List questionnaires
-     * @request GET:/api/v1/organizations/{organizationId}/questionnaires
-     * @secure
-     */
-    v1OrganizationsQuestionnairesList: (
-      organizationId: string,
-      params: RequestParams = {},
-    ) =>
-      this.request<
-        ResponseResponse & {
-          data?: ModelsQuestionnaire[];
-        },
-        ResponseResponse
-      >({
-        path: `/api/v1/organizations/${organizationId}/questionnaires`,
-        method: "GET",
-        secure: true,
-        type: ContentType.Json,
-        format: "json",
-        ...params,
-      }),
-
-    /**
-     * @description Create a new questionnaire for a organization
-     *
-     * @tags questionnaires
-     * @name V1OrganizationsQuestionnairesCreate
-     * @summary Create questionnaire
-     * @request POST:/api/v1/organizations/{organizationId}/questionnaires
-     * @secure
-     */
-    v1OrganizationsQuestionnairesCreate: (
-      organizationId: string,
-      questionnaire: ModelsCreateQuestionnaireRequest,
-      params: RequestParams = {},
-    ) =>
-      this.request<
-        ResponseResponse & {
-          data?: ModelsQuestionnaire;
-        },
-        ResponseResponse
-      >({
-        path: `/api/v1/organizations/${organizationId}/questionnaires`,
-        method: "POST",
-        body: questionnaire,
-        secure: true,
-        type: ContentType.Json,
-        format: "json",
-        ...params,
-      }),
-
-    /**
-     * @description Get a specific questionnaire by ID
-     *
-     * @tags questionnaires
-     * @name V1OrganizationsQuestionnairesDetail
-     * @summary Get questionnaire
-     * @request GET:/api/v1/organizations/{organizationId}/questionnaires/{id}
-     * @secure
-     */
-    v1OrganizationsQuestionnairesDetail: (
-      organizationId: string,
-      id: string,
-      params: RequestParams = {},
-    ) =>
-      this.request<
-        ResponseResponse & {
-          data?: ModelsQuestionnaire;
-        },
-        ResponseResponse
-      >({
-        path: `/api/v1/organizations/${organizationId}/questionnaires/${id}`,
-        method: "GET",
-        secure: true,
-        type: ContentType.Json,
-        format: "json",
-        ...params,
-      }),
-
-    /**
-     * @description Update an existing questionnaire
-     *
-     * @tags questionnaires
-     * @name V1OrganizationsQuestionnairesUpdate
-     * @summary Update questionnaire
-     * @request PUT:/api/v1/organizations/{organizationId}/questionnaires/{id}
-     * @secure
-     */
-    v1OrganizationsQuestionnairesUpdate: (
-      organizationId: string,
-      id: string,
-      questionnaire: ModelsQuestionnaire,
-      params: RequestParams = {},
-    ) =>
-      this.request<
-        ResponseResponse & {
-          data?: ModelsQuestionnaire;
-        },
-        ResponseResponse
-      >({
-        path: `/api/v1/organizations/${organizationId}/questionnaires/${id}`,
-        method: "PUT",
-        body: questionnaire,
-        secure: true,
-        type: ContentType.Json,
-        format: "json",
-        ...params,
-      }),
-
-    /**
-     * @description Delete a questionnaire
-     *
-     * @tags questionnaires
-     * @name V1OrganizationsQuestionnairesDelete
-     * @summary Delete questionnaire
-     * @request DELETE:/api/v1/organizations/{organizationId}/questionnaires/{id}
-     * @secure
-     */
-    v1OrganizationsQuestionnairesDelete: (
-      organizationId: string,
-      id: string,
-      params: RequestParams = {},
-    ) =>
-      this.request<ResponseResponse, ResponseResponse>({
-        path: `/api/v1/organizations/${organizationId}/questionnaires/${id}`,
-        method: "DELETE",
-        secure: true,
-        type: ContentType.Json,
-        format: "json",
-        ...params,
-      }),
-
-    /**
-     * @description Get list of product IDs that have questions for a organization
-     *
-     * @tags questions
-     * @name V1OrganizationsQuestionsProductesWithQuestionsList
-     * @summary Get products that have questions
-     * @request GET:/api/v1/organizations/{organizationId}/questions/products-with-questions
-     * @secure
-     */
-    v1OrganizationsQuestionsProductesWithQuestionsList: (
-      organizationId: string,
-      params: RequestParams = {},
-    ) =>
-      this.request<Record<string, any>, Record<string, any>>({
-        path: `/api/v1/organizations/${organizationId}/questions/products-with-questions`,
-        method: "GET",
-        secure: true,
         format: "json",
         ...params,
       }),

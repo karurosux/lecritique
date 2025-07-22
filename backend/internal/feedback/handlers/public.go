@@ -3,14 +3,14 @@ package handlers
 import (
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
-	feedbackModels "lecritique/internal/feedback/models"
-	feedbackRepos "lecritique/internal/feedback/repositories"
-	feedbackServices "lecritique/internal/feedback/services"
-	menuRepos "lecritique/internal/menu/repositories"
-	"lecritique/internal/shared/errors"
-	"lecritique/internal/shared/logger"
-	"lecritique/internal/shared/response"
-	"lecritique/internal/shared/utils"
+	feedbackModels "kyooar/internal/feedback/models"
+	feedbackRepos "kyooar/internal/feedback/repositories"
+	feedbackServices "kyooar/internal/feedback/services"
+	menuRepos "kyooar/internal/menu/repositories"
+	"kyooar/internal/shared/errors"
+	"kyooar/internal/shared/logger"
+	"kyooar/internal/shared/response"
+	"kyooar/internal/shared/utils"
 	"github.com/samber/do"
 	"github.com/sirupsen/logrus"
 )
@@ -147,18 +147,18 @@ func (h *FeedbackPublicHandler) GetProductQuestions(c echo.Context) error {
 	})
 }
 
-// GetProductesWithQuestions gets all products that have questions for a organization (public endpoint)
+// GetProductsWithQuestions gets all products that have questions for a organization (public endpoint)
 // @Summary Get products with questions
 // @Description Get all products that have feedback questions for a organization (public access for QR code scans)
 // @Tags public
 // @Produce json
 // @Param organizationId path string true "Organization ID"
-// @Success 200 {object} map[string]interface{} "Productes with questions retrieved successfully"
+// @Success 200 {object} map[string]interface{} "Products with questions retrieved successfully"
 // @Failure 400 {object} response.Response "Invalid request"
 // @Failure 404 {object} response.Response "Organization not found"
 // @Failure 500 {object} response.Response "Server error"
 // @Router /api/v1/public/organization/{organizationId}/questions/products-with-questions [get]
-func (h *FeedbackPublicHandler) GetProductesWithQuestions(c echo.Context) error {
+func (h *FeedbackPublicHandler) GetProductsWithQuestions(c echo.Context) error {
 	ctx := c.Request().Context()
 
 	organizationID, err := uuid.Parse(c.Param("organizationId"))
@@ -167,7 +167,7 @@ func (h *FeedbackPublicHandler) GetProductesWithQuestions(c echo.Context) error 
 	}
 
 	// Get products with questions for this organization
-	productIDs, err := h.questionRepo.GetProductesWithQuestions(ctx, organizationID)
+	productIDs, err := h.questionRepo.GetProductsWithQuestions(ctx, organizationID)
 	if err != nil {
 		logger.Error("Failed to get products with questions", err, logrus.Fields{
 			"organization_id": organizationID,

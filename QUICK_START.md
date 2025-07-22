@@ -1,4 +1,4 @@
-# LeCritique Quick Start
+# Kyooar Quick Start
 
 ## 🎯 Project Overview
 SaaS platform for organizations to collect product-specific feedback via QR codes.
@@ -11,7 +11,7 @@ SaaS platform for organizations to collect product-specific feedback via QR code
 ```bash
 cd backend
 make dev                    # Start server (localhost:8080)
-make seed                   # Create test user: admin@lecritique.com / admin123
+make seed                   # Create test user: admin@kyooar.com / admin123
 make generate-frontend-api  # Update Swagger docs
 ```
 

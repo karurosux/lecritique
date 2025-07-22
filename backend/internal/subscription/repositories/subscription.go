@@ -5,8 +5,8 @@ import (
 	"errors"
 
 	"github.com/google/uuid"
-	"lecritique/internal/subscription/models"
-	sharedRepos "lecritique/internal/shared/repositories"
+	"kyooar/internal/subscription/models"
+	sharedRepos "kyooar/internal/shared/repositories"
 	"github.com/samber/do"
 	"gorm.io/gorm"
 )

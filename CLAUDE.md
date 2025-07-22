@@ -1,4 +1,4 @@
-# LeCritique - AI Assistant Guidelines
+# Kyooar - AI Assistant Guidelines
 
 ## 🤖 Core Principles
 1. **Do exactly what was asked** - No more, no less

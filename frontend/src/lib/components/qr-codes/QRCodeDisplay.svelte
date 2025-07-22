@@ -5,7 +5,6 @@
 	import { toast } from 'svelte-sonner';
 	import QRCode from 'qrcode';
 	import { browser } from '$app/environment';
-	import logoImage from '../../../assets/logo.png';
 
 	let {
 		qrCode,
@@ -105,7 +104,7 @@
 		printWindow.document.write('.qr-grid .qr-item:nth-child(1), .qr-grid .qr-item:nth-child(2) { border-bottom: 1px dashed rgba(100, 100, 100, 0.5); }');
 		printWindow.document.write('.qr-grid .qr-item:nth-child(2), .qr-grid .qr-item:nth-child(4) { border-left: 1px dashed rgba(100, 100, 100, 0.5); }');
 		printWindow.document.write('.qr-item img { display: block; margin: 0 auto; }');
-		printWindow.document.write('.qr-item .logo { height: 30px; margin-bottom: 10px; }');
+		printWindow.document.write('.qr-item .logo-text { font-size: 20px; font-weight: bold; color: #4F46E5; margin-bottom: 10px; }');
 		printWindow.document.write('.qr-item h3 { margin: 10px 0 5px 0; font-size: 14px; }');
 		printWindow.document.write('.qr-item .label { font-size: 12px; font-weight: bold; margin: 5px 0; }');
 		printWindow.document.write('.qr-item .use-case { font-size: 10px; color: #666; }');
@@ -127,7 +126,7 @@
 		printWindow.document.write('<div class="section">');
 		printWindow.document.write('<div class="qr-group">');
 		printWindow.document.write('<div class="qr-item">');
-		printWindow.document.write('<img class="logo" src="' + logoImage + '" alt="LeCritique Logo">');
+		printWindow.document.write('<div class="logo-text">Kyooar</div>');
 		printWindow.document.write('<img src="' + qrDataUrl + '" alt="QR Code" width="200" height="200">');
 		printWindow.document.write('<h3>' + organizationName + '</h3>');
 		printWindow.document.write('<div class="label">' + qrCode.label + '</div>');
@@ -141,7 +140,7 @@
 		printWindow.document.write('<div class="qr-group">');
 		for (let i = 0; i < 2; i++) {
 			printWindow.document.write('<div class="qr-item">');
-			printWindow.document.write('<img class="logo" src="' + logoImage + '" alt="LeCritique Logo">');
+			printWindow.document.write('<div class="logo-text">Kyooar</div>');
 			printWindow.document.write('<img src="' + qrDataUrl + '" alt="QR Code" width="120" height="120">');
 			printWindow.document.write('<div class="label">' + qrCode.label + '</div>');
 			printWindow.document.write('<div class="use-case">Share your experience</div>');
@@ -227,8 +226,8 @@
 		// Main display card
 		printWindow.document.write('<rect x="100" y="50" width="180" height="220" fill="white" stroke="black" stroke-width="3"/>');
 		
-		// LeCritique logo
-		printWindow.document.write('<image x="125" y="70" width="130" height="32" href="' + logoImage + '"/>');
+		// Kyooar logo text
+		printWindow.document.write('<text x="190" y="90" text-anchor="middle" font-size="24" font-weight="bold" fill="#4F46E5">Kyooar</text>');
 		
 		// Organization name
 		printWindow.document.write('<text x="190" y="120" text-anchor="middle" font-size="16" font-weight="bold" fill="#333">' + organizationName + '</text>');

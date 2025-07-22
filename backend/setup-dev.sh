@@ -7,7 +7,7 @@ GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 NC='\033[0m'
 
-echo -e "${GREEN}🚀 Setting up LeCritique Backend Development Environment${NC}"
+echo -e "${GREEN}🚀 Setting up Kyooar Backend Development Environment${NC}"
 echo ""
 
 check_command() {
@@ -112,6 +112,11 @@ while ! docker compose exec -T postgres pg_isready -U postgres >/dev/null 2>&1; 
 done
 echo ""
 echo -e "${GREEN}✅ PostgreSQL is ready${NC}"
+
+echo ""
+echo -e "${YELLOW}Creating Atlas development database...${NC}"
+docker compose exec -T postgres psql -U postgres -c "SELECT 1 FROM pg_database WHERE datname = 'kyooar_atlas_dev'" | grep -q 1 || docker compose exec -T postgres psql -U postgres -c "CREATE DATABASE kyooar_atlas_dev;"
+echo -e "${GREEN}✅ Atlas dev database created${NC}"
 
 echo ""
 echo -e "${YELLOW}Running database migrations...${NC}"

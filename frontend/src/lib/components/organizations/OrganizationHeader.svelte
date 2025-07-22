@@ -41,7 +41,7 @@
             Your Organizations
           </h1>
           <div class="flex items-center space-x-4 mt-1">
-            <p class="text-gray-600 font-medium">Manage your organization locations and menus</p>
+            <p class="text-gray-600 font-medium">Manage your organization locations and products</p>
             {#if !loading}
               <div class="flex items-center space-x-3 text-sm">
                 <div class="flex items-center space-x-1">

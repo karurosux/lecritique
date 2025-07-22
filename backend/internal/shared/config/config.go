@@ -69,7 +69,7 @@ type AIConfig struct {
 func Load() (*Config, error) {
 	_ = godotenv.Load()
 
-	viper.SetDefault("APP_NAME", "LeCritique")
+	viper.SetDefault("APP_NAME", "Kyooar")
 	viper.SetDefault("APP_ENV", "development")
 	viper.SetDefault("APP_PORT", "8080")
 	viper.SetDefault("APP_URL", "http://localhost:8080")

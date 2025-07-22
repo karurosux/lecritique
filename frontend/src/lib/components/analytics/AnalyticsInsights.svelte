@@ -32,8 +32,8 @@
     const avgRating = analyticsData.average_rating || 0;
     
     // Calculate product-specific insights
-    const topProductes = analyticsData.top_rated_products || analyticsData.top_products || [];
-    const bestProduct = topProductes[0];
+    const topProducts = analyticsData.top_rated_products || analyticsData.top_products || [];
+    const bestProduct = topProducts[0];
     const worstRatings = (ratingDist['1'] || 0) + (ratingDist['2'] || 0);
     const worstRatingPercentage = getPercentage(worstRatings, totalFeedback);
     
@@ -72,7 +72,7 @@
       insights.push({
         id: 'concern',
         title: `${worstRatingPercentage.toFixed(0)}% Need Work`,
-        subtitle: 'Productes rated 1-2 stars',
+        subtitle: 'Products rated 1-2 stars',
         icon: AlertTriangle,
         bgClass: 'bg-amber-50',
         borderClass: 'border-amber-200',

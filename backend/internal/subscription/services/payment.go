@@ -6,9 +6,9 @@ import (
 	"sync"
 
 	"github.com/google/uuid"
-	"lecritique/internal/shared/config"
-	"lecritique/internal/subscription/models"
-	subscriptionRepos "lecritique/internal/subscription/repositories"
+	"kyooar/internal/shared/config"
+	"kyooar/internal/subscription/models"
+	subscriptionRepos "kyooar/internal/subscription/repositories"
 	"github.com/samber/do"
 )
 

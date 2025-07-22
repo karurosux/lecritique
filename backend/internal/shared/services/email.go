@@ -8,7 +8,7 @@ import (
 	"regexp"
 	"strings"
 
-	"lecritique/internal/shared/config"
+	"kyooar/internal/shared/config"
 	"github.com/samber/do"
 )
 
@@ -33,7 +33,7 @@ func NewEmailService(i *do.Injector) (EmailService, error) {
 }
 
 func (s *emailService) SendVerificationEmail(ctx context.Context, email, token string) error {
-	subject := "Verify Your Email - LeCritique"
+	subject := "Verify Your Email - Kyooar"
 	// Use frontend URL for user-facing verification link
 	frontendURL := s.config.App.FrontendURL
 	if frontendURL == "" {
@@ -45,7 +45,7 @@ func (s *emailService) SendVerificationEmail(ctx context.Context, email, token s
 	body := fmt.Sprintf(`
 	<html>
 	<body>
-		<h2>Welcome to LeCritique!</h2>
+		<h2>Welcome to Kyooar!</h2>
 		<p>Please click the link below to verify your email address:</p>
 		<p><a href="%s">Verify Email</a></p>
 		<p>If you didn't create an account, please ignore this email.</p>
@@ -58,7 +58,7 @@ func (s *emailService) SendVerificationEmail(ctx context.Context, email, token s
 }
 
 func (s *emailService) SendPasswordResetEmail(ctx context.Context, email, token string) error {
-	subject := "Reset Your Password - LeCritique"
+	subject := "Reset Your Password - Kyooar"
 	// Use frontend URL for user-facing reset link
 	frontendURL := s.config.App.FrontendURL
 	if frontendURL == "" {
@@ -108,14 +108,14 @@ func (s *emailService) SendTeamInviteEmail(ctx context.Context, email, token, co
 }
 
 func (s *emailService) SendEmailChangeVerification(ctx context.Context, newEmail, token string) error {
-	subject := "Confirm Your Email Change - LeCritique"
+	subject := "Confirm Your Email Change - Kyooar"
 	confirmURL := fmt.Sprintf("%s/api/v1/auth/confirm-email-change?token=%s", s.config.App.URL, token)
 	
 	body := fmt.Sprintf(`
 	<html>
 	<body>
 		<h2>Confirm Your Email Change</h2>
-		<p>You have requested to change your email address on LeCritique.</p>
+		<p>You have requested to change your email address on Kyooar.</p>
 		<p>Please click the link below to confirm this change:</p>
 		<p><a href="%s">Confirm Email Change</a></p>
 		<p>If you didn't request this change, please ignore this email and your email address will remain unchanged.</p>
@@ -128,7 +128,7 @@ func (s *emailService) SendEmailChangeVerification(ctx context.Context, newEmail
 }
 
 func (s *emailService) SendDeactivationRequest(ctx context.Context, email string, deactivationDate string) error {
-	subject := "Account Deactivation Request - LeCritique"
+	subject := "Account Deactivation Request - Kyooar"
 	
 	body := fmt.Sprintf(`
 	<html>
@@ -147,7 +147,7 @@ func (s *emailService) SendDeactivationRequest(ctx context.Context, email string
 }
 
 func (s *emailService) SendDeactivationCancelled(ctx context.Context, email string) error {
-	subject := "Account Deactivation Cancelled - LeCritique"
+	subject := "Account Deactivation Cancelled - Kyooar"
 	
 	body := `
 	<html>
@@ -164,7 +164,7 @@ func (s *emailService) SendDeactivationCancelled(ctx context.Context, email stri
 }
 
 func (s *emailService) SendAccountDeactivated(ctx context.Context, email string) error {
-	subject := "Account Deactivated - LeCritique"
+	subject := "Account Deactivated - Kyooar"
 	
 	body := `
 	<html>
@@ -173,7 +173,7 @@ func (s *emailService) SendAccountDeactivated(ctx context.Context, email string)
 		<p>Your account has been deactivated as requested.</p>
 		<p>All your data has been permanently deleted.</p>
 		<p>We're sorry to see you go. If you ever want to come back, you're always welcome to create a new account.</p>
-		<p>Thank you for using LeCritique.</p>
+		<p>Thank you for using Kyooar.</p>
 	</body>
 	</html>
 	`

@@ -1,4 +1,4 @@
-# Progress Log - LeCritique
+# Progress Log - Kyooar
 
 ## 2025
 
@@ -7,7 +7,7 @@
   - Added question CRUD API endpoints
   - Integrated with frontend
   - Added product-questionnaire UI
-  - Productes show questionnaire status
+  - Products show questionnaire status
   
 - **Jan 7**: Questionnaire section added
   - Basic questionnaire creation

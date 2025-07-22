@@ -8,10 +8,10 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"lecritique/internal/qrcode/models"
-	qrcodeRepos "lecritique/internal/qrcode/repositories"
-	organizationRepos "lecritique/internal/organization/repositories"
-	sharedRepos "lecritique/internal/shared/repositories"
+	"kyooar/internal/qrcode/models"
+	qrcodeRepos "kyooar/internal/qrcode/repositories"
+	organizationRepos "kyooar/internal/organization/repositories"
+	sharedRepos "kyooar/internal/shared/repositories"
 	"github.com/samber/do"
 )
 

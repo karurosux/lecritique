@@ -97,11 +97,11 @@
       </div>
     </Card>
 
-    <!-- Top Performing Productes -->
+    <!-- Top Performing Products -->
     <Card variant="default" hover interactive class="group transform transition-all duration-300 animate-fade-in-up" style="animation-delay: 200ms">
       <div class="mb-6">
         <h3 class="text-lg font-semibold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
-          Top Performing Productes
+          Top Performing Products
         </h3>
         <p class="text-sm text-gray-600 mt-1">Highest rated products with feedback</p>
       </div>

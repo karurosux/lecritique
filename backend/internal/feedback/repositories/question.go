@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/google/uuid"
-	"lecritique/internal/feedback/models"
+	"kyooar/internal/feedback/models"
 	"github.com/samber/do"
 	"gorm.io/gorm"
 )
@@ -17,7 +17,7 @@ type QuestionRepository interface {
 	DeleteQuestion(ctx context.Context, questionID uuid.UUID) error
 	ReorderQuestions(ctx context.Context, productID uuid.UUID, questionIDs []uuid.UUID) error
 	GetMaxDisplayOrder(ctx context.Context, productID uuid.UUID) (int, error)
-	GetProductesWithQuestions(ctx context.Context, organizationID uuid.UUID) ([]uuid.UUID, error)
+	GetProductsWithQuestions(ctx context.Context, organizationID uuid.UUID) ([]uuid.UUID, error)
 }
 
 type questionRepository struct {
@@ -93,7 +93,7 @@ func (r *questionRepository) ReorderQuestions(ctx context.Context, productID uui
 	return tx.Commit().Error
 }
 
-func (r *questionRepository) GetProductesWithQuestions(ctx context.Context, organizationID uuid.UUID) ([]uuid.UUID, error) {
+func (r *questionRepository) GetProductsWithQuestions(ctx context.Context, organizationID uuid.UUID) ([]uuid.UUID, error) {
 	var productIDs []uuid.UUID
 	err := r.db.WithContext(ctx).
 		Table("questions").

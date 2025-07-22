@@ -6,7 +6,7 @@ export const privacyContent = {
   sections: [
     {
       title: 'Privacy Policy',
-      content: `At LeCritique, we are committed to protecting your privacy and ensuring the security of your personal information. This Privacy Policy explains how we collect, use, and safeguard your data when you use our organization feedback management platform.`
+      content: `At Kyooar, we are committed to protecting your privacy and ensuring the security of your personal information. This Privacy Policy explains how we collect, use, and safeguard your data when you use our organization feedback management platform.`
     },
     {
       title: '1. Information We Collect',
@@ -93,13 +93,13 @@ You can control cookie settings through your browser preferences.`
     },
     {
       title: '10. Children\'s Privacy',
-      content: `LeCritique is not intended for children under 13 years of age. We do not knowingly collect personal information from children under 13. If we learn we have collected information from a child under 13, we will delete it.`
+      content: `Kyooar is not intended for children under 13 years of age. We do not knowingly collect personal information from children under 13. If we learn we have collected information from a child under 13, we will delete it.`
     },
     {
       title: '11. Changes to This Policy',
       content: `We may update this Privacy Policy from time to time. We will notify you of any changes by posting the new Privacy Policy on this page and updating the "Last Updated" date.
 
-This privacy policy may change at the discretion of LeCritique. We encourage you to review this policy periodically for any updates.`
+This privacy policy may change at the discretion of Kyooar. We encourage you to review this policy periodically for any updates.`
     },
     {
       title: '12. Contact Us',

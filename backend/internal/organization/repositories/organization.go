@@ -3,8 +3,8 @@ package repositories
 import (
 	"context"
 	"github.com/google/uuid"
-	"lecritique/internal/organization/models"
-	sharedRepos "lecritique/internal/shared/repositories"
+	"kyooar/internal/organization/models"
+	sharedRepos "kyooar/internal/shared/repositories"
 	"github.com/samber/do"
 	"gorm.io/gorm"
 )

@@ -169,7 +169,7 @@ psql -c "INSERT INTO subscription_plans (code, name, price, is_visible, features
                 '{\"limits\": {\"max_organizations\": 50}}')"
 
 # 2. Assign to ACME's account
-curl -X POST http://api.lecritique.com/v1/admin/subscriptions/assign-custom-plan \
+curl -X POST http://api.kyooar.com/v1/admin/subscriptions/assign-custom-plan \
   -H "Authorization: Bearer $ADMIN_TOKEN" \
   -d '{
     "account_id": "acme-account-uuid",
@@ -177,7 +177,7 @@ curl -X POST http://api.lecritique.com/v1/admin/subscriptions/assign-custom-plan
   }'
 
 # 3. Verify assignment
-curl http://api.lecritique.com/v1/user/subscription \
+curl http://api.kyooar.com/v1/user/subscription \
   -H "Authorization: Bearer $ACME_USER_TOKEN"
 # Returns: { "plan": { "name": "ACME Corp Special", "price": 299 } }
 ```

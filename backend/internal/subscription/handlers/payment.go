@@ -8,10 +8,10 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
-	"lecritique/internal/shared/errors"
-	"lecritique/internal/shared/middleware"
-	"lecritique/internal/shared/response"
-	"lecritique/internal/subscription/services"
+	"kyooar/internal/shared/errors"
+	"kyooar/internal/shared/middleware"
+	"kyooar/internal/shared/response"
+	"kyooar/internal/subscription/services"
 	"github.com/samber/do"
 )
 

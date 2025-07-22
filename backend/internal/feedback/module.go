@@ -2,7 +2,7 @@ package feedback
 
 import (
 	"github.com/labstack/echo/v4"
-	"lecritique/internal/feedback/handlers"
+	"kyooar/internal/feedback/handlers"
 	"github.com/samber/do"
 )
 
@@ -21,7 +21,7 @@ func (m *Module) RegisterRoutes(v1 *echo.Group) {
 	// Public feedback routes (no auth required)
 	v1.GET("/questionnaire/:organizationId/:productId", publicHandler.GetQuestionnaire)
 	v1.GET("/organization/:organizationId/products/:productId/questions", publicHandler.GetProductQuestions)
-	v1.GET("/organization/:organizationId/questions/products-with-questions", publicHandler.GetProductesWithQuestions)
+	v1.GET("/organization/:organizationId/questions/products-with-questions", publicHandler.GetProductsWithQuestions)
 	v1.POST("/feedback", publicHandler.SubmitFeedback)
 	
 	// Protected feedback routes (moved to organization module)

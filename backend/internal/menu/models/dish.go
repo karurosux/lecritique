@@ -3,7 +3,7 @@ package models
 import (
 	"github.com/google/uuid"
 	"github.com/lib/pq"
-	"lecritique/internal/shared/models"
+	"kyooar/internal/shared/models"
 )
 
 type Product struct {
