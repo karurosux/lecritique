@@ -4,14 +4,14 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	restaurantModels "lecritique/internal/restaurant/models"
+	organizationModels "lecritique/internal/organization/models"
 	sharedModels "lecritique/internal/shared/models"
 )
 
 type QRCode struct {
 	sharedModels.BaseModel
-	RestaurantID uuid.UUID   `gorm:"not null" json:"restaurant_id"`
-	Restaurant   restaurantModels.Restaurant  `json:"restaurant,omitempty"`
+	OrganizationID uuid.UUID   `gorm:"not null" json:"organization_id"`
+	Organization   organizationModels.Organization  `json:"organization,omitempty"`
 	Location     *string     `json:"location"` // Free text location description
 	Code         string      `gorm:"uniqueIndex;not null" json:"code"`
 	Label        string      `json:"label"` // e.g., "Table 1", "Entrance", etc.

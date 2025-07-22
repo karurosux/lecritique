@@ -10,9 +10,9 @@ analyticsGroup := v1.Group("/analytics")
 analyticsGroup.Use(subscriptionMiddleware.RequireFeature(models.FlagAdvancedAnalytics))
 
 // For resource limits
-restaurantGroup.POST("/restaurants", 
-    subscriptionMiddleware.CheckResourceLimit("restaurant"),
-    restaurantHandler.Create,
+organizationGroup.POST("/organizations", 
+    subscriptionMiddleware.CheckResourceLimit("organization"),
+    organizationHandler.Create,
 )
 
 // Get subscription in handler
@@ -58,11 +58,11 @@ import { FeatureGate, FEATURES } from '$lib/components/subscription';
 ```svelte
 <script>
 import { LimitGate, LIMITS } from '$lib/components/subscription';
-let restaurantCount = 5; // Get this from your data
+let organizationCount = 5; // Get this from your data
 </script>
 
-<LimitGate limit={LIMITS.RESTAURANTS} currentCount={restaurantCount}>
-    <button class="btn btn-primary">Add Restaurant</button>
+<LimitGate limit={LIMITS.RESTAURANTS} currentCount={organizationCount}>
+    <button class="btn btn-primary">Add Organization</button>
 </LimitGate>
 ```
 
@@ -86,14 +86,14 @@ import { PlanBadge } from '$lib/components/subscription';
 import { hasFeature, getLimit, FEATURES, LIMITS } from '$lib/stores/subscription';
 
 let showAnalytics = $derived($hasFeature(FEATURES.ADVANCED_ANALYTICS));
-let maxRestaurants = $derived($getLimit(LIMITS.RESTAURANTS));
+let maxOrganizations = $derived($getLimit(LIMITS.RESTAURANTS));
 </script>
 
 {#if showAnalytics}
     <AnalyticsSection />
 {/if}
 
-<p>You can have up to {maxRestaurants} restaurants</p>
+<p>You can have up to {maxOrganizations} organizations</p>
 ```
 
 ## Common Patterns

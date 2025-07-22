@@ -10,60 +10,60 @@ import (
 	"lecritique/internal/feedback/models"
 	"lecritique/internal/feedback/repositories"
 	menuRepos "lecritique/internal/menu/repositories"
-	restaurantRepos "lecritique/internal/restaurant/repositories"
+	organizationRepos "lecritique/internal/organization/repositories"
 	"github.com/samber/do"
 )
 
 type QuestionService interface {
-	CreateQuestion(ctx context.Context, accountID, dishID uuid.UUID, request *models.CreateQuestionRequest) (*models.Question, error)
-	GetQuestionsByDish(ctx context.Context, accountID, dishID uuid.UUID) ([]*models.Question, error)
+	CreateQuestion(ctx context.Context, accountID, productID uuid.UUID, request *models.CreateQuestionRequest) (*models.Question, error)
+	GetQuestionsByProduct(ctx context.Context, accountID, productID uuid.UUID) ([]*models.Question, error)
 	GetQuestion(ctx context.Context, accountID, questionID uuid.UUID) (*models.Question, error)
 	UpdateQuestion(ctx context.Context, accountID, questionID uuid.UUID, request *models.UpdateQuestionRequest) (*models.Question, error)
 	DeleteQuestion(ctx context.Context, accountID, questionID uuid.UUID) error
-	ReorderQuestions(ctx context.Context, accountID, dishID uuid.UUID, questionIDs []uuid.UUID) error
-	GetDishesWithQuestions(ctx context.Context, accountID, restaurantID uuid.UUID) ([]uuid.UUID, error)
+	ReorderQuestions(ctx context.Context, accountID, productID uuid.UUID, questionIDs []uuid.UUID) error
+	GetProductesWithQuestions(ctx context.Context, accountID, organizationID uuid.UUID) ([]uuid.UUID, error)
 }
 
 type questionService struct {
 	questionRepo   repositories.QuestionRepository
-	dishRepo       menuRepos.DishRepository
-	restaurantRepo restaurantRepos.RestaurantRepository
+	productRepo       menuRepos.ProductRepository
+	organizationRepo organizationRepos.OrganizationRepository
 }
 
 func NewQuestionService(i *do.Injector) (QuestionService, error) {
 	return &questionService{
 		questionRepo:   do.MustInvoke[repositories.QuestionRepository](i),
-		dishRepo:       do.MustInvoke[menuRepos.DishRepository](i),
-		restaurantRepo: do.MustInvoke[restaurantRepos.RestaurantRepository](i),
+		productRepo:       do.MustInvoke[menuRepos.ProductRepository](i),
+		organizationRepo: do.MustInvoke[organizationRepos.OrganizationRepository](i),
 	}, nil
 }
 
-func (s *questionService) CreateQuestion(ctx context.Context, accountID, dishID uuid.UUID, request *models.CreateQuestionRequest) (*models.Question, error) {
-	// Verify dish exists and belongs to account
-	dish, err := s.dishRepo.FindByID(ctx, dishID)
+func (s *questionService) CreateQuestion(ctx context.Context, accountID, productID uuid.UUID, request *models.CreateQuestionRequest) (*models.Question, error) {
+	// Verify product exists and belongs to account
+	product, err := s.productRepo.FindByID(ctx, productID)
 	if err != nil {
-		return nil, echo.NewHTTPError(http.StatusNotFound, "Dish not found")
+		return nil, echo.NewHTTPError(http.StatusNotFound, "Product not found")
 	}
 
-	// Verify restaurant ownership
-	restaurant, err := s.restaurantRepo.FindByID(ctx, dish.RestaurantID)
+	// Verify organization ownership
+	organization, err := s.organizationRepo.FindByID(ctx, product.OrganizationID)
 	if err != nil {
-		return nil, echo.NewHTTPError(http.StatusNotFound, "Restaurant not found")
+		return nil, echo.NewHTTPError(http.StatusNotFound, "Organization not found")
 	}
 
-	if restaurant.AccountID != accountID {
-		return nil, echo.NewHTTPError(http.StatusNotFound, "Dish not found")
+	if organization.AccountID != accountID {
+		return nil, echo.NewHTTPError(http.StatusNotFound, "Product not found")
 	}
 
 	// Get next display order
-	maxOrder, err := s.questionRepo.GetMaxDisplayOrder(ctx, dishID)
+	maxOrder, err := s.questionRepo.GetMaxDisplayOrder(ctx, productID)
 	if err != nil {
 		return nil, echo.NewHTTPError(http.StatusInternalServerError, "Failed to get display order")
 	}
 
 	// Create question
 	question := &models.Question{
-		DishID:       dishID,
+		ProductID:       productID,
 		Text:         request.Text,
 		Type:         request.Type,
 		IsRequired:   request.IsRequired,
@@ -82,24 +82,24 @@ func (s *questionService) CreateQuestion(ctx context.Context, accountID, dishID 
 	return question, nil
 }
 
-func (s *questionService) GetQuestionsByDish(ctx context.Context, accountID, dishID uuid.UUID) ([]*models.Question, error) {
-	// Verify dish exists and belongs to account
-	dish, err := s.dishRepo.FindByID(ctx, dishID)
+func (s *questionService) GetQuestionsByProduct(ctx context.Context, accountID, productID uuid.UUID) ([]*models.Question, error) {
+	// Verify product exists and belongs to account
+	product, err := s.productRepo.FindByID(ctx, productID)
 	if err != nil {
-		return nil, echo.NewHTTPError(http.StatusNotFound, "Dish not found")
+		return nil, echo.NewHTTPError(http.StatusNotFound, "Product not found")
 	}
 
-	// Verify restaurant ownership
-	restaurant, err := s.restaurantRepo.FindByID(ctx, dish.RestaurantID)
+	// Verify organization ownership
+	organization, err := s.organizationRepo.FindByID(ctx, product.OrganizationID)
 	if err != nil {
-		return nil, echo.NewHTTPError(http.StatusNotFound, "Restaurant not found")
+		return nil, echo.NewHTTPError(http.StatusNotFound, "Organization not found")
 	}
 
-	if restaurant.AccountID != accountID {
-		return nil, echo.NewHTTPError(http.StatusNotFound, "Dish not found")
+	if organization.AccountID != accountID {
+		return nil, echo.NewHTTPError(http.StatusNotFound, "Product not found")
 	}
 
-	questions, err := s.questionRepo.GetQuestionsByDishID(ctx, dishID)
+	questions, err := s.questionRepo.GetQuestionsByProductID(ctx, productID)
 	if err != nil {
 		return nil, echo.NewHTTPError(http.StatusInternalServerError, "Failed to get questions")
 	}
@@ -113,19 +113,19 @@ func (s *questionService) GetQuestion(ctx context.Context, accountID, questionID
 		return nil, echo.NewHTTPError(http.StatusNotFound, "Question not found")
 	}
 
-	// Verify the question's dish belongs to the account
-	dish, err := s.dishRepo.FindByID(ctx, question.DishID)
+	// Verify the question's product belongs to the account
+	product, err := s.productRepo.FindByID(ctx, question.ProductID)
 	if err != nil {
-		return nil, echo.NewHTTPError(http.StatusNotFound, "Associated dish not found")
+		return nil, echo.NewHTTPError(http.StatusNotFound, "Associated product not found")
 	}
 
-	// Verify restaurant ownership
-	restaurant, err := s.restaurantRepo.FindByID(ctx, dish.RestaurantID)
+	// Verify organization ownership
+	organization, err := s.organizationRepo.FindByID(ctx, product.OrganizationID)
 	if err != nil {
-		return nil, echo.NewHTTPError(http.StatusNotFound, "Restaurant not found")
+		return nil, echo.NewHTTPError(http.StatusNotFound, "Organization not found")
 	}
 
-	if restaurant.AccountID != accountID {
+	if organization.AccountID != accountID {
 		return nil, echo.NewHTTPError(http.StatusNotFound, "Question not found")
 	}
 
@@ -170,55 +170,55 @@ func (s *questionService) DeleteQuestion(ctx context.Context, accountID, questio
 	return nil
 }
 
-func (s *questionService) ReorderQuestions(ctx context.Context, accountID, dishID uuid.UUID, questionIDs []uuid.UUID) error {
-	// Verify dish belongs to account
-	dish, err := s.dishRepo.FindByID(ctx, dishID)
+func (s *questionService) ReorderQuestions(ctx context.Context, accountID, productID uuid.UUID, questionIDs []uuid.UUID) error {
+	// Verify product belongs to account
+	product, err := s.productRepo.FindByID(ctx, productID)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusNotFound, "Dish not found")
+		return echo.NewHTTPError(http.StatusNotFound, "Product not found")
 	}
 
-	// Verify restaurant ownership
-	restaurant, err := s.restaurantRepo.FindByID(ctx, dish.RestaurantID)
+	// Verify organization ownership
+	organization, err := s.organizationRepo.FindByID(ctx, product.OrganizationID)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusNotFound, "Restaurant not found")
+		return echo.NewHTTPError(http.StatusNotFound, "Organization not found")
 	}
 
-	if restaurant.AccountID != accountID {
-		return echo.NewHTTPError(http.StatusNotFound, "Dish not found")
+	if organization.AccountID != accountID {
+		return echo.NewHTTPError(http.StatusNotFound, "Product not found")
 	}
 
-	// Verify all questions belong to this dish
+	// Verify all questions belong to this product
 	for _, questionID := range questionIDs {
 		question, err := s.questionRepo.GetQuestionByID(ctx, questionID)
 		if err != nil {
 			return echo.NewHTTPError(http.StatusNotFound, "Question not found")
 		}
-		if question.DishID != dishID {
-			return echo.NewHTTPError(http.StatusBadRequest, "Question does not belong to this dish")
+		if question.ProductID != productID {
+			return echo.NewHTTPError(http.StatusBadRequest, "Question does not belong to this product")
 		}
 	}
 
-	if err := s.questionRepo.ReorderQuestions(ctx, dishID, questionIDs); err != nil {
+	if err := s.questionRepo.ReorderQuestions(ctx, productID, questionIDs); err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, "Failed to reorder questions")
 	}
 
 	return nil
 }
 
-func (s *questionService) GetDishesWithQuestions(ctx context.Context, accountID, restaurantID uuid.UUID) ([]uuid.UUID, error) {
-	// Verify restaurant ownership
-	restaurant, err := s.restaurantRepo.FindByID(ctx, restaurantID)
+func (s *questionService) GetProductesWithQuestions(ctx context.Context, accountID, organizationID uuid.UUID) ([]uuid.UUID, error) {
+	// Verify organization ownership
+	organization, err := s.organizationRepo.FindByID(ctx, organizationID)
 	if err != nil {
 		// Log for debugging
-		fmt.Printf("DEBUG: Restaurant not found. RestaurantID: %s, Error: %v\n", restaurantID, err)
-		return nil, echo.NewHTTPError(http.StatusNotFound, "Restaurant not found")
+		fmt.Printf("DEBUG: Organization not found. OrganizationID: %s, Error: %v\n", organizationID, err)
+		return nil, echo.NewHTTPError(http.StatusNotFound, "Organization not found")
 	}
 
-	if restaurant.AccountID != accountID {
+	if organization.AccountID != accountID {
 		// Log for debugging
-		fmt.Printf("DEBUG: Account mismatch. RestaurantAccountID: %s, RequestAccountID: %s\n", restaurant.AccountID, accountID)
-		return nil, echo.NewHTTPError(http.StatusNotFound, "Restaurant not found")
+		fmt.Printf("DEBUG: Account mismatch. OrganizationAccountID: %s, RequestAccountID: %s\n", organization.AccountID, accountID)
+		return nil, echo.NewHTTPError(http.StatusNotFound, "Organization not found")
 	}
 
-	return s.questionRepo.GetDishesWithQuestions(ctx, restaurantID)
+	return s.questionRepo.GetProductesWithQuestions(ctx, organizationID)
 }

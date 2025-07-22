@@ -7,7 +7,7 @@ ALTER TABLE subscription_plans ADD COLUMN features_new JSONB;
 UPDATE subscription_plans 
 SET features_new = jsonb_build_object(
     'limits', jsonb_build_object(
-        'max_restaurants', COALESCE((features->>'max_restaurants')::int, 0),
+        'max_organizations', COALESCE((features->>'max_organizations')::int, 0),
         'max_qr_codes', COALESCE((features->>'max_qr_codes')::int, 0),
         'max_feedbacks_per_month', COALESCE((features->>'max_feedbacks_per_month')::int, 0),
         'max_team_members', COALESCE((features->>'max_team_members')::int, 0)

@@ -6,13 +6,13 @@ export const privacyContent = {
   sections: [
     {
       title: 'Privacy Policy',
-      content: `At LeCritique, we are committed to protecting your privacy and ensuring the security of your personal information. This Privacy Policy explains how we collect, use, and safeguard your data when you use our restaurant feedback management platform.`
+      content: `At LeCritique, we are committed to protecting your privacy and ensuring the security of your personal information. This Privacy Policy explains how we collect, use, and safeguard your data when you use our organization feedback management platform.`
     },
     {
       title: '1. Information We Collect',
       content: `We collect information you provide directly to us, such as:
 • Account information (name, email, company name)
-• Restaurant and menu details
+• Organization and menu details
 • Payment information (processed securely through Stripe)
 • Feedback and questionnaire responses from your customers
 • Usage data and analytics about how you interact with our platform`

@@ -79,7 +79,7 @@
 
 <svelte:head>
   <title>Register - LeCritique</title>
-  <meta name="description" content="Create your LeCritique restaurant management account" />
+  <meta name="description" content="Create your LeCritique organization management account" />
 </svelte:head>
 
 <div class="min-h-full flex flex-col justify-center py-12 sm:px-6 lg:px-8">
@@ -96,7 +96,7 @@
         Join LeCritique
       </h2>
       <p class="text-gray-600 text-lg">
-        Create your restaurant management account
+        Create your organization management account
       </p>
       <p class="text-sm text-gray-500">
         Already have an account?

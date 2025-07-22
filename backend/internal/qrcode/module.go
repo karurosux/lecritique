@@ -26,7 +26,7 @@ func (m *Module) RegisterRoutes(v1 *echo.Group) {
 	// Public QR code routes (no auth required)
 	v1.GET("/qr/:code", publicHandler.ValidateQRCode)
 	
-	// QR Code routes under restaurants (moved to restaurant module)
+	// QR Code routes under organizations (moved to organization module)
 	
 	// Direct QR code routes
 	qrCodes := v1.Group("/qr-codes")

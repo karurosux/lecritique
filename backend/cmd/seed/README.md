@@ -19,20 +19,20 @@ make seed-force
 ### 👤 Test User Account
 - **Email:** `admin@lecritique.com`
 - **Password:** `admin123`
-- **Company:** `LeCritique Demo Restaurant`
+- **Company:** `LeCritique Demo Organization`
 - **Status:** Active & Email Verified
 - **Subscription:** Starter Plan (if available)
 
-### 🏢 Sample Restaurant
-- **Name:** Demo Restaurant
-- **Description:** A sample restaurant for testing LeCritique
+### 🏢 Sample Organization
+- **Name:** Demo Organization
+- **Description:** A sample organization for testing LeCritique
 - **Email:** admin@lecritique.com
 - **Phone:** +1-555-0123
 - **Website:** https://demo.lecritique.com
 
 ### 📍 Sample Location
 - **Name:** Main Location
-- **Address:** 123 Restaurant St, Food City, CA 12345, USA
+- **Address:** 123 Organization St, Food City, CA 12345, USA
 
 ### 🔳 Sample QR Code
 - **Code:** `DEMO001`
@@ -40,7 +40,7 @@ make seed-force
 - **Type:** table
 - **Valid for:** 1 year
 
-### 🍽️ Sample Dishes
+### 🍽️ Sample Productes
 1. **Classic Burger** - $12.99 (Mains)
 2. **Caesar Salad** - $8.99 (Salads)  
 3. **Chocolate Cake** - $6.99 (Desserts)

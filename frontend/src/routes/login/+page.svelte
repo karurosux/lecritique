@@ -45,7 +45,7 @@
 
 <svelte:head>
   <title>Login - LeCritique</title>
-  <meta name="description" content="Login to your LeCritique restaurant management account" />
+  <meta name="description" content="Login to your LeCritique organization management account" />
 </svelte:head>
 
 <div class="min-h-screen flex flex-col justify-center py-12 sm:px-6 lg:px-8">
@@ -60,7 +60,7 @@
         Welcome Back
       </h2>
       <p class="text-gray-600 text-lg">
-        Sign in to your restaurant dashboard
+        Sign in to your organization dashboard
       </p>
       <p class="text-sm text-gray-500">
         Don't have an account?

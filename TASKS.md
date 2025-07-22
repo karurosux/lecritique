@@ -26,16 +26,16 @@
    - Success confirmation page
    - Anonymous submission support
 
-2. **Restaurant owner dashboard**
+2. **Organization owner dashboard**
    - Statistics overview cards
    - Recent feedback display
    - Quick actions menu
-   - Restaurant switcher
+   - Organization switcher
 
-3. **Restaurant and dish management**
-   - Restaurant list/grid view
-   - Add/edit restaurant form
-   - Dish management interface
+3. **Organization and product management**
+   - Organization list/grid view
+   - Add/edit organization form
+   - Product management interface
    - Category management
 
 4. **QR code generation**
@@ -47,7 +47,7 @@
 5. **Feedback analytics**
    - Rating trends charts
    - Feedback volume over time
-   - Dish performance comparison
+   - Product performance comparison
    - Export functionality
 
 ## 💡 Backlog Ideas
@@ -69,7 +69,7 @@
 ## 📝 Development Notes
 - **Test User**: admin@lecritique.com / admin123
 - **Commands**: `make seed` or `make seed-force`
-- **Remember**: Questionnaires are dish-specific (core feature!)
+- **Remember**: Questionnaires are product-specific (core feature!)
 - **Always**: Check subscription limits before operations
 - **UI**: Use Svelte 5 runes ($state, $derived, $effect)
 

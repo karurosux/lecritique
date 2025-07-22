@@ -9,8 +9,8 @@
 
   let loading = $state(true);
   let error = $state('');
-  let restaurants = $state<any[]>([]);
-  let selectedRestaurant = $state('');
+  let organizations = $state<any[]>([]);
+  let selectedOrganization = $state('');
   let chartData = $state<any>(null);
   let hasInitialized = $state(false);
   let viewMode = $state<'side-by-side' | 'original' | 'grouped'>('side-by-side');
@@ -25,19 +25,19 @@
     
     if (authState.isAuthenticated && !hasInitialized) {
       hasInitialized = true;
-      loadRestaurants();
+      loadOrganizations();
     }
   });
 
-  async function loadRestaurants() {
+  async function loadOrganizations() {
     try {
       const api = getApiClient();
-      const response = await api.api.v1RestaurantsList();
+      const response = await api.api.v1OrganizationsList();
       
       if (response.data.success && response.data.data) {
-        restaurants = response.data.data;
-        if (restaurants.length > 0) {
-          selectedRestaurant = restaurants[0].id;
+        organizations = response.data.data;
+        if (organizations.length > 0) {
+          selectedOrganization = organizations[0].id;
           loadAnalytics();
         }
       }
@@ -47,14 +47,14 @@
   }
 
   async function loadAnalytics() {
-    if (!selectedRestaurant) return;
+    if (!selectedOrganization) return;
 
     loading = true;
     error = '';
 
     try {
       const api = getApiClient();
-      const chartResponse = await api.api.v1AnalyticsRestaurantsChartsList(selectedRestaurant, {});
+      const chartResponse = await api.api.v1AnalyticsOrganizationsChartsList(selectedOrganization, {});
       
       if (chartResponse.data?.data) {
         chartData = chartResponse.data.data;
@@ -70,7 +70,7 @@
     }
   }
 
-  function handleRestaurantChange() {
+  function handleOrganizationChange() {
     loadAnalytics();
   }
 </script>
@@ -122,7 +122,7 @@
     </div>
   </div>
 
-  <!-- Restaurant Selection -->
+  <!-- Organization Selection -->
   <div class="mb-8">
     <Card variant="elevated">
       <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -131,9 +131,9 @@
             <Activity class="h-5 w-5 text-white" />
           </div>
           <div>
-            <p class="text-sm font-medium text-gray-600">Restaurant</p>
+            <p class="text-sm font-medium text-gray-600">Organization</p>
             <p class="text-lg font-semibold text-gray-900">
-              {restaurants.find(r => r.id === selectedRestaurant)?.name || 'Select a restaurant'}
+              {organizations.find(r => r.id === selectedOrganization)?.name || 'Select a organization'}
             </p>
             {#if chartData?.summary?.total_responses}
               <p class="text-sm text-gray-500 mt-1">{chartData.summary.total_responses} total responses</p>
@@ -141,11 +141,11 @@
           </div>
         </div>
         <div class="flex items-center gap-4">
-          {#if restaurants.length > 0}
+          {#if organizations.length > 0}
             <Select
-              bind:value={selectedRestaurant}
-              options={restaurants.map(r => ({ value: r.id, label: r.name }))}
-              onchange={handleRestaurantChange}
+              bind:value={selectedOrganization}
+              options={organizations.map(r => ({ value: r.id, label: r.name }))}
+              onchange={handleOrganizationChange}
             />
           {/if}
           <Button 
@@ -230,17 +230,17 @@
               </div>
               <div>
                 <h3 class="text-lg font-semibold text-purple-900">Grouped View</h3>
-                <p class="text-sm text-purple-700">Charts grouped by dish with collapsible sections</p>
+                <p class="text-sm text-purple-700">Charts grouped by product with collapsible sections</p>
               </div>
             </div>
           </Card>
-          <ChartDataWidgetGrouped chartData={chartData} title="" groupByDish={true} initiallyExpanded={false} />
+          <ChartDataWidgetGrouped chartData={chartData} title="" groupByProduct={true} initiallyExpanded={false} />
         </div>
       </div>
     {:else if viewMode === 'original'}
       <ChartDataWidget chartData={chartData} title="Original Analytics View" />
     {:else}
-      <ChartDataWidgetGrouped chartData={chartData} title="Grouped Analytics View" groupByDish={true} initiallyExpanded={false} />
+      <ChartDataWidgetGrouped chartData={chartData} title="Grouped Analytics View" groupByProduct={true} initiallyExpanded={false} />
     {/if}
   {/if}
 </div>

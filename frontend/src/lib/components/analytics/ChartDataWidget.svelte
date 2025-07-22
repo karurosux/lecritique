@@ -28,8 +28,8 @@
     };
   }
 
-  interface RestaurantChartData {
-    restaurant_id: string;
+  interface OrganizationChartData {
+    organization_id: string;
     charts: BackendChartData[];
     summary: {
       total_responses: number;
@@ -45,7 +45,7 @@
     chartData = null,
     title = "Analytics Dashboard"
   }: {
-    chartData: RestaurantChartData | null;
+    chartData: OrganizationChartData | null;
     title?: string;
   } = $props();
 

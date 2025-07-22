@@ -34,7 +34,7 @@
             Analytics & Reports
           </h1>
           <div class="flex items-center space-x-4 mt-1">
-            <p class="text-gray-600 font-medium">Detailed insights and performance metrics for your restaurants</p>
+            <p class="text-gray-600 font-medium">Detailed insights and performance metrics for your organizations</p>
             {#if !loading && analyticsData}
               <div class="flex items-center space-x-3 text-sm">
                 <div class="flex items-center space-x-1">

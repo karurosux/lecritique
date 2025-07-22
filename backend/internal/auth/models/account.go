@@ -23,7 +23,7 @@ type Account struct {
 	DeactivationRequestedAt *time.Time    `json:"deactivation_requested_at"`
 	SubscriptionID          *uuid.UUID    `json:"subscription_id"`
 	Subscription            interface{}   `gorm:"-" json:"subscription,omitempty"` // Populated when needed
-	// Restaurants      []Restaurant  `json:"restaurants,omitempty"`  // TODO: Add when restaurant domain is ready
+	// Organizations      []Organization  `json:"organizations,omitempty"`  // TODO: Add when organization domain is ready
 	TeamMembers             []TeamMember  `json:"team_members,omitempty"`
 }
 

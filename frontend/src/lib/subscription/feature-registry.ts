@@ -16,7 +16,7 @@ export interface FeatureDefinition {
 
 // Feature keys matching backend constants
 export const LIMITS = {
-  RESTAURANTS: 'max_restaurants',
+  RESTAURANTS: 'max_organizations',
   QR_CODES: 'max_qr_codes',
   FEEDBACKS_PER_MONTH: 'max_feedbacks_per_month',
   TEAM_MEMBERS: 'max_team_members'
@@ -36,11 +36,11 @@ export const featureRegistry: Record<string, FeatureDefinition> = {
   [LIMITS.RESTAURANTS]: {
     key: LIMITS.RESTAURANTS,
     type: 'limit',
-    displayName: 'Restaurants',
-    description: 'Maximum number of restaurants',
-    unit: 'restaurants',
-    unlimitedText: 'Unlimited restaurants',
-    format: '{value} restaurant(s)',
+    displayName: 'Organizations',
+    description: 'Maximum number of organizations',
+    unit: 'organizations',
+    unlimitedText: 'Unlimited organizations',
+    format: '{value} organization(s)',
     icon: 'store',
     category: 'core',
     sortOrder: 1
@@ -49,7 +49,7 @@ export const featureRegistry: Record<string, FeatureDefinition> = {
     key: LIMITS.QR_CODES,
     type: 'limit',
     displayName: 'QR Codes',
-    description: 'Total QR codes across all restaurants',
+    description: 'Total QR codes across all organizations',
     unit: 'QR codes',
     unlimitedText: 'Unlimited QR codes',
     format: '{value} QR codes',

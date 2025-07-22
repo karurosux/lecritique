@@ -8,11 +8,11 @@
   import { toast } from 'svelte-sonner';
 
   let { 
-    restaurantId,
-    dishId
+    organizationId,
+    productId
   }: {
-    restaurantId: string;
-    dishId: string;
+    organizationId: string;
+    productId: string;
   } = $props();
 
   // State
@@ -38,9 +38,9 @@
       loading = true;
       error = '';
       
-      // Load existing questions for this dish directly
-      const dishQuestions = await QuestionApi.getQuestionsByDish(restaurantId, dishId);
-      questions = dishQuestions || [];
+      // Load existing questions for this product directly
+      const productQuestions = await QuestionApi.getQuestionsByProduct(organizationId, productId);
+      questions = productQuestions || [];
       
     } catch (err: any) {
       error = err.message || 'Failed to load questions';
@@ -74,8 +74,8 @@
       error = '';
 
       if (editingIndex === -1) {
-        // Create new question directly for the dish
-        const newQuestion = await QuestionApi.createQuestion(restaurantId, dishId, {
+        // Create new question directly for the product
+        const newQuestion = await QuestionApi.createQuestion(organizationId, productId, {
           text: questionData.text!,
           type: questionData.type!,
           is_required: questionData.is_required || false,
@@ -90,8 +90,8 @@
       } else {
         // Update existing question
         const updatedQuestion = await QuestionApi.updateQuestion(
-          restaurantId,
-          dishId,
+          organizationId,
+          productId,
           questions[editingIndex].id!,
           {
             text: questionData.text!,
@@ -130,7 +130,7 @@
     
     try {
       loading = true;
-      await QuestionApi.deleteQuestion(restaurantId, dishId, questionToDelete.id!);
+      await QuestionApi.deleteQuestion(organizationId, productId, questionToDelete.id!);
       questions = questions.filter(q => q.id !== questionToDelete.id);
       toast.success('Question deleted successfully');
     } catch (err: any) {
@@ -155,12 +155,12 @@
       generatingQuestions = true;
       error = '';
       
-      const generatedQuestions = await QuestionApi.generateQuestions(restaurantId, dishId);
+      const generatedQuestions = await QuestionApi.generateQuestions(organizationId, productId);
       
       if (generatedQuestions && generatedQuestions.length > 0) {
-        // Add generated questions directly to the dish
+        // Add generated questions directly to the product
         for (const genQuestion of generatedQuestions) {
-          const newQuestion = await QuestionApi.createQuestion(restaurantId, dishId, {
+          const newQuestion = await QuestionApi.createQuestion(organizationId, productId, {
             text: genQuestion.text!,
             type: genQuestion.type!,
             is_required: genQuestion.is_required || false,
@@ -246,7 +246,7 @@
     try {
       reordering = true;
       const questionIds = questions.map(q => q.id!);
-      await QuestionApi.reorderQuestions(restaurantId, dishId, questionIds);
+      await QuestionApi.reorderQuestions(organizationId, productId, questionIds);
       toast.success('Question order updated');
     } catch (err: any) {
       error = err.message || 'Failed to update question order';
@@ -311,7 +311,7 @@
         
         <!-- Description -->
         <p class="text-gray-600 mb-4 leading-relaxed">
-          Our AI is analyzing your dish and creating relevant feedback questions for your customers
+          Our AI is analyzing your product and creating relevant feedback questions for your customers
         </p>
         
         <!-- Progress dots -->

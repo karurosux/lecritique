@@ -148,8 +148,8 @@ func GetSubscriptionLimit(c echo.Context, limitType string) (int, error) {
 	}
 	
 	switch limitType {
-	case "max_restaurants":
-		return features.MaxRestaurants, nil
+	case "max_organizations":
+		return features.MaxOrganizations, nil
 	case "max_qr_codes":
 		return features.MaxQRCodes, nil
 	case "max_feedbacks_per_month":

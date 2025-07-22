@@ -9,8 +9,8 @@
   import type { Question } from '$lib/stores/questionnaire';
 
   interface FeedbackData {
-    restaurant_id: string;
-    dish_id?: string;
+    organization_id: string;
+    product_id?: string;
     qr_code?: string;
     rating?: number;
     responses: Record<string, any>;
@@ -20,12 +20,12 @@
   // State variables
   let submitting = false;
   let error = '';
-  let restaurantId = '';
+  let organizationId = '';
   let locationId = '';
-  let dishId = '';
+  let productId = '';
   let qrCode = '';
-  let restaurantName = '';
-  let dishName = '';
+  let organizationName = '';
+  let productName = '';
   
   // Feedback form data
   let overallRating = 0;
@@ -40,23 +40,23 @@
 
   // Get URL parameters
   $: {
-    restaurantId = $page.url.searchParams.get('restaurant') || '';
+    organizationId = $page.url.searchParams.get('organization') || '';
     locationId = $page.url.searchParams.get('location') || '';
-    dishId = $page.url.searchParams.get('dish') || '';
+    productId = $page.url.searchParams.get('product') || '';
     qrCode = $page.url.searchParams.get('qr') || '';
   }
 
   onMount(async () => {
-    if (!restaurantId) {
-      error = 'Restaurant information is missing';
+    if (!organizationId) {
+      error = 'Organization information is missing';
       return;
     }
     
-    // Fetch questionnaire or dish questions
-    if (dishId) {
-      await questionnaireStore.fetchDishQuestions(restaurantId, dishId);
+    // Fetch questionnaire or product questions
+    if (productId) {
+      await questionnaireStore.fetchProductQuestions(organizationId, productId);
     } else {
-      await questionnaireStore.fetchQuestionnaire(restaurantId, locationId);
+      await questionnaireStore.fetchQuestionnaire(organizationId, locationId);
     }
     
     // Initialize responses based on fetched questions
@@ -70,14 +70,14 @@
       });
     }
     
-    // Fetch restaurant info if needed
+    // Fetch organization info if needed
     try {
       const api = getApiClient();
       // For now, using placeholder data
-      restaurantName = 'Demo Restaurant';
-      dishName = dishId ? 'Sample Dish' : '';
+      organizationName = 'Demo Organization';
+      productName = productId ? 'Sample Product' : '';
     } catch (err) {
-      console.error('Error fetching restaurant info:', err);
+      console.error('Error fetching organization info:', err);
     }
   });
 
@@ -135,14 +135,14 @@
       const api = getApiClient();
       
       const feedbackData: FeedbackData = {
-        restaurant_id: restaurantId,
+        organization_id: organizationId,
         rating: overallRating,
         responses,
         comment
       };
 
-      if (dishId) {
-        feedbackData.dish_id = dishId;
+      if (productId) {
+        feedbackData.product_id = productId;
       }
 
       if (qrCode) {
@@ -184,7 +184,7 @@
         </div>
       </Card>
     
-    {:else if !restaurantId}
+    {:else if !organizationId}
       <!-- Error State -->
       <Card>
         <div class="text-center py-12">
@@ -212,13 +212,13 @@
                 Share Your Experience
               </h1>
               <p class="text-gray-600 text-lg font-medium">
-                {#if restaurantName}
-                  at <span class="text-blue-600 font-semibold">{restaurantName}</span>
+                {#if organizationName}
+                  at <span class="text-blue-600 font-semibold">{organizationName}</span>
                 {/if}
-                {#if dishName}
+                {#if productName}
                   <br />
                   <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800 mt-2">
-                    🍽️ {dishName}
+                    🍽️ {productName}
                   </span>
                 {/if}
               </p>

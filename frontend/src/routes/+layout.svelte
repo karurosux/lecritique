@@ -82,14 +82,14 @@
             </ActiveSubscriptionGate>
             <ActiveSubscriptionGate>
               <a
-                href="/restaurants"
+                href="/organizations"
                 class="px-4 py-2 text-sm font-medium rounded-lg transition-all duration-150 {$page.route?.id?.includes(
-                  'restaurants',
+                  'organizations',
                 )
                   ? 'bg-gradient-to-r from-blue-600 to-purple-600 !text-white shadow-lg shadow-blue-500/25'
                   : 'text-gray-700 hover:text-gray-900 hover:bg-gray-100'}"
               >
-                Restaurants
+                Organizations
               </a>
             </ActiveSubscriptionGate>
             <ActiveSubscriptionGate>

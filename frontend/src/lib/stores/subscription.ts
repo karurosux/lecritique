@@ -16,7 +16,7 @@ interface SubscriptionState {
 
 interface SubscriptionUsage {
   feedbacks_count: number;
-  restaurants_count: number;
+  organizations_count: number;
   locations_count: number;
   qr_codes_count: number;
   team_members_count: number;
@@ -138,8 +138,8 @@ function createSubscriptionStore() {
         const api = getApiClient();
 
         switch (resourceType) {
-          case 'restaurant':
-            const response = await api.api.v1UserCanCreateRestaurantList();
+          case 'organization':
+            const response = await api.api.v1UserCanCreateOrganizationList();
             if (response.data.success && response.data.data) {
               return response.data.data;
             }
@@ -234,7 +234,7 @@ export const FEATURES = {
 
 // Common limit constants
 export const LIMITS = {
-  RESTAURANTS: 'max_restaurants',
+  RESTAURANTS: 'max_organizations',
   QR_CODES: 'max_qr_codes',
   FEEDBACKS_PER_MONTH: 'max_feedbacks_per_month',
   TEAM_MEMBERS: 'max_team_members'

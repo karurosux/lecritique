@@ -42,7 +42,7 @@ export function checkRouteAccess(config: RouteProtectionConfig): boolean {
 		
 		// Map limit keys to usage keys
 		const usageMap: Record<string, keyof SubscriptionUsage> = {
-			[LIMITS.RESTAURANTS]: 'restaurants_count',
+			[LIMITS.RESTAURANTS]: 'organizations_count',
 			[LIMITS.QR_CODES]: 'qr_codes_count',
 			[LIMITS.FEEDBACKS_PER_MONTH]: 'feedbacks_count',
 			[LIMITS.TEAM_MEMBERS]: 'team_members_count'
@@ -94,7 +94,7 @@ export function requireLimit(limit: UsageLimit, redirectOnExceeded = true, redir
 // Type for subscription usage (should match backend)
 interface SubscriptionUsage {
 	feedbacks_count: number;
-	restaurants_count: number;
+	organizations_count: number;
 	locations_count: number;
 	qr_codes_count: number;
 	team_members_count: number;

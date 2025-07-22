@@ -4,9 +4,9 @@ DROP TRIGGER IF EXISTS update_question_templates_updated_at ON question_template
 DROP TRIGGER IF EXISTS update_questions_updated_at ON questions;
 DROP TRIGGER IF EXISTS update_questionnaires_updated_at ON questionnaires;
 DROP TRIGGER IF EXISTS update_qr_codes_updated_at ON qr_codes;
-DROP TRIGGER IF EXISTS update_dishes_updated_at ON dishes;
+DROP TRIGGER IF EXISTS update_products_updated_at ON products;
 DROP TRIGGER IF EXISTS update_locations_updated_at ON locations;
-DROP TRIGGER IF EXISTS update_restaurants_updated_at ON restaurants;
+DROP TRIGGER IF EXISTS update_organizations_updated_at ON organizations;
 DROP TRIGGER IF EXISTS update_team_members_updated_at ON team_members;
 DROP TRIGGER IF EXISTS update_subscriptions_updated_at ON subscriptions;
 DROP TRIGGER IF EXISTS update_users_updated_at ON users;
@@ -22,9 +22,9 @@ DROP TABLE IF EXISTS question_templates;
 DROP TABLE IF EXISTS questions;
 DROP TABLE IF EXISTS questionnaires;
 DROP TABLE IF EXISTS qr_codes;
-DROP TABLE IF EXISTS dishes;
+DROP TABLE IF EXISTS products;
 DROP TABLE IF EXISTS locations;
-DROP TABLE IF EXISTS restaurants;
+DROP TABLE IF EXISTS organizations;
 DROP TABLE IF EXISTS team_members;
 DROP TABLE IF EXISTS users;
 

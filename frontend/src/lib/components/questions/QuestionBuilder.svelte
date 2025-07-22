@@ -9,11 +9,11 @@
   import { toast } from 'svelte-sonner';
 
   let { 
-    restaurantId,
-    dishId
+    organizationId,
+    productId
   }: {
-    restaurantId: string;
-    dishId: string;
+    organizationId: string;
+    productId: string;
   } = $props();
 
   const dispatch = createEventDispatcher();
@@ -43,7 +43,7 @@
   async function loadQuestions() {
     try {
       // questions = await // questionStore. // TODO: Fix questions store
-      console.log('Placeholder for questionStore.');loadQuestions(restaurantId, dishId); // TODO: Fix questions store
+      console.log('Placeholder for questionStore.');loadQuestions(organizationId, productId); // TODO: Fix questions store
       questions = []; // Temporary placeholder
     } catch (err) {
       error = err.message;
@@ -73,7 +73,7 @@
       if (editingIndex === -1) {
         // Create new question
         const newQuestion = await // questionStore. // TODO: Fix questions store
-      console.log('Placeholder for questionStore.');createQuestion(restaurantId, dishId, {
+      console.log('Placeholder for questionStore.');createQuestion(organizationId, productId, {
           text: questionData.text!,
           type: questionData.type!,
           is_required: questionData.is_required || false,
@@ -87,7 +87,7 @@
       } else {
         // Update existing question
         const updatedQuestion = await // questionStore. // TODO: Fix questions store
-      console.log('Placeholder for questionStore.');updateQuestion(restaurantId, dishId, questionData.id!, {
+      console.log('Placeholder for questionStore.');updateQuestion(organizationId, productId, questionData.id!, {
           text: questionData.text!,
           type: questionData.type!,
           is_required: questionData.is_required || false,
@@ -118,7 +118,7 @@
     
     try {
       await // questionStore. // TODO: Fix questions store
-      console.log('Placeholder for questionStore.');deleteQuestion(restaurantId, dishId, questionToDelete.id!);
+      console.log('Placeholder for questionStore.');deleteQuestion(organizationId, productId, questionToDelete.id!);
       questions = questions.filter(q => q.id !== questionToDelete.id);
       toast.success('Question deleted successfully');
     } catch (err) {
@@ -141,13 +141,13 @@
       aiGenerating = true;
       error = '';
       
-      const generatedQuestions = await QuestionApi.generateQuestions(dishId);
+      const generatedQuestions = await QuestionApi.generateQuestions(productId);
       
       if (generatedQuestions && generatedQuestions.length > 0) {
         // Add generated questions to existing list
         for (const genQuestion of generatedQuestions) {
           const newQuestion = await // questionStore. // TODO: Fix questions store
-      console.log('Placeholder for questionStore.');createQuestion(restaurantId, dishId, {
+      console.log('Placeholder for questionStore.');createQuestion(organizationId, productId, {
             text: genQuestion.text,
             type: genQuestion.type,
             is_required: genQuestion.is_required || false,
@@ -237,7 +237,7 @@
       reordering = true;
       const questionIds = questions.map(q => q.id!);
       await // questionStore. // TODO: Fix questions store
-      console.log('Placeholder for questionStore.');reorderQuestions(restaurantId, dishId, questionIds);
+      console.log('Placeholder for questionStore.');reorderQuestions(organizationId, productId, questionIds);
       toast.success('Question order updated');
     } catch (err) {
       error = err.message;
@@ -267,7 +267,7 @@
           <div class="text-center">
             <Loader2 class="h-8 w-8 animate-spin mx-auto mb-4 text-blue-600" />
             <p class="text-lg font-medium text-gray-900">Generating AI Questions...</p>
-            <p class="text-sm text-gray-500 mt-1">Please wait while we create relevant questions for your dish</p>
+            <p class="text-sm text-gray-500 mt-1">Please wait while we create relevant questions for your product</p>
           </div>
         </div>
       {/if}

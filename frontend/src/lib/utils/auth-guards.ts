@@ -88,19 +88,19 @@ export function canPerformAction(
 		OWNER: ['*'], // Can do everything
 		ADMIN: [
 			'manage_team',
-			'manage_restaurants',
+			'manage_organizations',
 			'view_analytics',
 			'manage_feedback',
 			'manage_qr_codes'
 		],
 		MANAGER: [
-			'manage_restaurants',
+			'manage_organizations',
 			'view_analytics',
 			'manage_feedback',
 			'manage_qr_codes'
 		],
 		VIEWER: [
-			'view_restaurants',
+			'view_organizations',
 			'view_analytics',
 			'view_feedback'
 		]

@@ -24,7 +24,7 @@ Response:
 {
   "success": true,
   "data": {
-    "restaurant": {...},
+    "organization": {...},
     "qr_code": {
       "id": "uuid",
       "label": "Table 1",
@@ -34,9 +34,9 @@ Response:
 }
 ```
 
-#### Get Restaurant Menu
+#### Get Organization Menu
 ```
-GET /public/restaurant/:id/menu
+GET /public/organization/:id/menu
 ```
 
 #### Submit Feedback
@@ -47,7 +47,7 @@ Body:
 ```json
 {
   "qr_code_id": "uuid",
-  "dish_id": "uuid",
+  "product_id": "uuid",
   "customer_name": "John Doe",
   "customer_email": "john@example.com",
   "overall_rating": 5,
@@ -71,7 +71,7 @@ Body:
 {
   "email": "user@example.com",
   "password": "password123",
-  "company_name": "My Restaurant"
+  "company_name": "My Organization"
 }
 ```
 
@@ -89,53 +89,53 @@ Body:
 
 ### Protected Endpoints
 
-#### Restaurants
+#### Organizations
 
-##### Create Restaurant
+##### Create Organization
 ```
-POST /restaurants
-```
-
-##### List Restaurants
-```
-GET /restaurants
+POST /organizations
 ```
 
-##### Get Restaurant
+##### List Organizations
 ```
-GET /restaurants/:id
-```
-
-##### Update Restaurant
-```
-PUT /restaurants/:id
+GET /organizations
 ```
 
-##### Delete Restaurant
+##### Get Organization
 ```
-DELETE /restaurants/:id
-```
-
-#### Dishes
-
-##### Create Dish
-```
-POST /dishes
+GET /organizations/:id
 ```
 
-##### Get Dishes by Restaurant
+##### Update Organization
 ```
-GET /restaurants/:restaurantId/dishes
-```
-
-##### Update Dish
-```
-PUT /dishes/:id
+PUT /organizations/:id
 ```
 
-##### Delete Dish
+##### Delete Organization
 ```
-DELETE /dishes/:id
+DELETE /organizations/:id
+```
+
+#### Productes
+
+##### Create Product
+```
+POST /products
+```
+
+##### Get Productes by Organization
+```
+GET /organizations/:organizationId/products
+```
+
+##### Update Product
+```
+PUT /products/:id
+```
+
+##### Delete Product
+```
+DELETE /products/:id
 ```
 
 ## Response Format

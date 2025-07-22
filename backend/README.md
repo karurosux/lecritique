@@ -1,13 +1,13 @@
 # LeCritique API
 
-A subscription-based feedback platform that enables restaurants to collect dish-specific insights through QR code-driven questionnaires.
+A subscription-based feedback platform that enables organizations to collect product-specific insights through QR code-driven questionnaires.
 
 ## Features
 
-- Multi-restaurant account management
+- Multi-organization account management
 - Subscription-based access control
 - QR code generation for tables/locations
-- Dish-specific questionnaires
+- Product-specific questionnaires
 - Real-time analytics and insights
 - Team collaboration
 

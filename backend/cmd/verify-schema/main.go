@@ -29,7 +29,7 @@ func main() {
 		log.Printf("No plans found (which is ok): %v\n", err)
 	} else {
 		fmt.Printf("✅ Successfully queried plan: %s\n", plan.Name)
-		fmt.Printf("   - Max Restaurants: %d\n", plan.MaxRestaurants)
+		fmt.Printf("   - Max Organizations: %d\n", plan.MaxOrganizations)
 		fmt.Printf("   - Max QR Codes: %d\n", plan.MaxQRCodes)
 		fmt.Printf("   - Max Feedbacks/Month: %d\n", plan.MaxFeedbacksPerMonth)
 		fmt.Printf("   - Max Team Members: %d\n", plan.MaxTeamMembers)

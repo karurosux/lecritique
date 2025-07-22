@@ -17,7 +17,7 @@
 
 <svelte:head>
   <title>Privacy Policy - LeCritique</title>
-  <meta name="description" content="LeCritique Privacy Policy - Learn how we collect, use, and protect your data on our restaurant feedback management platform" />
+  <meta name="description" content="LeCritique Privacy Policy - Learn how we collect, use, and protect your data on our organization feedback management platform" />
 </svelte:head>
 
 <div class="min-h-screen bg-gradient-to-b from-white to-gray-50/50">

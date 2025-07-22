@@ -13,7 +13,7 @@ import (
 	feedbackRepos "lecritique/internal/feedback/repositories"
 	menuRepos "lecritique/internal/menu/repositories"
 	qrcodeRepos "lecritique/internal/qrcode/repositories"
-	restaurantRepos "lecritique/internal/restaurant/repositories"
+	organizationRepos "lecritique/internal/organization/repositories"
 	"lecritique/internal/shared/logger"
 	sharedModels "lecritique/internal/shared/models"
 	"github.com/samber/do"
@@ -21,61 +21,61 @@ import (
 )
 
 type AnalyticsService interface {
-	GetDashboardMetrics(ctx context.Context, restaurantID uuid.UUID) (*analyticsModels.DashboardMetrics, error)
-	GetDishInsights(ctx context.Context, dishID uuid.UUID) (*analyticsModels.DishInsights, error)
-	GetRestaurantInsights(ctx context.Context, restaurantID uuid.UUID, period string) (*analyticsModels.RestaurantInsights, error)
+	GetDashboardMetrics(ctx context.Context, organizationID uuid.UUID) (*analyticsModels.DashboardMetrics, error)
+	GetProductInsights(ctx context.Context, productID uuid.UUID) (*analyticsModels.ProductInsights, error)
+	GetOrganizationInsights(ctx context.Context, organizationID uuid.UUID, period string) (*analyticsModels.OrganizationInsights, error)
 	
 	// Chart aggregation methods
-	GetRestaurantChartData(ctx context.Context, restaurantID uuid.UUID, filters map[string]interface{}) (*analyticsModels.RestaurantChartData, error)
+	GetOrganizationChartData(ctx context.Context, organizationID uuid.UUID, filters map[string]interface{}) (*analyticsModels.OrganizationChartData, error)
 	GetQuestionChartData(ctx context.Context, questionID uuid.UUID, filters map[string]interface{}) (*analyticsModels.ChartData, error)
 }
 
 type analyticsService struct {
 	feedbackRepo   feedbackRepos.FeedbackRepository
-	dishRepo       menuRepos.DishRepository
+	productRepo       menuRepos.ProductRepository
 	qrCodeRepo     qrcodeRepos.QRCodeRepository
-	restaurantRepo restaurantRepos.RestaurantRepository
+	organizationRepo organizationRepos.OrganizationRepository
 }
 
 func NewAnalyticsService(i *do.Injector) (AnalyticsService, error) {
 	return &analyticsService{
 		feedbackRepo:   do.MustInvoke[feedbackRepos.FeedbackRepository](i),
-		dishRepo:       do.MustInvoke[menuRepos.DishRepository](i),
+		productRepo:       do.MustInvoke[menuRepos.ProductRepository](i),
 		qrCodeRepo:     do.MustInvoke[qrcodeRepos.QRCodeRepository](i),
-		restaurantRepo: do.MustInvoke[restaurantRepos.RestaurantRepository](i),
+		organizationRepo: do.MustInvoke[organizationRepos.OrganizationRepository](i),
 	}, nil
 }
 
-func (s *analyticsService) GetDashboardMetrics(ctx context.Context, restaurantID uuid.UUID) (*analyticsModels.DashboardMetrics, error) {
+func (s *analyticsService) GetDashboardMetrics(ctx context.Context, organizationID uuid.UUID) (*analyticsModels.DashboardMetrics, error) {
 	metrics := &analyticsModels.DashboardMetrics{}
 	
-	totalCount, err := s.feedbackRepo.CountByRestaurantID(ctx, restaurantID, time.Time{})
+	totalCount, err := s.feedbackRepo.CountByOrganizationID(ctx, organizationID, time.Time{})
 	if err != nil {
 		logger.Error("Failed to get total feedback count", err, logrus.Fields{
-			"restaurant_id": restaurantID,
+			"organization_id": organizationID,
 		})
 	}
 	metrics.TotalFeedbacks = totalCount
 	
 	todayStart := time.Now().Truncate(24 * time.Hour)
-	todayCount, err := s.feedbackRepo.CountByRestaurantID(ctx, restaurantID, todayStart)
+	todayCount, err := s.feedbackRepo.CountByOrganizationID(ctx, organizationID, todayStart)
 	if err != nil {
 		logger.Error("Failed to get today's feedback count", err, logrus.Fields{
-			"restaurant_id": restaurantID,
+			"organization_id": organizationID,
 		})
 	}
 	metrics.TodaysFeedback = todayCount
 	
 	yesterdayStart := todayStart.AddDate(0, 0, -1)
-	yesterdayCount, _ := s.feedbackRepo.CountByRestaurantID(ctx, restaurantID, yesterdayStart)
+	yesterdayCount, _ := s.feedbackRepo.CountByOrganizationID(ctx, organizationID, yesterdayStart)
 	if yesterdayCount > 0 {
 		metrics.TrendVsYesterday = float64(todayCount-yesterdayCount) / float64(yesterdayCount) * 100
 	}
 	
-	qrMetrics, err := s.getQRCodeMetrics(ctx, restaurantID)
+	qrMetrics, err := s.getQRCodeMetrics(ctx, organizationID)
 	if err != nil {
 		logger.Error("Failed to get QR code metrics", err, logrus.Fields{
-			"restaurant_id": restaurantID,
+			"organization_id": organizationID,
 		})
 	} else {
 		metrics.ActiveQRCodes = qrMetrics.ActiveCount
@@ -86,7 +86,7 @@ func (s *analyticsService) GetDashboardMetrics(ctx context.Context, restaurantID
 	// Calculate completion rate using recent data (last 30 days)
 	// This avoids issues with historical data from before scan tracking
 	thirtyDaysAgo := time.Now().AddDate(0, 0, -30)
-	recentFeedbackCount, _ := s.feedbackRepo.CountByRestaurantID(ctx, restaurantID, thirtyDaysAgo)
+	recentFeedbackCount, _ := s.feedbackRepo.CountByOrganizationID(ctx, organizationID, thirtyDaysAgo)
 	
 	if metrics.TotalQRScans > 0 && recentFeedbackCount > 0 {
 		// Use recent feedback vs total scans for a more realistic rate
@@ -102,37 +102,37 @@ func (s *analyticsService) GetDashboardMetrics(ctx context.Context, restaurantID
 		metrics.CompletionRate = 0.0
 	}
 	
-	deviceMetrics, err := s.getDeviceMetrics(ctx, restaurantID)
+	deviceMetrics, err := s.getDeviceMetrics(ctx, organizationID)
 	if err != nil {
 		logger.Error("Failed to get device metrics", err, logrus.Fields{
-			"restaurant_id": restaurantID,
+			"organization_id": organizationID,
 		})
 	} else {
 		metrics.DeviceBreakdown = deviceMetrics
 	}
 	
-	responseTime, err := s.getAverageResponseTime(ctx, restaurantID)
+	responseTime, err := s.getAverageResponseTime(ctx, organizationID)
 	if err != nil {
 		logger.Error("Failed to get response time", err, logrus.Fields{
-			"restaurant_id": restaurantID,
+			"organization_id": organizationID,
 		})
 	} else {
 		metrics.AverageResponseTime = responseTime
 	}
 	
-	peakHours, err := s.getPeakUsageHours(ctx, restaurantID)
+	peakHours, err := s.getPeakUsageHours(ctx, organizationID)
 	if err != nil {
 		logger.Error("Failed to get peak hours", err, logrus.Fields{
-			"restaurant_id": restaurantID,
+			"organization_id": organizationID,
 		})
 	} else {
 		metrics.PeakHours = peakHours
 	}
 	
-	qrPerformance, err := s.getQRCodePerformance(ctx, restaurantID)
+	qrPerformance, err := s.getQRCodePerformance(ctx, organizationID)
 	if err != nil {
 		logger.Error("Failed to get QR performance", err, logrus.Fields{
-			"restaurant_id": restaurantID,
+			"organization_id": organizationID,
 		})
 	} else {
 		metrics.QRPerformance = qrPerformance
@@ -141,20 +141,20 @@ func (s *analyticsService) GetDashboardMetrics(ctx context.Context, restaurantID
 	return metrics, nil
 }
 
-func (s *analyticsService) GetDishInsights(ctx context.Context, dishID uuid.UUID) (*analyticsModels.DishInsights, error) {
-	dish, err := s.dishRepo.FindByID(ctx, dishID)
+func (s *analyticsService) GetProductInsights(ctx context.Context, productID uuid.UUID) (*analyticsModels.ProductInsights, error) {
+	product, err := s.productRepo.FindByID(ctx, productID)
 	if err != nil {
 		return nil, err
 	}
 	
-	allFeedback, err := s.feedbackRepo.FindByDishIDForAnalytics(ctx, dishID, 500)
+	allFeedback, err := s.feedbackRepo.FindByProductIDForAnalytics(ctx, productID, 500)
 	if err != nil {
 		return nil, err
 	}
 	
-	insights := &analyticsModels.DishInsights{
-		DishID:        dishID,
-		DishName:      dish.Name,
+	insights := &analyticsModels.ProductInsights{
+		ProductID:        productID,
+		ProductName:      product.Name,
 		TotalFeedback: int64(len(allFeedback)),
 	}
 	
@@ -162,9 +162,9 @@ func (s *analyticsService) GetDishInsights(ctx context.Context, dishID uuid.UUID
 		return insights, nil
 	}
 	
-	questions, err := s.feedbackRepo.GetQuestionsByDishID(ctx, dishID)
+	questions, err := s.feedbackRepo.GetQuestionsByProductID(ctx, productID)
 	if err != nil {
-		logger.Error("Failed to get questions", err, logrus.Fields{"dish_id": dishID})
+		logger.Error("Failed to get questions", err, logrus.Fields{"product_id": productID})
 	}
 	
 	questionMetrics := s.aggregateQuestionMetrics(allFeedback, questions)
@@ -210,12 +210,12 @@ func (s *analyticsService) GetDishInsights(ctx context.Context, dishID uuid.UUID
 	return insights, nil
 }
 
-func (s *analyticsService) GetRestaurantInsights(ctx context.Context, restaurantID uuid.UUID, period string) (*analyticsModels.RestaurantInsights, error) {
-	return &analyticsModels.RestaurantInsights{
-		RestaurantID:   restaurantID,
+func (s *analyticsService) GetOrganizationInsights(ctx context.Context, organizationID uuid.UUID, period string) (*analyticsModels.OrganizationInsights, error) {
+	return &analyticsModels.OrganizationInsights{
+		OrganizationID:   organizationID,
 		Period:         period,
 		TotalFeedback:  0,
-		ActiveDishes:   0,
+		ActiveProductes:   0,
 	}, nil
 }
 
@@ -386,67 +386,67 @@ func (s *analyticsService) identifyTopIssues(feedback []feedbackModels.Feedback)
 	}
 	
 	// More sophisticated issue detection would go here
-	// - Trending down dishes
+	// - Trending down products
 	// - Repeated complaints
 	// - Sudden drops in specific questions
 	
 	return issues
 }
 
-func (s *analyticsService) aggregateByDish(feedback []feedbackModels.Feedback) map[uuid.UUID]*analyticsModels.DishSummary {
-	dishMap := make(map[uuid.UUID]*analyticsModels.DishSummary)
+func (s *analyticsService) aggregateByProduct(feedback []feedbackModels.Feedback) map[uuid.UUID]*analyticsModels.ProductSummary {
+	productMap := make(map[uuid.UUID]*analyticsModels.ProductSummary)
 	
 	for _, f := range feedback {
-		summary, exists := dishMap[f.DishID]
+		summary, exists := productMap[f.ProductID]
 		if !exists {
-			summary = &analyticsModels.DishSummary{
-				DishID:   f.DishID,
-				DishName: f.Dish.Name,
+			summary = &analyticsModels.ProductSummary{
+				ProductID:   f.ProductID,
+				ProductName: f.Product.Name,
 			}
-			dishMap[f.DishID] = summary
+			productMap[f.ProductID] = summary
 		}
 		
 		summary.FeedbackCount++
 		summary.Score = (summary.Score*float64(summary.FeedbackCount-1) + float64(f.OverallRating)) / float64(summary.FeedbackCount)
 	}
 	
-	return dishMap
+	return productMap
 }
 
-func (s *analyticsService) getTopDishes(dishMap map[uuid.UUID]*analyticsModels.DishSummary, limit int) []analyticsModels.DishSummary {
-	var dishes []analyticsModels.DishSummary
-	for _, d := range dishMap {
-		dishes = append(dishes, *d)
+func (s *analyticsService) getTopProductes(productMap map[uuid.UUID]*analyticsModels.ProductSummary, limit int) []analyticsModels.ProductSummary {
+	var products []analyticsModels.ProductSummary
+	for _, d := range productMap {
+		products = append(products, *d)
 	}
 	
-	sort.Slice(dishes, func(i, j int) bool {
-		return dishes[i].Score > dishes[j].Score
+	sort.Slice(products, func(i, j int) bool {
+		return products[i].Score > products[j].Score
 	})
 	
-	if len(dishes) > limit {
-		dishes = dishes[:limit]
+	if len(products) > limit {
+		products = products[:limit]
 	}
 	
-	return dishes
+	return products
 }
 
-func (s *analyticsService) getBottomDishes(dishMap map[uuid.UUID]*analyticsModels.DishSummary, limit int) []analyticsModels.DishSummary {
-	var dishes []analyticsModels.DishSummary
-	for _, d := range dishMap {
-		if d.Score < 3.5 { // Only show dishes that need attention
-			dishes = append(dishes, *d)
+func (s *analyticsService) getBottomProductes(productMap map[uuid.UUID]*analyticsModels.ProductSummary, limit int) []analyticsModels.ProductSummary {
+	var products []analyticsModels.ProductSummary
+	for _, d := range productMap {
+		if d.Score < 3.5 { // Only show products that need attention
+			products = append(products, *d)
 		}
 	}
 	
-	sort.Slice(dishes, func(i, j int) bool {
-		return dishes[i].Score < dishes[j].Score
+	sort.Slice(products, func(i, j int) bool {
+		return products[i].Score < products[j].Score
 	})
 	
-	if len(dishes) > limit {
-		dishes = dishes[:limit]
+	if len(products) > limit {
+		products = products[:limit]
 	}
 	
-	return dishes
+	return products
 }
 
 func (s *analyticsService) getRecentFeedbackSummaries(feedback []feedbackModels.Feedback, limit int) []analyticsModels.FeedbackSummary {
@@ -462,7 +462,7 @@ func (s *analyticsService) getRecentFeedbackSummaries(feedback []feedbackModels.
 		
 		summary := analyticsModels.FeedbackSummary{
 			FeedbackID:   f.ID,
-			DishName:     f.Dish.Name,
+			ProductName:     f.Product.Name,
 			CustomerName: f.CustomerName,
 			Score:        float64(f.OverallRating),
 			CreatedAt:    f.CreatedAt,
@@ -546,8 +546,8 @@ type QRMetrics struct {
 	ScansToday  int64
 }
 
-func (s *analyticsService) getQRCodeMetrics(ctx context.Context, restaurantID uuid.UUID) (*QRMetrics, error) {
-	qrCodes, err := s.qrCodeRepo.FindByRestaurantID(ctx, restaurantID)
+func (s *analyticsService) getQRCodeMetrics(ctx context.Context, organizationID uuid.UUID) (*QRMetrics, error) {
+	qrCodes, err := s.qrCodeRepo.FindByOrganizationID(ctx, organizationID)
 	if err != nil {
 		return nil, err
 	}
@@ -570,9 +570,9 @@ func (s *analyticsService) getQRCodeMetrics(ctx context.Context, restaurantID uu
 	return metrics, nil
 }
 
-func (s *analyticsService) getDeviceMetrics(ctx context.Context, restaurantID uuid.UUID) (map[string]int64, error) {
+func (s *analyticsService) getDeviceMetrics(ctx context.Context, organizationID uuid.UUID) (map[string]int64, error) {
 	// Get feedback with device info
-	feedback, err := s.feedbackRepo.FindByRestaurantIDForAnalytics(ctx, restaurantID, 1000)
+	feedback, err := s.feedbackRepo.FindByOrganizationIDForAnalytics(ctx, organizationID, 1000)
 	if err != nil {
 		return nil, err
 	}
@@ -601,8 +601,8 @@ func (s *analyticsService) getDeviceMetrics(ctx context.Context, restaurantID uu
 	return result, nil
 }
 
-func (s *analyticsService) getAverageResponseTime(ctx context.Context, restaurantID uuid.UUID) (float64, error) {
-	feedback, err := s.feedbackRepo.FindByRestaurantIDForAnalytics(ctx, restaurantID, 500)
+func (s *analyticsService) getAverageResponseTime(ctx context.Context, organizationID uuid.UUID) (float64, error) {
+	feedback, err := s.feedbackRepo.FindByOrganizationIDForAnalytics(ctx, organizationID, 500)
 	if err != nil {
 		return 0, err
 	}
@@ -630,9 +630,9 @@ func (s *analyticsService) getAverageResponseTime(ctx context.Context, restauran
 	return totalTime / float64(count), nil
 }
 
-func (s *analyticsService) getPeakUsageHours(ctx context.Context, restaurantID uuid.UUID) ([]int, error) {
+func (s *analyticsService) getPeakUsageHours(ctx context.Context, organizationID uuid.UUID) ([]int, error) {
 	weekAgo := time.Now().AddDate(0, 0, -7)
-	feedback, err := s.feedbackRepo.FindByRestaurantIDForAnalytics(ctx, restaurantID, 1000)
+	feedback, err := s.feedbackRepo.FindByOrganizationIDForAnalytics(ctx, organizationID, 1000)
 	if err != nil {
 		return nil, err
 	}
@@ -670,13 +670,13 @@ func (s *analyticsService) getPeakUsageHours(ctx context.Context, restaurantID u
 	return peakHours, nil
 }
 
-func (s *analyticsService) getQRCodePerformance(ctx context.Context, restaurantID uuid.UUID) ([]analyticsModels.QRCodePerformance, error) {
-	restaurant, err := s.restaurantRepo.FindByID(ctx, restaurantID)
+func (s *analyticsService) getQRCodePerformance(ctx context.Context, organizationID uuid.UUID) ([]analyticsModels.QRCodePerformance, error) {
+	organization, err := s.organizationRepo.FindByID(ctx, organizationID)
 	if err != nil {
 		return nil, err
 	}
 	
-	qrCodes, err := s.qrCodeRepo.FindByRestaurantID(ctx, restaurantID)
+	qrCodes, err := s.qrCodeRepo.FindByOrganizationID(ctx, organizationID)
 	if err != nil {
 		return nil, err
 	}
@@ -706,8 +706,8 @@ func (s *analyticsService) getQRCodePerformance(ctx context.Context, restaurantI
 		perf := analyticsModels.QRCodePerformance{
 			ID:             qr.ID,
 			Label:          qr.Label,
-			RestaurantID:   qr.RestaurantID,
-			RestaurantName: restaurant.Name,
+			OrganizationID:   qr.OrganizationID,
+			OrganizationName: organization.Name,
 			ScansCount:     int64(qr.ScansCount),
 			FeedbackCount:  feedbackCount,
 			ConversionRate: conversionRate,
@@ -731,76 +731,76 @@ func (s *analyticsService) getQRCodePerformance(ctx context.Context, restaurantI
 
 // Chart aggregation implementations
 
-func (s *analyticsService) GetRestaurantChartData(ctx context.Context, restaurantID uuid.UUID, filters map[string]interface{}) (*analyticsModels.RestaurantChartData, error) {
+func (s *analyticsService) GetOrganizationChartData(ctx context.Context, organizationID uuid.UUID, filters map[string]interface{}) (*analyticsModels.OrganizationChartData, error) {
 	feedbackFilters := s.buildFeedbackFilters(filters)
 	
-	feedback, err := s.feedbackRepo.FindByRestaurantIDWithFilters(ctx, restaurantID, sharedModels.PageRequest{
+	feedback, err := s.feedbackRepo.FindByOrganizationIDWithFilters(ctx, organizationID, sharedModels.PageRequest{
 		Page: 1, Limit: 10000, // Large limit to get all relevant data
 	}, feedbackFilters)
 	if err != nil {
 		return nil, err
 	}
 	
-	dishes, err := s.dishRepo.FindByRestaurantID(ctx, restaurantID)
+	products, err := s.productRepo.FindByOrganizationID(ctx, organizationID)
 	if err != nil {
-		logger.Error("Failed to get dishes", err, logrus.Fields{"restaurant_id": restaurantID})
+		logger.Error("Failed to get products", err, logrus.Fields{"organization_id": organizationID})
 	}
 	
-	dishMap := make(map[uuid.UUID]string)
-	if dishes != nil {
-		for _, dish := range dishes {
-			dishMap[dish.ID] = dish.Name
+	productMap := make(map[uuid.UUID]string)
+	if products != nil {
+		for _, product := range products {
+			productMap[product.ID] = product.Name
 		}
 	}
 	
-	chartData := &analyticsModels.RestaurantChartData{
-		RestaurantID: restaurantID,
+	chartData := &analyticsModels.OrganizationChartData{
+		OrganizationID: organizationID,
 		Charts:       []analyticsModels.ChartData{},
 	}
 	
-	type questionDishKey struct {
+	type questionProductKey struct {
 		QuestionID uuid.UUID
-		DishID     uuid.UUID
+		ProductID     uuid.UUID
 	}
 	
-	questionDishResponses := make(map[questionDishKey][]feedbackModels.Response)
-	questionDishMeta := make(map[questionDishKey]struct {
+	questionProductResponses := make(map[questionProductKey][]feedbackModels.Response)
+	questionProductMeta := make(map[questionProductKey]struct {
 		Text     string
 		Type     string
-		DishID   uuid.UUID
-		DishName string
+		ProductID   uuid.UUID
+		ProductName string
 	})
 	
 	for _, f := range feedback.Data {
-		dishName := dishMap[f.DishID]
+		productName := productMap[f.ProductID]
 		for _, response := range f.Responses {
-			key := questionDishKey{
+			key := questionProductKey{
 				QuestionID: response.QuestionID,
-				DishID:     f.DishID,
+				ProductID:     f.ProductID,
 			}
-			questionDishResponses[key] = append(questionDishResponses[key], response)
-			if questionDishMeta[key].Text == "" {
-				questionDishMeta[key] = struct {
+			questionProductResponses[key] = append(questionProductResponses[key], response)
+			if questionProductMeta[key].Text == "" {
+				questionProductMeta[key] = struct {
 					Text     string
 					Type     string
-					DishID   uuid.UUID
-					DishName string
+					ProductID   uuid.UUID
+					ProductName string
 				}{
 					Text:     response.QuestionText,
 					Type:     string(response.QuestionType),
-					DishID:   f.DishID,
-					DishName: dishName,
+					ProductID:   f.ProductID,
+					ProductName: productName,
 				}
 			}
 		}
 	}
 	
-	for key, responses := range questionDishResponses {
-		meta := questionDishMeta[key]
+	for key, responses := range questionProductResponses {
+		meta := questionProductMeta[key]
 		chart := s.aggregateQuestionResponses(key.QuestionID, meta.Text, meta.Type, responses)
-		if meta.DishID != uuid.Nil {
-			chart.DishID = &meta.DishID
-			chart.DishName = meta.DishName
+		if meta.ProductID != uuid.Nil {
+			chart.ProductID = &meta.ProductID
+			chart.ProductName = meta.ProductName
 		}
 		chartData.Charts = append(chartData.Charts, chart)
 	}
@@ -820,7 +820,7 @@ func (s *analyticsService) GetQuestionChartData(ctx context.Context, questionID 
 	feedbackFilters := s.buildFeedbackFilters(filters)
 	
 	
-	allFeedback, err := s.feedbackRepo.FindByRestaurantIDWithFilters(ctx, uuid.UUID{}, sharedModels.PageRequest{
+	allFeedback, err := s.feedbackRepo.FindByOrganizationIDWithFilters(ctx, uuid.UUID{}, sharedModels.PageRequest{
 		Page: 1, Limit: 10000,
 	}, feedbackFilters)
 	if err != nil {
@@ -863,9 +863,9 @@ func (s *analyticsService) buildFeedbackFilters(filters map[string]interface{}) 
 		}
 	}
 	
-	if dishIDStr, ok := filters["dish_id"].(string); ok {
-		if dishID, err := uuid.Parse(dishIDStr); err == nil {
-			feedbackFilters.DishID = &dishID
+	if productIDStr, ok := filters["product_id"].(string); ok {
+		if productID, err := uuid.Parse(productIDStr); err == nil {
+			feedbackFilters.ProductID = &productID
 		}
 	}
 	

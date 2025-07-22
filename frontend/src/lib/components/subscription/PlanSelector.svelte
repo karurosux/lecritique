@@ -37,11 +37,11 @@
     const features = [];
 
     // Add limits
-    if (plan.max_restaurants === -1) {
-      features.push("Unlimited restaurants");
+    if (plan.max_organizations === -1) {
+      features.push("Unlimited organizations");
     } else {
       features.push(
-        `Up to ${plan.max_restaurants} restaurant${plan.max_restaurants > 1 ? "s" : ""}`,
+        `Up to ${plan.max_organizations} organization${plan.max_organizations > 1 ? "s" : ""}`,
       );
     }
 

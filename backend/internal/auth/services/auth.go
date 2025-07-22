@@ -55,7 +55,7 @@ type authService struct {
 }
 
 type SubscriptionFeatures struct {
-	MaxRestaurants       int  `json:"max_restaurants"`
+	MaxOrganizations       int  `json:"max_organizations"`
 	MaxQRCodes           int  `json:"max_qr_codes"`
 	MaxFeedbacksPerMonth int  `json:"max_feedbacks_per_month"`
 	MaxTeamMembers       int  `json:"max_team_members"`
@@ -191,7 +191,7 @@ func (s *authService) generateToken(account *models.Account) (string, error) {
 
 	if subscription != nil && subscription.IsActive() {
 		claims.SubscriptionFeatures = &SubscriptionFeatures{
-			MaxRestaurants:       subscription.Plan.MaxRestaurants,
+			MaxOrganizations:       subscription.Plan.MaxOrganizations,
 			MaxQRCodes:           subscription.Plan.MaxQRCodes,
 			MaxFeedbacksPerMonth: subscription.Plan.MaxFeedbacksPerMonth,
 			MaxTeamMembers:       subscription.Plan.MaxTeamMembers,

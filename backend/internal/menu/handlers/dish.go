@@ -14,20 +14,20 @@ import (
 	"github.com/samber/do"
 )
 
-type DishHandler struct {
-	dishService services.DishService
+type ProductHandler struct {
+	productService services.ProductService
 	validator   *validator.Validator
 }
 
-func NewDishHandler(i *do.Injector) (*DishHandler, error) {
-	return &DishHandler{
-		dishService: do.MustInvoke[services.DishService](i),
+func NewProductHandler(i *do.Injector) (*ProductHandler, error) {
+	return &ProductHandler{
+		productService: do.MustInvoke[services.ProductService](i),
 		validator:   validator.New(),
 	}, nil
 }
 
-type CreateDishRequest struct {
-	RestaurantID uuid.UUID `json:"restaurant_id" validate:"required"`
+type CreateProductRequest struct {
+	OrganizationID uuid.UUID `json:"organization_id" validate:"required"`
 	Name         string    `json:"name" validate:"required"`
 	Description  string    `json:"description"`
 	Category     string    `json:"category"`
@@ -35,35 +35,35 @@ type CreateDishRequest struct {
 	Currency     string    `json:"currency"`
 }
 
-// Create creates a new dish
-// @Summary Create a new dish
-// @Description Create a new dish for a restaurant
-// @Tags dishes
+// Create creates a new product
+// @Summary Create a new product
+// @Description Create a new product for a organization
+// @Tags products
 // @Accept json
 // @Produce json
 // @Security ApiKeyAuth
-// @Param restaurantId path string true "Restaurant ID"
-// @Param dish body CreateDishRequest true "Dish information"
-// @Success 200 {object} response.Response{data=models.Dish}
+// @Param organizationId path string true "Organization ID"
+// @Param product body CreateProductRequest true "Product information"
+// @Success 200 {object} response.Response{data=models.Product}
 // @Failure 400 {object} response.Response
 // @Failure 401 {object} response.Response
 // @Failure 500 {object} response.Response
-// @Router /api/v1/restaurants/{restaurantId}/dishes [post]
-func (h *DishHandler) Create(c echo.Context) error {
+// @Router /api/v1/organizations/{organizationId}/products [post]
+func (h *ProductHandler) Create(c echo.Context) error {
 	ctx := c.Request().Context()
 	accountID := middleware.GetResourceAccountID(c)
 
-	var req CreateDishRequest
+	var req CreateProductRequest
 	if err := c.Bind(&req); err != nil {
-		return response.Error(c, errors.BadRequest("Invalid dish data provided"))
+		return response.Error(c, errors.BadRequest("Invalid product data provided"))
 	}
 
 	if err := h.validator.Validate(req); err != nil {
-		return response.Error(c, errors.NewWithDetails("VALIDATION_ERROR", "Please check the provided dish information", http.StatusBadRequest, h.validator.FormatErrors(err)))
+		return response.Error(c, errors.NewWithDetails("VALIDATION_ERROR", "Please check the provided product information", http.StatusBadRequest, h.validator.FormatErrors(err)))
 	}
 
-	dish := &models.Dish{
-		RestaurantID: req.RestaurantID,
+	product := &models.Product{
+		OrganizationID: req.OrganizationID,
 		Name:         req.Name,
 		Description:  req.Description,
 		Category:     req.Category,
@@ -73,99 +73,99 @@ func (h *DishHandler) Create(c echo.Context) error {
 		IsActive:     true,
 	}
 
-	if dish.Currency == "" {
-		dish.Currency = "USD"
+	if product.Currency == "" {
+		product.Currency = "USD"
 	}
 
-	if err := h.dishService.Create(ctx, accountID, dish); err != nil {
+	if err := h.productService.Create(ctx, accountID, product); err != nil {
 		return response.Error(c, err)
 	}
 
-	return response.Success(c, dish)
+	return response.Success(c, product)
 }
 
-// GetByRestaurant gets all dishes for a specific restaurant
-// @Summary Get dishes by restaurant
-// @Description Get all dishes for a specific restaurant
-// @Tags dishes
+// GetByOrganization gets all products for a specific organization
+// @Summary Get products by organization
+// @Description Get all products for a specific organization
+// @Tags products
 // @Accept json
 // @Produce json
 // @Security ApiKeyAuth
-// @Param restaurantId path string true "Restaurant ID"
-// @Success 200 {object} response.Response{data=[]models.Dish}
+// @Param organizationId path string true "Organization ID"
+// @Success 200 {object} response.Response{data=[]models.Product}
 // @Failure 400 {object} response.Response
 // @Failure 401 {object} response.Response
 // @Failure 404 {object} response.Response
 // @Failure 500 {object} response.Response
-// @Router /api/v1/restaurants/{restaurantId}/dishes [get]
-func (h *DishHandler) GetByRestaurant(c echo.Context) error {
+// @Router /api/v1/organizations/{organizationId}/products [get]
+func (h *ProductHandler) GetByOrganization(c echo.Context) error {
 	ctx := c.Request().Context()
 	accountID := middleware.GetResourceAccountID(c)
 
-	restaurantID, err := uuid.Parse(c.Param("restaurantId"))
+	organizationID, err := uuid.Parse(c.Param("organizationId"))
 	if err != nil {
 		return response.Error(c, errors.ErrInvalidUUID)
 	}
 
-	dishes, err := h.dishService.GetByRestaurantID(ctx, accountID, restaurantID)
+	products, err := h.productService.GetByOrganizationID(ctx, accountID, organizationID)
 	if err != nil {
 		return response.Error(c, err)
 	}
 
-	return response.Success(c, dishes)
+	return response.Success(c, products)
 }
 
-// GetByID gets a specific dish by ID
-// @Summary Get dish by ID
-// @Description Get a specific dish by its ID
-// @Tags dishes
+// GetByID gets a specific product by ID
+// @Summary Get product by ID
+// @Description Get a specific product by its ID
+// @Tags products
 // @Accept json
 // @Produce json
 // @Security ApiKeyAuth
-// @Param id path string true "Dish ID"
-// @Success 200 {object} response.Response{data=models.Dish}
+// @Param id path string true "Product ID"
+// @Success 200 {object} response.Response{data=models.Product}
 // @Failure 400 {object} response.Response
 // @Failure 401 {object} response.Response
 // @Failure 404 {object} response.Response
 // @Failure 500 {object} response.Response
-// @Router /api/v1/dishes/{id} [get]
-func (h *DishHandler) GetByID(c echo.Context) error {
+// @Router /api/v1/products/{id} [get]
+func (h *ProductHandler) GetByID(c echo.Context) error {
 	ctx := c.Request().Context()
 	accountID := middleware.GetResourceAccountID(c)
 
-	dishID, err := uuid.Parse(c.Param("id"))
+	productID, err := uuid.Parse(c.Param("id"))
 	if err != nil {
 		return response.Error(c, errors.ErrInvalidUUID)
 	}
 
-	dish, err := h.dishService.GetByID(ctx, accountID, dishID)
+	product, err := h.productService.GetByID(ctx, accountID, productID)
 	if err != nil {
 		return response.Error(c, err)
 	}
 
-	return response.Success(c, dish)
+	return response.Success(c, product)
 }
 
-// Update updates a dish
-// @Summary Update a dish
-// @Description Update a dish's information
-// @Tags dishes
+// Update updates a product
+// @Summary Update a product
+// @Description Update a product's information
+// @Tags products
 // @Accept json
 // @Produce json
 // @Security ApiKeyAuth
-// @Param id path string true "Dish ID"
+// @Param id path string true "Product ID"
 // @Param updates body map[string]interface{} true "Fields to update"
 // @Success 200 {object} response.Response{data=map[string]string}
 // @Failure 400 {object} response.Response
 // @Failure 401 {object} response.Response
 // @Failure 404 {object} response.Response
 // @Failure 500 {object} response.Response
-// @Router /api/v1/dishes/{id} [put]
-func (h *DishHandler) Update(c echo.Context) error {
+// @Router /api/v1/products/{id} [put]
+func (h *ProductHandler) Update(c echo.Context) error {
 	ctx := c.Request().Context()
 	accountID := middleware.GetResourceAccountID(c)
 
-	dishID, err := uuid.Parse(c.Param("id"))
+	productID, err := uuid.Parse(c.Param("id"))
 	if err != nil {
 		return response.Error(c, errors.ErrInvalidUUID)
 	}
@@ -175,43 +175,43 @@ func (h *DishHandler) Update(c echo.Context) error {
 		return response.Error(c, errors.BadRequest("Invalid update data provided"))
 	}
 
-	if err := h.dishService.Update(ctx, accountID, dishID, updates); err != nil {
+	if err := h.productService.Update(ctx, accountID, productID, updates); err != nil {
 		return response.Error(c, err)
 	}
 
 	return response.Success(c, map[string]string{
-		"message": "Dish updated successfully",
+		"message": "Product updated successfully",
 	})
 }
 
-// Delete deletes a dish
-// @Summary Delete a dish
-// @Description Delete a dish from the system
-// @Tags dishes
+// Delete deletes a product
+// @Summary Delete a product
+// @Description Delete a product from the system
+// @Tags products
 // @Accept json
 // @Produce json
 // @Security ApiKeyAuth
-// @Param id path string true "Dish ID"
+// @Param id path string true "Product ID"
 // @Success 200 {object} response.Response{data=map[string]string}
 // @Failure 400 {object} response.Response
 // @Failure 401 {object} response.Response
 // @Failure 404 {object} response.Response
 // @Failure 500 {object} response.Response
-// @Router /api/v1/dishes/{id} [delete]
-func (h *DishHandler) Delete(c echo.Context) error {
+// @Router /api/v1/products/{id} [delete]
+func (h *ProductHandler) Delete(c echo.Context) error {
 	ctx := c.Request().Context()
 	accountID := middleware.GetResourceAccountID(c)
 
-	dishID, err := uuid.Parse(c.Param("id"))
+	productID, err := uuid.Parse(c.Param("id"))
 	if err != nil {
 		return response.Error(c, errors.ErrInvalidUUID)
 	}
 
-	if err := h.dishService.Delete(ctx, accountID, dishID); err != nil {
+	if err := h.productService.Delete(ctx, accountID, productID); err != nil {
 		return response.Error(c, err)
 	}
 
 	return response.Success(c, map[string]string{
-		"message": "Dish deleted successfully",
+		"message": "Product deleted successfully",
 	})
 }

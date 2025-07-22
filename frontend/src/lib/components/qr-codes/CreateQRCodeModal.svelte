@@ -6,12 +6,12 @@
 	import { Loader2 } from 'lucide-svelte';
 
 	let {
-		restaurantId,
+		organizationId,
 		clickOrigin = null,
 		onclose,
 		oncreated
 	}: {
-		restaurantId: string;
+		organizationId: string;
 		clickOrigin?: { x: number; y: number } | null;
 		onclose: () => void;
 		oncreated: () => void;
@@ -32,13 +32,13 @@
 		try {
 			const payload = {
 				label: label.trim(),
-				restaurant_id: restaurantId,
+				organization_id: organizationId,
 				type: "general" as const, // Default to general type
 				location: location.trim() || undefined
 			};
 
 			const api = getApiClient();
-			await api.api.v1RestaurantsQrCodesCreate(restaurantId, payload);
+			await api.api.v1OrganizationsQrCodesCreate(organizationId, payload);
 			toast.success('QR code created successfully');
 			oncreated();
 		} catch (error) {

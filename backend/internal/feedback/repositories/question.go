@@ -11,13 +11,13 @@ import (
 
 type QuestionRepository interface {
 	CreateQuestion(ctx context.Context, question *models.Question) error
-	GetQuestionsByDishID(ctx context.Context, dishID uuid.UUID) ([]*models.Question, error)
+	GetQuestionsByProductID(ctx context.Context, productID uuid.UUID) ([]*models.Question, error)
 	GetQuestionByID(ctx context.Context, questionID uuid.UUID) (*models.Question, error)
 	UpdateQuestion(ctx context.Context, question *models.Question) error
 	DeleteQuestion(ctx context.Context, questionID uuid.UUID) error
-	ReorderQuestions(ctx context.Context, dishID uuid.UUID, questionIDs []uuid.UUID) error
-	GetMaxDisplayOrder(ctx context.Context, dishID uuid.UUID) (int, error)
-	GetDishesWithQuestions(ctx context.Context, restaurantID uuid.UUID) ([]uuid.UUID, error)
+	ReorderQuestions(ctx context.Context, productID uuid.UUID, questionIDs []uuid.UUID) error
+	GetMaxDisplayOrder(ctx context.Context, productID uuid.UUID) (int, error)
+	GetProductesWithQuestions(ctx context.Context, organizationID uuid.UUID) ([]uuid.UUID, error)
 }
 
 type questionRepository struct {
@@ -33,10 +33,10 @@ func (r *questionRepository) CreateQuestion(ctx context.Context, question *model
 	return r.db.WithContext(ctx).Create(question).Error
 }
 
-func (r *questionRepository) GetQuestionsByDishID(ctx context.Context, dishID uuid.UUID) ([]*models.Question, error) {
+func (r *questionRepository) GetQuestionsByProductID(ctx context.Context, productID uuid.UUID) ([]*models.Question, error) {
 	var questions []*models.Question
 	err := r.db.WithContext(ctx).
-		Where("dish_id = ?", dishID).
+		Where("product_id = ?", productID).
 		Order("display_order ASC").
 		Find(&questions).Error
 	return questions, err
@@ -45,7 +45,7 @@ func (r *questionRepository) GetQuestionsByDishID(ctx context.Context, dishID uu
 func (r *questionRepository) GetQuestionByID(ctx context.Context, questionID uuid.UUID) (*models.Question, error) {
 	var question models.Question
 	err := r.db.WithContext(ctx).
-		Preload("Dish").
+		Preload("Product").
 		Where("id = ?", questionID).
 		First(&question).Error
 	if err != nil {
@@ -62,17 +62,17 @@ func (r *questionRepository) DeleteQuestion(ctx context.Context, questionID uuid
 	return r.db.WithContext(ctx).Delete(&models.Question{}, "id = ?", questionID).Error
 }
 
-func (r *questionRepository) GetMaxDisplayOrder(ctx context.Context, dishID uuid.UUID) (int, error) {
+func (r *questionRepository) GetMaxDisplayOrder(ctx context.Context, productID uuid.UUID) (int, error) {
 	var maxOrder int
 	err := r.db.WithContext(ctx).
 		Model(&models.Question{}).
-		Where("dish_id = ?", dishID).
+		Where("product_id = ?", productID).
 		Select("COALESCE(MAX(display_order), 0)").
 		Scan(&maxOrder).Error
 	return maxOrder, err
 }
 
-func (r *questionRepository) ReorderQuestions(ctx context.Context, dishID uuid.UUID, questionIDs []uuid.UUID) error {
+func (r *questionRepository) ReorderQuestions(ctx context.Context, productID uuid.UUID, questionIDs []uuid.UUID) error {
 	tx := r.db.WithContext(ctx).Begin()
 	defer func() {
 		if r := recover(); r != nil {
@@ -83,7 +83,7 @@ func (r *questionRepository) ReorderQuestions(ctx context.Context, dishID uuid.U
 	// Update display order for each question
 	for i, questionID := range questionIDs {
 		if err := tx.Model(&models.Question{}).
-			Where("id = ? AND dish_id = ?", questionID, dishID).
+			Where("id = ? AND product_id = ?", questionID, productID).
 			Update("display_order", i+1).Error; err != nil {
 			tx.Rollback()
 			return err
@@ -93,13 +93,13 @@ func (r *questionRepository) ReorderQuestions(ctx context.Context, dishID uuid.U
 	return tx.Commit().Error
 }
 
-func (r *questionRepository) GetDishesWithQuestions(ctx context.Context, restaurantID uuid.UUID) ([]uuid.UUID, error) {
-	var dishIDs []uuid.UUID
+func (r *questionRepository) GetProductesWithQuestions(ctx context.Context, organizationID uuid.UUID) ([]uuid.UUID, error) {
+	var productIDs []uuid.UUID
 	err := r.db.WithContext(ctx).
 		Table("questions").
-		Select("DISTINCT questions.dish_id").
-		Joins("JOIN dishes ON dishes.id = questions.dish_id").
-		Where("dishes.restaurant_id = ?", restaurantID).
-		Scan(&dishIDs).Error
-	return dishIDs, err
+		Select("DISTINCT questions.product_id").
+		Joins("JOIN products ON products.id = questions.product_id").
+		Where("products.organization_id = ?", organizationID).
+		Scan(&productIDs).Error
+	return productIDs, err
 }

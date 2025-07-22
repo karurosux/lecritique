@@ -9,18 +9,18 @@
     feedback_count: number;
   }
   
-  interface DishInsights {
-    dish_name?: string;
+  interface ProductInsights {
+    product_name?: string;
     rating_trend?: TrendData[];
     weekly_change?: number;
   }
   
   let {
-    dishInsights = null,
+    productInsights = null,
     loading = false,
     timeframe = '7d'
   }: {
-    dishInsights?: DishInsights | null;
+    productInsights?: ProductInsights | null;
     loading?: boolean;
     timeframe?: string;
   } = $props();
@@ -31,9 +31,9 @@
   let animationProgress = $state(0);
 
   const chartData = $derived(() => {
-    if (!dishInsights?.rating_trend || dishInsights.rating_trend.length < 2) return null;
+    if (!productInsights?.rating_trend || productInsights.rating_trend.length < 2) return null;
     
-    const data = dishInsights.rating_trend.slice(-30); // Last 30 data points
+    const data = productInsights.rating_trend.slice(-30); // Last 30 data points
     return {
       labels: data.map(d => {
         const date = new Date(d.date);
@@ -242,28 +242,28 @@
   });
 </script>
 
-<Card variant="default" class="dish-trend-chart">
+<Card variant="default" class="product-trend-chart">
   <div class="mb-4 flex items-center justify-between">
     <div>
       <h3 class="text-lg font-semibold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
         Rating Trend
       </h3>
       <p class="text-sm text-gray-600 mt-1">
-        {dishInsights?.dish_name || 'Dish'} performance over time
+        {productInsights?.product_name || 'Product'} performance over time
       </p>
     </div>
     
-    {#if dishInsights?.weekly_change !== undefined}
+    {#if productInsights?.weekly_change !== undefined}
       <div class="flex items-center gap-2">
-        {#if dishInsights.weekly_change > 0}
+        {#if productInsights.weekly_change > 0}
           <TrendingUpIcon class="w-4 h-4 text-green-600" />
           <span class="text-sm font-medium text-green-600">
-            +{dishInsights.weekly_change.toFixed(1)}% this week
+            +{productInsights.weekly_change.toFixed(1)}% this week
           </span>
-        {:else if dishInsights.weekly_change < 0}
+        {:else if productInsights.weekly_change < 0}
           <TrendingDownIcon class="w-4 h-4 text-red-600" />
           <span class="text-sm font-medium text-red-600">
-            {dishInsights.weekly_change.toFixed(1)}% this week
+            {productInsights.weekly_change.toFixed(1)}% this week
           </span>
         {:else}
           <span class="text-sm font-medium text-gray-600">

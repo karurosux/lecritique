@@ -27,14 +27,14 @@ func NewFeedbackHandler(i *do.Injector) (*FeedbackHandler, error) {
 	}, nil
 }
 
-// GetByRestaurant gets feedback for a restaurant with optional filters
-// @Summary Get restaurant feedback with filters
-// @Description Get all feedback for a specific restaurant with pagination and optional filters
+// GetByOrganization gets feedback for a organization with optional filters
+// @Summary Get organization feedback with filters
+// @Description Get all feedback for a specific organization with pagination and optional filters
 // @Tags feedback
 // @Accept json
 // @Produce json
 // @Security ApiKeyAuth
-// @Param restaurantId path string true "Restaurant ID"
+// @Param organizationId path string true "Organization ID"
 // @Param page query int false "Page number (default: 1)"
 // @Param limit query int false "Items per page (default: 20, max: 100)"
 // @Param search query string false "Search in comments, customer name, or email"
@@ -42,19 +42,19 @@ func NewFeedbackHandler(i *do.Injector) (*FeedbackHandler, error) {
 // @Param rating_max query int false "Maximum rating (1-5)"
 // @Param date_from query string false "Start date (YYYY-MM-DD format)"
 // @Param date_to query string false "End date (YYYY-MM-DD format)"
-// @Param dish_id query string false "Filter by specific dish ID"
+// @Param product_id query string false "Filter by specific product ID"
 // @Param is_complete query boolean false "Filter by completion status"
 // @Success 200 {object} map[string]interface{}
 // @Failure 400 {object} response.Response
 // @Failure 401 {object} response.Response
 // @Failure 500 {object} response.Response
-// @Router /api/v1/restaurants/{restaurantId}/feedback [get]
-func (h *FeedbackHandler) GetByRestaurant(c echo.Context) error {
+// @Router /api/v1/organizations/{organizationId}/feedback [get]
+func (h *FeedbackHandler) GetByOrganization(c echo.Context) error {
 	ctx := c.Request().Context()
 	
-	restaurantID, err := uuid.Parse(c.Param("restaurantId"))
+	organizationID, err := uuid.Parse(c.Param("organizationId"))
 	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, "Invalid restaurant ID")
+		return echo.NewHTTPError(http.StatusBadRequest, "Invalid organization ID")
 	}
 
 	accountID := middleware.GetResourceAccountID(c)
@@ -99,10 +99,10 @@ func (h *FeedbackHandler) GetByRestaurant(c echo.Context) error {
 		}
 	}
 
-	// Parse dish filter
-	if dishIDStr := c.QueryParam("dish_id"); dishIDStr != "" {
-		if dishID, err := uuid.Parse(dishIDStr); err == nil {
-			filters.DishID = &dishID
+	// Parse product filter
+	if productIDStr := c.QueryParam("product_id"); productIDStr != "" {
+		if productID, err := uuid.Parse(productIDStr); err == nil {
+			filters.ProductID = &productID
 		}
 	}
 
@@ -115,19 +115,19 @@ func (h *FeedbackHandler) GetByRestaurant(c echo.Context) error {
 
 	// Use filtered service method if any filters are provided
 	hasFilters := filters.Search != "" || filters.RatingMin != nil || filters.RatingMax != nil || 
-		filters.DateFrom != nil || filters.DateTo != nil || filters.DishID != nil || filters.IsComplete != nil
+		filters.DateFrom != nil || filters.DateTo != nil || filters.ProductID != nil || filters.IsComplete != nil
 
 	var feedbacks interface{}
 	if hasFilters {
-		feedbacks, err = h.feedbackService.GetByRestaurantIDWithFilters(ctx, accountID, restaurantID, page, limit, filters)
+		feedbacks, err = h.feedbackService.GetByOrganizationIDWithFilters(ctx, accountID, organizationID, page, limit, filters)
 	} else {
-		feedbacks, err = h.feedbackService.GetByRestaurantID(ctx, accountID, restaurantID, page, limit)
+		feedbacks, err = h.feedbackService.GetByOrganizationID(ctx, accountID, organizationID, page, limit)
 	}
 
 	if err != nil {
 		logger.Error("Failed to get feedbacks", err, logrus.Fields{
 			"account_id":    accountID,
-			"restaurant_id": restaurantID,
+			"organization_id": organizationID,
 			"page":          page,
 			"limit":         limit,
 			"filters":       filters,
@@ -152,34 +152,34 @@ func (h *FeedbackHandler) GetByRestaurant(c echo.Context) error {
 	return echo.NewHTTPError(http.StatusInternalServerError, "Failed to process response")
 }
 
-// GetStats gets feedback statistics for a restaurant
+// GetStats gets feedback statistics for a organization
 // @Summary Get feedback statistics
-// @Description Get feedback analytics and statistics for a restaurant
+// @Description Get feedback analytics and statistics for a organization
 // @Tags feedback
 // @Accept json
 // @Produce json
 // @Security ApiKeyAuth
-// @Param restaurantId path string true "Restaurant ID"
+// @Param organizationId path string true "Organization ID"
 // @Success 200 {object} map[string]interface{}
 // @Failure 400 {object} response.Response
 // @Failure 401 {object} response.Response
 // @Failure 500 {object} response.Response
-// @Router /api/v1/restaurants/{restaurantId}/analytics [get]
+// @Router /api/v1/organizations/{organizationId}/analytics [get]
 func (h *FeedbackHandler) GetStats(c echo.Context) error {
 	ctx := c.Request().Context()
 	
-	restaurantID, err := uuid.Parse(c.Param("restaurantId"))
+	organizationID, err := uuid.Parse(c.Param("organizationId"))
 	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, "Invalid restaurant ID")
+		return echo.NewHTTPError(http.StatusBadRequest, "Invalid organization ID")
 	}
 
 	accountID := middleware.GetResourceAccountID(c)
 
-	stats, err := h.feedbackService.GetStats(ctx, accountID, restaurantID)
+	stats, err := h.feedbackService.GetStats(ctx, accountID, organizationID)
 	if err != nil {
 		logger.Error("Failed to get feedback stats", err, logrus.Fields{
 			"account_id":    accountID,
-			"restaurant_id": restaurantID,
+			"organization_id": organizationID,
 		})
 		return echo.NewHTTPError(http.StatusInternalServerError, "Failed to get feedback statistics")
 	}

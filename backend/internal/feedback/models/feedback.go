@@ -7,16 +7,16 @@ import (
 	"github.com/google/uuid"
 	menuModels "lecritique/internal/menu/models"
 	qrcodeModels "lecritique/internal/qrcode/models"
-	restaurantModels "lecritique/internal/restaurant/models"
+	organizationModels "lecritique/internal/organization/models"
 	sharedModels "lecritique/internal/shared/models"
 )
 
 type Feedback struct {
 	sharedModels.BaseModel
-	RestaurantID uuid.UUID  `gorm:"not null" json:"restaurant_id"`
-	Restaurant   restaurantModels.Restaurant `json:"restaurant,omitempty"`
-	DishID       uuid.UUID  `gorm:"not null" json:"dish_id"`
-	Dish         menuModels.Dish       `json:"dish,omitempty"`
+	OrganizationID uuid.UUID  `gorm:"not null" json:"organization_id"`
+	Organization   organizationModels.Organization `json:"organization,omitempty"`
+	ProductID       uuid.UUID  `gorm:"not null" json:"product_id"`
+	Product         menuModels.Product       `json:"product,omitempty"`
 	QRCodeID     uuid.UUID  `gorm:"not null" json:"qr_code_id"`
 	QRCode       qrcodeModels.QRCode     `json:"qr_code,omitempty"`
 	CustomerName string     `json:"customer_name"`

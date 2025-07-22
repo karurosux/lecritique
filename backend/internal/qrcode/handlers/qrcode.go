@@ -27,7 +27,7 @@ func NewQRCodeHandler(i *do.Injector) (*QRCodeHandler, error) {
 }
 
 type GenerateQRCodeRequest struct {
-	RestaurantID uuid.UUID          `json:"restaurant_id" validate:"required"`
+	OrganizationID uuid.UUID          `json:"organization_id" validate:"required"`
 	Type         models.QRCodeType  `json:"type" validate:"required,oneof=table location takeaway delivery general"`
 	Label        string             `json:"label" validate:"required,min=1,max=100"`
 	Location     *string            `json:"location" validate:"omitempty,max=200"`
@@ -40,7 +40,7 @@ type GenerateQRCodeResponse struct {
 
 // Generate creates a new QR code
 // @Summary Generate QR code
-// @Description Generate a new QR code for a restaurant
+// @Description Generate a new QR code for a organization
 // @Tags qr-codes
 // @Accept json
 // @Produce json
@@ -50,7 +50,7 @@ type GenerateQRCodeResponse struct {
 // @Failure 400 {object} response.Response
 // @Failure 401 {object} response.Response
 // @Failure 500 {object} response.Response
-// @Router /api/v1/restaurants/{restaurantId}/qr-codes [post]
+// @Router /api/v1/organizations/{organizationId}/qr-codes [post]
 func (h *QRCodeHandler) Generate(c echo.Context) error {
 	ctx := c.Request().Context()
 	
@@ -66,11 +66,11 @@ func (h *QRCodeHandler) Generate(c echo.Context) error {
 	// Use resource account ID for team-aware access
 	resourceAccountID := middleware.GetResourceAccountID(c)
 
-	qrCode, err := h.qrCodeService.Generate(ctx, resourceAccountID, req.RestaurantID, req.Type, req.Label, req.Location)
+	qrCode, err := h.qrCodeService.Generate(ctx, resourceAccountID, req.OrganizationID, req.Type, req.Label, req.Location)
 	if err != nil {
 		logger.Error("Failed to generate QR code", err, logrus.Fields{
 			"account_id":    resourceAccountID,
-			"restaurant_id": req.RestaurantID,
+			"organization_id": req.OrganizationID,
 			"type":          req.Type,
 			"label":         req.Label,
 		})
@@ -88,35 +88,35 @@ type QRCodeListResponse struct {
 	Data    []models.QRCode  `json:"data"`
 }
 
-// GetByRestaurant gets all QR codes for a restaurant
-// @Summary Get QR codes by restaurant
-// @Description Get all QR codes for a specific restaurant
+// GetByOrganization gets all QR codes for a organization
+// @Summary Get QR codes by organization
+// @Description Get all QR codes for a specific organization
 // @Tags qr-codes
 // @Accept json
 // @Produce json
 // @Security ApiKeyAuth
-// @Param restaurantId path string true "Restaurant ID"
+// @Param organizationId path string true "Organization ID"
 // @Success 200 {object} QRCodeListResponse
 // @Failure 400 {object} response.Response
 // @Failure 401 {object} response.Response
 // @Failure 500 {object} response.Response
-// @Router /api/v1/restaurants/{restaurantId}/qr-codes [get]
-func (h *QRCodeHandler) GetByRestaurant(c echo.Context) error {
+// @Router /api/v1/organizations/{organizationId}/qr-codes [get]
+func (h *QRCodeHandler) GetByOrganization(c echo.Context) error {
 	ctx := c.Request().Context()
 	
-	restaurantID, err := uuid.Parse(c.Param("restaurantId"))
+	organizationID, err := uuid.Parse(c.Param("organizationId"))
 	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, "Invalid restaurant ID")
+		return echo.NewHTTPError(http.StatusBadRequest, "Invalid organization ID")
 	}
 
 	// Use resource account ID for team-aware access
 	resourceAccountID := middleware.GetResourceAccountID(c)
 
-	qrCodes, err := h.qrCodeService.GetByRestaurantID(ctx, resourceAccountID, restaurantID)
+	qrCodes, err := h.qrCodeService.GetByOrganizationID(ctx, resourceAccountID, organizationID)
 	if err != nil {
 		logger.Error("Failed to get QR codes", err, logrus.Fields{
 			"account_id":    resourceAccountID,
-			"restaurant_id": restaurantID,
+			"organization_id": organizationID,
 		})
 		return echo.NewHTTPError(http.StatusInternalServerError, "Failed to get QR codes")
 	}

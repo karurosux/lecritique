@@ -8,24 +8,24 @@ import (
 	"lecritique/internal/shared/response"
 	"lecritique/internal/subscription/models"
 	"lecritique/internal/subscription/services"
-	restaurantServices "lecritique/internal/restaurant/services"
+	organizationServices "lecritique/internal/organization/services"
 )
 
 type SubscriptionMiddleware struct {
 	subscriptionService services.SubscriptionService
 	usageService        services.UsageService
-	restaurantService   restaurantServices.RestaurantService
+	organizationService   organizationServices.OrganizationService
 }
 
 func NewSubscriptionMiddleware(
 	subscriptionService services.SubscriptionService,
 	usageService services.UsageService,
-	restaurantService restaurantServices.RestaurantService,
+	organizationService organizationServices.OrganizationService,
 ) *SubscriptionMiddleware {
 	return &SubscriptionMiddleware{
 		subscriptionService: subscriptionService,
 		usageService:        usageService,
-		restaurantService:   restaurantService,
+		organizationService:   organizationService,
 	}
 }
 
@@ -105,20 +105,20 @@ func (m *SubscriptionMiddleware) CheckResourceLimit(resourceType string) echo.Mi
 				c.Set("subscription", subscription)
 			}
 
-			// For restaurants, check actual count instead of usage tracking
-			if resourceType == models.ResourceTypeRestaurant {
+			// For organizations, check actual count instead of usage tracking
+			if resourceType == models.ResourceTypeOrganization {
 				accountID, ok := c.Get("account_id").(uuid.UUID)
 				if !ok {
 					return response.Error(c, errors.ErrUnauthorized)
 				}
 
-				currentCount, err := m.restaurantService.CountByAccountID(c.Request().Context(), accountID)
+				currentCount, err := m.organizationService.CountByAccountID(c.Request().Context(), accountID)
 				if err != nil {
-					return response.Error(c, errors.BadRequest("Failed to check restaurant count"))
+					return response.Error(c, errors.BadRequest("Failed to check organization count"))
 				}
 
-				if int(currentCount) >= subscription.Plan.MaxRestaurants {
-					return response.Error(c, errors.Forbidden(fmt.Sprintf("Restaurant limit reached (%d/%d)", int(currentCount), subscription.Plan.MaxRestaurants)))
+				if int(currentCount) >= subscription.Plan.MaxOrganizations {
+					return response.Error(c, errors.Forbidden(fmt.Sprintf("Organization limit reached (%d/%d)", int(currentCount), subscription.Plan.MaxOrganizations)))
 				}
 			} else {
 				// Check usage limits for other resources

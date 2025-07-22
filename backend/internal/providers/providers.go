@@ -6,10 +6,10 @@ import (
 	authRepos "lecritique/internal/auth/repositories"
 	authServices "lecritique/internal/auth/services"
 	
-	// Restaurant
-	restaurantHandlers "lecritique/internal/restaurant/handlers"
-	restaurantRepos "lecritique/internal/restaurant/repositories"
-	restaurantServices "lecritique/internal/restaurant/services"
+	// Organization
+	organizationHandlers "lecritique/internal/organization/handlers"
+	organizationRepos "lecritique/internal/organization/repositories"
+	organizationServices "lecritique/internal/organization/services"
 	
 	// Menu
 	menuHandlers "lecritique/internal/menu/handlers"
@@ -65,15 +65,15 @@ func RegisterAll(i *do.Injector, cfg *config.Config, db *gorm.DB) {
 	do.Provide(i, authHandlers.NewAuthHandler)
 	do.Provide(i, authHandlers.NewTeamMemberHandler)
 	
-	// Restaurant domain
-	do.Provide(i, restaurantRepos.NewRestaurantRepository)
-	do.Provide(i, restaurantServices.NewRestaurantService)
-	do.Provide(i, restaurantHandlers.NewRestaurantHandler)
+	// Organization domain
+	do.Provide(i, organizationRepos.NewOrganizationRepository)
+	do.Provide(i, organizationServices.NewOrganizationService)
+	do.Provide(i, organizationHandlers.NewOrganizationHandler)
 	
 	// Menu domain
-	do.Provide(i, menuRepos.NewDishRepository)
-	do.Provide(i, menuServices.NewDishService)
-	do.Provide(i, menuHandlers.NewDishHandler)
+	do.Provide(i, menuRepos.NewProductRepository)
+	do.Provide(i, menuServices.NewProductService)
+	do.Provide(i, menuHandlers.NewProductHandler)
 	do.Provide(i, menuHandlers.NewMenuPublicHandler)
 	
 	// Feedback domain
@@ -114,7 +114,7 @@ func RegisterAll(i *do.Injector, cfg *config.Config, db *gorm.DB) {
 		return subscriptionMiddleware.NewSubscriptionMiddleware(
 			do.MustInvoke[subscriptionServices.SubscriptionService](i),
 			do.MustInvoke[subscriptionServices.UsageService](i),
-			do.MustInvoke[restaurantServices.RestaurantService](i),
+			do.MustInvoke[organizationServices.OrganizationService](i),
 		), nil
 	})
 }

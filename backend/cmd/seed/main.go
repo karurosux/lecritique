@@ -24,7 +24,7 @@ func main() {
 
 	email := "admin@lecritique.com"
 	password := "admin123"
-	companyName := "LeCritique Demo Restaurant"
+	companyName := "LeCritique Demo Organization"
 
 	fmt.Printf("Creating default user: %s\n", email)
 	fmt.Printf("Company: %s\n", companyName)
@@ -94,29 +94,29 @@ func main() {
 		}
 	}
 
-	var newRestaurant struct {
+	var newOrganization struct {
 		ID string `gorm:"column:id"`
 	}
 	err = db.Raw(`
-		INSERT INTO restaurants (account_id, name, description, email, phone, website, is_active)
+		INSERT INTO organizations (account_id, name, description, email, phone, website, is_active)
 		VALUES (?, ?, ?, ?, ?, ?, true)
 		RETURNING id
-	`, accountID, "Demo Restaurant", "A sample restaurant for testing LeCritique", email, "+1-555-0123", "https://demo.lecritique.com").Scan(&newRestaurant).Error
+	`, accountID, "Demo Organization", "A sample organization for testing LeCritique", email, "+1-555-0123", "https://demo.lecritique.com").Scan(&newOrganization).Error
 	
 	if err != nil {
-		log.Printf("⚠️  Warning: Failed to create sample restaurant: %v\n", err)
+		log.Printf("⚠️  Warning: Failed to create sample organization: %v\n", err)
 	} else {
-		restaurantID := newRestaurant.ID
-		fmt.Println("✅ Created sample restaurant")
+		organizationID := newOrganization.ID
+		fmt.Println("✅ Created sample organization")
 
 		var newLocation struct {
 			ID string `gorm:"column:id"`
 		}
 		err = db.Raw(`
-			INSERT INTO locations (restaurant_id, name, address, city, state, country, postal_code, is_active)
+			INSERT INTO locations (organization_id, name, address, city, state, country, postal_code, is_active)
 			VALUES (?, ?, ?, ?, ?, ?, ?, true)
 			RETURNING id
-		`, restaurantID, "Main Location", "123 Restaurant St", "Food City", "CA", "USA", "12345").Scan(&newLocation).Error
+		`, organizationID, "Main Location", "123 Organization St", "Food City", "CA", "USA", "12345").Scan(&newLocation).Error
 		
 		if err != nil {
 			log.Printf("⚠️  Warning: Failed to create sample location: %v\n", err)
@@ -125,9 +125,9 @@ func main() {
 			fmt.Println("✅ Created sample location")
 
 			err = db.Exec(`
-				INSERT INTO qr_codes (restaurant_id, location_id, code, label, type, is_active, expires_at)
+				INSERT INTO qr_codes (organization_id, location_id, code, label, type, is_active, expires_at)
 				VALUES (?, ?, ?, ?, ?, true, NOW() + INTERVAL '1 year')
-			`, restaurantID, locationID, "DEMO001", "Table 1", "table").Error
+			`, organizationID, locationID, "DEMO001", "Table 1", "table").Error
 			
 			if err != nil {
 				log.Printf("⚠️  Warning: Failed to create sample QR code: %v\n", err)
@@ -136,7 +136,7 @@ func main() {
 			}
 		}
 
-		dishes := []struct {
+		products := []struct {
 			name        string
 			description string
 			price       float64
@@ -147,16 +147,16 @@ func main() {
 			{"Chocolate Cake", "Rich chocolate cake with vanilla ice cream", 6.99, "Desserts"},
 		}
 
-		for _, dish := range dishes {
+		for _, product := range products {
 			err = db.Exec(`
-				INSERT INTO dishes (restaurant_id, name, description, price, currency, category, is_active)
+				INSERT INTO products (organization_id, name, description, price, currency, category, is_active)
 				VALUES (?, ?, ?, ?, 'USD', ?, true)
-			`, restaurantID, dish.name, dish.description, dish.price, dish.category).Error
+			`, organizationID, product.name, product.description, product.price, product.category).Error
 			
 			if err != nil {
-				log.Printf("⚠️  Warning: Failed to create dish %s: %v\n", dish.name, err)
+				log.Printf("⚠️  Warning: Failed to create product %s: %v\n", product.name, err)
 			} else {
-				fmt.Printf("✅ Created dish: %s\n", dish.name)
+				fmt.Printf("✅ Created product: %s\n", product.name)
 			}
 		}
 	}

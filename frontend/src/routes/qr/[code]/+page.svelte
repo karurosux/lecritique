@@ -9,7 +9,7 @@
 
   interface QRValidationData {
     valid: boolean;
-    restaurant?: {
+    organization?: {
       id: string;
       name: string;
       description?: string;
@@ -28,7 +28,7 @@
     };
   }
 
-  interface Dish {
+  interface Product {
     id: string;
     name: string;
     description?: string;
@@ -60,11 +60,11 @@
   let loading = $state(true);
   let error = $state('');
   let qrData = $state<QRValidationData | null>(null);
-  let dishesWithQuestions = $state<Dish[]>([]);
-  let loadingDishes = $state(false);
+  let productsWithQuestions = $state<Product[]>([]);
+  let loadingProductes = $state(false);
   
   // Questionnaire state
-  let selectedDish = $state<Dish | null>(null);
+  let selectedProduct = $state<Product | null>(null);
   let questions = $state<Question[]>([]);
   let loadingQuestions = $state(false);
   let submitting = $state(false);
@@ -77,8 +77,8 @@
   
   const code = $derived($page.params.code);
   const pageTitle = $derived(
-    qrData?.restaurant?.name 
-      ? `${qrData.restaurant.name} - LeCritique`
+    qrData?.organization?.name 
+      ? `${qrData.organization.name} - LeCritique`
       : 'QR Code Validation - LeCritique'
   );
 
@@ -86,24 +86,24 @@
     validateQRCode();
   });
 
-  async function loadDishesWithQuestions() {
-    if (!qrData?.restaurant?.id) {
+  async function loadProductesWithQuestions() {
+    if (!qrData?.organization?.id) {
       return;
     }
     
     try {
-      loadingDishes = true;
+      loadingProductes = true;
       const publicApi = new Api({
         baseURL: 'http://localhost:8080'
       });
-      const response = await publicApi.api.v1PublicRestaurantQuestionsDishesWithQuestionsList(qrData.restaurant.id);
+      const response = await publicApi.api.v1PublicOrganizationQuestionsProductesWithQuestionsList(qrData.organization.id);
       
       if (response.data.success && response.data.data) {
-        dishesWithQuestions = response.data.data;
+        productsWithQuestions = response.data.data;
       }
     } catch (error) {
     } finally {
-      loadingDishes = false;
+      loadingProductes = false;
     }
   }
 
@@ -126,16 +126,16 @@
         
         qrData = {
           valid: qrCodeData.is_active === true,
-          restaurant: qrCodeData.restaurant ? {
-            id: qrCodeData.restaurant.id,
-            name: qrCodeData.restaurant.name,
-            description: qrCodeData.restaurant.description,
-            logo: qrCodeData.restaurant.logo
+          organization: qrCodeData.organization ? {
+            id: qrCodeData.organization.id,
+            name: qrCodeData.organization.name,
+            description: qrCodeData.organization.description,
+            logo: qrCodeData.organization.logo
           } : undefined,
           location: qrCodeData.location ? {
-            id: qrCodeData.restaurant?.id || '',
+            id: qrCodeData.organization?.id || '',
             name: qrCodeData.location,
-            address: qrCodeData.restaurant?.address
+            address: qrCodeData.organization?.address
           } : undefined,
           qr_code: {
             id: qrCodeData.id,
@@ -148,7 +148,7 @@
         if (qrData && !qrData.valid) {
           error = 'This QR code is invalid or has expired';
         } else if (qrData && qrData.valid) {
-          await loadDishesWithQuestions();
+          await loadProductesWithQuestions();
         }
       } else {
         error = 'Invalid QR code';
@@ -161,14 +161,14 @@
   }
 
   function handleViewMenu() {
-    if (qrData?.restaurant?.id) {
-      goto(`/restaurant/${qrData.restaurant.id}/menu?qr=${code}`);
+    if (qrData?.organization?.id) {
+      goto(`/organization/${qrData.organization.id}/menu?qr=${code}`);
     }
   }
 
   function handleGiveFeedback() {
-    if (qrData?.restaurant?.id) {
-      let url = `/feedback?restaurant=${qrData.restaurant.id}&qr=${code}`;
+    if (qrData?.organization?.id) {
+      let url = `/feedback?organization=${qrData.organization.id}&qr=${code}`;
       if (qrData?.location?.id) {
         url += `&location=${qrData.location.id}`;
       }
@@ -176,14 +176,14 @@
     }
   }
 
-  async function handleDishFeedback(dish: Dish) {
-    selectedDish = dish;
-    await loadDishQuestions(dish.id);
+  async function handleProductFeedback(product: Product) {
+    selectedProduct = product;
+    await loadProductQuestions(product.id);
   }
 
-  async function loadDishQuestions(dishId: string) {
-    if (!qrData?.restaurant?.id) {
-      error = 'Restaurant information is missing';
+  async function loadProductQuestions(productId: string) {
+    if (!qrData?.organization?.id) {
+      error = 'Organization information is missing';
       return;
     }
 
@@ -195,9 +195,9 @@
         baseURL: 'http://localhost:8080'
       });
       
-      const response = await publicApi.api.v1PublicRestaurantDishesQuestionsList(
-        qrData.restaurant.id,
-        dishId
+      const response = await publicApi.api.v1PublicOrganizationProductesQuestionsList(
+        qrData.organization.id,
+        productId
       );
       
       if (response.data.success && response.data.data) {
@@ -218,8 +218,8 @@
     }
   }
 
-  function handleBackToDishes() {
-    selectedDish = null;
+  function handleBackToProductes() {
+    selectedProduct = null;
     questions = [];
     responses = {};
     overallRating = 0;
@@ -280,8 +280,8 @@
       });
 
       const feedbackData = {
-        restaurant_id: qrData?.restaurant?.id,
-        dish_id: selectedDish?.id,
+        organization_id: qrData?.organization?.id,
+        product_id: selectedProduct?.id,
         qr_code_id: qrData?.qr_code?.id,
         overall_rating: overallRating || 0,
         responses: responseArray,
@@ -313,7 +313,7 @@
 
 <svelte:head>
   <title>{pageTitle}</title>
-  <meta name="description" content="Restaurant feedback and menu access via QR code" />
+  <meta name="description" content="Organization feedback and menu access via QR code" />
   <meta name="robots" content="noindex, nofollow" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="theme-color" content="#3b82f6" />
@@ -354,17 +354,17 @@
         </div>
       </Card>
     
-    {:else if qrData && qrData.valid && !selectedDish}
-      <!-- Dish Selection State -->
+    {:else if qrData && qrData.valid && !selectedProduct}
+      <!-- Product Selection State -->
       <div class="space-y-2">
-        <!-- Restaurant Header -->
+        <!-- Organization Header -->
         <div class="py-2 sm:py-3 px-2">
           <div class="flex items-start gap-3 bg-white/60 backdrop-blur-sm rounded-2xl p-3 border border-white/30">
-            {#if qrData.restaurant?.logo}
+            {#if qrData.organization?.logo}
               <div class="h-10 w-10 sm:h-12 sm:w-12 rounded-2xl bg-gradient-to-br from-blue-100 to-purple-100 flex items-center justify-center shadow-sm flex-shrink-0 ring-2 ring-white/50">
                 <img 
-                  src={qrData.restaurant.logo} 
-                  alt="{qrData.restaurant.name} logo"
+                  src={qrData.organization.logo} 
+                  alt="{qrData.organization.name} logo"
                   class="h-9 w-9 sm:h-11 sm:w-11 rounded-2xl object-cover"
                 />
               </div>
@@ -377,7 +377,7 @@
             <div class="flex-1 min-w-0 space-y-1">
               <div class="flex items-start justify-between">
                 <h1 class="text-base sm:text-lg font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent leading-tight">
-                  {qrData.restaurant?.name || 'Our Restaurant'}
+                  {qrData.organization?.name || 'Our Organization'}
                 </h1>
                 {#if qrData.qr_code?.label}
                   <div class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gradient-to-r from-blue-100 to-purple-100 text-blue-800 ml-2 flex-shrink-0 border border-blue-200/50">
@@ -386,8 +386,8 @@
                 {/if}
               </div>
               
-              {#if qrData.restaurant?.description}
-                <p class="text-gray-600 text-xs leading-relaxed line-clamp-2">{qrData.restaurant.description}</p>
+              {#if qrData.organization?.description}
+                <p class="text-gray-600 text-xs leading-relaxed line-clamp-2">{qrData.organization.description}</p>
               {/if}
               
               {#if qrData.location}
@@ -419,19 +419,19 @@
             <h2 class="text-xl sm:text-2xl font-bold bg-gradient-to-r from-gray-900 via-gray-800 to-gray-700 bg-clip-text text-transparent mb-2 px-2">
               What did you eat today?
             </h2>
-            <p class="text-gray-600 text-sm px-2">Select the dish you'd like to give feedback on</p>
+            <p class="text-gray-600 text-sm px-2">Select the product you'd like to give feedback on</p>
           </div>
           
-          {#if loadingDishes}
+          {#if loadingProductes}
             <div class="text-center py-8">
               <Loader2 class="animate-spin h-8 w-8 text-blue-600 mx-auto mb-4" />
-              <p class="text-gray-600">Loading dishes...</p>
+              <p class="text-gray-600">Loading products...</p>
             </div>
-          {:else if dishesWithQuestions.length > 0}
+          {:else if productsWithQuestions.length > 0}
             <div class="space-y-3">
-              {#each dishesWithQuestions as dish}
+              {#each productsWithQuestions as product}
                 <button 
-                  onclick={() => handleDishFeedback(dish)}
+                  onclick={() => handleProductFeedback(product)}
                   class="w-full p-4 sm:p-5 bg-white rounded-3xl hover:shadow-xl transition-all duration-300 text-left group relative overflow-hidden focus:outline-none focus:ring-2 focus:ring-purple-500/30 active:scale-[0.98]"
                 >
                   <div class="absolute inset-0 bg-gradient-to-r from-purple-500/5 to-pink-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
@@ -443,14 +443,14 @@
                         </div>
                         <div class="min-w-0 flex-1">
                           <h3 class="font-bold text-gray-900 text-lg sm:text-xl mb-1 group-hover:text-purple-700 transition-colors">
-                            {dish.name}
+                            {product.name}
                           </h3>
                           <div class="flex items-center gap-3 text-sm mb-2">
-                            <span class="font-bold text-purple-600 text-base">{formatPrice(dish.price)}</span>
-                            <span class="px-2 py-0.5 rounded-full bg-purple-100 text-purple-700 text-xs font-medium capitalize">{dish.category}</span>
+                            <span class="font-bold text-purple-600 text-base">{formatPrice(product.price)}</span>
+                            <span class="px-2 py-0.5 rounded-full bg-purple-100 text-purple-700 text-xs font-medium capitalize">{product.category}</span>
                           </div>
-                          {#if dish.description}
-                            <p class="text-sm text-gray-600 leading-relaxed line-clamp-2">{dish.description}</p>
+                          {#if product.description}
+                            <p class="text-sm text-gray-600 leading-relaxed line-clamp-2">{product.description}</p>
                           {/if}
                         </div>
                       </div>
@@ -467,8 +467,8 @@
               <div class="w-16 h-16 rounded-full bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center mx-auto mb-4">
                 <Lightbulb class="h-8 w-8 text-gray-400" />
               </div>
-              <p class="text-gray-600 mb-2 font-medium">No dishes available for feedback</p>
-              <p class="text-sm text-gray-500">Please check back later or contact the restaurant</p>
+              <p class="text-gray-600 mb-2 font-medium">No products available for feedback</p>
+              <p class="text-sm text-gray-500">Please check back later or contact the organization</p>
             </div>
           {/if}
         </div>
@@ -476,7 +476,7 @@
 
       </div>
     
-    {:else if qrData && qrData.valid && selectedDish}
+    {:else if qrData && qrData.valid && selectedProduct}
       <!-- Questionnaire Form State -->
       <div class="space-y-4">
         <!-- Back Button and Header -->
@@ -484,7 +484,7 @@
           <Button
             variant="ghost"
             size="sm"
-            onclick={handleBackToDishes}
+            onclick={handleBackToProductes}
             class="flex items-center gap-2 hover:bg-white/50"
           >
             <ArrowLeft class="h-4 w-4" />
@@ -492,13 +492,13 @@
           </Button>
         </div>
 
-        <!-- Restaurant & Dish Header -->
+        <!-- Organization & Product Header -->
         <div class="bg-white rounded-3xl p-5 shadow-sm mb-6">
           <div class="flex items-center gap-4">
-            {#if qrData.restaurant?.logo}
+            {#if qrData.organization?.logo}
               <img 
-                src={qrData.restaurant.logo} 
-                alt="{qrData.restaurant.name} logo"
+                src={qrData.organization.logo} 
+                alt="{qrData.organization.name} logo"
                 class="h-14 w-14 rounded-2xl object-cover shadow-md"
               />
             {:else}
@@ -507,11 +507,11 @@
               </div>
             {/if}
             <div class="flex-1">
-              <h2 class="font-bold text-gray-900 text-lg">{qrData.restaurant?.name}</h2>
+              <h2 class="font-bold text-gray-900 text-lg">{qrData.organization?.name}</h2>
               <div class="flex items-center gap-2 mt-1">
                 <div class="h-1.5 w-1.5 rounded-full bg-purple-500"></div>
-                <p class="text-purple-700 font-medium">{selectedDish.name}</p>
-                <span class="text-purple-600 font-bold">{formatPrice(selectedDish.price)}</span>
+                <p class="text-purple-700 font-medium">{selectedProduct.name}</p>
+                <span class="text-purple-600 font-bold">{formatPrice(selectedProduct.price)}</span>
               </div>
             </div>
           </div>

@@ -20,25 +20,25 @@ type FeedbackFilter struct {
 	RatingMax   *int       `json:"rating_max,omitempty"`
 	DateFrom    *time.Time `json:"date_from,omitempty"`
 	DateTo      *time.Time `json:"date_to,omitempty"`
-	DishID      *uuid.UUID `json:"dish_id,omitempty"`
+	ProductID      *uuid.UUID `json:"product_id,omitempty"`
 	IsComplete  *bool      `json:"is_complete,omitempty"`
 }
 
 type FeedbackRepository interface {
 	Create(ctx context.Context, feedback *models.Feedback) error
 	FindByID(ctx context.Context, id uuid.UUID, preloads ...string) (*models.Feedback, error)
-	FindByRestaurantID(ctx context.Context, restaurantID uuid.UUID, req sharedModels.PageRequest) (*sharedModels.PageResponse[models.Feedback], error)
-	FindByRestaurantIDWithFilters(ctx context.Context, restaurantID uuid.UUID, req sharedModels.PageRequest, filters FeedbackFilter) (*sharedModels.PageResponse[models.Feedback], error)
-	FindByDishID(ctx context.Context, dishID uuid.UUID, req sharedModels.PageRequest) (*sharedModels.PageResponse[models.Feedback], error)
-	CountByRestaurantID(ctx context.Context, restaurantID uuid.UUID, since time.Time) (int64, error)
-	CountByDishID(ctx context.Context, dishID uuid.UUID) (int64, error)
+	FindByOrganizationID(ctx context.Context, organizationID uuid.UUID, req sharedModels.PageRequest) (*sharedModels.PageResponse[models.Feedback], error)
+	FindByOrganizationIDWithFilters(ctx context.Context, organizationID uuid.UUID, req sharedModels.PageRequest, filters FeedbackFilter) (*sharedModels.PageResponse[models.Feedback], error)
+	FindByProductID(ctx context.Context, productID uuid.UUID, req sharedModels.PageRequest) (*sharedModels.PageResponse[models.Feedback], error)
+	CountByOrganizationID(ctx context.Context, organizationID uuid.UUID, since time.Time) (int64, error)
+	CountByProductID(ctx context.Context, productID uuid.UUID) (int64, error)
 	CountByQRCodeID(ctx context.Context, qrCodeID uuid.UUID) (int64, error)
-	GetAverageRating(ctx context.Context, restaurantID uuid.UUID, dishID *uuid.UUID) (float64, error)
+	GetAverageRating(ctx context.Context, organizationID uuid.UUID, productID *uuid.UUID) (float64, error)
 	Delete(ctx context.Context, id uuid.UUID) error
 	// Analytics methods
-	FindByRestaurantIDForAnalytics(ctx context.Context, restaurantID uuid.UUID, limit int) ([]models.Feedback, error)
-	FindByDishIDForAnalytics(ctx context.Context, dishID uuid.UUID, limit int) ([]models.Feedback, error)
-	GetQuestionsByDishID(ctx context.Context, dishID uuid.UUID) ([]models.Question, error)
+	FindByOrganizationIDForAnalytics(ctx context.Context, organizationID uuid.UUID, limit int) ([]models.Feedback, error)
+	FindByProductIDForAnalytics(ctx context.Context, productID uuid.UUID, limit int) ([]models.Feedback, error)
+	GetQuestionsByProductID(ctx context.Context, productID uuid.UUID) ([]models.Question, error)
 }
 
 type feedbackRepository struct {
@@ -52,7 +52,7 @@ func NewFeedbackRepository(i *do.Injector) (FeedbackRepository, error) {
 	}, nil
 }
 
-func (r *feedbackRepository) FindByRestaurantID(ctx context.Context, restaurantID uuid.UUID, req sharedModels.PageRequest) (*sharedModels.PageResponse[models.Feedback], error) {
+func (r *feedbackRepository) FindByOrganizationID(ctx context.Context, organizationID uuid.UUID, req sharedModels.PageRequest) (*sharedModels.PageResponse[models.Feedback], error) {
 	var feedbacks []models.Feedback
 	var total int64
 	
@@ -65,11 +65,11 @@ func (r *feedbackRepository) FindByRestaurantID(ctx context.Context, restaurantI
 	}
 	
 	// Count total
-	r.DB.WithContext(ctx).Model(&models.Feedback{}).Where("restaurant_id = ?", restaurantID).Count(&total)
+	r.DB.WithContext(ctx).Model(&models.Feedback{}).Where("organization_id = ?", organizationID).Count(&total)
 	
 	// Get data
-	query := r.DB.WithContext(ctx).Preload("Dish").Preload("QRCode").
-		Where("restaurant_id = ?", restaurantID).
+	query := r.DB.WithContext(ctx).Preload("Product").Preload("QRCode").
+		Where("organization_id = ?", organizationID).
 		Limit(req.Limit).
 		Offset((req.Page - 1) * req.Limit).
 		Order("created_at DESC")
@@ -100,7 +100,7 @@ func (r *feedbackRepository) FindByRestaurantID(ctx context.Context, restaurantI
 	}, nil
 }
 
-func (r *feedbackRepository) FindByRestaurantIDWithFilters(ctx context.Context, restaurantID uuid.UUID, req sharedModels.PageRequest, filters FeedbackFilter) (*sharedModels.PageResponse[models.Feedback], error) {
+func (r *feedbackRepository) FindByOrganizationIDWithFilters(ctx context.Context, organizationID uuid.UUID, req sharedModels.PageRequest, filters FeedbackFilter) (*sharedModels.PageResponse[models.Feedback], error) {
 	var feedbacks []models.Feedback
 	var total int64
 	
@@ -113,7 +113,7 @@ func (r *feedbackRepository) FindByRestaurantIDWithFilters(ctx context.Context, 
 	}
 	
 	// Build base query
-	baseQuery := r.DB.WithContext(ctx).Model(&models.Feedback{}).Where("restaurant_id = ?", restaurantID)
+	baseQuery := r.DB.WithContext(ctx).Model(&models.Feedback{}).Where("organization_id = ?", organizationID)
 	
 	// Apply filters
 	baseQuery = r.applyFilters(baseQuery, filters)
@@ -122,8 +122,8 @@ func (r *feedbackRepository) FindByRestaurantIDWithFilters(ctx context.Context, 
 	baseQuery.Count(&total)
 	
 	// Get data with preloads
-	query := r.DB.WithContext(ctx).Preload("Dish").Preload("QRCode").
-		Where("restaurant_id = ?", restaurantID)
+	query := r.DB.WithContext(ctx).Preload("Product").Preload("QRCode").
+		Where("organization_id = ?", organizationID)
 	
 	// Apply the same filters to the data query
 	query = r.applyFilters(query, filters)
@@ -184,9 +184,9 @@ func (r *feedbackRepository) applyFilters(query *gorm.DB, filters FeedbackFilter
 		query = query.Where("DATE(created_at) <= DATE(?)", *filters.DateTo)
 	}
 	
-	// Dish filter
-	if filters.DishID != nil {
-		query = query.Where("dish_id = ?", *filters.DishID)
+	// Product filter
+	if filters.ProductID != nil {
+		query = query.Where("product_id = ?", *filters.ProductID)
 	}
 	
 	// Completion filter
@@ -244,7 +244,7 @@ func (r *feedbackRepository) populateQuestionData(ctx context.Context, feedback 
 	return nil
 }
 
-func (r *feedbackRepository) FindByDishID(ctx context.Context, dishID uuid.UUID, req sharedModels.PageRequest) (*sharedModels.PageResponse[models.Feedback], error) {
+func (r *feedbackRepository) FindByProductID(ctx context.Context, productID uuid.UUID, req sharedModels.PageRequest) (*sharedModels.PageResponse[models.Feedback], error) {
 	var feedbacks []models.Feedback
 	var total int64
 	
@@ -257,11 +257,11 @@ func (r *feedbackRepository) FindByDishID(ctx context.Context, dishID uuid.UUID,
 	}
 	
 	// Count total
-	r.DB.WithContext(ctx).Model(&models.Feedback{}).Where("dish_id = ?", dishID).Count(&total)
+	r.DB.WithContext(ctx).Model(&models.Feedback{}).Where("product_id = ?", productID).Count(&total)
 	
 	// Get data
 	query := r.DB.WithContext(ctx).Preload("QRCode").
-		Where("dish_id = ?", dishID).
+		Where("product_id = ?", productID).
 		Limit(req.Limit).
 		Offset((req.Page - 1) * req.Limit).
 		Order("created_at DESC")
@@ -284,18 +284,18 @@ func (r *feedbackRepository) FindByDishID(ctx context.Context, dishID uuid.UUID,
 	}, nil
 }
 
-func (r *feedbackRepository) CountByRestaurantID(ctx context.Context, restaurantID uuid.UUID, since time.Time) (int64, error) {
+func (r *feedbackRepository) CountByOrganizationID(ctx context.Context, organizationID uuid.UUID, since time.Time) (int64, error) {
 	var count int64
 	err := r.DB.WithContext(ctx).Model(&models.Feedback{}).
-		Where("restaurant_id = ? AND created_at >= ?", restaurantID, since).
+		Where("organization_id = ? AND created_at >= ?", organizationID, since).
 		Count(&count).Error
 	return count, err
 }
 
-func (r *feedbackRepository) CountByDishID(ctx context.Context, dishID uuid.UUID) (int64, error) {
+func (r *feedbackRepository) CountByProductID(ctx context.Context, productID uuid.UUID) (int64, error) {
 	var count int64
 	err := r.DB.WithContext(ctx).Model(&models.Feedback{}).
-		Where("dish_id = ?", dishID).
+		Where("product_id = ?", productID).
 		Count(&count).Error
 	return count, err
 }
@@ -308,58 +308,58 @@ func (r *feedbackRepository) CountByQRCodeID(ctx context.Context, qrCodeID uuid.
 	return count, err
 }
 
-func (r *feedbackRepository) GetAverageRating(ctx context.Context, restaurantID uuid.UUID, dishID *uuid.UUID) (float64, error) {
+func (r *feedbackRepository) GetAverageRating(ctx context.Context, organizationID uuid.UUID, productID *uuid.UUID) (float64, error) {
 	var avg float64
-	query := r.DB.WithContext(ctx).Model(&models.Feedback{}).Where("restaurant_id = ?", restaurantID)
+	query := r.DB.WithContext(ctx).Model(&models.Feedback{}).Where("organization_id = ?", organizationID)
 	
-	if dishID != nil {
-		query = query.Where("dish_id = ?", *dishID)
-		fmt.Printf("🔍 GetAverageRating called WITH dish filter: %s\n", *dishID)
+	if productID != nil {
+		query = query.Where("product_id = ?", *productID)
+		fmt.Printf("🔍 GetAverageRating called WITH product filter: %s\n", *productID)
 	} else {
-		fmt.Printf("🔍 GetAverageRating called WITHOUT dish filter (restaurant-wide)\n")
-		// Debug: Check individual ratings for restaurant-wide query
+		fmt.Printf("🔍 GetAverageRating called WITHOUT product filter (organization-wide)\n")
+		// Debug: Check individual ratings for organization-wide query
 		var allRatings []int
-		r.DB.WithContext(ctx).Model(&models.Feedback{}).Where("restaurant_id = ?", restaurantID).Pluck("overall_rating", &allRatings)
-		fmt.Printf("🔍 All ratings for restaurant %s: %v\n", restaurantID, allRatings)
+		r.DB.WithContext(ctx).Model(&models.Feedback{}).Where("organization_id = ?", organizationID).Pluck("overall_rating", &allRatings)
+		fmt.Printf("🔍 All ratings for organization %s: %v\n", organizationID, allRatings)
 	}
 	
 	err := query.Select("COALESCE(AVG(overall_rating), 0)").Row().Scan(&avg)
-	fmt.Printf("🔍 AVG query result: %v, error: %v, dishID: %v\n", avg, err, dishID)
+	fmt.Printf("🔍 AVG query result: %v, error: %v, productID: %v\n", avg, err, productID)
 	
-	// If we got 0 and it's a restaurant-wide query, something's wrong
-	if avg == 0 && dishID == nil {
-		fmt.Printf("🚨 WARNING: Restaurant-wide average is 0, this seems wrong!\n")
+	// If we got 0 and it's a organization-wide query, something's wrong
+	if avg == 0 && productID == nil {
+		fmt.Printf("🚨 WARNING: Organization-wide average is 0, this seems wrong!\n")
 	}
 	
 	return avg, err
 }
 
-func (r *feedbackRepository) FindByRestaurantIDForAnalytics(ctx context.Context, restaurantID uuid.UUID, limit int) ([]models.Feedback, error) {
+func (r *feedbackRepository) FindByOrganizationIDForAnalytics(ctx context.Context, organizationID uuid.UUID, limit int) ([]models.Feedback, error) {
 	var feedbacks []models.Feedback
 	err := r.DB.WithContext(ctx).
-		Preload("Dish").
-		Where("restaurant_id = ?", restaurantID).
+		Preload("Product").
+		Where("organization_id = ?", organizationID).
 		Limit(limit).
 		Order("created_at DESC").
 		Find(&feedbacks).Error
 	return feedbacks, err
 }
 
-func (r *feedbackRepository) FindByDishIDForAnalytics(ctx context.Context, dishID uuid.UUID, limit int) ([]models.Feedback, error) {
+func (r *feedbackRepository) FindByProductIDForAnalytics(ctx context.Context, productID uuid.UUID, limit int) ([]models.Feedback, error) {
 	var feedbacks []models.Feedback
 	err := r.DB.WithContext(ctx).
-		Preload("Dish").
-		Where("dish_id = ?", dishID).
+		Preload("Product").
+		Where("product_id = ?", productID).
 		Limit(limit).
 		Order("created_at DESC").
 		Find(&feedbacks).Error
 	return feedbacks, err
 }
 
-func (r *feedbackRepository) GetQuestionsByDishID(ctx context.Context, dishID uuid.UUID) ([]models.Question, error) {
+func (r *feedbackRepository) GetQuestionsByProductID(ctx context.Context, productID uuid.UUID) ([]models.Question, error) {
 	var questions []models.Question
 	err := r.DB.WithContext(ctx).
-		Where("dish_id = ?", dishID).
+		Where("product_id = ?", productID).
 		Order("display_order ASC").
 		Find(&questions).Error
 	return questions, err

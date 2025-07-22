@@ -14,9 +14,9 @@
 
 ### Public Feedback
 - `GET /api/v1/public/qr/:code` - Validate QR code
-- `GET /api/v1/public/restaurant/:id/menu` - Get restaurant menu
-- `GET /api/v1/public/questionnaire/:restaurantId/:dishId` - Get questionnaire
-- `GET /api/v1/public/restaurant/:restaurantId/dishes/:dishId/questions` - Get dish questions
+- `GET /api/v1/public/organization/:id/menu` - Get organization menu
+- `GET /api/v1/public/questionnaire/:organizationId/:productId` - Get questionnaire
+- `GET /api/v1/public/organization/:organizationId/products/:productId/questions` - Get product questions
 - `POST /api/v1/public/feedback` - Submit feedback
 
 ### Protected (Auth Required)
@@ -32,53 +32,53 @@
 - `PUT /api/v1/team/members/:id/role` - Update role
 - `DELETE /api/v1/team/members/:id` - Remove member
 
-#### Restaurants
-- `GET /api/v1/restaurants` - List restaurants
-- `POST /api/v1/restaurants` - Create restaurant
-- `GET /api/v1/restaurants/:id` - Get restaurant
-- `PUT /api/v1/restaurants/:id` - Update restaurant
-- `DELETE /api/v1/restaurants/:id` - Delete restaurant
+#### Organizations
+- `GET /api/v1/organizations` - List organizations
+- `POST /api/v1/organizations` - Create organization
+- `GET /api/v1/organizations/:id` - Get organization
+- `PUT /api/v1/organizations/:id` - Update organization
+- `DELETE /api/v1/organizations/:id` - Delete organization
 
-#### Dishes
-- `POST /api/v1/dishes` - Create dish
-- `GET /api/v1/dishes/:id` - Get dish
-- `PUT /api/v1/dishes/:id` - Update dish
-- `DELETE /api/v1/dishes/:id` - Delete dish
-- `GET /api/v1/restaurants/:restaurantId/dishes` - Get restaurant dishes
+#### Productes
+- `POST /api/v1/products` - Create product
+- `GET /api/v1/products/:id` - Get product
+- `PUT /api/v1/products/:id` - Update product
+- `DELETE /api/v1/products/:id` - Delete product
+- `GET /api/v1/organizations/:organizationId/products` - Get organization products
 
 #### Questions
-- `POST /api/v1/restaurants/:restaurantId/dishes/:dishId/questions` - Create question
-- `GET /api/v1/restaurants/:restaurantId/dishes/:dishId/questions` - Get questions
-- `PUT /api/v1/restaurants/:restaurantId/dishes/:dishId/questions/:questionId` - Update
-- `DELETE /api/v1/restaurants/:restaurantId/dishes/:dishId/questions/:questionId` - Delete
-- `POST /api/v1/restaurants/:restaurantId/dishes/:dishId/questions/reorder` - Reorder
+- `POST /api/v1/organizations/:organizationId/products/:productId/questions` - Create question
+- `GET /api/v1/organizations/:organizationId/products/:productId/questions` - Get questions
+- `PUT /api/v1/organizations/:organizationId/products/:productId/questions/:questionId` - Update
+- `DELETE /api/v1/organizations/:organizationId/products/:productId/questions/:questionId` - Delete
+- `POST /api/v1/organizations/:organizationId/products/:productId/questions/reorder` - Reorder
 
 #### QR Codes
-- `POST /api/v1/restaurants/:restaurantId/qr-codes` - Generate QR code
-- `GET /api/v1/restaurants/:restaurantId/qr-codes` - List QR codes
+- `POST /api/v1/organizations/:organizationId/qr-codes` - Generate QR code
+- `GET /api/v1/organizations/:organizationId/qr-codes` - List QR codes
 - `PATCH /api/v1/qr-codes/:id` - Update QR code
 - `DELETE /api/v1/qr-codes/:id` - Delete QR code
 
 #### Analytics
-- `GET /api/v1/analytics/restaurants/:restaurantId` - Restaurant analytics
-- `GET /api/v1/analytics/restaurants/:restaurantId/charts` - Chart data
-- `GET /api/v1/analytics/dishes/:dishId` - Dish analytics
-- `GET /api/v1/analytics/dashboard/:restaurantId` - Dashboard metrics
+- `GET /api/v1/analytics/organizations/:organizationId` - Organization analytics
+- `GET /api/v1/analytics/organizations/:organizationId/charts` - Chart data
+- `GET /api/v1/analytics/products/:productId` - Product analytics
+- `GET /api/v1/analytics/dashboard/:organizationId` - Dashboard metrics
 
 #### AI
-- `POST /api/v1/ai/generate-questions/:dishId` - Generate questions
-- `POST /api/v1/ai/generate-questionnaire/:dishId` - Generate questionnaire
+- `POST /api/v1/ai/generate-questions/:productId` - Generate questions
+- `POST /api/v1/ai/generate-questionnaire/:productId` - Generate questionnaire
 
 ## Database Schema
 
 ### Key Tables
 ```sql
-accounts          # Restaurant owners
+accounts          # Organization owners
 users             # Individual users
 team_members      # Links users to accounts
-restaurants       # Restaurant entities
-dishes            # Menu items
-questionnaires    # Feedback forms (dish_id optional)
+organizations       # Organization entities
+products            # Menu items
+questionnaires    # Feedback forms (product_id optional)
 questions         # Individual questions
 feedbacks         # Customer responses
 subscriptions     # Active plans
@@ -86,20 +86,20 @@ qr_codes          # QR tracking
 ```
 
 ### Important Relations
-- Questionnaire → Dish (optional, for dish-specific)
-- Feedback → Dish (required)
+- Questionnaire → Product (optional, for product-specific)
+- Feedback → Product (required)
 - Everything scoped by account_id
 
 ## Subscription Plans
 
 ### Starter ($29/month)
-- 1 restaurant
+- 1 organization
 - 500 feedbacks/month
 - 10 QR codes
 - 2 team members
 
 ### Professional ($79/month)
-- 3 restaurants
+- 3 organizations
 - 2000 feedbacks/month
 - 50 QR codes/location
 - 5 team members
@@ -132,5 +132,5 @@ type Service interface {
 ```ts
 import { getApiClient } from '$lib/api';
 const api = getApiClient();
-const response = await api.api.v1RestaurantsDishesList(restaurantId);
+const response = await api.api.v1OrganizationsProductesList(organizationId);
 ```

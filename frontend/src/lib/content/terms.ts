@@ -6,7 +6,7 @@ export const termsContent = {
   sections: [
     {
       title: 'Terms of Service',
-      content: `Welcome to LeCritique. These terms of service ("Terms") govern your use of our restaurant feedback management platform. By using LeCritique, you agree to these Terms.`
+      content: `Welcome to LeCritique. These terms of service ("Terms") govern your use of our organization feedback management platform. By using LeCritique, you agree to these Terms.`
     },
     {
       title: '1. Acceptance of Terms',
@@ -14,7 +14,7 @@ export const termsContent = {
     },
     {
       title: '2. Service Description',
-      content: `LeCritique is a SaaS platform that enables restaurants to collect customer feedback through QR codes. The service includes dish-specific questionnaires, feedback analytics, and restaurant management tools.`
+      content: `LeCritique is a SaaS platform that enables organizations to collect customer feedback through QR codes. The service includes product-specific questionnaires, feedback analytics, and organization management tools.`
     },
     {
       title: '3. Account Registration',

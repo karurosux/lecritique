@@ -17,7 +17,7 @@
 
 <svelte:head>
   <title>Terms of Service - LeCritique</title>
-  <meta name="description" content="LeCritique Terms of Service - Read our terms and conditions for using our restaurant feedback management platform" />
+  <meta name="description" content="LeCritique Terms of Service - Read our terms and conditions for using our organization feedback management platform" />
 </svelte:head>
 
 <div class="min-h-screen bg-gradient-to-b from-white to-gray-50/50">
@@ -51,7 +51,7 @@
           Terms of Service
         </h1>
         <p class="text-xl text-gray-600 max-w-2xl mx-auto">
-          Everything you need to know about using LeCritique's restaurant feedback platform
+          Everything you need to know about using LeCritique's organization feedback platform
         </p>
       </div>
 

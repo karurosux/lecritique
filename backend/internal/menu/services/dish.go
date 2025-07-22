@@ -5,59 +5,59 @@ import (
 	"github.com/google/uuid"
 	"lecritique/internal/menu/models"
 	menuRepos "lecritique/internal/menu/repositories"
-	restaurantRepos "lecritique/internal/restaurant/repositories"
+	organizationRepos "lecritique/internal/organization/repositories"
 	sharedRepos "lecritique/internal/shared/repositories"
 	"github.com/samber/do"
 )
 
-type DishService interface {
-	Create(ctx context.Context, accountID uuid.UUID, dish *models.Dish) error
-	Update(ctx context.Context, accountID uuid.UUID, dishID uuid.UUID, updates map[string]interface{}) error
-	Delete(ctx context.Context, accountID uuid.UUID, dishID uuid.UUID) error
-	GetByID(ctx context.Context, accountID uuid.UUID, dishID uuid.UUID) (*models.Dish, error)
-	GetByRestaurantID(ctx context.Context, accountID uuid.UUID, restaurantID uuid.UUID) ([]models.Dish, error)
+type ProductService interface {
+	Create(ctx context.Context, accountID uuid.UUID, product *models.Product) error
+	Update(ctx context.Context, accountID uuid.UUID, productID uuid.UUID, updates map[string]interface{}) error
+	Delete(ctx context.Context, accountID uuid.UUID, productID uuid.UUID) error
+	GetByID(ctx context.Context, accountID uuid.UUID, productID uuid.UUID) (*models.Product, error)
+	GetByOrganizationID(ctx context.Context, accountID uuid.UUID, organizationID uuid.UUID) ([]models.Product, error)
 }
 
-type dishService struct {
-	dishRepo       menuRepos.DishRepository
-	restaurantRepo restaurantRepos.RestaurantRepository
+type productService struct {
+	productRepo       menuRepos.ProductRepository
+	organizationRepo organizationRepos.OrganizationRepository
 }
 
-func NewDishService(i *do.Injector) (DishService, error) {
-	return &dishService{
-		dishRepo:       do.MustInvoke[menuRepos.DishRepository](i),
-		restaurantRepo: do.MustInvoke[restaurantRepos.RestaurantRepository](i),
+func NewProductService(i *do.Injector) (ProductService, error) {
+	return &productService{
+		productRepo:       do.MustInvoke[menuRepos.ProductRepository](i),
+		organizationRepo: do.MustInvoke[organizationRepos.OrganizationRepository](i),
 	}, nil
 }
 
-func (s *dishService) Create(ctx context.Context, accountID uuid.UUID, dish *models.Dish) error {
-	// Verify restaurant ownership
-	restaurant, err := s.restaurantRepo.FindByID(ctx, dish.RestaurantID)
+func (s *productService) Create(ctx context.Context, accountID uuid.UUID, product *models.Product) error {
+	// Verify organization ownership
+	organization, err := s.organizationRepo.FindByID(ctx, product.OrganizationID)
 	if err != nil {
 		return err
 	}
 
-	if restaurant.AccountID != accountID {
+	if organization.AccountID != accountID {
 		return sharedRepos.ErrRecordNotFound
 	}
 
-	return s.dishRepo.Create(ctx, dish)
+	return s.productRepo.Create(ctx, product)
 }
 
-func (s *dishService) Update(ctx context.Context, accountID uuid.UUID, dishID uuid.UUID, updates map[string]interface{}) error {
-	// Get dish
-	dish, err := s.dishRepo.FindByID(ctx, dishID)
+func (s *productService) Update(ctx context.Context, accountID uuid.UUID, productID uuid.UUID, updates map[string]interface{}) error {
+	// Get product
+	product, err := s.productRepo.FindByID(ctx, productID)
 	if err != nil {
 		return err
 	}
 
 	// Verify ownership
-	restaurant, err := s.restaurantRepo.FindByID(ctx, dish.RestaurantID)
+	organization, err := s.organizationRepo.FindByID(ctx, product.OrganizationID)
 	if err != nil {
 		return err
 	}
 
-	if restaurant.AccountID != accountID {
+	if organization.AccountID != accountID {
 		return sharedRepos.ErrRecordNotFound
 	}
 
@@ -65,72 +65,72 @@ func (s *dishService) Update(ctx context.Context, accountID uuid.UUID, dishID uu
 	for key, value := range updates {
 		switch key {
 		case "name":
-			dish.Name = value.(string)
+			product.Name = value.(string)
 		case "description":
-			dish.Description = value.(string)
+			product.Description = value.(string)
 		case "category":
-			dish.Category = value.(string)
+			product.Category = value.(string)
 		case "price":
-			dish.Price = value.(float64)
+			product.Price = value.(float64)
 		case "is_available":
-			dish.IsAvailable = value.(bool)
+			product.IsAvailable = value.(bool)
 		case "is_active":
-			dish.IsActive = value.(bool)
+			product.IsActive = value.(bool)
 		}
 	}
 
-	return s.dishRepo.Update(ctx, dish)
+	return s.productRepo.Update(ctx, product)
 }
 
-func (s *dishService) Delete(ctx context.Context, accountID uuid.UUID, dishID uuid.UUID) error {
-	// Get dish
-	dish, err := s.dishRepo.FindByID(ctx, dishID)
+func (s *productService) Delete(ctx context.Context, accountID uuid.UUID, productID uuid.UUID) error {
+	// Get product
+	product, err := s.productRepo.FindByID(ctx, productID)
 	if err != nil {
 		return err
 	}
 
 	// Verify ownership
-	restaurant, err := s.restaurantRepo.FindByID(ctx, dish.RestaurantID)
+	organization, err := s.organizationRepo.FindByID(ctx, product.OrganizationID)
 	if err != nil {
 		return err
 	}
 
-	if restaurant.AccountID != accountID {
+	if organization.AccountID != accountID {
 		return sharedRepos.ErrRecordNotFound
 	}
 
-	return s.dishRepo.Delete(ctx, dishID)
+	return s.productRepo.Delete(ctx, productID)
 }
 
-func (s *dishService) GetByID(ctx context.Context, accountID uuid.UUID, dishID uuid.UUID) (*models.Dish, error) {
-	dish, err := s.dishRepo.FindByID(ctx, dishID)
+func (s *productService) GetByID(ctx context.Context, accountID uuid.UUID, productID uuid.UUID) (*models.Product, error) {
+	product, err := s.productRepo.FindByID(ctx, productID)
 	if err != nil {
 		return nil, err
 	}
 
 	// Verify ownership
-	restaurant, err := s.restaurantRepo.FindByID(ctx, dish.RestaurantID)
+	organization, err := s.organizationRepo.FindByID(ctx, product.OrganizationID)
 	if err != nil {
 		return nil, err
 	}
 
-	if restaurant.AccountID != accountID {
+	if organization.AccountID != accountID {
 		return nil, sharedRepos.ErrRecordNotFound
 	}
 
-	return dish, nil
+	return product, nil
 }
 
-func (s *dishService) GetByRestaurantID(ctx context.Context, accountID uuid.UUID, restaurantID uuid.UUID) ([]models.Dish, error) {
-	// Verify restaurant ownership
-	restaurant, err := s.restaurantRepo.FindByID(ctx, restaurantID)
+func (s *productService) GetByOrganizationID(ctx context.Context, accountID uuid.UUID, organizationID uuid.UUID) ([]models.Product, error) {
+	// Verify organization ownership
+	organization, err := s.organizationRepo.FindByID(ctx, organizationID)
 	if err != nil {
 		return nil, err
 	}
 
-	if restaurant.AccountID != accountID {
+	if organization.AccountID != accountID {
 		return nil, sharedRepos.ErrRecordNotFound
 	}
 
-	return s.dishRepo.FindByRestaurantID(ctx, restaurantID)
+	return s.productRepo.FindByOrganizationID(ctx, organizationID)
 }

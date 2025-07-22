@@ -56,7 +56,7 @@ type TokenResponse struct {
 
 // Register godoc
 // @Summary Register a new account
-// @Description Create a new restaurant owner account
+// @Description Create a new organization owner account
 // @Tags auth
 // @Accept json
 // @Produce json

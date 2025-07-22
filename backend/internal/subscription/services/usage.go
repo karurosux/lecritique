@@ -63,8 +63,8 @@ func (s *usageService) TrackUsage(ctx context.Context, subscriptionID uuid.UUID,
 	switch resourceType {
 	case models.ResourceTypeFeedback:
 		usage.FeedbacksCount += delta
-	case models.ResourceTypeRestaurant:
-		usage.RestaurantsCount += delta
+	case models.ResourceTypeOrganization:
+		usage.OrganizationsCount += delta
 	case models.ResourceTypeLocation:
 		usage.LocationsCount += delta
 	case models.ResourceTypeQRCode:
@@ -120,7 +120,7 @@ func (s *usageService) GetCurrentUsage(ctx context.Context, subscriptionID uuid.
 			PeriodStart:      subscription.CurrentPeriodStart,
 			PeriodEnd:        subscription.CurrentPeriodEnd,
 			FeedbacksCount:   0,
-			RestaurantsCount: 0,
+			OrganizationsCount: 0,
 			LocationsCount:   0,
 			QRCodesCount:     0,
 			TeamMembersCount: 0,

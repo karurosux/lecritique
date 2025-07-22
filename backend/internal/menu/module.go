@@ -17,22 +17,22 @@ func NewModule(i *do.Injector) *Module {
 
 func (m *Module) RegisterRoutes(v1 *echo.Group) {
 	// Get handlers from injector
-	dishHandler := do.MustInvoke[*handlers.DishHandler](m.injector)
+	productHandler := do.MustInvoke[*handlers.ProductHandler](m.injector)
 	publicHandler := do.MustInvoke[*handlers.MenuPublicHandler](m.injector)
 	
 	// Get middleware provider
 	middlewareProvider := do.MustInvoke[*sharedMiddleware.MiddlewareProvider](m.injector)
 	
 	// Public menu routes (no auth required)
-	v1.GET("/restaurant/:id/menu", publicHandler.GetRestaurantMenu)
+	v1.GET("/organization/:id/menu", publicHandler.GetOrganizationMenu)
 	
-	// Menu routes under restaurants (moved to restaurant module)
+	// Menu routes under organizations (moved to organization module)
 	
-	// Direct dish routes
-	dishes := v1.Group("/dishes")
-	dishes.Use(middlewareProvider.AuthMiddleware())
-	dishes.Use(middlewareProvider.TeamAwareMiddleware())
-	dishes.GET("/:id", dishHandler.GetByID)
-	dishes.PUT("/:id", dishHandler.Update)
-	dishes.DELETE("/:id", dishHandler.Delete)
+	// Direct product routes
+	products := v1.Group("/products")
+	products.Use(middlewareProvider.AuthMiddleware())
+	products.Use(middlewareProvider.TeamAwareMiddleware())
+	products.GET("/:id", productHandler.GetByID)
+	products.PUT("/:id", productHandler.Update)
+	products.DELETE("/:id", productHandler.Delete)
 }

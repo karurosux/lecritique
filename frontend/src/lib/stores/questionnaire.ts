@@ -24,7 +24,7 @@ export interface Question {
 
 export interface Questionnaire {
   id: string;
-  restaurant_id: string;
+  organization_id: string;
   location_id?: string;
   name: string;
   description?: string;
@@ -51,8 +51,8 @@ function createQuestionnaireStore() {
     cache: new Map()
   });
 
-  async function fetchQuestionnaire(restaurantId: string, locationId?: string) {
-    const cacheKey = `${restaurantId}-${locationId || 'default'}`;
+  async function fetchQuestionnaire(organizationId: string, locationId?: string) {
+    const cacheKey = `${organizationId}-${locationId || 'default'}`;
     
     update(state => {
       // Check cache
@@ -73,15 +73,15 @@ function createQuestionnaireStore() {
       const api = getApiClient();
       
       // For now, we'll use a fallback since the API might not have location-based questionnaires
-      // We'll try to get the questionnaire for the restaurant
-      const response = await api.api.v1PublicQuestionnaireDetail(restaurantId, 'default');
+      // We'll try to get the questionnaire for the organization
+      const response = await api.api.v1PublicQuestionnaireDetail(organizationId, 'default');
       
       // If the API returns an empty response or error, use default questions
       const questionnaire: Questionnaire = response.data && typeof response.data === 'object' && 'questions' in response.data
         ? response.data as Questionnaire
         : {
             id: 'default',
-            restaurant_id: restaurantId,
+            organization_id: organizationId,
             location_id: locationId,
             name: 'Customer Feedback',
             description: 'Help us improve your dining experience',
@@ -111,7 +111,7 @@ function createQuestionnaireStore() {
       // If API fails, use default questions
       const fallbackQuestionnaire: Questionnaire = {
         id: 'default',
-        restaurant_id: restaurantId,
+        organization_id: organizationId,
         location_id: locationId,
         name: 'Customer Feedback',
         description: 'Help us improve your dining experience',
@@ -130,8 +130,8 @@ function createQuestionnaireStore() {
     }
   }
 
-  async function fetchDishQuestions(restaurantId: string, dishId: string) {
-    const cacheKey = `${restaurantId}-dish-${dishId}`;
+  async function fetchProductQuestions(organizationId: string, productId: string) {
+    const cacheKey = `${organizationId}-product-${productId}`;
     
     update(state => {
       // Check cache
@@ -151,18 +151,18 @@ function createQuestionnaireStore() {
     try {
       const api = getApiClient();
       
-      // Fetch dish questions from the public API
-      const response = await api.api.v1PublicRestaurantDishesQuestionsDetail(restaurantId, dishId);
+      // Fetch product questions from the public API
+      const response = await api.api.v1PublicOrganizationProductesQuestionsDetail(organizationId, productId);
       
       if (response.data && response.data.success && response.data.data) {
-        const { dish, questions } = response.data.data;
+        const { product, questions } = response.data.data;
         
-        // Transform dish questions into questionnaire format
+        // Transform product questions into questionnaire format
         const questionnaire: Questionnaire = {
-          id: `dish-${dishId}`,
-          restaurant_id: restaurantId,
-          name: `${dish.name} Feedback`,
-          description: `Tell us about your experience with ${dish.name}`,
+          id: `product-${productId}`,
+          organization_id: organizationId,
+          name: `${product.name} Feedback`,
+          description: `Tell us about your experience with ${product.name}`,
           is_active: true,
           questions: questions.map((q: any, index: number) => ({
             id: q.id,
@@ -195,7 +195,7 @@ function createQuestionnaireStore() {
 
         return questionnaire;
       } else {
-        throw new Error('No questions found for this dish');
+        throw new Error('No questions found for this product');
       }
     } catch (err) {
       const errorMessage = handleApiError(err);
@@ -203,7 +203,7 @@ function createQuestionnaireStore() {
       // If API fails, use default questions
       const fallbackQuestionnaire: Questionnaire = {
         id: 'default',
-        restaurant_id: restaurantId,
+        organization_id: organizationId,
         name: 'Customer Feedback',
         description: 'Help us improve your dining experience',
         is_active: true,
@@ -240,7 +240,7 @@ function createQuestionnaireStore() {
   return {
     subscribe,
     fetchQuestionnaire,
-    fetchDishQuestions,
+    fetchProductQuestions,
     clearCache,
     reset
   };

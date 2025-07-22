@@ -15,28 +15,28 @@ func NewMenuPublicHandler(i *do.Injector) (*MenuPublicHandler, error) {
 	return &MenuPublicHandler{}, nil
 }
 
-// GetRestaurantMenu gets public restaurant menu
-// @Summary Get restaurant menu
-// @Description Get public menu for a restaurant
+// GetOrganizationMenu gets public organization menu
+// @Summary Get organization menu
+// @Description Get public menu for a organization
 // @Tags public
 // @Accept json
 // @Produce json
-// @Param id path string true "Restaurant ID"
+// @Param id path string true "Organization ID"
 // @Success 200 {object} map[string]interface{}
 // @Failure 400 {object} response.Response
 // @Failure 404 {object} response.Response
-// @Router /api/v1/public/restaurant/{id}/menu [get]
-func (h *MenuPublicHandler) GetRestaurantMenu(c echo.Context) error {
+// @Router /api/v1/public/organization/{id}/menu [get]
+func (h *MenuPublicHandler) GetOrganizationMenu(c echo.Context) error {
 	idStr := c.Param("id")
 	id, err := uuid.Parse(idStr)
 	if err != nil {
 		return response.Error(c, errors.ErrInvalidUUID)
 	}
 
-	// Implementation would get restaurant menu
+	// Implementation would get organization menu
 	// For now, return placeholder
 	return response.Success(c, map[string]interface{}{
-		"restaurant_id": id,
+		"organization_id": id,
 		"message":       "Menu endpoint - to be implemented",
 	})
 }

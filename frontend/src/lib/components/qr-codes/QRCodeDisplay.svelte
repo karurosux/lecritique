@@ -9,12 +9,12 @@
 
 	let {
 		qrCode,
-		restaurantName,
+		organizationName,
 		clickOrigin = null,
 		onclose
 	}: {
 		qrCode: any;
-		restaurantName: string;
+		organizationName: string;
 		clickOrigin?: { x: number; y: number } | null;
 		onclose: () => void;
 	} = $props();
@@ -118,7 +118,7 @@
 		
 		// Instructions header
 		printWindow.document.write('<div class="instructions-header">');
-		printWindow.document.write('<h1>' + restaurantName + ' - QR Code Sheet</h1>');
+		printWindow.document.write('<h1>' + organizationName + ' - QR Code Sheet</h1>');
 		printWindow.document.write('<p>Cut along the dashed lines to separate individual QR code cards</p>');
 		printWindow.document.write('<p>All QR codes lead to the same feedback form for: <strong>' + qrCode.label + '</strong></p>');
 		printWindow.document.write('</div>');
@@ -129,7 +129,7 @@
 		printWindow.document.write('<div class="qr-item">');
 		printWindow.document.write('<img class="logo" src="' + logoImage + '" alt="LeCritique Logo">');
 		printWindow.document.write('<img src="' + qrDataUrl + '" alt="QR Code" width="200" height="200">');
-		printWindow.document.write('<h3>' + restaurantName + '</h3>');
+		printWindow.document.write('<h3>' + organizationName + '</h3>');
 		printWindow.document.write('<div class="label">' + qrCode.label + '</div>');
 		printWindow.document.write('<div class="use-case">Scan to leave feedback</div>');
 		printWindow.document.write('</div>');
@@ -230,8 +230,8 @@
 		// LeCritique logo
 		printWindow.document.write('<image x="125" y="70" width="130" height="32" href="' + logoImage + '"/>');
 		
-		// Restaurant name
-		printWindow.document.write('<text x="190" y="120" text-anchor="middle" font-size="16" font-weight="bold" fill="#333">' + restaurantName + '</text>');
+		// Organization name
+		printWindow.document.write('<text x="190" y="120" text-anchor="middle" font-size="16" font-weight="bold" fill="#333">' + organizationName + '</text>');
 		
 		// QR code
 		printWindow.document.write('<image x="125" y="130" width="130" height="130" href="' + qrDataUrl + '"/>');

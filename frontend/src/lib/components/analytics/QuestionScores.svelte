@@ -19,15 +19,15 @@
     text_responses?: string[];
   }
   
-  interface DishInsights {
+  interface ProductInsights {
     question_metrics: QuestionMetric[];
   }
   
   let {
-    dishInsights = null,
+    productInsights = null,
     loading = false
   }: {
-    dishInsights?: DishInsights | null;
+    productInsights?: ProductInsights | null;
     loading?: boolean;
   } = $props();
   
@@ -93,9 +93,9 @@
         </div>
       {/each}
     </div>
-  {:else if dishInsights?.question_metrics?.length}
+  {:else if productInsights?.question_metrics?.length}
     <div class="space-y-4">
-      {#each dishInsights.question_metrics as metric}
+      {#each productInsights.question_metrics as metric}
         <button 
           class="w-full text-left bg-white border rounded-lg p-4 transition-all cursor-pointer {highlightedQuestionId === metric.question_id ? 'border-blue-500 shadow-lg ring-2 ring-blue-200' : 'border-gray-200 hover:shadow-md'}"
           onclick={() => analytics.setHighlightedQuestion(metric.question_id === highlightedQuestionId ? null : metric.question_id)}
@@ -169,7 +169,7 @@
   {:else}
     <div class="text-center py-8">
       <div class="text-gray-500 text-sm">
-        No question data available. Select a dish to view question-level analytics.
+        No question data available. Select a product to view question-level analytics.
       </div>
     </div>
   {/if}

@@ -43,7 +43,7 @@
       }
     ] as PaymentMethod[],
     billingAddress = {
-      company: 'Acme Restaurant Group',
+      company: 'Acme Organization Group',
       street1: '123 Main Street',
       street2: 'Suite 100',
       city: 'San Francisco',

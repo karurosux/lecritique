@@ -10,7 +10,7 @@
       id: string;
       text: string;
       rating?: number;
-      dish_name?: string;
+      product_name?: string;
       created_at: string;
     }>;
     sentiment_summary: {
@@ -218,9 +218,9 @@
                     {truncateText(feedback.text)}
                   </p>
                   <div class="flex items-center gap-2 mt-2">
-                    {#if feedback.dish_name}
+                    {#if feedback.product_name}
                       <span class="text-xs text-gray-500 px-2 py-1 bg-white rounded">
-                        {feedback.dish_name}
+                        {feedback.product_name}
                       </span>
                     {/if}
                     <span class="text-xs text-gray-500">

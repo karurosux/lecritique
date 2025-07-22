@@ -16,7 +16,7 @@ type QRCodeRepository interface {
 	Create(ctx context.Context, qrCode *models.QRCode) error
 	FindByID(ctx context.Context, id uuid.UUID, preloads ...string) (*models.QRCode, error)
 	FindByCode(ctx context.Context, code string) (*models.QRCode, error)
-	FindByRestaurantID(ctx context.Context, restaurantID uuid.UUID) ([]models.QRCode, error)
+	FindByOrganizationID(ctx context.Context, organizationID uuid.UUID) ([]models.QRCode, error)
 	Update(ctx context.Context, qrCode *models.QRCode) error
 	Delete(ctx context.Context, id uuid.UUID) error
 	IncrementScanCount(ctx context.Context, id uuid.UUID) error
@@ -35,7 +35,7 @@ func NewQRCodeRepository(i *do.Injector) (QRCodeRepository, error) {
 
 func (r *qrCodeRepository) FindByCode(ctx context.Context, code string) (*models.QRCode, error) {
 	var qrCode models.QRCode
-	err := r.DB.WithContext(ctx).Preload("Restaurant").
+	err := r.DB.WithContext(ctx).Preload("Organization").
 		Where("code = ?", code).First(&qrCode).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -46,10 +46,10 @@ func (r *qrCodeRepository) FindByCode(ctx context.Context, code string) (*models
 	return &qrCode, nil
 }
 
-func (r *qrCodeRepository) FindByRestaurantID(ctx context.Context, restaurantID uuid.UUID) ([]models.QRCode, error) {
+func (r *qrCodeRepository) FindByOrganizationID(ctx context.Context, organizationID uuid.UUID) ([]models.QRCode, error) {
 	var qrCodes []models.QRCode
 	err := r.DB.WithContext(ctx).
-		Where("restaurant_id = ?", restaurantID).
+		Where("organization_id = ?", organizationID).
 		Order("created_at DESC").
 		Find(&qrCodes).Error
 	return qrCodes, err

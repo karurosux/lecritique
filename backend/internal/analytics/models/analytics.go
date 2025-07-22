@@ -31,10 +31,10 @@ type QuestionMetric struct {
 	NegativeRate  float64              `json:"negative_rate"`
 }
 
-// DishInsights represents comprehensive analytics for a dish
-type DishInsights struct {
-	DishID        uuid.UUID           `json:"dish_id"`
-	DishName      string              `json:"dish_name"`
+// ProductInsights represents comprehensive analytics for a product
+type ProductInsights struct {
+	ProductID        uuid.UUID           `json:"product_id"`
+	ProductName      string              `json:"product_name"`
 	TotalFeedback int64               `json:"total_feedback"`
 	CompletionRate float64            `json:"completion_rate"`
 	
@@ -54,15 +54,15 @@ type DishInsights struct {
 	WeeklyChange  float64            `json:"weekly_change"`
 }
 
-// RestaurantInsights represents restaurant-wide analytics
-type RestaurantInsights struct {
-	RestaurantID      uuid.UUID         `json:"restaurant_id"`
-	RestaurantName    string            `json:"restaurant_name"`
+// OrganizationInsights represents organization-wide analytics
+type OrganizationInsights struct {
+	OrganizationID      uuid.UUID         `json:"organization_id"`
+	OrganizationName    string            `json:"organization_name"`
 	Period            string            `json:"period"` // "today", "week", "month", "all"
 	
 	// Overall metrics
 	TotalFeedback     int64             `json:"total_feedback"`
-	ActiveDishes      int               `json:"active_dishes"`
+	ActiveProductes      int               `json:"active_products"`
 	AverageSatisfaction float64         `json:"average_satisfaction"`
 	RecommendationRate float64          `json:"recommendation_rate"`
 	SentimentScore    float64           `json:"sentiment_score"`
@@ -72,8 +72,8 @@ type RestaurantInsights struct {
 	SatisfactionTrend []TrendPoint      `json:"satisfaction_trend"`
 	
 	// Top/Bottom performers
-	TopDishes         []DishSummary     `json:"top_dishes"`
-	BottomDishes      []DishSummary     `json:"bottom_dishes"`
+	TopProductes         []ProductSummary     `json:"top_products"`
+	BottomProductes      []ProductSummary     `json:"bottom_products"`
 	
 	// Issues requiring attention
 	CriticalIssues    []Issue           `json:"critical_issues"`
@@ -108,8 +108,8 @@ type QRCodePerformance struct {
 	ID             uuid.UUID  `json:"id"`
 	Label          string     `json:"label"`
 	Location       string     `json:"location,omitempty"`
-	RestaurantID   uuid.UUID  `json:"restaurant_id"`
-	RestaurantName string     `json:"restaurant_name"`
+	OrganizationID   uuid.UUID  `json:"organization_id"`
+	OrganizationName string     `json:"organization_name"`
 	ScansCount     int64      `json:"scans_count"`
 	FeedbackCount  int64      `json:"feedback_count"`
 	ConversionRate float64    `json:"conversion_rate"` // feedback / scans * 100
@@ -123,17 +123,17 @@ type TrendPoint struct {
 	Value float64   `json:"value"`
 }
 
-type DishSummary struct {
-	DishID        uuid.UUID `json:"dish_id"`
-	DishName      string    `json:"dish_name"`
+type ProductSummary struct {
+	ProductID        uuid.UUID `json:"product_id"`
+	ProductName      string    `json:"product_name"`
 	Score         float64   `json:"score"`
 	FeedbackCount int64     `json:"feedback_count"`
 	Trend         string    `json:"trend"` // "up", "down", "stable"
 }
 
 type Issue struct {
-	DishID       uuid.UUID `json:"dish_id"`
-	DishName     string    `json:"dish_name"`
+	ProductID       uuid.UUID `json:"product_id"`
+	ProductName     string    `json:"product_name"`
 	QuestionText string    `json:"question_text"`
 	IssueType    string    `json:"issue_type"` // "low_score", "negative_trend", "complaints"
 	Severity     string    `json:"severity"`   // "critical", "warning", "info"
@@ -149,7 +149,7 @@ type QuickIssue struct {
 
 type FeedbackSummary struct {
 	FeedbackID   uuid.UUID `json:"feedback_id"`
-	DishName     string    `json:"dish_name"`
+	ProductName     string    `json:"product_name"`
 	CustomerName string    `json:"customer_name"`
 	Score        float64   `json:"score"`
 	Sentiment    string    `json:"sentiment"` // "positive", "neutral", "negative"
@@ -165,8 +165,8 @@ type ChartData struct {
 	QuestionText string                 `json:"question_text"`
 	QuestionType string                 `json:"question_type"`
 	ChartType    string                 `json:"chart_type"` // "rating", "choice", "text_sentiment"
-	DishID       *uuid.UUID             `json:"dish_id,omitempty"`
-	DishName     string                 `json:"dish_name,omitempty"`
+	ProductID       *uuid.UUID             `json:"product_id,omitempty"`
+	ProductName     string                 `json:"product_name,omitempty"`
 	Data         map[string]interface{} `json:"data"`
 }
 
@@ -205,9 +205,9 @@ type TextSentiment struct {
 	Keywords    []string `json:"keywords"` // common keywords
 }
 
-// RestaurantChartData represents aggregated chart data for entire restaurant
-type RestaurantChartData struct {
-	RestaurantID uuid.UUID   `json:"restaurant_id"`
+// OrganizationChartData represents aggregated chart data for entire organization
+type OrganizationChartData struct {
+	OrganizationID uuid.UUID   `json:"organization_id"`
 	Charts       []ChartData `json:"charts"`
 	Summary      struct {
 		TotalResponses int64     `json:"total_responses"`

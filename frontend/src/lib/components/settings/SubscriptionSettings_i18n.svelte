@@ -55,7 +55,7 @@
     const items = [];
 
     // Use translation with pluralization
-    items.push($_('subscription.features.restaurants', { values: { count: features.max_restaurants }}));
+    items.push($_('subscription.features.organizations', { values: { count: features.max_organizations }}));
     items.push($_('subscription.features.feedbacks', { values: { count: features.max_feedbacks_per_month }}));
     items.push($_('subscription.features.qrCodes', { values: { count: features.max_qr_codes_per_location }}));
     items.push($_('subscription.features.teamMembers', { values: { count: features.max_team_members }}));

@@ -1,27 +1,27 @@
-# LeCritique - Restaurant Feedback Platform
+# LeCritique - Organization Feedback Platform
 
 ## Project Overview
 
-LeCritique is a SaaS platform that enables restaurants to collect detailed, dish-specific feedback from customers through QR code-driven questionnaires. The platform helps restaurant owners gain actionable insights to improve their service, menu offerings, and overall customer experience.
+LeCritique is a SaaS platform that enables organizations to collect detailed, product-specific feedback from customers through QR code-driven questionnaires. The platform helps organization owners gain actionable insights to improve their service, menu offerings, and overall customer experience.
 
 ## Core Concept
 
-1. **Restaurant owners** subscribe to the service (monthly fee)
+1. **Organization owners** subscribe to the service (monthly fee)
 2. **Generate QR codes** for tables, locations, or takeaway orders
 3. **Customers scan** the QR code after their meal
-4. **Select the dish** they ordered from the menu
-5. **Answer targeted questions** specific to that dish
-6. **Restaurant receives** real-time feedback and analytics
+4. **Select the product** they ordered from the menu
+5. **Answer targeted questions** specific to that product
+6. **Organization receives** real-time feedback and analytics
 
 ## Key Features
 
-### For Restaurant Owners
+### For Organization Owners
 
-- **Multi-restaurant support** - Manage multiple restaurant locations under one account
-- **Subscription-based pricing** - Tiered plans based on restaurant count and features
+- **Multi-organization support** - Manage multiple organization locations under one account
+- **Subscription-based pricing** - Tiered plans based on organization count and features
 - **QR code management** - Generate and manage QR codes for different purposes (tables, takeaway, delivery)
-- **Dish catalog** - Maintain menu items with categories, prices, and availability
-- **Custom questionnaires** - Create dish-specific questions or use templates
+- **Product catalog** - Maintain menu items with categories, prices, and availability
+- **Custom questionnaires** - Create product-specific questions or use templates
 - **Real-time analytics** - View feedback trends, ratings, and insights
 - **Team collaboration** - Invite team members with different permission levels
 - **Low rating alerts** - Get notified when feedback falls below threshold
@@ -30,7 +30,7 @@ LeCritique is a SaaS platform that enables restaurants to collect detailed, dish
 
 - **Frictionless experience** - No app download or registration required
 - **Quick feedback** - Complete questionnaire in under 2 minutes
-- **Dish-specific questions** - Relevant questions based on what they ordered
+- **Product-specific questions** - Relevant questions based on what they ordered
 - **Multiple question types** - Ratings, scales, multiple choice, text feedback
 - **Optional contact info** - Provide email/phone for follow-up (optional)
 - **Mobile optimized** - Works seamlessly on any device
@@ -57,7 +57,7 @@ LeCritique is a SaaS platform that enables restaurants to collect detailed, dish
 2. **Multi-tenant Architecture**
    - Account-based isolation
    - Subscription limits enforced at service layer
-   - Restaurant-level data separation
+   - Organization-level data separation
 
 3. **UUID Primary Keys**
    - Better for distributed systems
@@ -79,19 +79,19 @@ LeCritique is a SaaS platform that enables restaurants to collect detailed, dish
 ### Core Entities
 
 1. **Account**
-   - Represents a restaurant owner/company
-   - Has subscription, restaurants, team members
+   - Represents a organization owner/company
+   - Has subscription, organizations, team members
    - Email-based authentication
 
-2. **Restaurant**
-   - Individual restaurant location
+2. **Organization**
+   - Individual organization location
    - Belongs to an account
-   - Has settings, locations, dishes, QR codes
+   - Has settings, locations, products, QR codes
 
-3. **Dish**
+3. **Product**
    - Menu items with pricing and availability
    - Can have custom questionnaire
-   - Tracks feedback per dish
+   - Tracks feedback per product
 
 4. **QRCode**
    - Unique codes for customer entry points
@@ -100,28 +100,28 @@ LeCritique is a SaaS platform that enables restaurants to collect detailed, dish
 
 5. **Feedback**
    - Customer responses to questionnaires
-   - Links to dish, restaurant, and QR code
+   - Links to product, organization, and QR code
    - Stores ratings and text responses
 
 6. **Subscription**
    - Controls account limits and features
    - Plans: Starter ($29), Professional ($79), Enterprise ($199)
-   - Enforces restaurant count, feedback limits, etc.
+   - Enforces organization count, feedback limits, etc.
 
 ## API Structure
 
 ### Public Endpoints (Customer-facing)
 
 - QR code validation
-- Restaurant menu retrieval
+- Organization menu retrieval
 - Questionnaire fetching
 - Feedback submission
 
 ### Protected Endpoints (Owner-facing)
 
 - Authentication (register, login, refresh)
-- Restaurant management (CRUD)
-- Dish management (CRUD)
+- Organization management (CRUD)
+- Product management (CRUD)
 - QR code generation
 - Feedback analytics
 - Team management
@@ -131,7 +131,7 @@ LeCritique is a SaaS platform that enables restaurants to collect detailed, dish
 
 ### Starter - $29/month
 
-- 1 restaurant
+- 1 organization
 - 1 location
 - 10 QR codes
 - 500 feedbacks/month
@@ -140,8 +140,8 @@ LeCritique is a SaaS platform that enables restaurants to collect detailed, dish
 
 ### Professional - $79/month
 
-- 3 restaurants
-- 3 locations per restaurant
+- 3 organizations
+- 3 locations per organization
 - 50 QR codes per location
 - 2000 feedbacks/month
 - 5 team members
@@ -149,7 +149,7 @@ LeCritique is a SaaS platform that enables restaurants to collect detailed, dish
 
 ### Enterprise - $199/month
 
-- Unlimited restaurants
+- Unlimited organizations
 - Unlimited locations
 - Unlimited QR codes
 - Unlimited feedbacks
@@ -196,7 +196,7 @@ lecritique-api/
 ### Phase 1 (Current)
 
 - ✅ Core authentication system
-- ✅ Restaurant and dish management
+- ✅ Organization and product management
 - ✅ Basic feedback collection
 - ✅ QR code generation
 - 🚧 Basic analytics
@@ -228,9 +228,9 @@ lecritique-api/
 
 ### Target Market
 
-1. **Small restaurants** - Single location, basic needs
-2. **Restaurant groups** - Multiple locations, standardization
-3. **Restaurant chains** - Enterprise features, API integration
+1. **Small organizations** - Single location, basic needs
+2. **Organization groups** - Multiple locations, standardization
+3. **Organization chains** - Enterprise features, API integration
 4. **Food trucks & pop-ups** - Mobile QR codes, simple setup
 
 ## Security Considerations
@@ -253,13 +253,13 @@ lecritique-api/
 - Usage analytics
 - Subscription metrics
 
-### For Restaurants
+### For Organizations
 
 - Feedback volume trends
-- Average ratings by dish
+- Average ratings by product
 - Customer sentiment analysis
 - Response time metrics
-- Popular dishes tracking
+- Popular products tracking
 
 ## Deployment Strategy
 
@@ -289,10 +289,10 @@ lecritique-api/
 - Customer Acquisition Cost (CAC)
 - Customer Lifetime Value (CLV)
 - Churn rate
-- Active restaurants
+- Active organizations
 - Feedback volume
 
-### Restaurant KPIs
+### Organization KPIs
 
 - Average rating improvement
 - Feedback response rate

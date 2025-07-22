@@ -8,19 +8,19 @@
 
   let loading = $state(true);
   let error = $state('');
-  let restaurants = $state<any[]>([]);
-  let selectedRestaurant = $state('');
+  let organizations = $state<any[]>([]);
+  let selectedOrganization = $state('');
   let chartData = $state<any>(null);
   let hasInitialized = $state(false);
   
   // Filter states
   let filters = $state({
     days: 'all', // 'all', '7', '30', '90'
-    dishId: ''
+    productId: ''
   });
   
   let authState = $derived($auth);
-  let availableDishes = $state<any[]>([]);
+  let availableProductes = $state<any[]>([]);
 
   $effect(() => {
     if (!authState.isAuthenticated) {
@@ -30,20 +30,20 @@
     
     if (authState.isAuthenticated && !hasInitialized) {
       hasInitialized = true;
-      loadRestaurants();
+      loadOrganizations();
     }
   });
 
-  async function loadRestaurants() {
+  async function loadOrganizations() {
     try {
       const api = getApiClient();
-      const response = await api.api.v1RestaurantsList();
+      const response = await api.api.v1OrganizationsList();
       
       if (response.data.success && response.data.data) {
-        restaurants = response.data.data;
-        if (restaurants.length > 0) {
-          selectedRestaurant = restaurants[0].id;
-          await loadDishes();
+        organizations = response.data.data;
+        if (organizations.length > 0) {
+          selectedOrganization = organizations[0].id;
+          await loadProductes();
           loadAnalytics();
         }
       }
@@ -52,23 +52,23 @@
     }
   }
 
-  async function loadDishes() {
-    if (!selectedRestaurant) return;
+  async function loadProductes() {
+    if (!selectedOrganization) return;
     
     try {
       const api = getApiClient();
-      const response = await api.api.v1RestaurantsDishesList(selectedRestaurant);
+      const response = await api.api.v1OrganizationsProductesList(selectedOrganization);
       
       if (response.data.success && response.data.data) {
-        availableDishes = response.data.data;
+        availableProductes = response.data.data;
       }
     } catch (err) {
-      console.error('Error loading dishes:', err);
+      console.error('Error loading products:', err);
     }
   }
 
   async function loadAnalytics() {
-    if (!selectedRestaurant) return;
+    if (!selectedOrganization) return;
 
     loading = true;
     error = '';
@@ -86,13 +86,13 @@
         chartParams.date_from = daysAgo.toISOString().split('T')[0];
       }
       
-      // Dish filter
-      if (filters.dishId) {
-        chartParams.dish_id = filters.dishId;
+      // Product filter
+      if (filters.productId) {
+        chartParams.product_id = filters.productId;
       }
       
       // Load chart data
-      const chartResponse = await api.api.v1AnalyticsRestaurantsChartsList(selectedRestaurant, chartParams);
+      const chartResponse = await api.api.v1AnalyticsOrganizationsChartsList(selectedOrganization, chartParams);
       
       // Process chart data
       if (chartResponse.data?.data) {
@@ -109,9 +109,9 @@
     }
   }
 
-  function handleRestaurantChange() {
+  function handleOrganizationChange() {
     resetFilters();
-    loadDishes();
+    loadProductes();
     loadAnalytics();
   }
 
@@ -121,7 +121,7 @@
 
   function resetFilters() {
     filters.days = 'all';
-    filters.dishId = '';
+    filters.productId = '';
   }
 
   function applyFilters() {
@@ -146,7 +146,7 @@
             <h1 class="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
               Grouped Analytics Demo
             </h1>
-            <p class="text-gray-600 font-medium">Charts grouped by dish with collapsible sections</p>
+            <p class="text-gray-600 font-medium">Charts grouped by product with collapsible sections</p>
           </div>
         </div>
       </div>
@@ -174,7 +174,7 @@
     </div>
   </div>
 
-  <!-- Restaurant Selection -->
+  <!-- Organization Selection -->
   <div class="mb-8">
     <Card variant="elevated">
       <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -183,9 +183,9 @@
             <Activity class="h-5 w-5 text-white" />
           </div>
           <div>
-            <p class="text-sm font-medium text-gray-600">Restaurant</p>
+            <p class="text-sm font-medium text-gray-600">Organization</p>
             <p class="text-lg font-semibold text-gray-900">
-              {restaurants.find(r => r.id === selectedRestaurant)?.name || 'Select a restaurant'}
+              {organizations.find(r => r.id === selectedOrganization)?.name || 'Select a organization'}
             </p>
             {#if chartData?.summary?.total_responses}
               <p class="text-sm text-gray-500 mt-1">{chartData.summary.total_responses} total responses</p>
@@ -193,11 +193,11 @@
           </div>
         </div>
         <div class="flex items-center gap-4">
-          {#if restaurants.length > 0}
+          {#if organizations.length > 0}
             <Select
-              bind:value={selectedRestaurant}
-              options={restaurants.map(r => ({ value: r.id, label: r.name }))}
-              onchange={handleRestaurantChange}
+              bind:value={selectedOrganization}
+              options={organizations.map(r => ({ value: r.id, label: r.name }))}
+              onchange={handleOrganizationChange}
             />
           {/if}
           <Button 
@@ -260,20 +260,20 @@
           </div>
         </div>
 
-        <!-- Dish Filter -->
+        <!-- Product Filter -->
         <div class="flex items-center space-x-4">
           <div class="h-10 w-10 bg-gradient-to-br from-purple-500 to-pink-600 rounded-xl flex items-center justify-center">
             <Utensils class="h-5 w-5 text-white" />
           </div>
           <Select
-            bind:value={filters.dishId}
+            bind:value={filters.productId}
             options={[
-              { value: '', label: 'All Dishes' },
-              ...availableDishes.map(d => ({ value: d.id, label: d.name }))
+              { value: '', label: 'All Productes' },
+              ...availableProductes.map(d => ({ value: d.id, label: d.name }))
             ]}
             onchange={applyFilters}
             minWidth="min-w-48"
-            placeholder="Select a dish..."
+            placeholder="Select a product..."
           />
         </div>
       </div>
@@ -293,8 +293,8 @@
             This demo showcases the new grouped analytics view with:
           </p>
           <ul class="mt-2 space-y-1 text-sm text-purple-700">
-            <li>• Charts grouped by dish with collapsible sections</li>
-            <li>• Summary statistics for each dish</li>
+            <li>• Charts grouped by product with collapsible sections</li>
+            <li>• Summary statistics for each product</li>
             <li>• Search and filter functionality</li>
             <li>• Toggle between grouped and all charts view</li>
             <li>• Expand/collapse all controls</li>
@@ -345,7 +345,7 @@
     <ChartDataWidgetGrouped 
       chartData={chartData} 
       title="" 
-      groupByDish={true}
+      groupByProduct={true}
       initiallyExpanded={false}
     />
   {/if}

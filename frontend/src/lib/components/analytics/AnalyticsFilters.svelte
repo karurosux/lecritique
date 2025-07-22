@@ -1,43 +1,43 @@
 <script lang="ts">
   import { Card, Select } from '$lib/components/ui';
 
-  interface Restaurant {
+  interface Organization {
     id: string;
     name: string;
   }
 
   let {
-    restaurants = [],
-    selectedRestaurant = $bindable(''),
+    organizations = [],
+    selectedOrganization = $bindable(''),
     selectedTimeframe = $bindable('7d'),
-    onrestaurantchange = () => {},
+    onorganizationchange = () => {},
     ontimeframechange = () => {}
   }: {
-    restaurants?: Restaurant[];
-    selectedRestaurant?: string;
+    organizations?: Organization[];
+    selectedOrganization?: string;
     selectedTimeframe?: string;
-    onrestaurantchange?: () => void;
+    onorganizationchange?: () => void;
     ontimeframechange?: () => void;
   } = $props();
 
-  let restaurantCount = $derived(restaurants.length);
-  let selectedRestaurantName = $derived(
-    restaurants.find(r => r.id === selectedRestaurant)?.name || 'Select Restaurant'
+  let organizationCount = $derived(organizations.length);
+  let selectedOrganizationName = $derived(
+    organizations.find(r => r.id === selectedOrganization)?.name || 'Select Organization'
   );
 </script>
 
 <Card variant="default" hover interactive class="mb-6 group transform transition-all duration-300 animate-fade-in-up">
   <div class="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
     <div class="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
-      <!-- Restaurant Selector -->
+      <!-- Organization Selector -->
       <div class="space-y-1">
         <label class="text-xs font-medium text-gray-500 uppercase tracking-wider">
-          Restaurant
+          Organization
         </label>
         <Select
-          bind:value={selectedRestaurant}
-          options={restaurants.map(r => ({ value: r.id, label: r.name }))}
-          onchange={() => onrestaurantchange()}
+          bind:value={selectedOrganization}
+          options={organizations.map(r => ({ value: r.id, label: r.name }))}
+          onchange={() => onorganizationchange()}
           minWidth="min-w-[200px]"
         />
       </div>
@@ -66,7 +66,7 @@
         <svg class="h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-4m-5 0H9m11 0a2 2 0 01-2 2H7a2 2 0 01-2-2m2-4h2.01M7 16h6M7 8h6v4H7V8z" />
         </svg>
-        <span class="text-gray-600 font-medium">{restaurantCount} {restaurantCount === 1 ? 'Restaurant' : 'Restaurants'}</span>
+        <span class="text-gray-600 font-medium">{organizationCount} {organizationCount === 1 ? 'Organization' : 'Organizations'}</span>
       </div>
       <div class="h-4 w-px bg-gray-200"></div>
       <div class="flex items-center space-x-2">

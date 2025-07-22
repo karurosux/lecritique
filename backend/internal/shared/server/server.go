@@ -16,7 +16,7 @@ import (
 	
 	// Domain modules
 	authModule "lecritique/internal/auth"
-	restaurantModule "lecritique/internal/restaurant"
+	organizationModule "lecritique/internal/organization"
 	menuModule "lecritique/internal/menu"
 	feedbackModule "lecritique/internal/feedback"
 	qrcodeModule "lecritique/internal/qrcode"
@@ -93,8 +93,8 @@ func (s *Server) setupRoutes() {
 	authMod := authModule.NewModule(s.injector)
 	authMod.RegisterRoutes(v1)
 	
-	restaurantMod := restaurantModule.NewModule(s.injector)
-	restaurantMod.RegisterRoutes(v1)
+	organizationMod := organizationModule.NewModule(s.injector)
+	organizationMod.RegisterRoutes(v1)
 	
 	menuMod := menuModule.NewModule(s.injector)
 	menuMod.RegisterRoutes(v1)

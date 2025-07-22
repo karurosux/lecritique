@@ -15,9 +15,9 @@
 ### Customer-Facing Endpoints
 | Method | Endpoint | Purpose |
 |--------|----------|---------|
-| GET | `/public/qr/:code` | Validate QR code and get restaurant info |
-| GET | `/public/restaurant/:id/menu` | Get available dishes for a restaurant |
-| GET | `/public/questionnaire/:restaurantId/:dishId` | Get feedback questions for a dish |
+| GET | `/public/qr/:code` | Validate QR code and get organization info |
+| GET | `/public/organization/:id/menu` | Get available products for a organization |
+| GET | `/public/questionnaire/:organizationId/:productId` | Get feedback questions for a product |
 | POST | `/public/feedback` | Submit customer feedback |
 
 #### Request/Response Examples:
@@ -28,9 +28,9 @@
 {
   "success": true,
   "data": {
-    "restaurant": {
+    "organization": {
       "id": "uuid",
-      "name": "Restaurant Name",
+      "name": "Organization Name",
       "description": "...",
       "settings": {...}
     },
@@ -48,7 +48,7 @@
 // Request
 {
   "qr_code_id": "uuid",
-  "dish_id": "uuid",
+  "product_id": "uuid",
   "customer_name": "John Doe",
   "customer_email": "john@example.com",
   "customer_phone": "+1234567890",
@@ -80,9 +80,9 @@
 ```json
 // Request
 {
-  "email": "owner@restaurant.com",
+  "email": "owner@organization.com",
   "password": "securepassword123",
-  "company_name": "My Restaurant Group"
+  "company_name": "My Organization Group"
 }
 
 // Response
@@ -91,8 +91,8 @@
   "data": {
     "account": {
       "id": "uuid",
-      "email": "owner@restaurant.com",
-      "company_name": "My Restaurant Group"
+      "email": "owner@organization.com",
+      "company_name": "My Organization Group"
     },
     "message": "Registration successful. Please check your email to verify your account."
   }
@@ -103,7 +103,7 @@
 ```json
 // Request
 {
-  "email": "owner@restaurant.com",
+  "email": "owner@organization.com",
   "password": "securepassword123"
 }
 
@@ -114,8 +114,8 @@
     "token": "jwt.token.here",
     "account": {
       "id": "uuid",
-      "email": "owner@restaurant.com",
-      "company_name": "My Restaurant Group"
+      "email": "owner@organization.com",
+      "company_name": "My Organization Group"
     }
   }
 }
@@ -159,7 +159,7 @@
 ```json
 // Request
 {
-  "email": "owner@restaurant.com"
+  "email": "owner@organization.com"
 }
 
 // Response
@@ -199,34 +199,34 @@
 
 ## Protected Endpoints (Requires Authentication)
 
-### Restaurant Management
+### Organization Management
 
 | Method | Endpoint | Purpose |
 |--------|----------|---------|
-| POST | `/restaurants` | Create new restaurant |
-| GET | `/restaurants` | List all restaurants for account |
-| GET | `/restaurants/:id` | Get specific restaurant details |
-| PUT | `/restaurants/:id` | Update restaurant information |
-| DELETE | `/restaurants/:id` | Delete restaurant |
+| POST | `/organizations` | Create new organization |
+| GET | `/organizations` | List all organizations for account |
+| GET | `/organizations/:id` | Get specific organization details |
+| PUT | `/organizations/:id` | Update organization information |
+| DELETE | `/organizations/:id` | Delete organization |
 
-### Dish Management
+### Product Management
 
 | Method | Endpoint | Purpose |
 |--------|----------|---------|
-| POST | `/dishes` | Create new dish |
-| GET | `/restaurants/:restaurantId/dishes` | List dishes for a restaurant |
-| GET | `/dishes/:id` | Get specific dish details |
-| PUT | `/dishes/:id` | Update dish information |
-| DELETE | `/dishes/:id` | Delete dish |
+| POST | `/products` | Create new product |
+| GET | `/organizations/:organizationId/products` | List products for a organization |
+| GET | `/products/:id` | Get specific product details |
+| PUT | `/products/:id` | Update product information |
+| DELETE | `/products/:id` | Delete product |
 
 ### Request/Response Examples:
 
-**POST /restaurants**
+**POST /organizations**
 ```json
 // Request
 {
   "name": "Downtown Bistro",
-  "description": "Casual dining restaurant",
+  "description": "Casual dining organization",
   "phone": "+1234567890",
   "email": "info@bistro.com",
   "website": "https://bistro.com"
@@ -239,18 +239,18 @@
     "id": "uuid",
     "account_id": "uuid",
     "name": "Downtown Bistro",
-    "description": "Casual dining restaurant",
+    "description": "Casual dining organization",
     "is_active": true,
     "created_at": "2025-06-21T10:00:00Z"
   }
 }
 ```
 
-**POST /dishes**
+**POST /products**
 ```json
 // Request
 {
-  "restaurant_id": "uuid",
+  "organization_id": "uuid",
   "name": "Grilled Salmon",
   "description": "Fresh Atlantic salmon with herbs",
   "category": "Main Course",
@@ -263,7 +263,7 @@
   "success": true,
   "data": {
     "id": "uuid",
-    "restaurant_id": "uuid",
+    "organization_id": "uuid",
     "name": "Grilled Salmon",
     "price": 24.99,
     "is_available": true,
@@ -276,13 +276,13 @@
 
 | Method | Endpoint | Purpose |
 |--------|----------|---------|
-| POST | `/restaurants/:restaurantId/qr-codes` | Generate QR codes |
-| GET | `/restaurants/:restaurantId/qr-codes` | List QR codes for restaurant |
+| POST | `/organizations/:organizationId/qr-codes` | Generate QR codes |
+| GET | `/organizations/:organizationId/qr-codes` | List QR codes for organization |
 | DELETE | `/qr-codes/:id` | Delete QR code |
 
 ### Request/Response Examples:
 
-**POST /restaurants/:restaurantId/qr-codes**
+**POST /organizations/:organizationId/qr-codes**
 ```json
 // Request
 {
@@ -295,7 +295,7 @@
   "success": true,
   "data": {
     "id": "uuid",
-    "restaurant_id": "uuid",
+    "organization_id": "uuid",
     "code": "LCQ-abc123-timestamp",
     "label": "Table 5",
     "type": "table",
@@ -310,12 +310,12 @@
 
 | Method | Endpoint | Purpose |
 |--------|----------|---------|
-| GET | `/restaurants/:restaurantId/feedback` | List feedback with pagination |
-| GET | `/restaurants/:restaurantId/analytics` | Get basic feedback statistics |
+| GET | `/organizations/:organizationId/feedback` | List feedback with pagination |
+| GET | `/organizations/:organizationId/analytics` | Get basic feedback statistics |
 
 ### Request/Response Examples:
 
-**GET /restaurants/:restaurantId/feedback?page=1&limit=20**
+**GET /organizations/:organizationId/feedback?page=1&limit=20**
 ```json
 // Response
 {
@@ -326,7 +326,7 @@
       "customer_name": "John Doe",
       "overall_rating": 5,
       "created_at": "2025-06-21T10:00:00Z",
-      "dish": {...},
+      "product": {...},
       "qr_code": {...}
     }
   ],
@@ -343,26 +343,26 @@
 
 | Method | Endpoint | Purpose |
 |--------|----------|---------|
-| GET | `/analytics/restaurants/:restaurantId` | Get comprehensive restaurant analytics |
-| GET | `/analytics/dishes/:dishId` | Get dish-specific analytics |
+| GET | `/analytics/organizations/:organizationId` | Get comprehensive organization analytics |
+| GET | `/analytics/products/:productId` | Get product-specific analytics |
 
 ### Request/Response Examples:
 
-**GET /analytics/restaurants/:restaurantId**
+**GET /analytics/organizations/:organizationId**
 ```json
 // Response
 {
   "success": true,
   "data": {
-    "restaurant_id": "uuid",
-    "restaurant_name": "Downtown Bistro",
+    "organization_id": "uuid",
+    "organization_name": "Downtown Bistro",
     "total_feedback": 500,
     "average_rating": 4.2,
     "feedback_today": 12,
     "feedback_this_week": 85,
     "feedback_this_month": 320,
-    "top_rated_dishes": [...],
-    "lowest_rated_dishes": [...]
+    "top_rated_products": [...],
+    "lowest_rated_products": [...]
   }
 }
 ```
@@ -431,13 +431,13 @@ Content-Type: application/json
 - Authentication (register, login, refresh)
 - Email verification endpoints
 - Password reset endpoints
-- Restaurant CRUD operations
-- Dish CRUD operations
+- Organization CRUD operations
+- Product CRUD operations
 - Public feedback submission
 - QR code validation
 - Menu retrieval
 - QR code generation and management
-- Feedback retrieval for restaurant owners
+- Feedback retrieval for organization owners
 - Basic analytics and statistics
 
 ### 📋 TODO
@@ -450,11 +450,11 @@ Content-Type: application/json
 
 ## Database Models Available
 
-1. **Account** - Restaurant owner accounts
+1. **Account** - Organization owner accounts
 2. **User** - Team members
-3. **Restaurant** - Restaurant entities
-4. **Location** - Restaurant locations
-5. **Dish** - Menu items
+3. **Organization** - Organization entities
+4. **Location** - Organization locations
+5. **Product** - Menu items
 6. **QRCode** - QR codes for tables/locations
 7. **Questionnaire** - Custom feedback questionnaires
 8. **Question** - Individual questions in questionnaires
@@ -467,16 +467,16 @@ Content-Type: application/json
 
 ### Available Services
 - **AuthService** - Authentication and JWT management
-- **RestaurantService** - Restaurant business logic
-- **DishService** - Dish management
+- **OrganizationService** - Organization business logic
+- **ProductService** - Product management
 - **QRCodeService** - QR code generation and validation
 - **FeedbackService** - Feedback submission and analytics
 
 ### Available Repositories
 - **AccountRepository**
 - **TokenRepository**
-- **RestaurantRepository**
-- **DishRepository**
+- **OrganizationRepository**
+- **ProductRepository**
 - **QRCodeRepository**
 - **FeedbackRepository**
 - **SubscriptionRepository**
@@ -510,7 +510,7 @@ curl http://localhost:8080/api/health
 # Register
 curl -X POST http://localhost:8080/api/v1/auth/register \
   -H "Content-Type: application/json" \
-  -d '{"email":"test@example.com","password":"password123","company_name":"Test Restaurant"}'
+  -d '{"email":"test@example.com","password":"password123","company_name":"Test Organization"}'
 
 # Login
 curl -X POST http://localhost:8080/api/v1/auth/login \
@@ -518,6 +518,6 @@ curl -X POST http://localhost:8080/api/v1/auth/login \
   -d '{"email":"test@example.com","password":"password123"}'
 
 # Protected endpoint example
-curl http://localhost:8080/api/v1/restaurants \
+curl http://localhost:8080/api/v1/organizations \
   -H "Authorization: Bearer <token>"
 ```

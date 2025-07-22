@@ -84,8 +84,8 @@ CREATE TABLE team_members (
     UNIQUE(account_id, user_id)
 );
 
--- Create restaurants table
-CREATE TABLE restaurants (
+-- Create organizations table
+CREATE TABLE organizations (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
@@ -107,7 +107,7 @@ CREATE TABLE locations (
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     deleted_at TIMESTAMPTZ,
-    restaurant_id UUID NOT NULL REFERENCES restaurants(id) ON DELETE CASCADE,
+    organization_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
     name VARCHAR(255) NOT NULL,
     address VARCHAR(500),
     city VARCHAR(100),
@@ -119,13 +119,13 @@ CREATE TABLE locations (
     is_active BOOLEAN DEFAULT true
 );
 
--- Create dishes table
-CREATE TABLE dishes (
+-- Create products table
+CREATE TABLE products (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     deleted_at TIMESTAMPTZ,
-    restaurant_id UUID NOT NULL REFERENCES restaurants(id) ON DELETE CASCADE,
+    organization_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
     name VARCHAR(255) NOT NULL,
     description TEXT,
     category VARCHAR(100),
@@ -144,7 +144,7 @@ CREATE TABLE qr_codes (
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     deleted_at TIMESTAMPTZ,
-    restaurant_id UUID NOT NULL REFERENCES restaurants(id) ON DELETE CASCADE,
+    organization_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
     location_id UUID REFERENCES locations(id) ON DELETE SET NULL,
     code VARCHAR(100) UNIQUE NOT NULL,
     label VARCHAR(255),
@@ -161,8 +161,8 @@ CREATE TABLE questionnaires (
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     deleted_at TIMESTAMPTZ,
-    restaurant_id UUID NOT NULL REFERENCES restaurants(id) ON DELETE CASCADE,
-    dish_id UUID REFERENCES dishes(id) ON DELETE CASCADE,
+    organization_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+    product_id UUID REFERENCES products(id) ON DELETE CASCADE,
     name VARCHAR(255) NOT NULL,
     description TEXT,
     is_default BOOLEAN DEFAULT false,
@@ -213,8 +213,8 @@ CREATE TABLE feedbacks (
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     deleted_at TIMESTAMPTZ,
-    restaurant_id UUID NOT NULL REFERENCES restaurants(id) ON DELETE CASCADE,
-    dish_id UUID NOT NULL REFERENCES dishes(id) ON DELETE CASCADE,
+    organization_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+    product_id UUID NOT NULL REFERENCES products(id) ON DELETE CASCADE,
     qr_code_id UUID NOT NULL REFERENCES qr_codes(id),
     customer_name VARCHAR(255),
     customer_email VARCHAR(255),
@@ -233,17 +233,17 @@ CREATE INDEX idx_subscriptions_account_id ON subscriptions(account_id);
 CREATE INDEX idx_subscriptions_status ON subscriptions(status);
 CREATE INDEX idx_team_members_account_id ON team_members(account_id);
 CREATE INDEX idx_team_members_user_id ON team_members(user_id);
-CREATE INDEX idx_restaurants_account_id ON restaurants(account_id);
-CREATE INDEX idx_locations_restaurant_id ON locations(restaurant_id);
-CREATE INDEX idx_dishes_restaurant_id ON dishes(restaurant_id);
-CREATE INDEX idx_dishes_category ON dishes(category);
-CREATE INDEX idx_qr_codes_restaurant_id ON qr_codes(restaurant_id);
+CREATE INDEX idx_organizations_account_id ON organizations(account_id);
+CREATE INDEX idx_locations_organization_id ON locations(organization_id);
+CREATE INDEX idx_products_organization_id ON products(organization_id);
+CREATE INDEX idx_products_category ON products(category);
+CREATE INDEX idx_qr_codes_organization_id ON qr_codes(organization_id);
 CREATE INDEX idx_qr_codes_code ON qr_codes(code);
-CREATE INDEX idx_questionnaires_restaurant_id ON questionnaires(restaurant_id);
-CREATE INDEX idx_questionnaires_dish_id ON questionnaires(dish_id);
+CREATE INDEX idx_questionnaires_organization_id ON questionnaires(organization_id);
+CREATE INDEX idx_questionnaires_product_id ON questionnaires(product_id);
 CREATE INDEX idx_questions_questionnaire_id ON questions(questionnaire_id);
-CREATE INDEX idx_feedbacks_restaurant_id ON feedbacks(restaurant_id);
-CREATE INDEX idx_feedbacks_dish_id ON feedbacks(dish_id);
+CREATE INDEX idx_feedbacks_organization_id ON feedbacks(organization_id);
+CREATE INDEX idx_feedbacks_product_id ON feedbacks(product_id);
 CREATE INDEX idx_feedbacks_created_at ON feedbacks(created_at);
 
 -- Create updated_at trigger function
@@ -261,9 +261,9 @@ CREATE TRIGGER update_accounts_updated_at BEFORE UPDATE ON accounts FOR EACH ROW
 CREATE TRIGGER update_users_updated_at BEFORE UPDATE ON users FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 CREATE TRIGGER update_subscriptions_updated_at BEFORE UPDATE ON subscriptions FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 CREATE TRIGGER update_team_members_updated_at BEFORE UPDATE ON team_members FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
-CREATE TRIGGER update_restaurants_updated_at BEFORE UPDATE ON restaurants FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+CREATE TRIGGER update_organizations_updated_at BEFORE UPDATE ON organizations FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 CREATE TRIGGER update_locations_updated_at BEFORE UPDATE ON locations FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
-CREATE TRIGGER update_dishes_updated_at BEFORE UPDATE ON dishes FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+CREATE TRIGGER update_products_updated_at BEFORE UPDATE ON products FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 CREATE TRIGGER update_qr_codes_updated_at BEFORE UPDATE ON qr_codes FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 CREATE TRIGGER update_questionnaires_updated_at BEFORE UPDATE ON questionnaires FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 CREATE TRIGGER update_questions_updated_at BEFORE UPDATE ON questions FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();

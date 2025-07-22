@@ -28,7 +28,7 @@ INSERT INTO subscription_plans (
     true,
     false, -- Hidden from public listing
     jsonb_build_object(
-        'max_restaurants', -1,
+        'max_organizations', -1,
         'max_qr_codes', -1,
         'max_feedbacks_per_month', -1,
         'max_team_members', -1,

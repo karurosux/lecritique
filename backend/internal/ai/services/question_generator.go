@@ -49,20 +49,20 @@ func NewQuestionGenerator(cfg *config.Config) (*QuestionGenerator, error) {
 	}, nil
 }
 
-func (qg *QuestionGenerator) GenerateQuestionsForDish(ctx context.Context, dish *menuModels.Dish) ([]GeneratedQuestion, error) {
-	prompt := qg.buildPromptForDish(dish)
+func (qg *QuestionGenerator) GenerateQuestionsForProduct(ctx context.Context, product *menuModels.Product) ([]GeneratedQuestion, error) {
+	prompt := qg.buildPromptForProduct(product)
 	return qg.provider.GenerateQuestions(ctx, prompt)
 }
 
-func (qg *QuestionGenerator) buildPromptForDish(dish *menuModels.Dish) string {
+func (qg *QuestionGenerator) buildPromptForProduct(product *menuModels.Product) string {
 	tagsStr := ""
-	if len(dish.Tags) > 0 {
-		tagsStr = fmt.Sprintf("\nTags: %s", strings.Join(dish.Tags, ", "))
+	if len(product.Tags) > 0 {
+		tagsStr = fmt.Sprintf("\nTags: %s", strings.Join(product.Tags, ", "))
 	}
 
-	return fmt.Sprintf(`Generate 5-7 specific feedback questions for the following dish in a restaurant. The questions should help the restaurant gather actionable feedback to improve this specific dish.
+	return fmt.Sprintf(`Generate 5-7 specific feedback questions for the following product in a organization. The questions should help the organization gather actionable feedback to improve this specific product.
 
-Dish Name: %s
+Product Name: %s
 Description: %s
 Category: %s
 Price: %.2f %s%s
@@ -81,7 +81,7 @@ Generate questions in the following JSON format:
 ]
 
 Guidelines:
-1. Make questions specific to the dish (not generic)
+1. Make questions specific to the product (not generic)
 2. Include a mix of question types
 3. Focus on actionable feedback (taste, texture, presentation, portion, temperature, etc.)
 4. For rating questions, use 1-5 scale
@@ -90,11 +90,11 @@ Guidelines:
 7. Avoid yes/no questions unless they're very specific
 
 Return ONLY the JSON array, no additional text.`, 
-		dish.Name,
-		dish.Description,
-		dish.Category,
-		dish.Price,
-		dish.Currency,
+		product.Name,
+		product.Description,
+		product.Category,
+		product.Price,
+		product.Currency,
 		tagsStr,
 	)
 }

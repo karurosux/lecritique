@@ -172,9 +172,9 @@ func (h *SubscriptionHandler) GetUserUsage(c echo.Context) error {
 	return response.Success(c, usage)
 }
 
-// CanUserCreateRestaurant godoc
-// @Summary Check if user can create more restaurants
-// @Description Check if the authenticated user can create more restaurants based on their subscription plan
+// CanUserCreateOrganization godoc
+// @Summary Check if user can create more organizations
+// @Description Check if the authenticated user can create more organizations based on their subscription plan
 // @Tags subscription
 // @Accept json
 // @Produce json
@@ -182,8 +182,8 @@ func (h *SubscriptionHandler) GetUserUsage(c echo.Context) error {
 // @Success 200 {object} response.Response{data=services.PermissionResponse}
 // @Failure 401 {object} response.Response
 // @Failure 500 {object} response.Response
-// @Router /api/v1/user/can-create-restaurant [get]
-func (h *SubscriptionHandler) CanUserCreateRestaurant(c echo.Context) error {
+// @Router /api/v1/user/can-create-organization [get]
+func (h *SubscriptionHandler) CanUserCreateOrganization(c echo.Context) error {
 	ctx := c.Request().Context()
 	accountID, err := middleware.GetAccountID(c)
 	if err != nil {
@@ -195,7 +195,7 @@ func (h *SubscriptionHandler) CanUserCreateRestaurant(c echo.Context) error {
 	// If user is a team member, use the organization's account ID
 	if err == nil && teamMember != nil && teamMember.AccountID != accountID {
 		orgAccountID := teamMember.AccountID
-		permission, err := h.subscriptionService.CanUserCreateRestaurant(ctx, orgAccountID)
+		permission, err := h.subscriptionService.CanUserCreateOrganization(ctx, orgAccountID)
 		if err != nil {
 			return response.Error(c, err)
 		}
@@ -203,7 +203,7 @@ func (h *SubscriptionHandler) CanUserCreateRestaurant(c echo.Context) error {
 	}
 
 	// Otherwise, use the user's own account ID
-	permission, err := h.subscriptionService.CanUserCreateRestaurant(ctx, accountID)
+	permission, err := h.subscriptionService.CanUserCreateOrganization(ctx, accountID)
 	if err != nil {
 		return response.Error(c, err)
 	}

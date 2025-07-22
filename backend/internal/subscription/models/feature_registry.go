@@ -32,14 +32,14 @@ type FeatureDefinition struct {
 // FeatureRegistry holds all feature definitions
 var FeatureRegistry = map[string]FeatureDefinition{
 	// Limits
-	LimitRestaurants: {
-		Key:           LimitRestaurants,
+	LimitOrganizations: {
+		Key:           LimitOrganizations,
 		Type:          FeatureTypeLimit,
-		DisplayName:   "Restaurants",
-		Description:   "Maximum number of restaurants",
-		Unit:          "restaurants",
-		UnlimitedText: "Unlimited restaurants",
-		Format:        "{value} restaurant(s)",
+		DisplayName:   "Organizations",
+		Description:   "Maximum number of organizations",
+		Unit:          "organizations",
+		UnlimitedText: "Unlimited organizations",
+		Format:        "{value} organization(s)",
 		Icon:          "store",
 		Category:      "core",
 		SortOrder:     1,
@@ -48,7 +48,7 @@ var FeatureRegistry = map[string]FeatureDefinition{
 		Key:           LimitQRCodes,
 		Type:          FeatureTypeLimit,
 		DisplayName:   "QR Codes",
-		Description:   "Total QR codes across all restaurants",
+		Description:   "Total QR codes across all organizations",
 		Unit:          "QR codes",
 		UnlimitedText: "Unlimited QR codes",
 		Format:        "{value} QR codes",

@@ -15,7 +15,7 @@ import (
 
 // @title LeCritique API
 // @version 1.0
-// @description Restaurant feedback management system API
+// @description Organization feedback management system API
 // @termsOfService http://swagger.io/terms/
 
 // @contact.name API Support

@@ -6,7 +6,7 @@
     rating?: number;
     overall_rating?: number;
     comment?: string;
-    dish_name?: string;
+    product_name?: string;
     created_at: string;
   }
 
@@ -114,10 +114,10 @@
                   <span class="text-xs text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full">
                     {rating}/5
                   </span>
-                  {#if feedback.dish_name}
+                  {#if feedback.product_name}
                     <span class="text-xs text-gray-400">•</span>
                     <span class="text-xs font-medium text-gray-700 bg-purple-50 px-2 py-0.5 rounded-full">
-                      {feedback.dish_name}
+                      {feedback.product_name}
                     </span>
                   {/if}
                 </div>

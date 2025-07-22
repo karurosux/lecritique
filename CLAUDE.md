@@ -27,7 +27,7 @@
 - [QUICK_START.md](./QUICK_START.md) - Essential info and commands
 
 ## ⚡ Critical Reminders
-- Questionnaires MUST be dish-specific (core feature!)
+- Questionnaires MUST be product-specific (core feature!)
 - Follow existing code patterns and conventions
 - Check neighboring files before adding libraries
 - Never commit secrets or expose sensitive data

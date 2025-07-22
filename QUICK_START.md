@@ -1,9 +1,9 @@
 # LeCritique Quick Start
 
 ## 🎯 Project Overview
-SaaS platform for restaurants to collect dish-specific feedback via QR codes.
+SaaS platform for organizations to collect product-specific feedback via QR codes.
 
-**Core Flow**: Customer scans QR → Selects dish → Answers questions → Restaurant gets insights
+**Core Flow**: Customer scans QR → Selects product → Answers questions → Organization gets insights
 
 ## 🚀 Getting Started
 
@@ -29,8 +29,8 @@ npm run generate-api # Update API types after backend changes
 - **IDs**: All UUIDs, not integers
 
 ## 💰 Subscription Tiers
-- **Starter** ($29): 1 location, 3 dishes, basic analytics
-- **Professional** ($79): 3 locations, unlimited dishes, advanced analytics
+- **Starter** ($29): 1 location, 3 products, basic analytics
+- **Professional** ($79): 3 locations, unlimited products, advanced analytics
 - **Enterprise** ($199): Unlimited everything, AI insights, API access
 
 ## 📋 Key Commands
@@ -50,7 +50,7 @@ make seed-force    # Recreate test data
 - Swagger: http://localhost:8080/swagger/index.html
 
 ## ⚡ Remember
-- Questionnaires are **dish-specific** (core feature!)
+- Questionnaires are **product-specific** (core feature!)
 - Always check subscription limits
 - Use existing UI components from lib/components
 - Multi-tenant: scope queries to account_id

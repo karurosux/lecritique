@@ -10,7 +10,7 @@ export interface JwtPayload {
   name: string;
   role: string;
   subscription_features?: {
-    max_restaurants: number;
+    max_organizations: number;
     max_qr_codes: number;
     max_feedbacks_per_month: number;
     max_team_members: number;
@@ -100,8 +100,8 @@ export function getLimitFromToken(token: string, limitType: string): number {
   if (!features) return 0;
 
   switch (limitType) {
-    case 'max_restaurants':
-      return features.max_restaurants;
+    case 'max_organizations':
+      return features.max_organizations;
     case 'max_qr_codes':
       return features.max_qr_codes;
     case 'max_feedbacks_per_month':

@@ -14,10 +14,10 @@
 </script>
 
 <svelte:head>
-  <title>LeCritique - Restaurant Feedback Management</title>
+  <title>LeCritique - Organization Feedback Management</title>
   <meta
     name="description"
-    content="Collect and manage customer feedback for your restaurant with QR code technology"
+    content="Collect and manage customer feedback for your organization with QR code technology"
   />
 </svelte:head>
 
@@ -42,14 +42,14 @@
     <div class="max-w-7xl mx-auto py-16 px-4 sm:py-24 sm:px-6 lg:px-8">
       <div class="text-center">
         <h2 class="text-4xl font-bold text-gray-900 sm:text-5xl md:text-6xl">
-          Restaurant Feedback
+          Organization Feedback
           <span class="text-blue-600">Made Simple</span>
         </h2>
         <p
           class="mt-5 max-w-md mx-auto text-base text-gray-500 sm:text-lg md:mt-8 md:text-xl md:max-w-3xl"
         >
           Collect customer feedback effortlessly with QR codes. Improve your
-          restaurant's service and menu based on real customer insights.
+          organization's service and menu based on real customer insights.
         </p>
         <div class="mt-8 flex justify-center">
           <div class="inline-flex rounded-md shadow">
@@ -106,7 +106,7 @@
                 QR Code Integration
               </p>
               <p class="mt-2 ml-16 text-base text-gray-500">
-                Generate QR codes for tables, locations, or dishes. Customers
+                Generate QR codes for tables, locations, or products. Customers
                 scan and provide instant feedback.
               </p>
             </div>
@@ -134,7 +134,7 @@
               </p>
               <p class="mt-2 ml-16 text-base text-gray-500">
                 Track ratings, analyze trends, and get insights to improve your
-                restaurant's performance.
+                organization's performance.
               </p>
             </div>
 
@@ -160,7 +160,7 @@
                 Custom Questionnaires
               </p>
               <p class="mt-2 ml-16 text-base text-gray-500">
-                Create tailored feedback forms for different dishes, services,
+                Create tailored feedback forms for different products, services,
                 or experiences.
               </p>
             </div>

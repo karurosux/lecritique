@@ -42,7 +42,7 @@ type SubscriptionPlan struct {
 	Interval    string      `gorm:"default:'month'" json:"interval"`
 	
 	// Limits (as columns)
-	MaxRestaurants      int `gorm:"not null;default:1;check:max_restaurants >= -1" json:"max_restaurants"`
+	MaxOrganizations      int `gorm:"not null;default:1;check:max_organizations >= -1" json:"max_organizations"`
 	MaxQRCodes         int `gorm:"column:max_qr_codes;not null;default:5;check:max_qr_codes >= -1" json:"max_qr_codes"`
 	MaxFeedbacksPerMonth int `gorm:"column:max_feedbacks_per_month;not null;default:50;check:max_feedbacks_per_month >= -1" json:"max_feedbacks_per_month"`
 	MaxTeamMembers     int `gorm:"column:max_team_members;not null;default:2;check:max_team_members >= -1" json:"max_team_members"`
@@ -63,8 +63,8 @@ type SubscriptionPlan struct {
 // Helper methods for SubscriptionPlan
 func (sp *SubscriptionPlan) GetLimit(key string) int {
 	switch key {
-	case LimitRestaurants:
-		return sp.MaxRestaurants
+	case LimitOrganizations:
+		return sp.MaxOrganizations
 	case LimitQRCodes:
 		return sp.MaxQRCodes
 	case LimitFeedbacksPerMonth:
@@ -99,7 +99,7 @@ func (sp *SubscriptionPlan) IsUnlimited(key string) bool {
 
 // Common limit keys as constants for type safety
 const (
-	LimitRestaurants       = "max_restaurants"
+	LimitOrganizations       = "max_organizations"
 	LimitQRCodes           = "max_qr_codes"
 	LimitFeedbacksPerMonth = "max_feedbacks_per_month"
 	LimitTeamMembers       = "max_team_members"
@@ -119,8 +119,8 @@ func (s *Subscription) IsActive() bool {
 	return s.Status == SubscriptionActive && time.Now().Before(s.CurrentPeriodEnd)
 }
 
-func (s *Subscription) CanAddRestaurant(currentCount int) bool {
-	limit := s.Plan.GetLimit(LimitRestaurants)
+func (s *Subscription) CanAddOrganization(currentCount int) bool {
+	limit := s.Plan.GetLimit(LimitOrganizations)
 	if limit == -1 {
 		return true
 	}

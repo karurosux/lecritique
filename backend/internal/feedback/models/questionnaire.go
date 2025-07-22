@@ -4,16 +4,16 @@ import (
 	"github.com/google/uuid"
 	"github.com/lib/pq"
 	menuModels "lecritique/internal/menu/models"
-	restaurantModels "lecritique/internal/restaurant/models"
+	organizationModels "lecritique/internal/organization/models"
 	sharedModels "lecritique/internal/shared/models"
 )
 
 type Questionnaire struct {
 	sharedModels.BaseModel
-	RestaurantID uuid.UUID          `gorm:"not null" json:"restaurant_id"`
-	Restaurant   restaurantModels.Restaurant         `json:"restaurant,omitempty"`
-	DishID       *uuid.UUID         `json:"dish_id"`
-	Dish         *menuModels.Dish              `json:"dish,omitempty"`
+	OrganizationID uuid.UUID          `gorm:"not null" json:"organization_id"`
+	Organization   organizationModels.Organization         `json:"organization,omitempty"`
+	ProductID       *uuid.UUID         `json:"product_id"`
+	Product         *menuModels.Product              `json:"product,omitempty"`
 	Name         string             `gorm:"not null" json:"name"`
 	Description  string             `json:"description"`
 	IsDefault    bool               `gorm:"default:false" json:"is_default"`
@@ -23,8 +23,8 @@ type Questionnaire struct {
 
 type Question struct {
 	sharedModels.BaseModel
-	DishID       uuid.UUID        `gorm:"not null;index" json:"dish_id"`
-	Dish         *menuModels.Dish `json:"dish,omitempty"`
+	ProductID       uuid.UUID        `gorm:"not null;index" json:"product_id"`
+	Product         *menuModels.Product `json:"product,omitempty"`
 	Text         string           `gorm:"not null" json:"text"`
 	Type         QuestionType     `gorm:"not null" json:"type"`
 	IsRequired   bool             `gorm:"default:true" json:"is_required"`
@@ -67,7 +67,7 @@ type QuestionTemplate struct {
 type CreateQuestionnaireRequest struct {
 	Name        string     `json:"name" binding:"required"`
 	Description string     `json:"description"`
-	DishID      *uuid.UUID `json:"dish_id"`
+	ProductID      *uuid.UUID `json:"product_id"`
 	IsDefault   bool       `json:"is_default"`
 }
 

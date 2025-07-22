@@ -78,17 +78,17 @@ export interface HandlersCreateCheckoutRequest {
   plan_id: string;
 }
 
-export interface HandlersCreateDishRequest {
+export interface HandlersCreateProductRequest {
   category?: string;
   currency?: string;
   description?: string;
   name: string;
   /** @min 0 */
   price?: number;
-  restaurant_id: string;
+  organization_id: string;
 }
 
-export interface HandlersCreateRestaurantRequest {
+export interface HandlersCreateOrganizationRequest {
   description?: string;
   email?: string;
   name: string;
@@ -108,7 +108,7 @@ export interface HandlersGenerateQRCodeRequest {
   label: string;
   /** @maxLength 200 */
   location?: string;
-  restaurant_id: string;
+  organization_id: string;
   type: "table" | "location" | "takeaway" | "delivery" | "general";
 }
 
@@ -211,7 +211,7 @@ export interface HandlersUpdateRoleRequest {
   role: "ADMIN" | "MANAGER" | "VIEWER";
 }
 
-export type LecritiqueInternalMenuModelsDish = object;
+export type LecritiqueInternalMenuModelsProduct = object;
 
 export interface ModelsAccount {
   created_at?: string;
@@ -228,7 +228,7 @@ export interface ModelsAccount {
   /** Populated when needed */
   subscription?: any;
   subscription_id?: string;
-  /** Restaurants      []Restaurant  `json:"restaurants,omitempty"`  // TODO: Add when restaurant domain is ready */
+  /** Organizations      []Organization  `json:"organizations,omitempty"`  // TODO: Add when organization domain is ready */
   team_members?: ModelsTeamMember[];
   updated_at?: string;
 }
@@ -246,7 +246,7 @@ export interface ModelsCreateQuestionRequest {
 
 export interface ModelsCreateQuestionnaireRequest {
   description?: string;
-  dish_id?: string;
+  product_id?: string;
   is_default?: boolean;
   name: string;
 }
@@ -280,8 +280,8 @@ export interface ModelsLocation {
   longitude?: number;
   name?: string;
   postal_code?: string;
-  restaurant?: ModelsRestaurant;
-  restaurant_id?: string;
+  organization?: ModelsOrganization;
+  organization_id?: string;
   state?: string;
   updated_at?: string;
 }
@@ -297,8 +297,8 @@ export interface ModelsQRCode {
   last_scanned_at?: string;
   /** Free text location description */
   location?: string;
-  restaurant?: ModelsRestaurant;
-  restaurant_id?: string;
+  organization?: ModelsOrganization;
+  organization_id?: string;
   scans_count?: number;
   type?: ModelsQRCodeType;
   updated_at?: string;
@@ -306,8 +306,8 @@ export interface ModelsQRCode {
 
 export interface ModelsQuestion {
   created_at?: string;
-  dish?: LecritiqueInternalMenuModelsDish;
-  dish_id?: string;
+  product?: LecritiqueInternalMenuModelsProduct;
+  product_id?: string;
   display_order?: number;
   id?: string;
   is_required?: boolean;
@@ -324,19 +324,19 @@ export interface ModelsQuestion {
 export interface ModelsQuestionnaire {
   created_at?: string;
   description?: string;
-  dish?: LecritiqueInternalMenuModelsDish;
-  dish_id?: string;
+  product?: LecritiqueInternalMenuModelsProduct;
+  product_id?: string;
   id?: string;
   is_active?: boolean;
   is_default?: boolean;
   name?: string;
   questions?: ModelsQuestion[];
-  restaurant?: ModelsRestaurant;
-  restaurant_id?: string;
+  organization?: ModelsOrganization;
+  organization_id?: string;
   updated_at?: string;
 }
 
-export interface ModelsRestaurant {
+export interface ModelsOrganization {
   account_id?: string;
   created_at?: string;
   description?: string;
@@ -393,7 +393,7 @@ export interface ModelsSubscriptionPlan {
   max_feedbacks_per_month?: number;
   max_qr_codes?: number;
   /** Limits (as columns) */
-  max_restaurants?: number;
+  max_organizations?: number;
   max_team_members?: number;
   name?: string;
   price?: number;
@@ -410,7 +410,7 @@ export interface ModelsSubscriptionUsage {
   period_end?: string;
   period_start?: string;
   qr_codes_count?: number;
-  restaurants_count?: number;
+  organizations_count?: number;
   subscription?: ModelsSubscription;
   subscription_id?: string;
   team_members_count?: number;
@@ -661,23 +661,23 @@ export class HttpClient<SecurityDataType = unknown> {
  * @baseUrl //localhost:8080
  * @contact API Support <justdevelopitmx@proton.me>
  *
- * Restaurant feedback management system API
+ * Organization feedback management system API
  */
 export class Api<
   SecurityDataType extends unknown,
 > extends HttpClient<SecurityDataType> {
   api = {
     /**
-     * @description Generate AI questions and create a complete questionnaire for a dish
+     * @description Generate AI questions and create a complete questionnaire for a product
      *
      * @tags questionnaires, ai
      * @name V1AiGenerateQuestionnaireCreate
      * @summary Generate and save AI questionnaire
-     * @request POST:/api/v1/ai/generate-questionnaire/{dishId}
+     * @request POST:/api/v1/ai/generate-questionnaire/{productId}
      * @secure
      */
     v1AiGenerateQuestionnaireCreate: (
-      dishId: string,
+      productId: string,
       questionnaire: ModelsGenerateQuestionnaireRequest,
       params: RequestParams = {},
     ) =>
@@ -687,7 +687,7 @@ export class Api<
         },
         ResponseResponse
       >({
-        path: `/api/v1/ai/generate-questionnaire/${dishId}`,
+        path: `/api/v1/ai/generate-questionnaire/${productId}`,
         method: "POST",
         body: questionnaire,
         secure: true,
@@ -697,22 +697,22 @@ export class Api<
       }),
 
     /**
-     * @description Generate AI-powered questions for a specific dish
+     * @description Generate AI-powered questions for a specific product
      *
      * @tags questionnaires, ai
      * @name V1AiGenerateQuestionsCreate
      * @summary Generate AI questions
-     * @request POST:/api/v1/ai/generate-questions/{dishId}
+     * @request POST:/api/v1/ai/generate-questions/{productId}
      * @secure
      */
-    v1AiGenerateQuestionsCreate: (dishId: string, params: RequestParams = {}) =>
+    v1AiGenerateQuestionsCreate: (productId: string, params: RequestParams = {}) =>
       this.request<
         ResponseResponse & {
           data?: ModelsGeneratedQuestion[];
         },
         ResponseResponse
       >({
-        path: `/api/v1/ai/generate-questions/${dishId}`,
+        path: `/api/v1/ai/generate-questions/${productId}`,
         method: "POST",
         secure: true,
         type: ContentType.Json,
@@ -726,15 +726,15 @@ export class Api<
      * @tags analytics
      * @name V1AnalyticsDashboardDetail
      * @summary Get dashboard metrics
-     * @request GET:/api/v1/analytics/dashboard/{restaurantId}
+     * @request GET:/api/v1/analytics/dashboard/{organizationId}
      * @secure
      */
     v1AnalyticsDashboardDetail: (
-      restaurantId: string,
+      organizationId: string,
       params: RequestParams = {},
     ) =>
       this.request<Record<string, any>, ResponseResponse>({
-        path: `/api/v1/analytics/dashboard/${restaurantId}`,
+        path: `/api/v1/analytics/dashboard/${organizationId}`,
         method: "GET",
         secure: true,
         type: ContentType.Json,
@@ -743,17 +743,17 @@ export class Api<
       }),
 
     /**
-     * @description Get detailed analytics data for a specific dish including ratings, feedback count, and recent feedback
+     * @description Get detailed analytics data for a specific product including ratings, feedback count, and recent feedback
      *
      * @tags analytics
-     * @name V1AnalyticsDishesDetail
-     * @summary Get dish analytics
-     * @request GET:/api/v1/analytics/dishes/{dishId}
+     * @name V1AnalyticsProductesDetail
+     * @summary Get product analytics
+     * @request GET:/api/v1/analytics/products/{productId}
      * @secure
      */
-    v1AnalyticsDishesDetail: (dishId: string, params: RequestParams = {}) =>
+    v1AnalyticsProductesDetail: (productId: string, params: RequestParams = {}) =>
       this.request<Record<string, any>, ResponseResponse>({
-        path: `/api/v1/analytics/dishes/${dishId}`,
+        path: `/api/v1/analytics/products/${productId}`,
         method: "GET",
         secure: true,
         type: ContentType.Json,
@@ -762,20 +762,20 @@ export class Api<
       }),
 
     /**
-     * @description Get detailed insights for a specific dish including question-level analytics
+     * @description Get detailed insights for a specific product including question-level analytics
      *
      * @tags analytics
-     * @name V1AnalyticsDishesInsightsList
-     * @summary Get dish insights
-     * @request GET:/api/v1/analytics/dishes/{dishId}/insights
+     * @name V1AnalyticsProductesInsightsList
+     * @summary Get product insights
+     * @request GET:/api/v1/analytics/products/{productId}/insights
      * @secure
      */
-    v1AnalyticsDishesInsightsList: (
-      dishId: string,
+    v1AnalyticsProductesInsightsList: (
+      productId: string,
       params: RequestParams = {},
     ) =>
       this.request<Record<string, any>, ResponseResponse>({
-        path: `/api/v1/analytics/dishes/${dishId}/insights`,
+        path: `/api/v1/analytics/products/${productId}/insights`,
         method: "GET",
         secure: true,
         type: ContentType.Json,
@@ -784,20 +784,20 @@ export class Api<
       }),
 
     /**
-     * @description Get comprehensive analytics data for a restaurant including ratings, feedback counts, and dish performance
+     * @description Get comprehensive analytics data for a organization including ratings, feedback counts, and product performance
      *
      * @tags analytics
-     * @name V1AnalyticsRestaurantsDetail
-     * @summary Get restaurant analytics
-     * @request GET:/api/v1/analytics/restaurants/{restaurantId}
+     * @name V1AnalyticsOrganizationsDetail
+     * @summary Get organization analytics
+     * @request GET:/api/v1/analytics/organizations/{organizationId}
      * @secure
      */
-    v1AnalyticsRestaurantsDetail: (
-      restaurantId: string,
+    v1AnalyticsOrganizationsDetail: (
+      organizationId: string,
       params: RequestParams = {},
     ) =>
       this.request<Record<string, any>, ResponseResponse>({
-        path: `/api/v1/analytics/restaurants/${restaurantId}`,
+        path: `/api/v1/analytics/organizations/${organizationId}`,
         method: "GET",
         secure: true,
         type: ContentType.Json,
@@ -806,28 +806,28 @@ export class Api<
       }),
 
     /**
-     * @description Get pre-aggregated chart data for all questions in a restaurant with optional filters
+     * @description Get pre-aggregated chart data for all questions in a organization with optional filters
      *
      * @tags analytics
-     * @name V1AnalyticsRestaurantsChartsList
-     * @summary Get restaurant chart data
-     * @request GET:/api/v1/analytics/restaurants/{restaurantId}/charts
+     * @name V1AnalyticsOrganizationsChartsList
+     * @summary Get organization chart data
+     * @request GET:/api/v1/analytics/organizations/{organizationId}/charts
      * @secure
      */
-    v1AnalyticsRestaurantsChartsList: (
-      restaurantId: string,
+    v1AnalyticsOrganizationsChartsList: (
+      organizationId: string,
       query?: {
         /** Start date (YYYY-MM-DD) */
         date_from?: string;
         /** End date (YYYY-MM-DD) */
         date_to?: string;
-        /** Filter by specific dish ID */
-        dish_id?: string;
+        /** Filter by specific product ID */
+        product_id?: string;
       },
       params: RequestParams = {},
     ) =>
       this.request<Record<string, any>, ResponseResponse>({
-        path: `/api/v1/analytics/restaurants/${restaurantId}/charts`,
+        path: `/api/v1/analytics/organizations/${organizationId}/charts`,
         method: "GET",
         query: query,
         secure: true,
@@ -1043,7 +1043,7 @@ export class Api<
       }),
 
     /**
-     * @description Create a new restaurant owner account
+     * @description Create a new organization owner account
      *
      * @tags auth
      * @name V1AuthRegisterCreate
@@ -1174,22 +1174,22 @@ export class Api<
       }),
 
     /**
-     * @description Get a specific dish by its ID
+     * @description Get a specific product by its ID
      *
-     * @tags dishes
-     * @name V1DishesDetail
-     * @summary Get dish by ID
-     * @request GET:/api/v1/dishes/{id}
+     * @tags products
+     * @name V1ProductesDetail
+     * @summary Get product by ID
+     * @request GET:/api/v1/products/{id}
      * @secure
      */
-    v1DishesDetail: (id: string, params: RequestParams = {}) =>
+    v1ProductesDetail: (id: string, params: RequestParams = {}) =>
       this.request<
         ResponseResponse & {
-          data?: LecritiqueInternalMenuModelsDish;
+          data?: LecritiqueInternalMenuModelsProduct;
         },
         ResponseResponse
       >({
-        path: `/api/v1/dishes/${id}`,
+        path: `/api/v1/products/${id}`,
         method: "GET",
         secure: true,
         type: ContentType.Json,
@@ -1198,15 +1198,15 @@ export class Api<
       }),
 
     /**
-     * @description Update a dish's information
+     * @description Update a product's information
      *
-     * @tags dishes
-     * @name V1DishesUpdate
-     * @summary Update a dish
-     * @request PUT:/api/v1/dishes/{id}
+     * @tags products
+     * @name V1ProductesUpdate
+     * @summary Update a product
+     * @request PUT:/api/v1/products/{id}
      * @secure
      */
-    v1DishesUpdate: (
+    v1ProductesUpdate: (
       id: string,
       updates: Record<string, any>,
       params: RequestParams = {},
@@ -1217,7 +1217,7 @@ export class Api<
         },
         ResponseResponse
       >({
-        path: `/api/v1/dishes/${id}`,
+        path: `/api/v1/products/${id}`,
         method: "PUT",
         body: updates,
         secure: true,
@@ -1227,22 +1227,22 @@ export class Api<
       }),
 
     /**
-     * @description Delete a dish from the system
+     * @description Delete a product from the system
      *
-     * @tags dishes
-     * @name V1DishesDelete
-     * @summary Delete a dish
-     * @request DELETE:/api/v1/dishes/{id}
+     * @tags products
+     * @name V1ProductesDelete
+     * @summary Delete a product
+     * @request DELETE:/api/v1/products/{id}
      * @secure
      */
-    v1DishesDelete: (id: string, params: RequestParams = {}) =>
+    v1ProductesDelete: (id: string, params: RequestParams = {}) =>
       this.request<
         ResponseResponse & {
           data?: Record<string, string>;
         },
         ResponseResponse
       >({
-        path: `/api/v1/dishes/${id}`,
+        path: `/api/v1/products/${id}`,
         method: "DELETE",
         secure: true,
         type: ContentType.Json,
@@ -1441,7 +1441,7 @@ export class Api<
       }),
 
     /**
-     * @description Submit customer feedback for a dish
+     * @description Submit customer feedback for a product
      *
      * @tags public
      * @name V1PublicFeedbackCreate
@@ -1479,20 +1479,20 @@ export class Api<
       }),
 
     /**
-     * @description Get questionnaire for a specific dish
+     * @description Get questionnaire for a specific product
      *
      * @tags public
      * @name V1PublicQuestionnaireDetail
      * @summary Get questionnaire
-     * @request GET:/api/v1/public/questionnaire/{restaurantId}/{dishId}
+     * @request GET:/api/v1/public/questionnaire/{organizationId}/{productId}
      */
     v1PublicQuestionnaireDetail: (
-      restaurantId: string,
-      dishId: string,
+      organizationId: string,
+      productId: string,
       params: RequestParams = {},
     ) =>
       this.request<Record<string, any>, ResponseResponse>({
-        path: `/api/v1/public/questionnaire/${restaurantId}/${dishId}`,
+        path: `/api/v1/public/questionnaire/${organizationId}/${productId}`,
         method: "GET",
         type: ContentType.Json,
         format: "json",
@@ -1500,16 +1500,16 @@ export class Api<
       }),
 
     /**
-     * @description Get public menu for a restaurant
+     * @description Get public menu for a organization
      *
      * @tags public
-     * @name V1PublicRestaurantMenuList
-     * @summary Get restaurant menu
-     * @request GET:/api/v1/public/restaurant/{id}/menu
+     * @name V1PublicOrganizationMenuList
+     * @summary Get organization menu
+     * @request GET:/api/v1/public/organization/{id}/menu
      */
-    v1PublicRestaurantMenuList: (id: string, params: RequestParams = {}) =>
+    v1PublicOrganizationMenuList: (id: string, params: RequestParams = {}) =>
       this.request<Record<string, any>, ResponseResponse>({
-        path: `/api/v1/public/restaurant/${id}/menu`,
+        path: `/api/v1/public/organization/${id}/menu`,
         method: "GET",
         type: ContentType.Json,
         format: "json",
@@ -1517,39 +1517,39 @@ export class Api<
       }),
 
     /**
-     * @description Get all feedback questions for a specific dish (public access for customer feedback)
+     * @description Get all feedback questions for a specific product (public access for customer feedback)
      *
      * @tags public
-     * @name V1PublicRestaurantDishesQuestionsList
-     * @summary Get questions for a dish
-     * @request GET:/api/v1/public/restaurant/{restaurantId}/dishes/{dishId}/questions
+     * @name V1PublicOrganizationProductesQuestionsList
+     * @summary Get questions for a product
+     * @request GET:/api/v1/public/organization/{organizationId}/products/{productId}/questions
      */
-    v1PublicRestaurantDishesQuestionsList: (
-      restaurantId: string,
-      dishId: string,
+    v1PublicOrganizationProductesQuestionsList: (
+      organizationId: string,
+      productId: string,
       params: RequestParams = {},
     ) =>
       this.request<Record<string, any>, ResponseResponse>({
-        path: `/api/v1/public/restaurant/${restaurantId}/dishes/${dishId}/questions`,
+        path: `/api/v1/public/organization/${organizationId}/products/${productId}/questions`,
         method: "GET",
         format: "json",
         ...params,
       }),
 
     /**
-     * @description Get all dishes that have feedback questions for a restaurant (public access for QR code scans)
+     * @description Get all products that have feedback questions for a organization (public access for QR code scans)
      *
      * @tags public
-     * @name V1PublicRestaurantQuestionsDishesWithQuestionsList
-     * @summary Get dishes with questions
-     * @request GET:/api/v1/public/restaurant/{restaurantId}/questions/dishes-with-questions
+     * @name V1PublicOrganizationQuestionsProductesWithQuestionsList
+     * @summary Get products with questions
+     * @request GET:/api/v1/public/organization/{organizationId}/questions/products-with-questions
      */
-    v1PublicRestaurantQuestionsDishesWithQuestionsList: (
-      restaurantId: string,
+    v1PublicOrganizationQuestionsProductesWithQuestionsList: (
+      organizationId: string,
       params: RequestParams = {},
     ) =>
       this.request<Record<string, any>, ResponseResponse>({
-        path: `/api/v1/public/restaurant/${restaurantId}/questions/dishes-with-questions`,
+        path: `/api/v1/public/organization/${organizationId}/questions/products-with-questions`,
         method: "GET",
         format: "json",
         ...params,
@@ -1599,22 +1599,22 @@ export class Api<
       }),
 
     /**
-     * @description Get all restaurants for the authenticated account
+     * @description Get all organizations for the authenticated account
      *
-     * @tags restaurants
-     * @name V1RestaurantsList
-     * @summary Get all restaurants
-     * @request GET:/api/v1/restaurants
+     * @tags organizations
+     * @name V1OrganizationsList
+     * @summary Get all organizations
+     * @request GET:/api/v1/organizations
      * @secure
      */
-    v1RestaurantsList: (params: RequestParams = {}) =>
+    v1OrganizationsList: (params: RequestParams = {}) =>
       this.request<
         ResponseResponse & {
-          data?: ModelsRestaurant[];
+          data?: ModelsOrganization[];
         },
         ResponseResponse
       >({
-        path: `/api/v1/restaurants`,
+        path: `/api/v1/organizations`,
         method: "GET",
         secure: true,
         format: "json",
@@ -1622,25 +1622,25 @@ export class Api<
       }),
 
     /**
-     * @description Create a new restaurant for the authenticated account
+     * @description Create a new organization for the authenticated account
      *
-     * @tags restaurants
-     * @name V1RestaurantsCreate
-     * @summary Create a new restaurant
-     * @request POST:/api/v1/restaurants
+     * @tags organizations
+     * @name V1OrganizationsCreate
+     * @summary Create a new organization
+     * @request POST:/api/v1/organizations
      * @secure
      */
-    v1RestaurantsCreate: (
-      request: HandlersCreateRestaurantRequest,
+    v1OrganizationsCreate: (
+      request: HandlersCreateOrganizationRequest,
       params: RequestParams = {},
     ) =>
       this.request<
         ResponseResponse & {
-          data?: ModelsRestaurant;
+          data?: ModelsOrganization;
         },
         ResponseResponse
       >({
-        path: `/api/v1/restaurants`,
+        path: `/api/v1/organizations`,
         method: "POST",
         body: request,
         secure: true,
@@ -1650,22 +1650,22 @@ export class Api<
       }),
 
     /**
-     * @description Get a specific restaurant by its ID
+     * @description Get a specific organization by its ID
      *
-     * @tags restaurants
-     * @name V1RestaurantsDetail
-     * @summary Get restaurant by ID
-     * @request GET:/api/v1/restaurants/{id}
+     * @tags organizations
+     * @name V1OrganizationsDetail
+     * @summary Get organization by ID
+     * @request GET:/api/v1/organizations/{id}
      * @secure
      */
-    v1RestaurantsDetail: (id: string, params: RequestParams = {}) =>
+    v1OrganizationsDetail: (id: string, params: RequestParams = {}) =>
       this.request<
         ResponseResponse & {
-          data?: ModelsRestaurant;
+          data?: ModelsOrganization;
         },
         ResponseResponse
       >({
-        path: `/api/v1/restaurants/${id}`,
+        path: `/api/v1/organizations/${id}`,
         method: "GET",
         secure: true,
         type: ContentType.Json,
@@ -1674,15 +1674,15 @@ export class Api<
       }),
 
     /**
-     * @description Update a restaurant's information
+     * @description Update a organization's information
      *
-     * @tags restaurants
-     * @name V1RestaurantsUpdate
-     * @summary Update restaurant
-     * @request PUT:/api/v1/restaurants/{id}
+     * @tags organizations
+     * @name V1OrganizationsUpdate
+     * @summary Update organization
+     * @request PUT:/api/v1/organizations/{id}
      * @secure
      */
-    v1RestaurantsUpdate: (
+    v1OrganizationsUpdate: (
       id: string,
       updates: Record<string, any>,
       params: RequestParams = {},
@@ -1693,7 +1693,7 @@ export class Api<
         },
         ResponseResponse
       >({
-        path: `/api/v1/restaurants/${id}`,
+        path: `/api/v1/organizations/${id}`,
         method: "PUT",
         body: updates,
         secure: true,
@@ -1703,22 +1703,22 @@ export class Api<
       }),
 
     /**
-     * @description Delete a restaurant from the system
+     * @description Delete a organization from the system
      *
-     * @tags restaurants
-     * @name V1RestaurantsDelete
-     * @summary Delete restaurant
-     * @request DELETE:/api/v1/restaurants/{id}
+     * @tags organizations
+     * @name V1OrganizationsDelete
+     * @summary Delete organization
+     * @request DELETE:/api/v1/organizations/{id}
      * @secure
      */
-    v1RestaurantsDelete: (id: string, params: RequestParams = {}) =>
+    v1OrganizationsDelete: (id: string, params: RequestParams = {}) =>
       this.request<
         ResponseResponse & {
           data?: Record<string, string>;
         },
         ResponseResponse
       >({
-        path: `/api/v1/restaurants/${id}`,
+        path: `/api/v1/organizations/${id}`,
         method: "DELETE",
         secure: true,
         type: ContentType.Json,
@@ -1727,20 +1727,20 @@ export class Api<
       }),
 
     /**
-     * @description Get feedback analytics and statistics for a restaurant
+     * @description Get feedback analytics and statistics for a organization
      *
      * @tags feedback
-     * @name V1RestaurantsAnalyticsList
+     * @name V1OrganizationsAnalyticsList
      * @summary Get feedback statistics
-     * @request GET:/api/v1/restaurants/{restaurantId}/analytics
+     * @request GET:/api/v1/organizations/{organizationId}/analytics
      * @secure
      */
-    v1RestaurantsAnalyticsList: (
-      restaurantId: string,
+    v1OrganizationsAnalyticsList: (
+      organizationId: string,
       params: RequestParams = {},
     ) =>
       this.request<Record<string, any>, ResponseResponse>({
-        path: `/api/v1/restaurants/${restaurantId}/analytics`,
+        path: `/api/v1/organizations/${organizationId}/analytics`,
         method: "GET",
         secure: true,
         type: ContentType.Json,
@@ -1749,25 +1749,25 @@ export class Api<
       }),
 
     /**
-     * @description Get all dishes for a specific restaurant
+     * @description Get all products for a specific organization
      *
-     * @tags dishes
-     * @name V1RestaurantsDishesList
-     * @summary Get dishes by restaurant
-     * @request GET:/api/v1/restaurants/{restaurantId}/dishes
+     * @tags products
+     * @name V1OrganizationsProductesList
+     * @summary Get products by organization
+     * @request GET:/api/v1/organizations/{organizationId}/products
      * @secure
      */
-    v1RestaurantsDishesList: (
-      restaurantId: string,
+    v1OrganizationsProductesList: (
+      organizationId: string,
       params: RequestParams = {},
     ) =>
       this.request<
         ResponseResponse & {
-          data?: LecritiqueInternalMenuModelsDish[];
+          data?: LecritiqueInternalMenuModelsProduct[];
         },
         ResponseResponse
       >({
-        path: `/api/v1/restaurants/${restaurantId}/dishes`,
+        path: `/api/v1/organizations/${organizationId}/products`,
         method: "GET",
         secure: true,
         type: ContentType.Json,
@@ -1776,28 +1776,28 @@ export class Api<
       }),
 
     /**
-     * @description Create a new dish for a restaurant
+     * @description Create a new product for a organization
      *
-     * @tags dishes
-     * @name V1RestaurantsDishesCreate
-     * @summary Create a new dish
-     * @request POST:/api/v1/restaurants/{restaurantId}/dishes
+     * @tags products
+     * @name V1OrganizationsProductesCreate
+     * @summary Create a new product
+     * @request POST:/api/v1/organizations/{organizationId}/products
      * @secure
      */
-    v1RestaurantsDishesCreate: (
-      restaurantId: string,
-      dish: HandlersCreateDishRequest,
+    v1OrganizationsProductesCreate: (
+      organizationId: string,
+      product: HandlersCreateProductRequest,
       params: RequestParams = {},
     ) =>
       this.request<
         ResponseResponse & {
-          data?: LecritiqueInternalMenuModelsDish;
+          data?: LecritiqueInternalMenuModelsProduct;
         },
         ResponseResponse
       >({
-        path: `/api/v1/restaurants/${restaurantId}/dishes`,
+        path: `/api/v1/organizations/${organizationId}/products`,
         method: "POST",
-        body: dish,
+        body: product,
         secure: true,
         type: ContentType.Json,
         format: "json",
@@ -1805,21 +1805,21 @@ export class Api<
       }),
 
     /**
-     * @description Get all feedback questions for a specific dish
+     * @description Get all feedback questions for a specific product
      *
      * @tags questions
-     * @name V1RestaurantsDishesQuestionsList
-     * @summary Get questions for a dish
-     * @request GET:/api/v1/restaurants/{restaurantId}/dishes/{dishId}/questions
+     * @name V1OrganizationsProductesQuestionsList
+     * @summary Get questions for a product
+     * @request GET:/api/v1/organizations/{organizationId}/products/{productId}/questions
      * @secure
      */
-    v1RestaurantsDishesQuestionsList: (
-      restaurantId: string,
-      dishId: string,
+    v1OrganizationsProductesQuestionsList: (
+      organizationId: string,
+      productId: string,
       params: RequestParams = {},
     ) =>
       this.request<Record<string, any>, Record<string, any>>({
-        path: `/api/v1/restaurants/${restaurantId}/dishes/${dishId}/questions`,
+        path: `/api/v1/organizations/${organizationId}/products/${productId}/questions`,
         method: "GET",
         secure: true,
         format: "json",
@@ -1827,22 +1827,22 @@ export class Api<
       }),
 
     /**
-     * @description Add a new feedback question to a specific dish
+     * @description Add a new feedback question to a specific product
      *
      * @tags questions
-     * @name V1RestaurantsDishesQuestionsCreate
-     * @summary Add a question to a dish
-     * @request POST:/api/v1/restaurants/{restaurantId}/dishes/{dishId}/questions
+     * @name V1OrganizationsProductesQuestionsCreate
+     * @summary Add a question to a product
+     * @request POST:/api/v1/organizations/{organizationId}/products/{productId}/questions
      * @secure
      */
-    v1RestaurantsDishesQuestionsCreate: (
-      restaurantId: string,
-      dishId: string,
+    v1OrganizationsProductesQuestionsCreate: (
+      organizationId: string,
+      productId: string,
       question: ModelsCreateQuestionRequest,
       params: RequestParams = {},
     ) =>
       this.request<Record<string, any>, Record<string, any>>({
-        path: `/api/v1/restaurants/${restaurantId}/dishes/${dishId}/questions`,
+        path: `/api/v1/organizations/${organizationId}/products/${productId}/questions`,
         method: "POST",
         body: question,
         secure: true,
@@ -1852,22 +1852,22 @@ export class Api<
       }),
 
     /**
-     * @description Reorder questions for a specific dish
+     * @description Reorder questions for a specific product
      *
      * @tags questions
-     * @name V1RestaurantsDishesQuestionsReorderCreate
+     * @name V1OrganizationsProductesQuestionsReorderCreate
      * @summary Reorder questions
-     * @request POST:/api/v1/restaurants/{restaurantId}/dishes/{dishId}/questions/reorder
+     * @request POST:/api/v1/organizations/{organizationId}/products/{productId}/questions/reorder
      * @secure
      */
-    v1RestaurantsDishesQuestionsReorderCreate: (
-      restaurantId: string,
-      dishId: string,
+    v1OrganizationsProductesQuestionsReorderCreate: (
+      organizationId: string,
+      productId: string,
       order: string[],
       params: RequestParams = {},
     ) =>
       this.request<Record<string, any>, Record<string, any>>({
-        path: `/api/v1/restaurants/${restaurantId}/dishes/${dishId}/questions/reorder`,
+        path: `/api/v1/organizations/${organizationId}/products/${productId}/questions/reorder`,
         method: "POST",
         body: order,
         secure: true,
@@ -1880,19 +1880,19 @@ export class Api<
      * @description Get details of a specific question
      *
      * @tags questions
-     * @name V1RestaurantsDishesQuestionsDetail
+     * @name V1OrganizationsProductesQuestionsDetail
      * @summary Get a specific question
-     * @request GET:/api/v1/restaurants/{restaurantId}/dishes/{dishId}/questions/{questionId}
+     * @request GET:/api/v1/organizations/{organizationId}/products/{productId}/questions/{questionId}
      * @secure
      */
-    v1RestaurantsDishesQuestionsDetail: (
-      restaurantId: string,
-      dishId: string,
+    v1OrganizationsProductesQuestionsDetail: (
+      organizationId: string,
+      productId: string,
       questionId: string,
       params: RequestParams = {},
     ) =>
       this.request<Record<string, any>, Record<string, any>>({
-        path: `/api/v1/restaurants/${restaurantId}/dishes/${dishId}/questions/${questionId}`,
+        path: `/api/v1/organizations/${organizationId}/products/${productId}/questions/${questionId}`,
         method: "GET",
         secure: true,
         format: "json",
@@ -1900,23 +1900,23 @@ export class Api<
       }),
 
     /**
-     * @description Update an existing question for a dish
+     * @description Update an existing question for a product
      *
      * @tags questions
-     * @name V1RestaurantsDishesQuestionsUpdate
+     * @name V1OrganizationsProductesQuestionsUpdate
      * @summary Update a question
-     * @request PUT:/api/v1/restaurants/{restaurantId}/dishes/{dishId}/questions/{questionId}
+     * @request PUT:/api/v1/organizations/{organizationId}/products/{productId}/questions/{questionId}
      * @secure
      */
-    v1RestaurantsDishesQuestionsUpdate: (
-      restaurantId: string,
-      dishId: string,
+    v1OrganizationsProductesQuestionsUpdate: (
+      organizationId: string,
+      productId: string,
       questionId: string,
       question: ModelsUpdateQuestionRequest,
       params: RequestParams = {},
     ) =>
       this.request<Record<string, any>, Record<string, any>>({
-        path: `/api/v1/restaurants/${restaurantId}/dishes/${dishId}/questions/${questionId}`,
+        path: `/api/v1/organizations/${organizationId}/products/${productId}/questions/${questionId}`,
         method: "PUT",
         body: question,
         secure: true,
@@ -1926,22 +1926,22 @@ export class Api<
       }),
 
     /**
-     * @description Delete a feedback question from a dish
+     * @description Delete a feedback question from a product
      *
      * @tags questions
-     * @name V1RestaurantsDishesQuestionsDelete
+     * @name V1OrganizationsProductesQuestionsDelete
      * @summary Delete a question
-     * @request DELETE:/api/v1/restaurants/{restaurantId}/dishes/{dishId}/questions/{questionId}
+     * @request DELETE:/api/v1/organizations/{organizationId}/products/{productId}/questions/{questionId}
      * @secure
      */
-    v1RestaurantsDishesQuestionsDelete: (
-      restaurantId: string,
-      dishId: string,
+    v1OrganizationsProductesQuestionsDelete: (
+      organizationId: string,
+      productId: string,
       questionId: string,
       params: RequestParams = {},
     ) =>
       this.request<Record<string, any>, Record<string, any>>({
-        path: `/api/v1/restaurants/${restaurantId}/dishes/${dishId}/questions/${questionId}`,
+        path: `/api/v1/organizations/${organizationId}/products/${productId}/questions/${questionId}`,
         method: "DELETE",
         secure: true,
         format: "json",
@@ -1949,16 +1949,16 @@ export class Api<
       }),
 
     /**
-     * @description Get all feedback for a specific restaurant with pagination and optional filters
+     * @description Get all feedback for a specific organization with pagination and optional filters
      *
      * @tags feedback
-     * @name V1RestaurantsFeedbackList
-     * @summary Get restaurant feedback with filters
-     * @request GET:/api/v1/restaurants/{restaurantId}/feedback
+     * @name V1OrganizationsFeedbackList
+     * @summary Get organization feedback with filters
+     * @request GET:/api/v1/organizations/{organizationId}/feedback
      * @secure
      */
-    v1RestaurantsFeedbackList: (
-      restaurantId: string,
+    v1OrganizationsFeedbackList: (
+      organizationId: string,
       query?: {
         /** Page number (default: 1) */
         page?: number;
@@ -1974,15 +1974,15 @@ export class Api<
         date_from?: string;
         /** End date (YYYY-MM-DD format) */
         date_to?: string;
-        /** Filter by specific dish ID */
-        dish_id?: string;
+        /** Filter by specific product ID */
+        product_id?: string;
         /** Filter by completion status */
         is_complete?: boolean;
       },
       params: RequestParams = {},
     ) =>
       this.request<Record<string, any>, ResponseResponse>({
-        path: `/api/v1/restaurants/${restaurantId}/feedback`,
+        path: `/api/v1/organizations/${organizationId}/feedback`,
         method: "GET",
         query: query,
         secure: true,
@@ -1992,20 +1992,20 @@ export class Api<
       }),
 
     /**
-     * @description Get all QR codes for a specific restaurant
+     * @description Get all QR codes for a specific organization
      *
      * @tags qr-codes
-     * @name V1RestaurantsQrCodesList
-     * @summary Get QR codes by restaurant
-     * @request GET:/api/v1/restaurants/{restaurantId}/qr-codes
+     * @name V1OrganizationsQrCodesList
+     * @summary Get QR codes by organization
+     * @request GET:/api/v1/organizations/{organizationId}/qr-codes
      * @secure
      */
-    v1RestaurantsQrCodesList: (
-      restaurantId: string,
+    v1OrganizationsQrCodesList: (
+      organizationId: string,
       params: RequestParams = {},
     ) =>
       this.request<HandlersQRCodeListResponse, ResponseResponse>({
-        path: `/api/v1/restaurants/${restaurantId}/qr-codes`,
+        path: `/api/v1/organizations/${organizationId}/qr-codes`,
         method: "GET",
         secure: true,
         type: ContentType.Json,
@@ -2014,21 +2014,21 @@ export class Api<
       }),
 
     /**
-     * @description Generate a new QR code for a restaurant
+     * @description Generate a new QR code for a organization
      *
      * @tags qr-codes
-     * @name V1RestaurantsQrCodesCreate
+     * @name V1OrganizationsQrCodesCreate
      * @summary Generate QR code
-     * @request POST:/api/v1/restaurants/{restaurantId}/qr-codes
+     * @request POST:/api/v1/organizations/{organizationId}/qr-codes
      * @secure
      */
-    v1RestaurantsQrCodesCreate: (
-      restaurantId: string,
+    v1OrganizationsQrCodesCreate: (
+      organizationId: string,
       qr_code: HandlersGenerateQRCodeRequest,
       params: RequestParams = {},
     ) =>
       this.request<HandlersGenerateQRCodeResponse, ResponseResponse>({
-        path: `/api/v1/restaurants/${restaurantId}/qr-codes`,
+        path: `/api/v1/organizations/${organizationId}/qr-codes`,
         method: "POST",
         body: qr_code,
         secure: true,
@@ -2038,16 +2038,16 @@ export class Api<
       }),
 
     /**
-     * @description Get all questionnaires for a restaurant
+     * @description Get all questionnaires for a organization
      *
      * @tags questionnaires
-     * @name V1RestaurantsQuestionnairesList
+     * @name V1OrganizationsQuestionnairesList
      * @summary List questionnaires
-     * @request GET:/api/v1/restaurants/{restaurantId}/questionnaires
+     * @request GET:/api/v1/organizations/{organizationId}/questionnaires
      * @secure
      */
-    v1RestaurantsQuestionnairesList: (
-      restaurantId: string,
+    v1OrganizationsQuestionnairesList: (
+      organizationId: string,
       params: RequestParams = {},
     ) =>
       this.request<
@@ -2056,7 +2056,7 @@ export class Api<
         },
         ResponseResponse
       >({
-        path: `/api/v1/restaurants/${restaurantId}/questionnaires`,
+        path: `/api/v1/organizations/${organizationId}/questionnaires`,
         method: "GET",
         secure: true,
         type: ContentType.Json,
@@ -2065,16 +2065,16 @@ export class Api<
       }),
 
     /**
-     * @description Create a new questionnaire for a restaurant
+     * @description Create a new questionnaire for a organization
      *
      * @tags questionnaires
-     * @name V1RestaurantsQuestionnairesCreate
+     * @name V1OrganizationsQuestionnairesCreate
      * @summary Create questionnaire
-     * @request POST:/api/v1/restaurants/{restaurantId}/questionnaires
+     * @request POST:/api/v1/organizations/{organizationId}/questionnaires
      * @secure
      */
-    v1RestaurantsQuestionnairesCreate: (
-      restaurantId: string,
+    v1OrganizationsQuestionnairesCreate: (
+      organizationId: string,
       questionnaire: ModelsCreateQuestionnaireRequest,
       params: RequestParams = {},
     ) =>
@@ -2084,7 +2084,7 @@ export class Api<
         },
         ResponseResponse
       >({
-        path: `/api/v1/restaurants/${restaurantId}/questionnaires`,
+        path: `/api/v1/organizations/${organizationId}/questionnaires`,
         method: "POST",
         body: questionnaire,
         secure: true,
@@ -2097,13 +2097,13 @@ export class Api<
      * @description Get a specific questionnaire by ID
      *
      * @tags questionnaires
-     * @name V1RestaurantsQuestionnairesDetail
+     * @name V1OrganizationsQuestionnairesDetail
      * @summary Get questionnaire
-     * @request GET:/api/v1/restaurants/{restaurantId}/questionnaires/{id}
+     * @request GET:/api/v1/organizations/{organizationId}/questionnaires/{id}
      * @secure
      */
-    v1RestaurantsQuestionnairesDetail: (
-      restaurantId: string,
+    v1OrganizationsQuestionnairesDetail: (
+      organizationId: string,
       id: string,
       params: RequestParams = {},
     ) =>
@@ -2113,7 +2113,7 @@ export class Api<
         },
         ResponseResponse
       >({
-        path: `/api/v1/restaurants/${restaurantId}/questionnaires/${id}`,
+        path: `/api/v1/organizations/${organizationId}/questionnaires/${id}`,
         method: "GET",
         secure: true,
         type: ContentType.Json,
@@ -2125,13 +2125,13 @@ export class Api<
      * @description Update an existing questionnaire
      *
      * @tags questionnaires
-     * @name V1RestaurantsQuestionnairesUpdate
+     * @name V1OrganizationsQuestionnairesUpdate
      * @summary Update questionnaire
-     * @request PUT:/api/v1/restaurants/{restaurantId}/questionnaires/{id}
+     * @request PUT:/api/v1/organizations/{organizationId}/questionnaires/{id}
      * @secure
      */
-    v1RestaurantsQuestionnairesUpdate: (
-      restaurantId: string,
+    v1OrganizationsQuestionnairesUpdate: (
+      organizationId: string,
       id: string,
       questionnaire: ModelsQuestionnaire,
       params: RequestParams = {},
@@ -2142,7 +2142,7 @@ export class Api<
         },
         ResponseResponse
       >({
-        path: `/api/v1/restaurants/${restaurantId}/questionnaires/${id}`,
+        path: `/api/v1/organizations/${organizationId}/questionnaires/${id}`,
         method: "PUT",
         body: questionnaire,
         secure: true,
@@ -2155,18 +2155,18 @@ export class Api<
      * @description Delete a questionnaire
      *
      * @tags questionnaires
-     * @name V1RestaurantsQuestionnairesDelete
+     * @name V1OrganizationsQuestionnairesDelete
      * @summary Delete questionnaire
-     * @request DELETE:/api/v1/restaurants/{restaurantId}/questionnaires/{id}
+     * @request DELETE:/api/v1/organizations/{organizationId}/questionnaires/{id}
      * @secure
      */
-    v1RestaurantsQuestionnairesDelete: (
-      restaurantId: string,
+    v1OrganizationsQuestionnairesDelete: (
+      organizationId: string,
       id: string,
       params: RequestParams = {},
     ) =>
       this.request<ResponseResponse, ResponseResponse>({
-        path: `/api/v1/restaurants/${restaurantId}/questionnaires/${id}`,
+        path: `/api/v1/organizations/${organizationId}/questionnaires/${id}`,
         method: "DELETE",
         secure: true,
         type: ContentType.Json,
@@ -2175,20 +2175,20 @@ export class Api<
       }),
 
     /**
-     * @description Get list of dish IDs that have questions for a restaurant
+     * @description Get list of product IDs that have questions for a organization
      *
      * @tags questions
-     * @name V1RestaurantsQuestionsDishesWithQuestionsList
-     * @summary Get dishes that have questions
-     * @request GET:/api/v1/restaurants/{restaurantId}/questions/dishes-with-questions
+     * @name V1OrganizationsQuestionsProductesWithQuestionsList
+     * @summary Get products that have questions
+     * @request GET:/api/v1/organizations/{organizationId}/questions/products-with-questions
      * @secure
      */
-    v1RestaurantsQuestionsDishesWithQuestionsList: (
-      restaurantId: string,
+    v1OrganizationsQuestionsProductesWithQuestionsList: (
+      organizationId: string,
       params: RequestParams = {},
     ) =>
       this.request<Record<string, any>, Record<string, any>>({
-        path: `/api/v1/restaurants/${restaurantId}/questions/dishes-with-questions`,
+        path: `/api/v1/organizations/${organizationId}/questions/products-with-questions`,
         method: "GET",
         secure: true,
         format: "json",
@@ -2354,22 +2354,22 @@ export class Api<
       }),
 
     /**
-     * @description Check if the authenticated user can create more restaurants based on their subscription plan
+     * @description Check if the authenticated user can create more organizations based on their subscription plan
      *
      * @tags subscription
-     * @name V1UserCanCreateRestaurantList
-     * @summary Check if user can create more restaurants
-     * @request GET:/api/v1/user/can-create-restaurant
+     * @name V1UserCanCreateOrganizationList
+     * @summary Check if user can create more organizations
+     * @request GET:/api/v1/user/can-create-organization
      * @secure
      */
-    v1UserCanCreateRestaurantList: (params: RequestParams = {}) =>
+    v1UserCanCreateOrganizationList: (params: RequestParams = {}) =>
       this.request<
         ResponseResponse & {
           data?: ServicesPermissionResponse;
         },
         ResponseResponse
       >({
-        path: `/api/v1/user/can-create-restaurant`,
+        path: `/api/v1/user/can-create-organization`,
         method: "GET",
         secure: true,
         type: ContentType.Json,
@@ -2472,24 +2472,24 @@ export class Api<
         ...params,
       }),
   };
-  restaurants = {
+  organizations = {
     /**
      * @description Add a new question to an existing questionnaire
      *
      * @tags questionnaires
      * @name QuestionnairesQuestionsCreate
      * @summary Add a question to a questionnaire
-     * @request POST:/restaurants/{restaurantId}/questionnaires/{id}/questions
+     * @request POST:/organizations/{organizationId}/questionnaires/{id}/questions
      * @secure
      */
     questionnairesQuestionsCreate: (
       id: string,
-      restaurantId: string,
+      organizationId: string,
       question: ModelsQuestion,
       params: RequestParams = {},
     ) =>
       this.request<Record<string, any>, Record<string, any>>({
-        path: `/restaurants/${restaurantId}/questionnaires/${id}/questions`,
+        path: `/organizations/${organizationId}/questionnaires/${id}/questions`,
         method: "POST",
         body: question,
         secure: true,
@@ -2504,18 +2504,18 @@ export class Api<
      * @tags questionnaires
      * @name QuestionnairesQuestionsUpdate
      * @summary Update a question
-     * @request PUT:/restaurants/{restaurantId}/questionnaires/{id}/questions/{questionId}
+     * @request PUT:/organizations/{organizationId}/questionnaires/{id}/questions/{questionId}
      * @secure
      */
     questionnairesQuestionsUpdate: (
       id: string,
       questionId: string,
-      restaurantId: string,
+      organizationId: string,
       question: ModelsQuestion,
       params: RequestParams = {},
     ) =>
       this.request<Record<string, any>, Record<string, any>>({
-        path: `/restaurants/${restaurantId}/questionnaires/${id}/questions/${questionId}`,
+        path: `/organizations/${organizationId}/questionnaires/${id}/questions/${questionId}`,
         method: "PUT",
         body: question,
         secure: true,
@@ -2530,17 +2530,17 @@ export class Api<
      * @tags questionnaires
      * @name QuestionnairesQuestionsDelete
      * @summary Delete a question
-     * @request DELETE:/restaurants/{restaurantId}/questionnaires/{id}/questions/{questionId}
+     * @request DELETE:/organizations/{organizationId}/questionnaires/{id}/questions/{questionId}
      * @secure
      */
     questionnairesQuestionsDelete: (
       id: string,
       questionId: string,
-      restaurantId: string,
+      organizationId: string,
       params: RequestParams = {},
     ) =>
       this.request<Record<string, any>, Record<string, any>>({
-        path: `/restaurants/${restaurantId}/questionnaires/${id}/questions/${questionId}`,
+        path: `/organizations/${organizationId}/questionnaires/${id}/questions/${questionId}`,
         method: "DELETE",
         secure: true,
         type: ContentType.Json,
@@ -2554,17 +2554,17 @@ export class Api<
      * @tags questionnaires
      * @name QuestionnairesReorderCreate
      * @summary Reorder questions
-     * @request POST:/restaurants/{restaurantId}/questionnaires/{id}/reorder
+     * @request POST:/organizations/{organizationId}/questionnaires/{id}/reorder
      * @secure
      */
     questionnairesReorderCreate: (
       id: string,
-      restaurantId: string,
+      organizationId: string,
       order: string[],
       params: RequestParams = {},
     ) =>
       this.request<Record<string, any>, Record<string, any>>({
-        path: `/restaurants/${restaurantId}/questionnaires/${id}/reorder`,
+        path: `/organizations/${organizationId}/questionnaires/${id}/reorder`,
         method: "POST",
         body: order,
         secure: true,

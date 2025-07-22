@@ -8,8 +8,8 @@
     question_text: string;
     question_type: string;
     chart_type: string;
-    dish_id?: string;
-    dish_name?: string;
+    product_id?: string;
+    product_name?: string;
     data: {
       scale?: number;
       distribution?: Record<string, number>;
@@ -31,8 +31,8 @@
     };
   }
 
-  interface RestaurantChartData {
-    restaurant_id: string;
+  interface OrganizationChartData {
+    organization_id: string;
     charts: BackendChartData[];
     summary: {
       total_responses: number;
@@ -44,9 +44,9 @@
     };
   }
 
-  interface DishGroup {
-    dish_id: string;
-    dish_name: string;
+  interface ProductGroup {
+    product_id: string;
+    product_name: string;
     charts: BackendChartData[];
     totalResponses: number;
     averageScore?: number;
@@ -55,16 +55,16 @@
   let {
     chartData = null,
     title = "Analytics Dashboard",
-    groupByDish = true,
+    groupByProduct = true,
     initiallyExpanded = false,
     searchQuery = $bindable(''),
     showOnlyWithData = $bindable(false),
-    viewMode = $bindable<'grouped' | 'all'>(groupByDish ? 'grouped' : 'all'),
+    viewMode = $bindable<'grouped' | 'all'>(groupByProduct ? 'grouped' : 'all'),
     hideControls = false
   }: {
-    chartData: RestaurantChartData | null;
+    chartData: OrganizationChartData | null;
     title?: string;
-    groupByDish?: boolean;
+    groupByProduct?: boolean;
     initiallyExpanded?: boolean;
     searchQuery?: string;
     showOnlyWithData?: boolean;
@@ -74,27 +74,27 @@
 
   let expandedGroups = $state(new Set<string>());
 
-  // Group charts by dish
-  const dishGroups = $derived(() => {
+  // Group charts by product
+  const productGroups = $derived(() => {
     if (!chartData?.charts) return [];
     
-    const groups = new Map<string, DishGroup>();
+    const groups = new Map<string, ProductGroup>();
     
     chartData.charts.forEach(chart => {
-      const dishId = chart.dish_id || 'no-dish';
-      const dishName = chart.dish_name || 'General Questions';
+      const productId = chart.product_id || 'no-product';
+      const productName = chart.product_name || 'General Questions';
       
-      if (!groups.has(dishId)) {
-        groups.set(dishId, {
-          dish_id: dishId,
-          dish_name: dishName,
+      if (!groups.has(productId)) {
+        groups.set(productId, {
+          product_id: productId,
+          product_name: productName,
           charts: [],
           totalResponses: 0,
           averageScore: undefined
         });
       }
       
-      const group = groups.get(dishId)!;
+      const group = groups.get(productId)!;
       group.charts.push(chart);
       group.totalResponses += chart.data.total || 0;
       
@@ -114,15 +114,15 @@
 
   // Filter groups based on search and data availability
   const filteredGroups = $derived(() => {
-    return dishGroups().filter(group => {
+    return productGroups().filter(group => {
       // Search filter
       if (searchQuery) {
         const query = searchQuery.toLowerCase();
-        const matchesDish = group.dish_name.toLowerCase().includes(query);
+        const matchesProduct = group.product_name.toLowerCase().includes(query);
         const matchesQuestion = group.charts.some(chart => 
           chart.question_text.toLowerCase().includes(query)
         );
-        if (!matchesDish && !matchesQuestion) return false;
+        if (!matchesProduct && !matchesQuestion) return false;
       }
       
       // Data filter
@@ -143,8 +143,8 @@
       if (searchQuery) {
         const query = searchQuery.toLowerCase();
         const matchesQuestion = chart.question_text.toLowerCase().includes(query);
-        const matchesDish = chart.dish_name?.toLowerCase().includes(query) || false;
-        if (!matchesQuestion && !matchesDish) return false;
+        const matchesProduct = chart.product_name?.toLowerCase().includes(query) || false;
+        if (!matchesQuestion && !matchesProduct) return false;
       }
       
       // Data filter
@@ -160,10 +160,10 @@
   const summaryStats = $derived(() => {
     if (!chartData?.charts) return null;
     
-    const totalDishes = new Set(chartData.charts.map(c => c.dish_id || 'no-dish')).size;
+    const totalProductes = new Set(chartData.charts.map(c => c.product_id || 'no-product')).size;
     const totalQuestions = chartData.charts.length;
     const totalResponses = chartData.summary.total_responses;
-    const avgResponsesPerDish = totalDishes > 0 ? Math.round(totalResponses / totalDishes) : 0;
+    const avgResponsesPerProduct = totalProductes > 0 ? Math.round(totalResponses / totalProductes) : 0;
     
     // Calculate overall average score
     let scoreSum = 0;
@@ -177,26 +177,26 @@
     const overallAvgScore = scoreCount > 0 ? scoreSum / scoreCount : 0;
     
     return {
-      totalDishes,
+      totalProductes,
       totalQuestions,
       totalResponses,
-      avgResponsesPerDish,
+      avgResponsesPerProduct,
       overallAvgScore
     };
   });
 
-  function toggleGroup(dishId: string) {
-    if (expandedGroups.has(dishId)) {
-      expandedGroups.delete(dishId);
+  function toggleGroup(productId: string) {
+    if (expandedGroups.has(productId)) {
+      expandedGroups.delete(productId);
     } else {
-      expandedGroups.add(dishId);
+      expandedGroups.add(productId);
     }
     expandedGroups = new Set(expandedGroups);
   }
 
   function expandAll() {
     filteredGroups().forEach(group => {
-      expandedGroups.add(group.dish_id);
+      expandedGroups.add(group.product_id);
     });
     expandedGroups = new Set(expandedGroups);
   }
@@ -208,7 +208,7 @@
 
   // Initialize expanded state
   $effect(() => {
-    if (initiallyExpanded && dishGroups().length > 0 && expandedGroups.size === 0) {
+    if (initiallyExpanded && productGroups().length > 0 && expandedGroups.size === 0) {
       expandAll();
     }
   });
@@ -298,14 +298,14 @@
       <!-- Grouped View -->
       {#if filteredGroups().length > 0}
 
-        <!-- Dish Groups -->
+        <!-- Product Groups -->
         <div class="space-y-4">
-          {#each filteredGroups() as group (group.dish_id)}
-            {@const isExpanded = expandedGroups.has(group.dish_id)}
+          {#each filteredGroups() as group (group.product_id)}
+            {@const isExpanded = expandedGroups.has(group.product_id)}
             <Card variant="elevated" padding={false} class="overflow-hidden">
               <!-- Group Header -->
               <button
-                onclick={() => toggleGroup(group.dish_id)}
+                onclick={() => toggleGroup(group.product_id)}
                 class="w-full px-6 py-4 flex items-center justify-between hover:bg-gray-50 transition-colors"
               >
                 <div class="flex items-center gap-4">
@@ -314,7 +314,7 @@
                   </div>
                   <div class="text-left">
                     <h3 class="text-lg font-semibold text-gray-900">
-                      {group.dish_name}
+                      {group.product_name}
                     </h3>
                     <div class="flex items-center gap-4 text-sm text-gray-600 mt-1">
                       <span>{group.charts.length} questions</span>
@@ -358,7 +358,7 @@
         <Card variant="elevated">
           <div class="text-center py-12">
             <Search class="h-12 w-12 text-gray-400 mx-auto mb-4" />
-            <p class="text-gray-600">No dishes or questions match your search criteria.</p>
+            <p class="text-gray-600">No products or questions match your search criteria.</p>
             {#if searchQuery || showOnlyWithData}
               <Button
                 variant="outline"

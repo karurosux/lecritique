@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"lecritique/internal/restaurant/repositories"
+	"lecritique/internal/organization/repositories"
 	"lecritique/internal/subscription/models"
 	subscriptionRepos "lecritique/internal/subscription/repositories"
 	"github.com/samber/do"
@@ -16,7 +16,7 @@ type SubscriptionService interface {
 	GetUserSubscription(ctx context.Context, accountID uuid.UUID) (*models.Subscription, error)
 	GetAvailablePlans(ctx context.Context) ([]models.SubscriptionPlan, error)
 	GetAllPlans(ctx context.Context) ([]models.SubscriptionPlan, error) // Admin only - includes hidden plans
-	CanUserCreateRestaurant(ctx context.Context, accountID uuid.UUID) (*PermissionResponse, error)
+	CanUserCreateOrganization(ctx context.Context, accountID uuid.UUID) (*PermissionResponse, error)
 	CreateSubscription(ctx context.Context, req *CreateSubscriptionRequest) (*models.Subscription, error)
 	AssignCustomPlan(ctx context.Context, accountID uuid.UUID, planCode string) error
 	CancelSubscription(ctx context.Context, accountID uuid.UUID) error
@@ -25,14 +25,14 @@ type SubscriptionService interface {
 type subscriptionService struct {
 	subscriptionRepo     subscriptionRepos.SubscriptionRepository
 	planRepo            subscriptionRepos.SubscriptionPlanRepository
-	restaurantRepo      repositories.RestaurantRepository
+	organizationRepo      repositories.OrganizationRepository
 }
 
 func NewSubscriptionService(i *do.Injector) (SubscriptionService, error) {
 	return &subscriptionService{
 		subscriptionRepo: do.MustInvoke[subscriptionRepos.SubscriptionRepository](i),
 		planRepo:        do.MustInvoke[subscriptionRepos.SubscriptionPlanRepository](i),
-		restaurantRepo:  do.MustInvoke[repositories.RestaurantRepository](i),
+		organizationRepo:  do.MustInvoke[repositories.OrganizationRepository](i),
 	}, nil
 }
 
@@ -57,7 +57,7 @@ func (s *subscriptionService) GetAvailablePlans(ctx context.Context) ([]models.S
 	return s.planRepo.FindAll(ctx)
 }
 
-func (s *subscriptionService) CanUserCreateRestaurant(ctx context.Context, accountID uuid.UUID) (*PermissionResponse, error) {
+func (s *subscriptionService) CanUserCreateOrganization(ctx context.Context, accountID uuid.UUID) (*PermissionResponse, error) {
 	// Get user's active subscription
 	subscription, err := s.subscriptionRepo.FindByAccountID(ctx, accountID)
 	if err != nil {
@@ -77,30 +77,30 @@ func (s *subscriptionService) CanUserCreateRestaurant(ctx context.Context, accou
 		}, nil
 	}
 
-	// Get current restaurant count
-	restaurants, err := s.restaurantRepo.FindByAccountID(ctx, accountID)
+	// Get current organization count
+	organizations, err := s.organizationRepo.FindByAccountID(ctx, accountID)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get restaurant count: %w", err)
+		return nil, fmt.Errorf("failed to get organization count: %w", err)
 	}
 
-	currentCount := len(restaurants)
-	maxRestaurants := subscription.Plan.MaxRestaurants
+	currentCount := len(organizations)
+	maxOrganizations := subscription.Plan.MaxOrganizations
 
-	// Check if user can create more restaurants
-	canCreate := subscription.CanAddRestaurant(currentCount)
+	// Check if user can create more organizations
+	canCreate := subscription.CanAddOrganization(currentCount)
 	
 	var reason string
-	if maxRestaurants == -1 {
-		reason = "Unlimited restaurants allowed"
+	if maxOrganizations == -1 {
+		reason = "Unlimited organizations allowed"
 	} else {
-		reason = fmt.Sprintf("Current: %d/%d restaurants", currentCount, maxRestaurants)
+		reason = fmt.Sprintf("Current: %d/%d organizations", currentCount, maxOrganizations)
 	}
 
 	return &PermissionResponse{
 		CanCreate:          canCreate,
 		Reason:            reason,
 		CurrentCount:      currentCount,
-		MaxAllowed:        maxRestaurants,
+		MaxAllowed:        maxOrganizations,
 		SubscriptionStatus: string(subscription.Status),
 	}, nil
 }

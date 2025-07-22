@@ -28,7 +28,7 @@ INSERT INTO subscription_plans (
     false,  -- Hidden plan
     jsonb_build_object(
         'limits', jsonb_build_object(
-            'max_restaurants', -1,
+            'max_organizations', -1,
             'max_feedbacks_per_month', 100000,
             'max_storage_gb', 1000,
             'max_api_calls_per_hour', 100000
@@ -111,7 +111,7 @@ WHERE account_id = '123e4567-e89b-12d3-a456-426614174000';
 ### 1. Volume Discounts
 Create hidden plans with special pricing for large customers:
 ```sql
--- 50% off for customers with 10+ restaurants
+-- 50% off for customers with 10+ organizations
 INSERT INTO subscription_plans (code, name, price, is_visible) 
 VALUES ('enterprise_volume_50', 'Enterprise Volume 50% Off', 99.50, false);
 ```
@@ -166,7 +166,7 @@ VALUES ('partner_reseller', 'Partner Reseller Plan', 0,
 # 1. Create custom plan for ACME Corp
 psql -c "INSERT INTO subscription_plans (code, name, price, is_visible, features) 
          VALUES ('custom_acme_2024', 'ACME Corp Special', 299, false, 
-                '{\"limits\": {\"max_restaurants\": 50}}')"
+                '{\"limits\": {\"max_organizations\": 50}}')"
 
 # 2. Assign to ACME's account
 curl -X POST http://api.lecritique.com/v1/admin/subscriptions/assign-custom-plan \

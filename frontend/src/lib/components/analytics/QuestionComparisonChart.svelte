@@ -15,17 +15,17 @@
     negative_rate?: number;
   }
   
-  interface DishInsights {
+  interface ProductInsights {
     question_metrics: QuestionMetric[];
     best_aspects?: string[];
     areas_needing_attention?: string[];
   }
   
   let {
-    dishInsights = null,
+    productInsights = null,
     loading = false
   }: {
-    dishInsights?: DishInsights | null;
+    productInsights?: ProductInsights | null;
     loading?: boolean;
   } = $props();
 
@@ -40,9 +40,9 @@
   let highlightedQuestionId = $derived($selection.highlightedQuestionId);
 
   const chartData = $derived(() => {
-    if (!dishInsights?.question_metrics) return null;
+    if (!productInsights?.question_metrics) return null;
     
-    const scoredQuestions = dishInsights.question_metrics
+    const scoredQuestions = productInsights.question_metrics
       .filter(q => q.average_score !== undefined && q.average_score !== null)
       .sort((a, b) => (b.average_score || 0) - (a.average_score || 0));
     
@@ -199,16 +199,16 @@
     </div>
 
     <!-- Insights -->
-    {#if dishInsights?.best_aspects?.length || dishInsights?.areas_needing_attention?.length}
+    {#if productInsights?.best_aspects?.length || productInsights?.areas_needing_attention?.length}
       <div class="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
-        {#if dishInsights.best_aspects?.length}
+        {#if productInsights.best_aspects?.length}
           <div class="bg-green-50 border border-green-200 rounded-lg p-4">
             <h4 class="font-medium text-green-900 mb-2 flex items-center gap-2">
               <ArrowUpIcon class="w-4 h-4" />
               Best Performing Aspects
             </h4>
             <ul class="space-y-1 text-sm text-green-700">
-              {#each dishInsights.best_aspects.slice(0, 3) as aspect}
+              {#each productInsights.best_aspects.slice(0, 3) as aspect}
                 <li class="flex items-start">
                   <span class="mr-2">•</span>
                   <span>{aspect}</span>
@@ -218,14 +218,14 @@
           </div>
         {/if}
         
-        {#if dishInsights.areas_needing_attention?.length}
+        {#if productInsights.areas_needing_attention?.length}
           <div class="bg-amber-50 border border-amber-200 rounded-lg p-4">
             <h4 class="font-medium text-amber-900 mb-2 flex items-center gap-2">
               <ArrowDownIcon class="w-4 h-4" />
               Areas Needing Attention
             </h4>
             <ul class="space-y-1 text-sm text-amber-700">
-              {#each dishInsights.areas_needing_attention.slice(0, 3) as area}
+              {#each productInsights.areas_needing_attention.slice(0, 3) as area}
                 <li class="flex items-start">
                   <span class="mr-2">•</span>
                   <span>{area}</span>

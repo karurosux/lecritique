@@ -8,16 +8,16 @@
     response_count: number;
   }
   
-  interface DishInsights {
-    dish_name?: string;
+  interface ProductInsights {
+    product_name?: string;
     question_metrics: QuestionMetric[];
   }
   
   let {
-    dishInsights = null,
+    productInsights = null,
     loading = false
   }: {
-    dishInsights?: DishInsights | null;
+    productInsights?: ProductInsights | null;
     loading?: boolean;
   } = $props();
 
@@ -26,9 +26,9 @@
   let animationProgress = $state(0);
 
   const chartData = $derived(() => {
-    if (!dishInsights?.question_metrics) return null;
+    if (!productInsights?.question_metrics) return null;
     
-    const numericQuestions = dishInsights.question_metrics.filter(
+    const numericQuestions = productInsights.question_metrics.filter(
       q => q.average_score !== undefined && q.average_score !== null
     );
     
@@ -184,7 +184,7 @@
   });
 </script>
 
-<Card variant="default" class="dish-radar-chart">
+<Card variant="default" class="product-radar-chart">
   <div class="mb-4">
     <h3 class="text-lg font-semibold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
       Question Score Radar

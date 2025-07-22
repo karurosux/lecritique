@@ -38,7 +38,7 @@
 
 <svelte:head>
 	<title>Choose Your Plan - LeCritique</title>
-	<meta name="description" content="Select the perfect LeCritique plan for your restaurant feedback needs." />
+	<meta name="description" content="Select the perfect LeCritique plan for your organization feedback needs." />
 </svelte:head>
 
 <div class="min-h-screen relative bg-gray-50">
@@ -68,7 +68,7 @@
 					</span>
 				</h1>
 				<p class="text-xl text-gray-600 max-w-2xl mx-auto">
-					Start your journey with the plan that fits your restaurant best
+					Start your journey with the plan that fits your organization best
 				</p>
 			</div>
 

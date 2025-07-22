@@ -7,7 +7,7 @@ import (
 
 	"github.com/google/uuid"
 	"lecritique/internal/auth/models"
-	restaurantModels "lecritique/internal/restaurant/models"
+	organizationModels "lecritique/internal/organization/models"
 	"lecritique/internal/shared/repositories"
 	"github.com/samber/do"
 	"gorm.io/gorm"
@@ -19,7 +19,7 @@ type AccountRepository interface {
 	FindByEmail(ctx context.Context, email string) (*models.Account, error)
 	Update(ctx context.Context, account *models.Account) error
 	Delete(ctx context.Context, id uuid.UUID) error
-	CountRestaurants(ctx context.Context, accountID uuid.UUID) (int64, error)
+	CountOrganizations(ctx context.Context, accountID uuid.UUID) (int64, error)
 	UpdateEmailVerification(ctx context.Context, accountID uuid.UUID, verified bool) error
 	FindAccountsPendingDeactivation(ctx context.Context) ([]models.Account, error)
 }
@@ -47,9 +47,9 @@ func (r *accountRepository) FindByEmail(ctx context.Context, email string) (*mod
 	return &account, nil
 }
 
-func (r *accountRepository) CountRestaurants(ctx context.Context, accountID uuid.UUID) (int64, error) {
+func (r *accountRepository) CountOrganizations(ctx context.Context, accountID uuid.UUID) (int64, error) {
 	var count int64
-	err := r.DB.WithContext(ctx).Model(&restaurantModels.Restaurant{}).
+	err := r.DB.WithContext(ctx).Model(&organizationModels.Organization{}).
 		Where("account_id = ? AND deleted_at IS NULL", accountID).
 		Count(&count).Error
 	return count, err

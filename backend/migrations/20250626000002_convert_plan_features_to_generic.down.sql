@@ -6,8 +6,8 @@ ALTER TABLE subscription_plans ADD COLUMN features_old JSONB;
 -- Convert back to old format
 UPDATE subscription_plans 
 SET features_old = jsonb_build_object(
-    'max_restaurants', COALESCE((features->'limits'->>'max_restaurants')::int, 0),
-    'max_locations_per_restaurant', COALESCE((features->'limits'->>'max_locations_per_restaurant')::int, 0),
+    'max_organizations', COALESCE((features->'limits'->>'max_organizations')::int, 0),
+    'max_locations_per_organization', COALESCE((features->'limits'->>'max_locations_per_organization')::int, 0),
     'max_qr_codes_per_location', COALESCE((features->'limits'->>'max_qr_codes_per_location')::int, 0),
     'max_feedbacks_per_month', COALESCE((features->'limits'->>'max_feedbacks_per_month')::int, 0),
     'max_team_members', COALESCE((features->'limits'->>'max_team_members')::int, 0),

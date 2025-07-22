@@ -31,20 +31,20 @@
     const highRatingPercentage = getPercentage(highRatings, totalFeedback);
     const avgRating = analyticsData.average_rating || 0;
     
-    // Calculate dish-specific insights
-    const topDishes = analyticsData.top_rated_dishes || analyticsData.top_dishes || [];
-    const bestDish = topDishes[0];
+    // Calculate product-specific insights
+    const topProductes = analyticsData.top_rated_products || analyticsData.top_products || [];
+    const bestProduct = topProductes[0];
     const worstRatings = (ratingDist['1'] || 0) + (ratingDist['2'] || 0);
     const worstRatingPercentage = getPercentage(worstRatings, totalFeedback);
     
     const insights = [];
     
-    // Best performing dish
-    if (bestDish) {
+    // Best performing product
+    if (bestProduct) {
       insights.push({
-        id: 'best-dish',
-        title: bestDish.dish_name || bestDish.name,
-        subtitle: `Top rated: ${(bestDish.average_rating || 0).toFixed(1)} stars`,
+        id: 'best-product',
+        title: bestProduct.product_name || bestProduct.name,
+        subtitle: `Top rated: ${(bestProduct.average_rating || 0).toFixed(1)} stars`,
         icon: Star,
         bgClass: 'bg-green-50',
         borderClass: 'border-green-200',
@@ -72,7 +72,7 @@
       insights.push({
         id: 'concern',
         title: `${worstRatingPercentage.toFixed(0)}% Need Work`,
-        subtitle: 'Dishes rated 1-2 stars',
+        subtitle: 'Productes rated 1-2 stars',
         icon: AlertTriangle,
         bgClass: 'bg-amber-50',
         borderClass: 'border-amber-200',

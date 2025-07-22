@@ -19,10 +19,10 @@ func (m *Module) RegisterRoutes(v1 *echo.Group) {
 	publicHandler := do.MustInvoke[*handlers.FeedbackPublicHandler](m.injector)
 	
 	// Public feedback routes (no auth required)
-	v1.GET("/questionnaire/:restaurantId/:dishId", publicHandler.GetQuestionnaire)
-	v1.GET("/restaurant/:restaurantId/dishes/:dishId/questions", publicHandler.GetDishQuestions)
-	v1.GET("/restaurant/:restaurantId/questions/dishes-with-questions", publicHandler.GetDishesWithQuestions)
+	v1.GET("/questionnaire/:organizationId/:productId", publicHandler.GetQuestionnaire)
+	v1.GET("/organization/:organizationId/products/:productId/questions", publicHandler.GetProductQuestions)
+	v1.GET("/organization/:organizationId/questions/products-with-questions", publicHandler.GetProductesWithQuestions)
 	v1.POST("/feedback", publicHandler.SubmitFeedback)
 	
-	// Protected feedback routes (moved to restaurant module)
+	// Protected feedback routes (moved to organization module)
 }

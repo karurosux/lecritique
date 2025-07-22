@@ -34,13 +34,13 @@ func NewQuestionnaireService(i *do.Injector) (*QuestionnaireService, error) {
 	}, nil
 }
 
-func (s *QuestionnaireService) Create(ctx context.Context, accountID, restaurantID uuid.UUID, input *models.Questionnaire) (*models.Questionnaire, error) {
-	// Validate restaurant belongs to account
+func (s *QuestionnaireService) Create(ctx context.Context, accountID, organizationID uuid.UUID, input *models.Questionnaire) (*models.Questionnaire, error) {
+	// Validate organization belongs to account
 	// TODO: Add validation
 
 	questionnaire := &models.Questionnaire{
-		RestaurantID: restaurantID,
-		DishID:       input.DishID,
+		OrganizationID: organizationID,
+		ProductID:       input.ProductID,
 		Name:         input.Name,
 		Description:  input.Description,
 		IsDefault:    input.IsDefault,
@@ -48,7 +48,7 @@ func (s *QuestionnaireService) Create(ctx context.Context, accountID, restaurant
 	}
 
 	if questionnaire.IsDefault {
-		if err := s.repo.DeactivateDefaultQuestionnaires(ctx, restaurantID); err != nil {
+		if err := s.repo.DeactivateDefaultQuestionnaires(ctx, organizationID); err != nil {
 			return nil, err
 		}
 	}
@@ -73,7 +73,7 @@ func (s *QuestionnaireService) Update(ctx context.Context, accountID, questionna
 	questionnaire.IsActive = input.IsActive
 
 	if input.IsDefault && !questionnaire.IsDefault {
-		if err := s.repo.DeactivateDefaultQuestionnaires(ctx, questionnaire.RestaurantID); err != nil {
+		if err := s.repo.DeactivateDefaultQuestionnaires(ctx, questionnaire.OrganizationID); err != nil {
 			return nil, err
 		}
 		questionnaire.IsDefault = true
@@ -112,10 +112,10 @@ func (s *QuestionnaireService) GetByID(ctx context.Context, accountID, questionn
 	return questionnaire, nil
 }
 
-func (s *QuestionnaireService) ListByRestaurant(ctx context.Context, accountID, restaurantID uuid.UUID) ([]models.Questionnaire, error) {
-	// TODO: Validate restaurant belongs to account
+func (s *QuestionnaireService) ListByOrganization(ctx context.Context, accountID, organizationID uuid.UUID) ([]models.Questionnaire, error) {
+	// TODO: Validate organization belongs to account
 
-	return s.repo.FindByRestaurantID(ctx, restaurantID)
+	return s.repo.FindByOrganizationID(ctx, organizationID)
 }
 
 func (s *QuestionnaireService) AddQuestion(ctx context.Context, accountID, questionnaireID uuid.UUID, question *models.Question) (*models.Question, error) {
@@ -183,14 +183,14 @@ func (s *QuestionnaireService) ReorderQuestions(ctx context.Context, accountID, 
 	return s.repo.ReorderQuestions(ctx, questionnaireID, questionIDs)
 }
 
-func (s *QuestionnaireService) GenerateQuestionsForDish(ctx context.Context, accountID uuid.UUID, dish *menuModels.Dish) ([]aiServices.GeneratedQuestion, error) {
+func (s *QuestionnaireService) GenerateQuestionsForProduct(ctx context.Context, accountID uuid.UUID, product *menuModels.Product) ([]aiServices.GeneratedQuestion, error) {
 	if s.questionGenerator == nil {
 		return nil, fmt.Errorf("AI question generation is not configured")
 	}
 
-	// TODO: Validate dish belongs to account
+	// TODO: Validate product belongs to account
 
-	questions, err := s.questionGenerator.GenerateQuestionsForDish(ctx, dish)
+	questions, err := s.questionGenerator.GenerateQuestionsForProduct(ctx, product)
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate questions: %w", err)
 	}
@@ -198,19 +198,19 @@ func (s *QuestionnaireService) GenerateQuestionsForDish(ctx context.Context, acc
 	return questions, nil
 }
 
-func (s *QuestionnaireService) GenerateAndSaveQuestionnaireForDish(ctx context.Context, accountID uuid.UUID, dish *menuModels.Dish, name, description string, isDefault bool) (*models.Questionnaire, error) {
+func (s *QuestionnaireService) GenerateAndSaveQuestionnaireForProduct(ctx context.Context, accountID uuid.UUID, product *menuModels.Product, name, description string, isDefault bool) (*models.Questionnaire, error) {
 	if s.questionGenerator == nil {
 		return nil, fmt.Errorf("AI question generation is not configured")
 	}
 
-	generatedQuestions, err := s.questionGenerator.GenerateQuestionsForDish(ctx, dish)
+	generatedQuestions, err := s.questionGenerator.GenerateQuestionsForProduct(ctx, product)
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate questions: %w", err)
 	}
 
 	questionnaire := &models.Questionnaire{
-		RestaurantID: dish.RestaurantID,
-		DishID:       &dish.ID,
+		OrganizationID: product.OrganizationID,
+		ProductID:       &product.ID,
 		Name:         name,
 		Description:  description,
 		IsDefault:    isDefault,
@@ -218,7 +218,7 @@ func (s *QuestionnaireService) GenerateAndSaveQuestionnaireForDish(ctx context.C
 	}
 
 	if questionnaire.IsDefault {
-		if err := s.repo.DeactivateDefaultQuestionnaires(ctx, dish.RestaurantID); err != nil {
+		if err := s.repo.DeactivateDefaultQuestionnaires(ctx, product.OrganizationID); err != nil {
 			return nil, err
 		}
 	}
@@ -229,7 +229,7 @@ func (s *QuestionnaireService) GenerateAndSaveQuestionnaireForDish(ctx context.C
 
 	for i, genQ := range generatedQuestions {
 		question := &models.Question{
-			// TODO: Update this to use new Question structure with DishID
+			// TODO: Update this to use new Question structure with ProductID
 			// QuestionnaireID: questionnaire.ID,
 			Text:         genQ.Text,
 			Type:         genQ.Type,

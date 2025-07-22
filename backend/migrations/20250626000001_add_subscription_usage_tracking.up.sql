@@ -8,7 +8,7 @@ CREATE TABLE IF NOT EXISTS subscription_usage (
     period_start TIMESTAMPTZ NOT NULL,
     period_end TIMESTAMPTZ NOT NULL,
     feedbacks_count INTEGER DEFAULT 0,
-    restaurants_count INTEGER DEFAULT 0,
+    organizations_count INTEGER DEFAULT 0,
     locations_count INTEGER DEFAULT 0,
     qr_codes_count INTEGER DEFAULT 0,
     team_members_count INTEGER DEFAULT 0,
@@ -28,11 +28,11 @@ CREATE TABLE IF NOT EXISTS usage_events (
     deleted_at TIMESTAMPTZ,
     subscription_id UUID NOT NULL REFERENCES subscriptions(id) ON DELETE CASCADE,
     event_type VARCHAR(50) NOT NULL, -- create, delete, update
-    resource_type VARCHAR(50) NOT NULL, -- feedback, restaurant, location, etc
+    resource_type VARCHAR(50) NOT NULL, -- feedback, organization, location, etc
     resource_id UUID,
     metadata JSONB,
     CHECK (event_type IN ('create', 'delete', 'update')),
-    CHECK (resource_type IN ('feedback', 'restaurant', 'location', 'qr_code', 'team_member'))
+    CHECK (resource_type IN ('feedback', 'organization', 'location', 'qr_code', 'team_member'))
 );
 
 -- Create indexes for usage_events
@@ -69,7 +69,7 @@ INSERT INTO subscription_usage (
     subscription_id,
     period_start,
     period_end,
-    restaurants_count,
+    organizations_count,
     feedbacks_count,
     locations_count,
     qr_codes_count,
@@ -79,10 +79,10 @@ SELECT
     s.id,
     s.current_period_start,
     s.current_period_end,
-    (SELECT COUNT(*) FROM restaurants WHERE account_id = s.account_id AND deleted_at IS NULL),
+    (SELECT COUNT(*) FROM organizations WHERE account_id = s.account_id AND deleted_at IS NULL),
     0, -- We don't have historical feedback count
-    (SELECT COUNT(*) FROM locations l JOIN restaurants r ON l.restaurant_id = r.id WHERE r.account_id = s.account_id AND l.deleted_at IS NULL),
-    (SELECT COUNT(*) FROM qr_codes q JOIN locations l ON q.location_id = l.id JOIN restaurants r ON l.restaurant_id = r.id WHERE r.account_id = s.account_id AND q.deleted_at IS NULL),
+    (SELECT COUNT(*) FROM locations l JOIN organizations r ON l.organization_id = r.id WHERE r.account_id = s.account_id AND l.deleted_at IS NULL),
+    (SELECT COUNT(*) FROM qr_codes q JOIN locations l ON q.location_id = l.id JOIN organizations r ON l.organization_id = r.id WHERE r.account_id = s.account_id AND q.deleted_at IS NULL),
     (SELECT COUNT(*) FROM team_members WHERE account_id = s.account_id AND deleted_at IS NULL)
 FROM subscriptions s
 WHERE s.status = 'active' 

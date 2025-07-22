@@ -12,8 +12,8 @@
     customer_email?: string;
     rating: number;
     comment?: string;
-    dish_name?: string;
-    restaurant_name?: string;
+    product_name?: string;
+    organization_name?: string;
     location_name?: string;
     qr_code?: string;
     responses?: Record<string, any>;
@@ -21,7 +21,7 @@
   }
 
   interface FeedbackFilters {
-    restaurant_id?: string;
+    organization_id?: string;
     location_id?: string;
     rating_min?: number;
     rating_max?: number;
@@ -33,8 +33,8 @@
   let loading = $state(true);
   let error = $state('');
   let feedback = $state<Feedback[]>([]);
-  let restaurants = $state<any[]>([]);
-  let dishes = $state<any[]>([]);
+  let organizations = $state<any[]>([]);
+  let products = $state<any[]>([]);
   let totalCount = $state(0);
   let currentPage = $state(1);
   let itemsPerPage = $state(20);
@@ -43,8 +43,8 @@
   let filters: FeedbackFilters = {};
   let searchQuery = $state('');
   let searchInput = $state(''); // Make it reactive for binding
-  let selectedRestaurant = $state('');
-  let selectedDish = $state('');
+  let selectedOrganization = $state('');
+  let selectedProduct = $state('');
   let selectedRating = $state('');
   let dateFrom = $state('');
   let dateTo = $state('');
@@ -93,16 +93,16 @@
 
   // Handle other filter changes immediately (non-search filters)
   $effect(() => {
-    if (!isFirstLoad && (selectedRating !== undefined || selectedRestaurant !== undefined || selectedDish !== undefined || dateFrom !== undefined || dateTo !== undefined)) {
+    if (!isFirstLoad && (selectedRating !== undefined || selectedOrganization !== undefined || selectedProduct !== undefined || dateFrom !== undefined || dateTo !== undefined)) {
       loadFeedback();
     }
   });
 
-  // Reload dishes when restaurant changes
+  // Reload products when organization changes
   $effect(() => {
-    if (!isFirstLoad && selectedRestaurant !== undefined) {
-      selectedDish = ''; // Clear dish selection when restaurant changes
-      loadDishes();
+    if (!isFirstLoad && selectedOrganization !== undefined) {
+      selectedProduct = ''; // Clear product selection when organization changes
+      loadProductes();
     }
   });
 
@@ -117,10 +117,10 @@
     // Set default 15-day filter
     setDefaultDateFilter();
     
-    const loadedRestaurants = await loadRestaurants();
-    // Load dishes after restaurants are loaded
-    if (loadedRestaurants.length > 0) {
-      await loadDishes();
+    const loadedOrganizations = await loadOrganizations();
+    // Load products after organizations are loaded
+    if (loadedOrganizations.length > 0) {
+      await loadProductes();
     }
     await loadFeedback();
     
@@ -128,64 +128,64 @@
     isFirstLoad = false;
   });
 
-  async function loadRestaurants() {
+  async function loadOrganizations() {
     try {
       const api = getApiClient();
-      const response = await api.api.v1RestaurantsList();
+      const response = await api.api.v1OrganizationsList();
       
       if (response.data.success && response.data.data) {
-        restaurants = response.data.data;
-        return response.data.data; // Return the restaurants
+        organizations = response.data.data;
+        return response.data.data; // Return the organizations
       }
       return [];
     } catch (err) {
-      console.error('Error loading restaurants:', err);
+      console.error('Error loading organizations:', err);
       return [];
     }
   }
 
-  async function loadDishes() {
+  async function loadProductes() {
     try {
       const api = getApiClient();
       
-      // Make sure we have restaurants loaded first
-      if (restaurants.length === 0 && !selectedRestaurant) {
+      // Make sure we have organizations loaded first
+      if (organizations.length === 0 && !selectedOrganization) {
         return;
       }
       
-      // If a restaurant is selected, load dishes for that restaurant
-      if (selectedRestaurant) {
-        const response = await api.api.v1RestaurantsDishesList(selectedRestaurant);
+      // If a organization is selected, load products for that organization
+      if (selectedOrganization) {
+        const response = await api.api.v1OrganizationsProductesList(selectedOrganization);
         if (response.data.success && response.data.data) {
-          dishes = response.data.data;
+          products = response.data.data;
         }
       } else {
-        // Load dishes from all restaurants
-        const dishPromises = restaurants.map(async (restaurant) => {
+        // Load products from all organizations
+        const productPromises = organizations.map(async (organization) => {
           try {
-            const response = await api.api.v1RestaurantsDishesList(restaurant.id);
+            const response = await api.api.v1OrganizationsProductesList(organization.id);
             return response.data.data || [];
           } catch (err) {
-            console.error(`Error loading dishes for restaurant ${restaurant.id}:`, err);
+            console.error(`Error loading products for organization ${organization.id}:`, err);
             return [];
           }
         });
         
-        const dishArrays = await Promise.all(dishPromises);
-        const allDishes = dishArrays.flat();
+        const productArrays = await Promise.all(productPromises);
+        const allProductes = productArrays.flat();
         
         // Remove duplicates by name
-        const uniqueDishes = allDishes.reduce((acc: any[], dish: any) => {
-          if (!acc.find(d => d.name === dish.name)) {
-            acc.push(dish);
+        const uniqueProductes = allProductes.reduce((acc: any[], product: any) => {
+          if (!acc.find(d => d.name === product.name)) {
+            acc.push(product);
           }
           return acc;
         }, []);
         
-        dishes = uniqueDishes.sort((a, b) => a.name.localeCompare(b.name));
+        products = uniqueProductes.sort((a, b) => a.name.localeCompare(b.name));
       }
     } catch (err) {
-      console.error('Error loading dishes:', err);
+      console.error('Error loading products:', err);
     }
   }
 
@@ -196,18 +196,18 @@
     try {
       const api = getApiClient();
       
-      if (restaurants.length === 0) {
+      if (organizations.length === 0) {
         feedback = [];
         totalCount = 0;
         loading = false;
         return;
       }
 
-      // Load feedback from all restaurants if no specific restaurant selected
+      // Load feedback from all organizations if no specific organization selected
       let allFeedback: Feedback[] = [];
       
-      if (selectedRestaurant) {
-        // Load feedback from specific restaurant with server-side filtering
+      if (selectedOrganization) {
+        // Load feedback from specific organization with server-side filtering
         const query: any = {};
         
         if (searchQuery) query.search = searchQuery;
@@ -215,28 +215,28 @@
           query.rating_min = parseInt(selectedRating);
           query.rating_max = parseInt(selectedRating);
         }
-        if (selectedDish) query.dish_id = selectedDish;
+        if (selectedProduct) query.product_id = selectedProduct;
         if (dateFrom) query.date_from = dateFrom;
         if (dateTo) query.date_to = dateTo;
         
-        const feedbackResponse = await api.api.v1RestaurantsFeedbackList(selectedRestaurant, query);
+        const feedbackResponse = await api.api.v1OrganizationsFeedbackList(selectedOrganization, query);
         const feedbackData = feedbackResponse.data;
-        const restaurantFeedback = feedbackData?.data || [];
+        const organizationFeedback = feedbackData?.data || [];
         
-        allFeedback = restaurantFeedback.map((fb: any) => ({
+        allFeedback = organizationFeedback.map((fb: any) => ({
           id: fb.id,
           customer_email: fb.customer_email,
           rating: fb.overall_rating,
           comment: fb.comment,
-          dish_name: fb.dish?.name || null,
-          restaurant_name: restaurants.find(r => r.id === selectedRestaurant)?.name,
+          product_name: fb.product?.name || null,
+          organization_name: organizations.find(r => r.id === selectedOrganization)?.name,
           location_name: fb.location_name,
           qr_code: fb.qr_code,
           responses: fb.responses,
           created_at: fb.created_at
         }));
       } else {
-        // Load feedback from all restaurants with server-side filtering
+        // Load feedback from all organizations with server-side filtering
         const query: any = {};
         
         if (searchQuery) query.search = searchQuery;
@@ -244,30 +244,30 @@
           query.rating_min = parseInt(selectedRating);
           query.rating_max = parseInt(selectedRating);
         }
-        if (selectedDish) query.dish_id = selectedDish;
+        if (selectedProduct) query.product_id = selectedProduct;
         if (dateFrom) query.date_from = dateFrom;
         if (dateTo) query.date_to = dateTo;
         
-        const feedbackPromises = restaurants.map(async (restaurant) => {
+        const feedbackPromises = organizations.map(async (organization) => {
           try {
-            const feedbackResponse = await api.api.v1RestaurantsFeedbackList(restaurant.id, query);
+            const feedbackResponse = await api.api.v1OrganizationsFeedbackList(organization.id, query);
             const feedbackData = feedbackResponse.data;
-            const restaurantFeedback = feedbackData?.data || [];
+            const organizationFeedback = feedbackData?.data || [];
             
-            return restaurantFeedback.map((fb: any) => ({
+            return organizationFeedback.map((fb: any) => ({
               id: fb.id,
               customer_email: fb.customer_email,
               rating: fb.overall_rating,
               comment: fb.comment,
-              dish_name: fb.dish?.name || null,
-              restaurant_name: restaurant.name,
+              product_name: fb.product?.name || null,
+              organization_name: organization.name,
               location_name: fb.location_name,
               qr_code: fb.qr_code,
               responses: fb.responses,
               created_at: fb.created_at
             }));
           } catch (err) {
-            console.error(`Error loading feedback for restaurant ${restaurant.id}:`, err);
+            console.error(`Error loading feedback for organization ${organization.id}:`, err);
             return [];
           }
         });
@@ -298,8 +298,8 @@
   function clearFilters() {
     searchQuery = '';
     searchInput = ''; // Clear the input field too
-    selectedRestaurant = '';
-    selectedDish = '';
+    selectedOrganization = '';
+    selectedProduct = '';
     selectedRating = '';
     
     // Reset to default 15-day filter
@@ -368,21 +368,21 @@
   }
 
   function exportToCSV() {
-    // Get all unique questions across all feedback, prefixed with dish name for clarity
+    // Get all unique questions across all feedback, prefixed with product name for clarity
     const allQuestions = new Set<string>();
     feedback.forEach(fb => {
       if (fb.responses) {
         fb.responses.forEach((response: any, index: number) => {
           const questionText = getQuestionText(response, index);
-          const dishName = fb.dish_name || 'General';
-          const prefixedQuestion = `[${dishName}] ${questionText}`;
+          const productName = fb.product_name || 'General';
+          const prefixedQuestion = `[${productName}] ${questionText}`;
           allQuestions.add(prefixedQuestion);
         });
       }
     });
     
     const questionArray = Array.from(allQuestions).sort();
-    const headers = ['ID', 'Date', 'Customer Email', 'Rating', 'Dish', 'Restaurant', 'Location', 'Comment', ...questionArray];
+    const headers = ['ID', 'Date', 'Customer Email', 'Rating', 'Product', 'Organization', 'Location', 'Comment', ...questionArray];
     
     const csvContent = [
       headers.join(','),
@@ -393,8 +393,8 @@
           fb.created_at,
           fb.customer_email || 'Anonymous',
           fb.rating || '',
-          fb.dish_name || '',
-          fb.restaurant_name || '',
+          fb.product_name || '',
+          fb.organization_name || '',
           typeof fb.qr_code === 'object' ? (fb.qr_code?.location || fb.qr_code?.name || fb.qr_code?.identifier || '') : (fb.qr_code || ''),
           `"${fb.comment?.replace(/"/g, '""') || ''}"`
         ];
@@ -404,8 +404,8 @@
         if (fb.responses) {
           fb.responses.forEach((response: any, index: number) => {
             const questionText = getQuestionText(response, index);
-            const dishName = fb.dish_name || 'General';
-            const prefixedQuestion = `[${dishName}] ${questionText}`;
+            const productName = fb.product_name || 'General';
+            const prefixedQuestion = `[${productName}] ${questionText}`;
             let answerText = '';
             
             if (typeof response.answer === 'boolean') {
@@ -465,7 +465,7 @@
                 Feedback Management
               </h1>
               <div class="flex items-center space-x-4 mt-1">
-                <p class="text-gray-600 font-medium">Review and analyze customer feedback from all your restaurants</p>
+                <p class="text-gray-600 font-medium">Review and analyze customer feedback from all your organizations</p>
                 {#if !loading && feedback.length > 0}
                   <div class="flex items-center space-x-3 text-sm">
                     <div class="flex items-center space-x-1">
@@ -506,44 +506,44 @@
     <!-- Filters -->
     <Card variant="default" hover interactive class="mb-6 group transform transition-all duration-300 animate-fade-in-up">
       <div class="space-y-4">
-        <!-- First Row: Search and Restaurant -->
+        <!-- First Row: Search and Organization -->
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
           <!-- Search -->
           <div class="space-y-1">
             <label class="text-xs font-medium text-gray-500 uppercase tracking-wider">Search</label>
             <Input
               type="text"
-              placeholder="Search comments, emails, dishes..."
+              placeholder="Search comments, emails, products..."
               bind:value={searchInput}
               oninput={handleSearchInput}
               class="w-full"
             />
           </div>
 
-          <!-- Restaurant Filter -->
+          <!-- Organization Filter -->
           <div class="space-y-1">
-            <label class="text-xs font-medium text-gray-500 uppercase tracking-wider">Restaurant</label>
+            <label class="text-xs font-medium text-gray-500 uppercase tracking-wider">Organization</label>
             <Select
-              bind:value={selectedRestaurant}
+              bind:value={selectedOrganization}
               options={[
-                { value: '', label: 'All Restaurants' },
-                ...restaurants.map(r => ({ value: r.id, label: r.name }))
+                { value: '', label: 'All Organizations' },
+                ...organizations.map(r => ({ value: r.id, label: r.name }))
               ]}
               minWidth="min-w-full"
             />
           </div>
 
-          <!-- Dish Filter -->
+          <!-- Product Filter -->
           <div class="space-y-1">
-            <label class="text-xs font-medium text-gray-500 uppercase tracking-wider">Dish</label>
+            <label class="text-xs font-medium text-gray-500 uppercase tracking-wider">Product</label>
             <Select
-              bind:value={selectedDish}
+              bind:value={selectedProduct}
               options={[
-                { value: '', label: 'All Dishes' },
-                ...dishes.map(d => ({ value: d.id, label: d.name }))
+                { value: '', label: 'All Productes' },
+                ...products.map(d => ({ value: d.id, label: d.name }))
               ]}
               minWidth="min-w-full"
-              disabled={dishes.length === 0}
+              disabled={products.length === 0}
             />
           </div>
         </div>
@@ -703,21 +703,21 @@
                         </div>
                       </div>
                       
-                      {#if fb.dish_name}
+                      {#if fb.product_name}
                         <div class="flex items-center gap-2 px-3 py-1.5 bg-purple-50 border border-purple-200 rounded-lg">
                           <svg class="w-4 h-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
                           </svg>
-                          <span class="text-sm font-medium text-purple-700">{fb.dish_name}</span>
+                          <span class="text-sm font-medium text-purple-700">{fb.product_name}</span>
                         </div>
                       {/if}
                       
-                      {#if fb.restaurant_name}
+                      {#if fb.organization_name}
                         <div class="flex items-center gap-2 px-3 py-1.5 bg-blue-50 border border-blue-200 rounded-lg">
                           <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                           </svg>
-                          <span class="text-sm font-medium text-blue-700">{fb.restaurant_name}</span>
+                          <span class="text-sm font-medium text-blue-700">{fb.organization_name}</span>
                         </div>
                       {/if}
                     </div>

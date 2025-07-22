@@ -6,8 +6,8 @@
 - **Jan 8**: Fixed questionnaire builder
   - Added question CRUD API endpoints
   - Integrated with frontend
-  - Added dish-questionnaire UI
-  - Dishes show questionnaire status
+  - Added product-questionnaire UI
+  - Productes show questionnaire status
   
 - **Jan 7**: Questionnaire section added
   - Basic questionnaire creation
@@ -30,10 +30,10 @@
 - Subscription management (Stripe)
 - Team members with roles
 
-### ✅ Restaurant Features  
-- Restaurant CRUD
+### ✅ Organization Features  
+- Organization CRUD
 - Multi-location support
-- Menu/dish management
+- Menu/product management
 - QR code generation & tracking
 
 ### ✅ Feedback System
@@ -51,4 +51,4 @@
 - Svelte 5 runes are cleaner than old syntax
 - Always scope queries by account_id
 - Swagger annotations save time
-- Dish-specific questionnaires are the core value prop
+- Product-specific questionnaires are the core value prop

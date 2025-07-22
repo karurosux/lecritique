@@ -2,7 +2,7 @@
   import { Card } from '$lib/components/ui';
   import { TrendingUpIcon, TrendingDownIcon, StarIcon, Utensils } from 'lucide-svelte';
   
-  interface DishData {
+  interface ProductData {
     id: string;
     name: string;
     average_rating: number;
@@ -11,15 +11,15 @@
   }
   
   interface AnalyticsData {
-    top_dishes?: DishData[];
-    top_rated_dishes?: DishData[];
-    bottom_dishes?: DishData[];
+    top_products?: ProductData[];
+    top_rated_products?: ProductData[];
+    bottom_products?: ProductData[];
     average_rating?: number;
     total_feedback?: number;
   }
   
   interface Feedback {
-    dish_name?: string;
+    product_name?: string;
     overall_rating?: number;
     rating?: number;
     created_at: string;
@@ -61,33 +61,33 @@
     return 'text-gray-600';
   }
 
-  // Process dishes from analytics data or feedbacks
-  const processedDishes = $derived(() => {
-    if (analyticsData?.top_dishes || analyticsData?.top_rated_dishes) {
-      const dishes = analyticsData.top_dishes || analyticsData.top_rated_dishes || [];
+  // Process products from analytics data or feedbacks
+  const processedProductes = $derived(() => {
+    if (analyticsData?.top_products || analyticsData?.top_rated_products) {
+      const products = analyticsData.top_products || analyticsData.top_rated_products || [];
       return {
-        top: dishes.slice(0, 5),
-        bottom: analyticsData.bottom_dishes?.slice(0, 3) || []
+        top: products.slice(0, 5),
+        bottom: analyticsData.bottom_products?.slice(0, 3) || []
       };
     }
     
     // Process from feedbacks if no analytics data
     if (feedbacks.length > 0) {
-      const dishStats = feedbacks.reduce((acc, f) => {
-        if (f.dish_name) {
-          if (!acc[f.dish_name]) {
-            acc[f.dish_name] = { ratings: [], count: 0 };
+      const productStats = feedbacks.reduce((acc, f) => {
+        if (f.product_name) {
+          if (!acc[f.product_name]) {
+            acc[f.product_name] = { ratings: [], count: 0 };
           }
           const rating = f.overall_rating || f.rating || 0;
           if (rating > 0) {
-            acc[f.dish_name].ratings.push(rating);
-            acc[f.dish_name].count++;
+            acc[f.product_name].ratings.push(rating);
+            acc[f.product_name].count++;
           }
         }
         return acc;
       }, {} as Record<string, { ratings: number[]; count: number }>);
       
-      const dishes = Object.entries(dishStats)
+      const products = Object.entries(productStats)
         .map(([name, data]) => ({
           id: name,
           name,
@@ -98,8 +98,8 @@
         .sort((a, b) => b.average_rating - a.average_rating);
       
       return {
-        top: dishes.slice(0, 5),
-        bottom: dishes.filter(d => d.average_rating < 3).slice(0, 3)
+        top: products.slice(0, 5),
+        bottom: products.filter(d => d.average_rating < 3).slice(0, 3)
       };
     }
     
@@ -159,7 +159,7 @@
           <p class="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
             {overallStats().totalFeedback}
           </p>
-          <p class="text-sm text-gray-600">Dish-specific feedback</p>
+          <p class="text-sm text-gray-600">Product-specific feedback</p>
         </div>
         <div class="h-16 w-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg shadow-blue-500/25">
           <Utensils class="h-8 w-8 text-white" />
@@ -172,9 +172,9 @@
         <div class="space-y-2">
           <p class="text-sm font-semibold text-gray-600 uppercase tracking-wide">Top Rated</p>
           <p class="text-3xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
-            {processedDishes().top.length}
+            {processedProductes().top.length}
           </p>
-          <p class="text-sm text-gray-600">High-performing dishes</p>
+          <p class="text-sm text-gray-600">High-performing products</p>
         </div>
         <div class="h-16 w-16 bg-gradient-to-br from-green-500 to-emerald-500 rounded-2xl flex items-center justify-center shadow-lg shadow-green-500/25">
           <TrendingUpIcon class="h-8 w-8 text-white" />
@@ -187,7 +187,7 @@
         <div class="space-y-2">
           <p class="text-sm font-semibold text-gray-600 uppercase tracking-wide">Need Attention</p>
           <p class="text-3xl font-bold bg-gradient-to-r from-red-600 to-pink-600 bg-clip-text text-transparent">
-            {processedDishes().bottom.length}
+            {processedProductes().bottom.length}
           </p>
           <p class="text-sm text-gray-600">Below expectations</p>
         </div>
@@ -198,19 +198,19 @@
     </Card>
   </div>
 
-  <!-- Dish Rankings -->
+  <!-- Product Rankings -->
   <Card variant="elevated" padding={false}>
     <div class="p-6">
       <div class="mb-6">
         <h3 class="text-lg font-semibold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
-          Dish Performance Rankings
+          Product Performance Rankings
         </h3>
-        <p class="text-sm text-gray-600 mt-1">How your dishes are performing based on customer feedback</p>
+        <p class="text-sm text-gray-600 mt-1">How your products are performing based on customer feedback</p>
       </div>
 
   {#if loading}
     <div class="space-y-6">
-      <!-- Dishes loading -->
+      <!-- Productes loading -->
       <div class="space-y-4">
         {#each Array(5) as _}
           <div class="animate-pulse">
@@ -224,13 +224,13 @@
         {/each}
       </div>
     </div>
-  {:else if processedDishes().top.length > 0 || processedDishes().bottom.length > 0}
-    <!-- Top Performing Dishes -->
-    {#if processedDishes().top.length > 0}
+  {:else if processedProductes().top.length > 0 || processedProductes().bottom.length > 0}
+    <!-- Top Performing Productes -->
+    {#if processedProductes().top.length > 0}
     <div class="mb-6">
-      <h4 class="font-medium text-gray-900 mb-3">Top Performing Dishes</h4>
+      <h4 class="font-medium text-gray-900 mb-3">Top Performing Productes</h4>
       <div class="space-y-3">
-        {#each processedDishes().top as dish, index}
+        {#each processedProductes().top as product, index}
           <div class="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
             <div class="flex items-center justify-between">
               <div class="flex-1">
@@ -239,9 +239,9 @@
                     {index + 1}
                   </div>
                   <div>
-                    <h5 class="font-medium text-gray-900">{dish.name}</h5>
+                    <h5 class="font-medium text-gray-900">{product.name}</h5>
                     <div class="flex items-center gap-2 mt-1">
-                      <span class="text-xs text-gray-500">{dish.feedback_count} reviews</span>
+                      <span class="text-xs text-gray-500">{product.feedback_count} reviews</span>
                     </div>
                   </div>
                 </div>
@@ -251,24 +251,24 @@
                 <div class="flex items-center gap-2">
                   <div class="flex items-center gap-1">
                     <StarIcon class="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                    <span class="font-medium {getPerformanceColor(dish.average_rating)}">
-                      {dish.average_rating.toFixed(1)}
+                    <span class="font-medium {getPerformanceColor(product.average_rating)}">
+                      {product.average_rating.toFixed(1)}
                     </span>
                   </div>
-                  {#if dish.weekly_change !== undefined}
-                    {@const TrendIcon = getTrendIcon(dish.weekly_change)}
+                  {#if product.weekly_change !== undefined}
+                    {@const TrendIcon = getTrendIcon(product.weekly_change)}
                     {#if TrendIcon}
                       <div class="flex items-center gap-1">
-                        <TrendIcon class="w-3 h-3 {getTrendColor(dish.weekly_change)}" />
-                        <span class="text-xs {getTrendColor(dish.weekly_change)}">
-                          {Math.abs(dish.weekly_change).toFixed(1)}%
+                        <TrendIcon class="w-3 h-3 {getTrendColor(product.weekly_change)}" />
+                        <span class="text-xs {getTrendColor(product.weekly_change)}">
+                          {Math.abs(product.weekly_change).toFixed(1)}%
                         </span>
                       </div>
                     {/if}
                   {/if}
                 </div>
                 <div class="text-xs text-gray-500 mt-1">
-                  {getPerformanceLabel(dish.average_rating)}
+                  {getPerformanceLabel(product.average_rating)}
                 </div>
               </div>
             </div>
@@ -278,12 +278,12 @@
     </div>
     {/if}
 
-    <!-- Bottom Performing Dishes -->
-    {#if processedDishes().bottom.length > 0}
+    <!-- Bottom Performing Productes -->
+    {#if processedProductes().bottom.length > 0}
       <div>
         <h4 class="font-medium text-gray-900 mb-3">Areas for Improvement</h4>
         <div class="space-y-3">
-          {#each processedDishes().bottom as dish, index}
+          {#each processedProductes().bottom as product, index}
             <div class="bg-red-50 border border-red-200 rounded-lg p-4">
               <div class="flex items-center justify-between">
                 <div class="flex-1">
@@ -292,9 +292,9 @@
                       {index + 1}
                     </div>
                     <div>
-                      <h5 class="font-medium text-red-900">{dish.name}</h5>
+                      <h5 class="font-medium text-red-900">{product.name}</h5>
                       <div class="flex items-center gap-2 mt-1">
-                        <span class="text-xs text-red-600">{dish.feedback_count} reviews</span>
+                        <span class="text-xs text-red-600">{product.feedback_count} reviews</span>
                       </div>
                     </div>
                   </div>
@@ -305,7 +305,7 @@
                     <div class="flex items-center gap-1">
                       <StarIcon class="w-4 h-4 fill-red-400 text-red-400" />
                       <span class="font-medium text-red-600">
-                        {dish.average_rating.toFixed(1)}
+                        {product.average_rating.toFixed(1)}
                       </span>
                     </div>
                   </div>
@@ -323,7 +323,7 @@
     <Card variant="elevated">
       <div class="text-center py-8">
         <div class="text-gray-500 text-sm">
-          No dish performance data available. Ensure you have collected feedback for your dishes.
+          No product performance data available. Ensure you have collected feedback for your products.
         </div>
       </div>
     </Card>

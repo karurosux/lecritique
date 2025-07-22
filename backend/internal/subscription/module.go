@@ -37,7 +37,7 @@ func (m *Module) RegisterRoutes(v1 *echo.Group) {
 	user.DELETE("/subscription", subscriptionHandler.CancelSubscription)
 	
 	// Permission checking routes
-	user.GET("/can-create-restaurant", subscriptionHandler.CanUserCreateRestaurant)
+	user.GET("/can-create-organization", subscriptionHandler.CanUserCreateOrganization)
 	
 	// Payment routes
 	payment := v1.Group("/payment")

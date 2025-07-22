@@ -11,7 +11,7 @@
     averageRating: number;
     feedbackToday: number;
     activeQRCodes: number;
-    topRatedDish?: {
+    topRatedProduct?: {
       name: string;
       rating: number;
     };
@@ -32,22 +32,22 @@
       action_link: string;
     }>;
     best_performers: Array<{
-      dish_id: string;
-      dish_name: string;
+      product_id: string;
+      product_name: string;
       score: number;
       feedback_count: number;
       trend: string;
     }>;
     needing_attention: Array<{
-      dish_id: string;
-      dish_name: string;
+      product_id: string;
+      product_name: string;
       score: number;
       feedback_count: number;
       trend: string;
     }>;
     recent_feedback: Array<{
       feedback_id: string;
-      dish_name: string;
+      product_name: string;
       customer_name: string;
       score: number;
       sentiment: string;
@@ -61,8 +61,8 @@
     customer_email?: string;
     rating: number;
     comment?: string;
-    dish_name?: string;
-    restaurant_name?: string;
+    product_name?: string;
+    organization_name?: string;
     created_at: string;
   }
 
@@ -98,26 +98,26 @@
     try {
       const api = getApiClient();
       
-      // Get all restaurants for the account
-      const restaurantsResponse = await api.api.v1RestaurantsList();
+      // Get all organizations for the account
+      const organizationsResponse = await api.api.v1OrganizationsList();
       
-      if (restaurantsResponse.data.success && restaurantsResponse.data.data) {
-        const restaurants = restaurantsResponse.data.data;
+      if (organizationsResponse.data.success && organizationsResponse.data.data) {
+        const organizations = organizationsResponse.data.data;
         
-        // For now, using the first restaurant for demo purposes
-        // In a real app, you'd either aggregate across all restaurants or let user select
-        if (restaurants.length > 0) {
-          const firstRestaurant = restaurants[0];
+        // For now, using the first organization for demo purposes
+        // In a real app, you'd either aggregate across all organizations or let user select
+        if (organizations.length > 0) {
+          const firstOrganization = organizations[0];
           
-          // Get QR codes and analytics for the first restaurant
+          // Get QR codes and analytics for the first organization
           const [qrCodesResponse, analyticsResponse] = await Promise.all([
-            api.api.v1RestaurantsQrCodesList(firstRestaurant.id!),
-            api.api.v1AnalyticsRestaurantsDetail(firstRestaurant.id!)
+            api.api.v1OrganizationsQrCodesList(firstOrganization.id!),
+            api.api.v1AnalyticsOrganizationsDetail(firstOrganization.id!)
           ]);
           
           // Try to get new dashboard metrics (might not exist yet)
           try {
-            const dashboardResponse = await api.api.v1AnalyticsDashboardDetail(firstRestaurant.id!);
+            const dashboardResponse = await api.api.v1AnalyticsDashboardDetail(firstOrganization.id!);
             if (dashboardResponse.data.success && dashboardResponse.data.data) {
               dashboardMetrics = dashboardResponse.data.data;
             }
@@ -135,7 +135,7 @@
           const totalFeedback = analyticsData?.total_feedback || 0;
           const averageRating = analyticsData?.average_rating || 0;
           const feedbackToday = analyticsData?.feedback_today || 0;
-          const topDish = analyticsData?.top_rated_dishes?.[0];
+          const topProduct = analyticsData?.top_rated_products?.[0];
           const recentFeedbackData = analyticsData?.recent_feedback || [];
           
           // Both endpoints now return 1-5 scale for ratings
@@ -155,9 +155,9 @@
             averageRating: displayRating,
             feedbackToday: dashboardMetrics?.todays_feedback || feedbackToday,
             activeQRCodes,
-            topRatedDish: topDish ? {
-              name: topDish.dish_name,
-              rating: topDish.average_rating
+            topRatedProduct: topProduct ? {
+              name: topProduct.product_name,
+              rating: topProduct.average_rating
             } : undefined,
             recentFeedbackCount: dashboardMetrics?.recent_feedback?.length || recentFeedbackData.length
           };
@@ -169,12 +169,12 @@
             customer_email: fb.customer_name || fb.customer_email,
             rating: fb.score || fb.rating,
             comment: fb.highlight || fb.comment,
-            dish_name: fb.dish_name,
-            restaurant_name: firstRestaurant.name,
+            product_name: fb.product_name,
+            organization_name: firstOrganization.name,
             created_at: fb.created_at
           }));
         } else {
-          // No restaurants yet
+          // No organizations yet
           stats = {
             totalFeedback: 0,
             averageRating: 0,
@@ -230,7 +230,7 @@
 
 <svelte:head>
   <title>Dashboard - LeCritique</title>
-  <meta name="description" content="LeCritique restaurant management dashboard" />
+  <meta name="description" content="LeCritique organization management dashboard" />
 </svelte:head>
 
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -497,7 +497,7 @@
                             </div>
                             <div>
                               <p class="font-semibold text-gray-900">{qr.label || 'QR Code'}</p>
-                              <p class="text-sm text-gray-500">{qr.restaurant_name}</p>
+                              <p class="text-sm text-gray-500">{qr.organization_name}</p>
                               <p class="text-xs text-gray-400">{qr.location || 'No location set'}</p>
                             </div>
                           </div>

@@ -10,7 +10,7 @@ import (
 	"github.com/google/uuid"
 	"lecritique/internal/qrcode/models"
 	qrcodeRepos "lecritique/internal/qrcode/repositories"
-	restaurantRepos "lecritique/internal/restaurant/repositories"
+	organizationRepos "lecritique/internal/organization/repositories"
 	sharedRepos "lecritique/internal/shared/repositories"
 	"github.com/samber/do"
 )
@@ -22,9 +22,9 @@ type UpdateQRCodeRequest struct {
 }
 
 type QRCodeService interface {
-	Generate(ctx context.Context, accountID uuid.UUID, restaurantID uuid.UUID, qrType models.QRCodeType, label string, location *string) (*models.QRCode, error)
+	Generate(ctx context.Context, accountID uuid.UUID, organizationID uuid.UUID, qrType models.QRCodeType, label string, location *string) (*models.QRCode, error)
 	GetByCode(ctx context.Context, code string) (*models.QRCode, error)
-	GetByRestaurantID(ctx context.Context, accountID uuid.UUID, restaurantID uuid.UUID) ([]models.QRCode, error)
+	GetByOrganizationID(ctx context.Context, accountID uuid.UUID, organizationID uuid.UUID) ([]models.QRCode, error)
 	Update(ctx context.Context, accountID uuid.UUID, qrCodeID uuid.UUID, updateReq *UpdateQRCodeRequest) (*models.QRCode, error)
 	Delete(ctx context.Context, accountID uuid.UUID, qrCodeID uuid.UUID) error
 	RecordScan(ctx context.Context, code string) error
@@ -32,23 +32,23 @@ type QRCodeService interface {
 
 type qrCodeService struct {
 	qrCodeRepo     qrcodeRepos.QRCodeRepository
-	restaurantRepo restaurantRepos.RestaurantRepository
+	organizationRepo organizationRepos.OrganizationRepository
 }
 
 func NewQRCodeService(i *do.Injector) (QRCodeService, error) {
 	return &qrCodeService{
 		qrCodeRepo:     do.MustInvoke[qrcodeRepos.QRCodeRepository](i),
-		restaurantRepo: do.MustInvoke[restaurantRepos.RestaurantRepository](i),
+		organizationRepo: do.MustInvoke[organizationRepos.OrganizationRepository](i),
 	}, nil
 }
 
-func (s *qrCodeService) Generate(ctx context.Context, accountID uuid.UUID, restaurantID uuid.UUID, qrType models.QRCodeType, label string, location *string) (*models.QRCode, error) {
-	restaurant, err := s.restaurantRepo.FindByID(ctx, restaurantID)
+func (s *qrCodeService) Generate(ctx context.Context, accountID uuid.UUID, organizationID uuid.UUID, qrType models.QRCodeType, label string, location *string) (*models.QRCode, error) {
+	organization, err := s.organizationRepo.FindByID(ctx, organizationID)
 	if err != nil {
 		return nil, err
 	}
 
-	if restaurant.AccountID != accountID {
+	if organization.AccountID != accountID {
 		return nil, sharedRepos.ErrRecordNotFound
 	}
 
@@ -58,7 +58,7 @@ func (s *qrCodeService) Generate(ctx context.Context, accountID uuid.UUID, resta
 	}
 
 	qrCode := &models.QRCode{
-		RestaurantID: restaurantID,
+		OrganizationID: organizationID,
 		Code:         code,
 		Type:         qrType,
 		Label:        label,
@@ -86,17 +86,17 @@ func (s *qrCodeService) GetByCode(ctx context.Context, code string) (*models.QRC
 	return qrCode, nil
 }
 
-func (s *qrCodeService) GetByRestaurantID(ctx context.Context, accountID uuid.UUID, restaurantID uuid.UUID) ([]models.QRCode, error) {
-	restaurant, err := s.restaurantRepo.FindByID(ctx, restaurantID)
+func (s *qrCodeService) GetByOrganizationID(ctx context.Context, accountID uuid.UUID, organizationID uuid.UUID) ([]models.QRCode, error) {
+	organization, err := s.organizationRepo.FindByID(ctx, organizationID)
 	if err != nil {
 		return nil, err
 	}
 
-	if restaurant.AccountID != accountID {
+	if organization.AccountID != accountID {
 		return nil, sharedRepos.ErrRecordNotFound
 	}
 
-	return s.qrCodeRepo.FindByRestaurantID(ctx, restaurantID)
+	return s.qrCodeRepo.FindByOrganizationID(ctx, organizationID)
 }
 
 func (s *qrCodeService) Update(ctx context.Context, accountID uuid.UUID, qrCodeID uuid.UUID, updateReq *UpdateQRCodeRequest) (*models.QRCode, error) {
@@ -107,12 +107,12 @@ func (s *qrCodeService) Update(ctx context.Context, accountID uuid.UUID, qrCodeI
 	}
 
 	// Verify ownership
-	restaurant, err := s.restaurantRepo.FindByID(ctx, qrCode.RestaurantID)
+	organization, err := s.organizationRepo.FindByID(ctx, qrCode.OrganizationID)
 	if err != nil {
 		return nil, err
 	}
 
-	if restaurant.AccountID != accountID {
+	if organization.AccountID != accountID {
 		return nil, sharedRepos.ErrRecordNotFound
 	}
 
@@ -145,12 +145,12 @@ func (s *qrCodeService) Delete(ctx context.Context, accountID uuid.UUID, qrCodeI
 	}
 
 	// Verify ownership
-	restaurant, err := s.restaurantRepo.FindByID(ctx, qrCode.RestaurantID)
+	organization, err := s.organizationRepo.FindByID(ctx, qrCode.OrganizationID)
 	if err != nil {
 		return err
 	}
 
-	if restaurant.AccountID != accountID {
+	if organization.AccountID != accountID {
 		return sharedRepos.ErrRecordNotFound
 	}
 

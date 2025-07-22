@@ -10,8 +10,8 @@
 
   let loading = $state(true);
   let error = $state('');
-  let restaurants = $state<any[]>([]);
-  let selectedRestaurant = $state('');
+  let organizations = $state<any[]>([]);
+  let selectedOrganization = $state('');
   let chartData = $state<any>(null);
   let analyticsData = $state<any>(null);
   let hasInitialized = $state(false);
@@ -19,7 +19,7 @@
   // Filter states
   let filters = $state({
     days: '7', // 'all', '7', '30', '90'
-    dishId: ''
+    productId: ''
   });
   
   // Search and view states
@@ -28,7 +28,7 @@
   let viewMode = $state<'grouped' | 'all'>('grouped');
   
   let authState = $derived($auth);
-  let availableDishes = $state<any[]>([]);
+  let availableProductes = $state<any[]>([]);
 
   $effect(() => {
     if (!authState.isAuthenticated) {
@@ -38,20 +38,20 @@
     
     if (authState.isAuthenticated && !hasInitialized) {
       hasInitialized = true;
-      loadRestaurants();
+      loadOrganizations();
     }
   });
 
-  async function loadRestaurants() {
+  async function loadOrganizations() {
     try {
       const api = getApiClient();
-      const response = await api.api.v1RestaurantsList();
+      const response = await api.api.v1OrganizationsList();
       
       if (response.data.success && response.data.data) {
-        restaurants = response.data.data;
-        if (restaurants.length > 0) {
-          selectedRestaurant = restaurants[0].id;
-          await loadDishes();
+        organizations = response.data.data;
+        if (organizations.length > 0) {
+          selectedOrganization = organizations[0].id;
+          await loadProductes();
           loadAnalytics();
         }
       }
@@ -60,24 +60,24 @@
     }
   }
 
-  async function loadDishes() {
-    if (!selectedRestaurant) return;
+  async function loadProductes() {
+    if (!selectedOrganization) return;
     
     try {
       const api = getApiClient();
-      const response = await api.api.v1RestaurantsDishesList(selectedRestaurant);
+      const response = await api.api.v1OrganizationsProductesList(selectedOrganization);
       
       if (response.data.success && response.data.data) {
-        availableDishes = response.data.data;
+        availableProductes = response.data.data;
       }
     } catch (err) {
-      // Error loading dishes is not critical
-      console.error('Error loading dishes:', err);
+      // Error loading products is not critical
+      console.error('Error loading products:', err);
     }
   }
 
   async function loadAnalytics() {
-    if (!selectedRestaurant) return;
+    if (!selectedOrganization) return;
 
     loading = true;
     error = '';
@@ -95,16 +95,16 @@
         chartParams.date_from = daysAgo.toISOString().split('T')[0];
       }
       
-      // Dish filter
-      if (filters.dishId) {
-        chartParams.dish_id = filters.dishId;
+      // Product filter
+      if (filters.productId) {
+        chartParams.product_id = filters.productId;
       }
       
       // Load analytics data, chart data, and dashboard metrics in parallel
       const [analyticsResponse, chartResponse, dashboardResponse] = await Promise.all([
-        api.api.v1AnalyticsRestaurantsDetail(selectedRestaurant),
-        api.api.v1AnalyticsRestaurantsChartsList(selectedRestaurant, chartParams),
-        api.api.v1AnalyticsDashboardDetail(selectedRestaurant)
+        api.api.v1AnalyticsOrganizationsDetail(selectedOrganization),
+        api.api.v1AnalyticsOrganizationsChartsList(selectedOrganization, chartParams),
+        api.api.v1AnalyticsDashboardDetail(selectedOrganization)
       ]);
       
       // Process analytics data
@@ -139,9 +139,9 @@
   }
 
 
-  function handleRestaurantChange() {
+  function handleOrganizationChange() {
     resetFilters();
-    loadDishes();
+    loadProductes();
     loadAnalytics();
   }
 
@@ -151,7 +151,7 @@
 
   function resetFilters() {
     filters.days = 'all';
-    filters.dishId = '';
+    filters.productId = '';
   }
 
   function applyFilters() {
@@ -161,7 +161,7 @@
 </script>
 
 <svelte:head>
-  <title>Dish Analytics - LeCritique</title>
+  <title>Product Analytics - LeCritique</title>
 </svelte:head>
 
 <div class="analytics-page max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -175,9 +175,9 @@
           </div>
           <div>
             <h1 class="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
-              Dish Performance Analytics
+              Product Performance Analytics
             </h1>
-            <p class="text-gray-600 font-medium">Detailed insights on how your dishes are performing</p>
+            <p class="text-gray-600 font-medium">Detailed insights on how your products are performing</p>
           </div>
         </div>
       </div>
@@ -205,15 +205,15 @@
         <!-- Primary Controls Row -->
         <div class="p-4">
           <div class="flex flex-col lg:flex-row items-start lg:items-center gap-4">
-            <!-- Left Side: Restaurant & Time -->
+            <!-- Left Side: Organization & Time -->
             <div class="flex flex-wrap items-center gap-3 flex-1">
-              {#if restaurants.length > 0}
+              {#if organizations.length > 0}
                 <div class="flex items-center gap-2">
                   <Activity class="h-4 w-4 text-gray-500" />
                   <Select
-                    bind:value={selectedRestaurant}
-                    options={restaurants.map(r => ({ value: r.id, label: r.name }))}
-                    onchange={handleRestaurantChange}
+                    bind:value={selectedOrganization}
+                    options={organizations.map(r => ({ value: r.id, label: r.name }))}
+                    onchange={handleOrganizationChange}
                     minWidth="min-w-48"
                   />
                   {#if chartData?.summary?.total_responses}
@@ -272,14 +272,14 @@
         <!-- Secondary Controls Row -->
         <div class="p-4 bg-gray-50">
           <div class="flex flex-col lg:flex-row items-start lg:items-center gap-4">
-            <!-- Left Side: Search & Dish Filter -->
+            <!-- Left Side: Search & Product Filter -->
             <div class="flex flex-wrap items-center gap-3 flex-1">
               <div class="relative">
                 <Search class="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                 <input
                   type="text"
                   bind:value={searchQuery}
-                  placeholder="Search dishes or questions..."
+                  placeholder="Search products or questions..."
                   class="pl-9 pr-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent w-64"
                 />
               </div>
@@ -287,10 +287,10 @@
               <div class="flex items-center gap-2">
                 <Utensils class="h-4 w-4 text-gray-500" />
                 <Select
-                  bind:value={filters.dishId}
+                  bind:value={filters.productId}
                   options={[
-                    { value: '', label: 'All Dishes' },
-                    ...availableDishes.map(d => ({ value: d.id, label: d.name }))
+                    { value: '', label: 'All Productes' },
+                    ...availableProductes.map(d => ({ value: d.id, label: d.name }))
                   ]}
                   onchange={applyFilters}
                   minWidth="min-w-40"
@@ -382,8 +382,8 @@
       </div>
     </Card>
 
-  {:else if restaurants.length === 0}
-    <!-- No Restaurants State -->
+  {:else if organizations.length === 0}
+    <!-- No Organizations State -->
     <Card variant="elevated">
       <div class="text-center py-16">
         <div class="h-20 w-20 bg-gray-100 rounded-3xl flex items-center justify-center mx-auto mb-6">
@@ -391,15 +391,15 @@
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
           </svg>
         </div>
-        <h3 class="text-xl font-semibold text-gray-900 mb-2">No Restaurants Yet</h3>
+        <h3 class="text-xl font-semibold text-gray-900 mb-2">No Organizations Yet</h3>
         <p class="text-gray-600 mb-6 max-w-md mx-auto">
-          Create your first restaurant to start collecting feedback and viewing analytics.
+          Create your first organization to start collecting feedback and viewing analytics.
         </p>
-        <Button href="/restaurants" variant="gradient" size="lg">
+        <Button href="/organizations" variant="gradient" size="lg">
           <svg class="h-5 w-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
           </svg>
-          Create Restaurant
+          Create Organization
         </Button>
       </div>
     </Card>
@@ -411,7 +411,7 @@
       <ChartDataWidgetGrouped 
         chartData={chartData} 
         title="" 
-        groupByDish={true}
+        groupByProduct={true}
         initiallyExpanded={false}
         bind:searchQuery={searchQuery}
         bind:showOnlyWithData={showOnlyWithData}

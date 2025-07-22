@@ -13,11 +13,11 @@ type QuestionnaireRepository interface {
 	Create(ctx context.Context, questionnaire *models.Questionnaire) error
 	FindByID(ctx context.Context, id uuid.UUID) (*models.Questionnaire, error)
 	FindByIDWithQuestions(ctx context.Context, id uuid.UUID) (*models.Questionnaire, error)
-	FindByDishID(ctx context.Context, dishID uuid.UUID) (*models.Questionnaire, error)
-	FindByRestaurantID(ctx context.Context, restaurantID uuid.UUID) ([]models.Questionnaire, error)
+	FindByProductID(ctx context.Context, productID uuid.UUID) (*models.Questionnaire, error)
+	FindByOrganizationID(ctx context.Context, organizationID uuid.UUID) ([]models.Questionnaire, error)
 	Update(ctx context.Context, questionnaire *models.Questionnaire) error
 	Delete(ctx context.Context, id uuid.UUID) error
-	DeactivateDefaultQuestionnaires(ctx context.Context, restaurantID uuid.UUID) error
+	DeactivateDefaultQuestionnaires(ctx context.Context, organizationID uuid.UUID) error
 	
 	// Question methods
 	CreateQuestion(ctx context.Context, question *models.Question) error
@@ -71,10 +71,10 @@ func (r *questionnaireRepository) FindByIDWithQuestions(ctx context.Context, id 
 	return &questionnaire, nil
 }
 
-func (r *questionnaireRepository) FindByDishID(ctx context.Context, dishID uuid.UUID) (*models.Questionnaire, error) {
+func (r *questionnaireRepository) FindByProductID(ctx context.Context, productID uuid.UUID) (*models.Questionnaire, error) {
 	var questionnaire models.Questionnaire
 	err := r.DB.WithContext(ctx).Preload("Questions").
-		Where("dish_id = ? AND is_active = ?", dishID, true).
+		Where("product_id = ? AND is_active = ?", productID, true).
 		First(&questionnaire).Error
 	if err != nil {
 		return nil, err
@@ -82,17 +82,17 @@ func (r *questionnaireRepository) FindByDishID(ctx context.Context, dishID uuid.
 	return &questionnaire, nil
 }
 
-func (r *questionnaireRepository) FindByRestaurantID(ctx context.Context, restaurantID uuid.UUID) ([]models.Questionnaire, error) {
+func (r *questionnaireRepository) FindByOrganizationID(ctx context.Context, organizationID uuid.UUID) ([]models.Questionnaire, error) {
 	var questionnaires []models.Questionnaire
-	err := r.DB.WithContext(ctx).Where("restaurant_id = ?", restaurantID).
+	err := r.DB.WithContext(ctx).Where("organization_id = ?", organizationID).
 		Order("created_at DESC").
 		Find(&questionnaires).Error
 	return questionnaires, err
 }
 
-func (r *questionnaireRepository) DeactivateDefaultQuestionnaires(ctx context.Context, restaurantID uuid.UUID) error {
+func (r *questionnaireRepository) DeactivateDefaultQuestionnaires(ctx context.Context, organizationID uuid.UUID) error {
 	return r.DB.WithContext(ctx).Model(&models.Questionnaire{}).
-		Where("restaurant_id = ? AND is_default = ?", restaurantID, true).
+		Where("organization_id = ? AND is_default = ?", organizationID, true).
 		Update("is_default", false).Error
 }
 

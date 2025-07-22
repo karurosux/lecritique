@@ -26,7 +26,7 @@ func main() {
 	// Starter Plan
 	err = db.Exec(`
 		INSERT INTO subscription_plans (code, name, description, price, currency, 
-			max_restaurants, max_qr_codes, max_feedbacks_per_month, max_team_members,
+			max_organizations, max_qr_codes, max_feedbacks_per_month, max_team_members,
 			has_basic_analytics, has_advanced_analytics, has_feedback_explorer, 
 			has_custom_branding, has_priority_support, is_active)
 		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, true)
@@ -35,7 +35,7 @@ func main() {
 			description = EXCLUDED.description,
 			price = EXCLUDED.price,
 			currency = EXCLUDED.currency,
-			max_restaurants = EXCLUDED.max_restaurants,
+			max_organizations = EXCLUDED.max_organizations,
 			max_qr_codes = EXCLUDED.max_qr_codes,
 			max_feedbacks_per_month = EXCLUDED.max_feedbacks_per_month,
 			max_team_members = EXCLUDED.max_team_members,
@@ -45,7 +45,7 @@ func main() {
 			has_custom_branding = EXCLUDED.has_custom_branding,
 			has_priority_support = EXCLUDED.has_priority_support,
 			is_active = EXCLUDED.is_active
-	`, "starter", "Starter", "Perfect for small restaurants just getting started", 29.99, "USD",
+	`, "starter", "Starter", "Perfect for small organizations just getting started", 29.99, "USD",
 	1, 15, 50, 2, true, false, true, false, false).Error
 
 	if err != nil {
@@ -57,7 +57,7 @@ func main() {
 	// Professional Plan  
 	err = db.Exec(`
 		INSERT INTO subscription_plans (code, name, description, price, currency, 
-			max_restaurants, max_qr_codes, max_feedbacks_per_month, max_team_members,
+			max_organizations, max_qr_codes, max_feedbacks_per_month, max_team_members,
 			has_basic_analytics, has_advanced_analytics, has_feedback_explorer, 
 			has_custom_branding, has_priority_support, is_active)
 		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, true)
@@ -66,7 +66,7 @@ func main() {
 			description = EXCLUDED.description,
 			price = EXCLUDED.price,
 			currency = EXCLUDED.currency,
-			max_restaurants = EXCLUDED.max_restaurants,
+			max_organizations = EXCLUDED.max_organizations,
 			max_qr_codes = EXCLUDED.max_qr_codes,
 			max_feedbacks_per_month = EXCLUDED.max_feedbacks_per_month,
 			max_team_members = EXCLUDED.max_team_members,
@@ -76,7 +76,7 @@ func main() {
 			has_custom_branding = EXCLUDED.has_custom_branding,
 			has_priority_support = EXCLUDED.has_priority_support,
 			is_active = EXCLUDED.is_active
-	`, "professional", "Professional", "For growing restaurant chains and franchises", 79.99, "USD",
+	`, "professional", "Professional", "For growing organization chains and franchises", 79.99, "USD",
 	5, 125, 250, 10, true, true, true, true, false).Error
 
 	if err != nil {
@@ -88,7 +88,7 @@ func main() {
 	// Premium Plan
 	err = db.Exec(`
 		INSERT INTO subscription_plans (code, name, description, price, currency, 
-			max_restaurants, max_qr_codes, max_feedbacks_per_month, max_team_members,
+			max_organizations, max_qr_codes, max_feedbacks_per_month, max_team_members,
 			has_basic_analytics, has_advanced_analytics, has_feedback_explorer, 
 			has_custom_branding, has_priority_support, is_active)
 		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, true)
@@ -97,7 +97,7 @@ func main() {
 			description = EXCLUDED.description,
 			price = EXCLUDED.price,
 			currency = EXCLUDED.currency,
-			max_restaurants = EXCLUDED.max_restaurants,
+			max_organizations = EXCLUDED.max_organizations,
 			max_qr_codes = EXCLUDED.max_qr_codes,
 			max_feedbacks_per_month = EXCLUDED.max_feedbacks_per_month,
 			max_team_members = EXCLUDED.max_team_members,
@@ -118,7 +118,7 @@ func main() {
 
 	fmt.Println("\n🎉 Subscription plans created successfully!")
 	fmt.Println("📊 Plans available:")
-	fmt.Println("   • Starter: $29.99/month - 1 restaurant, 15 QR codes")
-	fmt.Println("   • Professional: $79.99/month - 5 restaurants, 125 QR codes") 
-	fmt.Println("   • Premium: $199.99/month - 20 restaurants, 2000 QR codes")
+	fmt.Println("   • Starter: $29.99/month - 1 organization, 15 QR codes")
+	fmt.Println("   • Professional: $79.99/month - 5 organizations, 125 QR codes") 
+	fmt.Println("   • Premium: $199.99/month - 20 organizations, 2000 QR codes")
 }

@@ -4,7 +4,7 @@
   interface AnalyticsData {
     total_feedback: number;
     rating_distribution: Record<string, number>;
-    top_dishes: Array<{
+    top_products: Array<{
       id: string;
       name: string;
       average_rating: number;
@@ -97,17 +97,17 @@
       </div>
     </Card>
 
-    <!-- Top Performing Dishes -->
+    <!-- Top Performing Productes -->
     <Card variant="default" hover interactive class="group transform transition-all duration-300 animate-fade-in-up" style="animation-delay: 200ms">
       <div class="mb-6">
         <h3 class="text-lg font-semibold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
-          Top Performing Dishes
+          Top Performing Productes
         </h3>
-        <p class="text-sm text-gray-600 mt-1">Highest rated dishes with feedback</p>
+        <p class="text-sm text-gray-600 mt-1">Highest rated products with feedback</p>
       </div>
       
       <div class="space-y-4">
-        {#each (analyticsData.top_dishes || []).slice(0, 5) as dish, index}
+        {#each (analyticsData.top_products || []).slice(0, 5) as product, index}
           <div class="group flex items-center justify-between p-3 rounded-xl hover:bg-gray-50 transition-all duration-200">
             <div class="flex items-center space-x-3">
               <div class="flex items-center justify-center w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-600 rounded-xl text-sm font-semibold text-white shadow-lg shadow-purple-500/25 group-hover:scale-110 transition-transform duration-200">
@@ -115,19 +115,19 @@
               </div>
               <div>
                 <div class="font-medium text-gray-900 group-hover:text-purple-700 transition-colors">
-                  {dish.name}
+                  {product.name}
                 </div>
                 <div class="text-sm text-gray-500">
-                  {dish.feedback_count} {dish.feedback_count === 1 ? 'review' : 'reviews'}
+                  {product.feedback_count} {product.feedback_count === 1 ? 'review' : 'reviews'}
                 </div>
               </div>
             </div>
             <div class="text-right">
-              <div class="font-semibold {getRatingColor(dish.average_rating || 0)} text-lg">
-                {dish.average_rating?.toFixed(1) || '0.0'}
+              <div class="font-semibold {getRatingColor(product.average_rating || 0)} text-lg">
+                {product.average_rating?.toFixed(1) || '0.0'}
               </div>
-              <div class="text-xs {getRatingColor(dish.average_rating || 0)}">
-                {renderStars(dish.average_rating || 0)}
+              <div class="text-xs {getRatingColor(product.average_rating || 0)}">
+                {renderStars(product.average_rating || 0)}
               </div>
             </div>
           </div>
@@ -138,7 +138,7 @@
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
               </svg>
             </div>
-            <p class="text-gray-500">No dish data available</p>
+            <p class="text-gray-500">No product data available</p>
           </div>
         {/each}
       </div>

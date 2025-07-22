@@ -6,9 +6,9 @@ import (
 	"lecritique/internal/shared/models"
 )
 
-type Dish struct {
+type Product struct {
 	models.BaseModel
-	RestaurantID  uuid.UUID      `gorm:"not null" json:"restaurant_id"`
+	OrganizationID  uuid.UUID      `gorm:"not null" json:"organization_id"`
 	Name          string         `gorm:"not null" json:"name"`
 	Description   string         `json:"description"`
 	Category      string         `json:"category"`
