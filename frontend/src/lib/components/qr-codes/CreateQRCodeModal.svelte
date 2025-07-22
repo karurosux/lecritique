@@ -19,7 +19,6 @@
 
 	let loading = $state(false);
 	let label = $state('');
-	let location = $state('');
 
 	async function handleSubmit() {
 		if (!label.trim()) {
@@ -33,8 +32,7 @@
 			const payload = {
 				label: label.trim(),
 				organization_id: organizationId,
-				type: "general" as const, // Default to general type
-				location: location.trim() || undefined
+				type: "general" as const // Default to general type
 			};
 
 			const api = getApiClient();
@@ -67,23 +65,11 @@
 			<Input
 				id="label"
 				bind:value={label}
-				placeholder="e.g., Table 1, Main Entrance, Takeaway Counter"
+				placeholder="e.g., Table 1, Main Entrance, Reception Desk"
 				required
 			/>
 			<p class="text-sm text-gray-500">
-				A descriptive name to identify this QR code
-			</p>
-		</div>
-
-		<div class="space-y-2">
-			<label for="location" class="block text-sm font-medium text-gray-700">Location (Optional)</label>
-			<Input
-				id="location"
-				bind:value={location}
-				placeholder="e.g., Table 5, Main Bar, Patio, Front Counter"
-			/>
-			<p class="text-sm text-gray-500">
-				Describe where this QR code will be placed
+				A descriptive name to identify where this QR code will be placed
 			</p>
 		</div>
 

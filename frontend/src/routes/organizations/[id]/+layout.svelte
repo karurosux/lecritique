@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { LayoutData } from './$types';
 	import { page } from '$app/stores';
-	import { ArrowLeft, Store, UtensilsCrossed, QrCode } from 'lucide-svelte';
+	import { ArrowLeft, Store, Package, QrCode } from 'lucide-svelte';
 	import { Button } from '$lib/components/ui';
 	import { goto } from '$app/navigation';
 	import { getApiClient, isAuthenticated } from '$lib/api';
@@ -16,7 +16,7 @@
 	let loading = $state(!organization && browser);
 
 	const navItems = [
-		{ href: `/organizations/${organizationId}/products`, label: 'Products', icon: UtensilsCrossed },
+		{ href: `/organizations/${organizationId}/products`, label: 'Products', icon: Package },
 		{ href: `/organizations/${organizationId}/qr-codes`, label: 'QR Codes', icon: QrCode }
 	];
 
