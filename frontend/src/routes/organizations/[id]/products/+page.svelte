@@ -11,6 +11,7 @@
 	import { page } from '$app/stores';
 	import { goto } from '$app/navigation';
 	import { QuestionApi } from '$lib/api/question';
+	import { APP_CONFIG } from '$lib/constants/config';
 
 	let { data }: { data: PageData } = $props();
 
@@ -53,8 +54,6 @@
 					price: product.price || 0,
 					category: product.category || 'Uncategorized',
 					is_available: product.is_available !== false,
-					allergens: product.allergens || [],
-					preparation_time: product.preparation_time || 0,
 					created_at: product.created_at || '',
 					updated_at: product.updated_at || ''
 				}));
@@ -77,15 +76,8 @@
 		})
 	);
 
-	// Get unique categories
-	let categories = $derived(
-		productsWithQuestionnaires.reduce((cats: string[], product: any) => {
-			if (product.category && !cats.includes(product.category)) {
-				cats.push(product.category);
-			}
-			return cats;
-		}, []).sort()
-	);
+	// Static categories to match the modal
+	const categories = APP_CONFIG.productCategories;
 
 	// Filter and sort products
 	let filteredProducts = $derived(

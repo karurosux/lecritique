@@ -20,17 +20,12 @@
     address: '',
     phone: '',
     email: '',
-    website: '',
-    cuisine_type: ''
+    website: ''
   });
 
   let loading = $state(false);
   let error = $state('');
 
-  const cuisineTypes = [
-    'Italian', 'Mexican', 'Chinese', 'Japanese', 'Indian', 'French', 'Thai', 'Greek',
-    'American', 'Mediterranean', 'Korean', 'Vietnamese', 'Spanish', 'Turkish', 'Lebanese', 'Other'
-  ];
 
   function resetForm() {
     formData.name = '';
@@ -39,7 +34,6 @@
     formData.phone = '';
     formData.email = '';
     formData.website = '';
-    formData.cuisine_type = '';
     error = '';
   }
 
@@ -71,7 +65,6 @@
         phone: formData.phone.trim() || undefined,
         email: formData.email.trim() || undefined,
         website: formData.website.trim() || undefined,
-        cuisine_type: formData.cuisine_type || undefined,
         is_active: true
       };
 
@@ -85,7 +78,6 @@
         phone: response.data.phone || '',
         email: response.data.email || '',
         website: response.data.website || '',
-        cuisine_type: response.data.cuisine_type || '',
         status: response.data.is_active ? 'active' : 'inactive',
         created_at: response.data.created_at || new Date().toISOString(),
         updated_at: response.data.updated_at || new Date().toISOString()
@@ -229,30 +221,6 @@
           />
         </div>
 
-        <!-- Cuisine Type -->
-        <div>
-          <label for="cuisine_type" class="block text-sm font-medium text-gray-700 mb-2">
-            Cuisine Type
-          </label>
-          <div class="relative">
-            <select
-              id="cuisine_type"
-              bind:value={formData.cuisine_type}
-              disabled={loading}
-              class="appearance-none w-full px-4 py-3 pr-10 border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
-            >
-              <option value="">Select cuisine type</option>
-              {#each cuisineTypes as cuisine}
-                <option value={cuisine}>{cuisine}</option>
-              {/each}
-            </select>
-            <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-              <svg class="h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-              </svg>
-            </div>
-          </div>
-        </div>
       </div>
 
       <!-- Form Actions -->

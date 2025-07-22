@@ -46,7 +46,22 @@ export const APP_CONFIG = {
       month: "short",
       day: "numeric",
     }
-  }
+  },
+
+  // Product categories
+  productCategories: [
+    'Electronics',
+    'Clothing',
+    'Books',
+    'Home & Garden',
+    'Sports & Outdoors',
+    'Health & Beauty',
+    'Automotive',
+    'Tools & Hardware',
+    'Food & Beverages',
+    'Office Supplies',
+    'Other'
+  ]
 
 } as const;
 

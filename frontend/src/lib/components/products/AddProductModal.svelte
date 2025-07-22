@@ -1,5 +1,6 @@
 <script lang="ts">
   import { Modal, Button, Input, Card, Select } from '$lib/components/ui';
+  import { APP_CONFIG } from '$lib/constants/config';
 
   interface Product {
     id: string;
@@ -9,8 +10,6 @@
     category: string;
     is_available: boolean;
     image_url?: string;
-    allergens?: string[];
-    preparation_time?: number;
     created_at: string;
     updated_at: string;
   }
@@ -33,28 +32,14 @@
     onsave?: (productData: any) => void;
   } = $props();
 
-  const productCategories = [
-    'Appetizers',
-    'Salads',
-    'Soups',
-    'Main Courses',
-    'Seafood',
-    'Vegetarian',
-    'Pasta',
-    'Pizza',
-    'Desserts',
-    'Beverages',
-    'Specials'
-  ];
+  const productCategories = APP_CONFIG.productCategories;
 
   let formData = $state({
     name: '',
     description: '',
     price: 0,
     category: '',
-    is_available: true,
-    allergens: '',
-    preparation_time: 0
+    is_available: true
   });
 
   // Reset form when modal opens/closes or when editing product changes
@@ -66,16 +51,12 @@
         formData.price = editingProduct.price;
         formData.category = editingProduct.category;
         formData.is_available = editingProduct.is_available;
-        formData.allergens = editingProduct.allergens?.join(', ') || '';
-        formData.preparation_time = editingProduct.preparation_time || 0;
       } else {
         formData.name = '';
         formData.description = '';
         formData.price = 0;
         formData.category = '';
         formData.is_available = true;
-        formData.allergens = '';
-        formData.preparation_time = 0;
       }
     }
   });
@@ -98,9 +79,7 @@
       description: formData.description.trim() || undefined,
       price: formData.price,
       category: formData.category,
-      is_available: formData.is_available,
-      allergens: formData.allergens ? formData.allergens.split(',').map(a => a.trim()).filter(Boolean) : [],
-      preparation_time: formData.preparation_time || undefined
+      is_available: formData.is_available
     };
 
     onsave(productData);
@@ -183,19 +162,6 @@
         />
       </div>
 
-      <!-- Preparation Time -->
-      <div>
-        <Input
-          id="product-prep-time"
-          type="number"
-          label="Preparation Time (minutes)"
-          placeholder="0"
-          bind:value={formData.preparation_time}
-          disabled={loading}
-          variant="default"
-        />
-      </div>
-
       <!-- Availability -->
       <div>
         <label class="block text-sm font-semibold text-gray-700 mb-3">
@@ -208,29 +174,11 @@
             bind:checked={formData.is_available}
             disabled={loading}
           />
-          <span class="text-sm text-gray-700 group-hover:text-gray-900 transition-colors">Available for ordering</span>
+          <span class="text-sm text-gray-700 group-hover:text-gray-900 transition-colors">Available for purchase</span>
         </label>
       </div>
     </div>
 
-    <!-- Allergens -->
-    <div>
-      <Input
-        id="product-allergens"
-        type="text"
-        label="Allergens"
-        placeholder="e.g., gluten, dairy, nuts (comma-separated)"
-        bind:value={formData.allergens}
-        disabled={loading}
-        variant="default"
-      />
-      <p class="text-xs text-gray-500 mt-2 flex items-center">
-        <svg class="h-3 w-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-        </svg>
-        Separate multiple allergens with commas
-      </p>
-    </div>
 
     <!-- Form Actions -->
     <div class="flex items-center justify-end space-x-4 pt-6 border-t border-gray-200">
