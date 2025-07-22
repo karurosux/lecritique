@@ -24,7 +24,7 @@ func (m *Module) RegisterRoutes(v1 *echo.Group) {
 	middlewareProvider := do.MustInvoke[*sharedMiddleware.MiddlewareProvider](m.injector)
 	
 	// Public QR code routes (no auth required)
-	v1.GET("/qr/:code", publicHandler.ValidateQRCode)
+	v1.GET("/public/qr/:code", publicHandler.ValidateQRCode)
 	
 	// QR Code routes under organizations (moved to organization module)
 	

@@ -20,9 +20,9 @@ func (m *Module) RegisterRoutes(v1 *echo.Group) {
 	
 	// Public feedback routes (no auth required)
 	v1.GET("/questionnaire/:organizationId/:productId", publicHandler.GetQuestionnaire)
-	v1.GET("/organization/:organizationId/products/:productId/questions", publicHandler.GetProductQuestions)
-	v1.GET("/organization/:organizationId/questions/products-with-questions", publicHandler.GetProductsWithQuestions)
-	v1.POST("/feedback", publicHandler.SubmitFeedback)
+	v1.GET("/public/organization/:organizationId/products/:productId/questions", publicHandler.GetProductQuestions)
+	v1.GET("/public/organization/:organizationId/questions/products-with-questions", publicHandler.GetProductsWithQuestions)
+	v1.POST("/public/feedback", publicHandler.SubmitFeedback)
 	
 	// Protected feedback routes (moved to organization module)
 }

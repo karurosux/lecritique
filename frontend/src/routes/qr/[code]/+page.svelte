@@ -290,7 +290,7 @@
 
       if (comment && comment.trim()) {
         feedbackData.responses.push({
-          question_id: 'comment',
+          question_id: crypto.randomUUID(),
           question_text: 'Additional Comments',
           question_type: 'text',
           answer: comment
@@ -417,9 +417,9 @@
               <CheckCircle class="h-5 w-5 sm:h-6 sm:w-6" />
             </div>
             <h2 class="text-xl sm:text-2xl font-bold bg-gradient-to-r from-gray-900 via-gray-800 to-gray-700 bg-clip-text text-transparent mb-2 px-2">
-              What did you eat today?
+              What would you like to give feedback on?
             </h2>
-            <p class="text-gray-600 text-sm px-2">Select the product you'd like to give feedback on</p>
+            <p class="text-gray-600 text-sm px-2">Select the item you'd like to review</p>
           </div>
           
           {#if loadingProducts}

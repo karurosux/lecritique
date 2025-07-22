@@ -23,7 +23,7 @@
     $page.route?.id?.includes("team/accept-invite"),
   );
 
-  let isPublicPage = $derived($page.route?.id?.includes("qr/"));
+  let isPublicPage = $derived($page.route?.id?.includes("qr/") || $page.route?.id?.includes("feedback/success"));
   
   let isLegalPage = $derived(
     $page.route?.id?.includes("terms") ||
