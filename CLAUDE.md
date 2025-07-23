@@ -37,3 +37,6 @@
 
 ## 💬 Code Commentary
 - Dont add AI comments to the code
+
+## 📝 Comment Handling
+- If found comments, remove them unless it really provides important context or is a TODO item

@@ -233,6 +233,32 @@ export interface ModelsAccount {
   updated_at?: string;
 }
 
+export interface ModelsComparisonInsight {
+  change?: number;
+  message?: string;
+  metric_type?: string;
+  recommendation?: string;
+  severity?: string;
+  type?: string;
+}
+
+export interface ModelsComparisonRequest {
+  metric_types?: string[];
+  organization_id?: string;
+  period1_end?: string;
+  period1_start?: string;
+  period2_end?: string;
+  period2_start?: string;
+  product_id?: string;
+  question_id?: string;
+}
+
+export interface ModelsComparisonResponse {
+  comparisons?: ModelsTimeSeriesComparison[];
+  insights?: ModelsComparisonInsight[];
+  request?: ModelsComparisonRequest;
+}
+
 export interface ModelsCreateQuestionRequest {
   is_required?: boolean;
   max_label?: string;
@@ -249,6 +275,11 @@ export interface ModelsCreateQuestionnaireRequest {
   is_default?: boolean;
   name: string;
   product_id?: string;
+}
+
+export interface ModelsDateRange {
+  end?: string;
+  start?: string;
 }
 
 export type ModelsFeedback = object;
@@ -431,6 +462,76 @@ export interface ModelsTeamMember {
   member_id?: string;
   role?: ModelsMemberRole;
   updated_at?: string;
+}
+
+export interface ModelsTimePeriodMetrics {
+  average?: number;
+  count?: number;
+  data_points?: ModelsTimeSeriesPoint[];
+  end_date?: string;
+  max?: number;
+  min?: number;
+  start_date?: string;
+  value?: number;
+}
+
+export interface ModelsTimeSeriesComparison {
+  change?: number;
+  change_percent?: number;
+  metric_name?: string;
+  metric_type?: string;
+  period1?: ModelsTimePeriodMetrics;
+  period2?: ModelsTimePeriodMetrics;
+  trend?: string;
+}
+
+export interface ModelsTimeSeriesData {
+  metric_name?: string;
+  metric_type?: string;
+  points?: ModelsTimeSeriesPoint[];
+  product_id?: string;
+  product_name?: string;
+  statistics?: ModelsTimeSeriesStats;
+}
+
+export interface ModelsTimeSeriesPoint {
+  count?: number;
+  timestamp?: string;
+  value?: number;
+}
+
+export interface ModelsTimeSeriesRequest {
+  end_date?: string;
+  granularity?: string;
+  group_by?: string[];
+  metric_types?: string[];
+  organization_id?: string;
+  product_id?: string;
+  question_id?: string;
+  start_date?: string;
+}
+
+export interface ModelsTimeSeriesResponse {
+  request?: ModelsTimeSeriesRequest;
+  series?: ModelsTimeSeriesData[];
+  summary?: ModelsTimeSeriesSummary;
+}
+
+export interface ModelsTimeSeriesStats {
+  average?: number;
+  count?: number;
+  max?: number;
+  min?: number;
+  total?: number;
+  trend_direction?: string;
+  trend_strength?: number;
+}
+
+export interface ModelsTimeSeriesSummary {
+  date_range?: ModelsDateRange;
+  granularity?: string;
+  metrics_summary?: Record<string, any>;
+  total_data_points?: number;
 }
 
 export interface ModelsUpdateQuestionRequest {
@@ -790,6 +891,89 @@ export class Api<
     ) =>
       this.request<Record<string, any>, ResponseResponse>({
         path: `/api/v1/analytics/organizations/${organizationId}/charts`,
+        method: "GET",
+        query: query,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description Manually trigger the collection of time series metrics for analytics
+     *
+     * @tags analytics
+     * @name V1AnalyticsOrganizationsCollectMetricsCreate
+     * @summary Collect metrics for an organization
+     * @request POST:/api/v1/analytics/organizations/{organizationId}/collect-metrics
+     * @secure
+     */
+    v1AnalyticsOrganizationsCollectMetricsCreate: (
+      organizationId: string,
+      params: RequestParams = {},
+    ) =>
+      this.request<ResponseResponse, ResponseResponse>({
+        path: `/api/v1/analytics/organizations/${organizationId}/collect-metrics`,
+        method: "POST",
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description Compare metrics between two different time periods to identify trends and changes
+     *
+     * @tags analytics
+     * @name V1AnalyticsOrganizationsCompareCreate
+     * @summary Compare analytics between two time periods
+     * @request POST:/api/v1/analytics/organizations/{organizationId}/compare
+     * @secure
+     */
+    v1AnalyticsOrganizationsCompareCreate: (
+      organizationId: string,
+      body: ModelsComparisonRequest,
+      params: RequestParams = {},
+    ) =>
+      this.request<ModelsComparisonResponse, ResponseResponse>({
+        path: `/api/v1/analytics/organizations/${organizationId}/compare`,
+        method: "POST",
+        body: body,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description Get time series data for various metrics with customizable granularity and date range
+     *
+     * @tags analytics
+     * @name V1AnalyticsOrganizationsTimeSeriesList
+     * @summary Get time series analytics data
+     * @request GET:/api/v1/analytics/organizations/{organizationId}/time-series
+     * @secure
+     */
+    v1AnalyticsOrganizationsTimeSeriesList: (
+      organizationId: string,
+      query: {
+        /** Metric types to retrieve */
+        metric_types: string[];
+        /** Start date (ISO 8601) */
+        start_date: string;
+        /** End date (ISO 8601) */
+        end_date: string;
+        /** Data granularity (hourly, daily, weekly, monthly) */
+        granularity: string;
+        /** Filter by product ID */
+        product_id?: string;
+        /** Filter by question ID */
+        question_id?: string;
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<ModelsTimeSeriesResponse, ResponseResponse>({
+        path: `/api/v1/analytics/organizations/${organizationId}/time-series`,
         method: "GET",
         query: query,
         secure: true,

@@ -29,9 +29,13 @@
 		"vite": "^6.2.6"
 	},
 	"dependencies": {
+		"@observablehq/plot": "^0.6.17",
 		"@tailwindcss/postcss": "^4.1.10",
 		"@types/qrcode": "^1.5.5",
 		"axios": "^1.10.0",
+		"chart.js": "^4.5.0",
+		"chartjs-adapter-date-fns": "^3.0.0",
+		"date-fns": "^4.1.0",
 		"lucide-svelte": "^0.523.0",
 		"qrcode": "^1.5.4",
 		"svelte-sonner": "^1.0.5"

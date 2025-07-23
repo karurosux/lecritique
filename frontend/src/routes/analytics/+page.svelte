@@ -184,6 +184,15 @@
       
       <div class="flex items-center space-x-3">
         <Button 
+          variant="secondary" 
+          size="lg" 
+          onclick={() => goto('/analytics/advanced')}
+        >
+          <BarChart3 class="h-5 w-5 mr-2" />
+          Advanced Analytics
+        </Button>
+        
+        <Button 
           variant="gradient" 
           size="lg" 
           class="group relative overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300" 

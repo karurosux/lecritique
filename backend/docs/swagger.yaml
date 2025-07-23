@@ -334,6 +334,55 @@ definitions:
       updated_at:
         type: string
     type: object
+  models.ComparisonInsight:
+    properties:
+      change:
+        type: number
+      message:
+        type: string
+      metric_type:
+        type: string
+      recommendation:
+        type: string
+      severity:
+        type: string
+      type:
+        type: string
+    type: object
+  models.ComparisonRequest:
+    properties:
+      metric_types:
+        items:
+          type: string
+        type: array
+      organization_id:
+        type: string
+      period1_end:
+        type: string
+      period1_start:
+        type: string
+      period2_end:
+        type: string
+      period2_start:
+        type: string
+      product_id:
+        type: string
+      question_id:
+        type: string
+    type: object
+  models.ComparisonResponse:
+    properties:
+      comparisons:
+        items:
+          $ref: '#/definitions/models.TimeSeriesComparison'
+        type: array
+      insights:
+        items:
+          $ref: '#/definitions/models.ComparisonInsight'
+        type: array
+      request:
+        $ref: '#/definitions/models.ComparisonRequest'
+    type: object
   models.CreateQuestionRequest:
     properties:
       is_required:
@@ -370,6 +419,13 @@ definitions:
         type: string
     required:
     - name
+    type: object
+  models.DateRange:
+    properties:
+      end:
+        type: string
+      start:
+        type: string
     type: object
   models.Feedback:
     type: object
@@ -762,6 +818,133 @@ definitions:
       updated_at:
         type: string
     type: object
+  models.TimePeriodMetrics:
+    properties:
+      average:
+        type: number
+      count:
+        type: integer
+      data_points:
+        items:
+          $ref: '#/definitions/models.TimeSeriesPoint'
+        type: array
+      end_date:
+        type: string
+      max:
+        type: number
+      min:
+        type: number
+      start_date:
+        type: string
+      value:
+        type: number
+    type: object
+  models.TimeSeriesComparison:
+    properties:
+      change:
+        type: number
+      change_percent:
+        type: number
+      metric_name:
+        type: string
+      metric_type:
+        type: string
+      period1:
+        $ref: '#/definitions/models.TimePeriodMetrics'
+      period2:
+        $ref: '#/definitions/models.TimePeriodMetrics'
+      trend:
+        type: string
+    type: object
+  models.TimeSeriesData:
+    properties:
+      metric_name:
+        type: string
+      metric_type:
+        type: string
+      points:
+        items:
+          $ref: '#/definitions/models.TimeSeriesPoint'
+        type: array
+      product_id:
+        type: string
+      product_name:
+        type: string
+      statistics:
+        $ref: '#/definitions/models.TimeSeriesStats'
+    type: object
+  models.TimeSeriesPoint:
+    properties:
+      count:
+        type: integer
+      timestamp:
+        type: string
+      value:
+        type: number
+    type: object
+  models.TimeSeriesRequest:
+    properties:
+      end_date:
+        type: string
+      granularity:
+        type: string
+      group_by:
+        items:
+          type: string
+        type: array
+      metric_types:
+        items:
+          type: string
+        type: array
+      organization_id:
+        type: string
+      product_id:
+        type: string
+      question_id:
+        type: string
+      start_date:
+        type: string
+    type: object
+  models.TimeSeriesResponse:
+    properties:
+      request:
+        $ref: '#/definitions/models.TimeSeriesRequest'
+      series:
+        items:
+          $ref: '#/definitions/models.TimeSeriesData'
+        type: array
+      summary:
+        $ref: '#/definitions/models.TimeSeriesSummary'
+    type: object
+  models.TimeSeriesStats:
+    properties:
+      average:
+        type: number
+      count:
+        type: integer
+      max:
+        type: number
+      min:
+        type: number
+      total:
+        type: number
+      trend_direction:
+        type: string
+      trend_strength:
+        type: number
+    type: object
+  models.TimeSeriesSummary:
+    properties:
+      date_range:
+        $ref: '#/definitions/models.DateRange'
+      granularity:
+        type: string
+      metrics_summary:
+        additionalProperties: true
+        type: object
+      total_data_points:
+        type: integer
+    type: object
   models.UpdateQuestionRequest:
     properties:
       is_required:
@@ -1090,6 +1273,174 @@ paths:
       security:
       - ApiKeyAuth: []
       summary: Get organization chart data
+      tags:
+      - analytics
+  /api/v1/analytics/organizations/{organizationId}/collect-metrics:
+    post:
+      consumes:
+      - application/json
+      description: Manually trigger the collection of time series metrics for analytics
+      parameters:
+      - description: Organization ID
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - ApiKeyAuth: []
+      summary: Collect metrics for an organization
+      tags:
+      - analytics
+  /api/v1/analytics/organizations/{organizationId}/compare:
+    post:
+      consumes:
+      - application/json
+      description: Compare metrics between two different time periods to identify
+        trends and changes
+      parameters:
+      - description: Organization ID
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      - description: Comparison request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/models.ComparisonRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.ComparisonResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - ApiKeyAuth: []
+      summary: Compare analytics between two time periods
+      tags:
+      - analytics
+  /api/v1/analytics/organizations/{organizationId}/time-series:
+    get:
+      consumes:
+      - application/json
+      description: Get time series data for various metrics with customizable granularity
+        and date range
+      parameters:
+      - description: Organization ID
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      - collectionFormat: csv
+        description: Metric types to retrieve
+        in: query
+        items:
+          type: string
+        name: metric_types
+        required: true
+        type: array
+      - description: Start date (ISO 8601)
+        in: query
+        name: start_date
+        required: true
+        type: string
+      - description: End date (ISO 8601)
+        in: query
+        name: end_date
+        required: true
+        type: string
+      - description: Data granularity (hourly, daily, weekly, monthly)
+        in: query
+        name: granularity
+        required: true
+        type: string
+      - description: Filter by product ID
+        in: query
+        name: product_id
+        type: string
+      - description: Filter by question ID
+        in: query
+        name: question_id
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.TimeSeriesResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - ApiKeyAuth: []
+      summary: Get time series analytics data
       tags:
       - analytics
   /api/v1/analytics/products/{productId}:
