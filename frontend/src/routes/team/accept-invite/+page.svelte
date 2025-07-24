@@ -4,7 +4,7 @@
 	import { goto } from '$app/navigation';
 	import { auth } from '$lib/stores/auth';
 	import { Api } from '$lib/api/api';
-	import { Button } from '$lib/components/ui';
+	import { Button, Card } from '$lib/components/ui';
 	import { Loader2, UserPlus, CheckCircle, XCircle } from 'lucide-svelte';
 
 	let loading = $state(true);
@@ -67,7 +67,7 @@
 
 <div class="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center px-4">
 	<div class="max-w-md w-full">
-		<div class="bg-white rounded-2xl shadow-xl p-8">
+		<Card variant="elevated">
 			{#if loading}
 				<div class="text-center">
 					<Loader2 class="h-12 w-12 animate-spin text-blue-600 mx-auto mb-4" />
@@ -109,7 +109,7 @@
 					</Button>
 				</div>
 			{/if}
-		</div>
+		</Card>
 		
 		<div class="mt-6 text-center">
 			<p class="text-sm text-gray-600">

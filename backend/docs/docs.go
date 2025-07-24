@@ -6177,6 +6177,14 @@ const docTemplate = `{
                 "QuestionTypeText": "Free text",
                 "QuestionTypeYesNo": "Yes/No"
             },
+            "x-enum-descriptions": [
+                "1-5 stars",
+                "1-10 scale",
+                "Multiple choice",
+                "Single choice",
+                "Free text",
+                "Yes/No"
+            ],
             "x-enum-varnames": [
                 "QuestionTypeRating",
                 "QuestionTypeScale",

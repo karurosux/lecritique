@@ -96,8 +96,12 @@
   {:else if productInsights?.question_metrics?.length}
     <div class="space-y-4">
       {#each productInsights.question_metrics as metric}
-        <button 
-          class="w-full text-left bg-white border rounded-lg p-4 transition-all cursor-pointer {highlightedQuestionId === metric.question_id ? 'border-blue-500 shadow-lg ring-2 ring-blue-200' : 'border-gray-200 hover:shadow-md'}"
+        <Card 
+          variant="minimal"
+          padding={false}
+          hover={highlightedQuestionId !== metric.question_id}
+          interactive
+          class="w-full text-left p-4 cursor-pointer {highlightedQuestionId === metric.question_id ? 'border-blue-500 shadow-lg ring-2 ring-blue-200' : ''}"
           onclick={() => analytics.setHighlightedQuestion(metric.question_id === highlightedQuestionId ? null : metric.question_id)}
         >
           <div class="flex items-start justify-between mb-3">
@@ -163,7 +167,7 @@
               {/each}
             </div>
           {/if}
-        </button>
+        </Card>
       {/each}
     </div>
   {:else}

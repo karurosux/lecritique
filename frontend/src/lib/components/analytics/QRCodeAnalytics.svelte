@@ -142,7 +142,7 @@
           {#each qrMetrics().allQRCodes as qr}
             {@const hasRating = qr.average_rating > 0}
             {@const ratingColor = hasRating ? (qr.average_rating >= 4 ? 'text-green-600' : qr.average_rating >= 3 ? 'text-yellow-600' : 'text-red-600') : 'text-gray-400'}
-            <div class="border {qr.feedback_count > 0 ? 'border-gray-200 bg-white' : 'border-gray-100 bg-gray-50'} rounded-lg p-4 hover:shadow-md transition-all">
+            <Card variant={qr.feedback_count > 0 ? 'minimal' : 'default'} padding={false} hover class="p-4 {qr.feedback_count === 0 ? 'bg-gray-50' : ''}">
               <div class="flex items-start justify-between">
                 <div class="flex-1">
                   <div class="flex items-start gap-3">
@@ -247,7 +247,7 @@
                   </div>
                 </div>
               {/if}
-            </div>
+            </Card>
           {/each}
         </div>
         

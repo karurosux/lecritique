@@ -231,7 +231,7 @@
       <h4 class="font-medium text-gray-900 mb-3">Top Performing Products</h4>
       <div class="space-y-3">
         {#each processedProducts().top as product, index}
-          <div class="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+          <Card variant="minimal" padding={false} hover class="p-4">
             <div class="flex items-center justify-between">
               <div class="flex-1">
                 <div class="flex items-center gap-3">
@@ -272,7 +272,7 @@
                 </div>
               </div>
             </div>
-          </div>
+          </Card>
         {/each}
       </div>
     </div>

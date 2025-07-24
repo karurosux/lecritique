@@ -359,7 +359,7 @@
       <div class="space-y-2">
         <!-- Organization Header -->
         <div class="py-2 sm:py-3 px-2">
-          <div class="flex items-start gap-3 bg-white/60 backdrop-blur-sm rounded-2xl p-3 border border-white/30">
+          <Card variant="glass" padding={false} class="p-3">
             {#if qrData.organization?.logo}
               <div class="h-10 w-10 sm:h-12 sm:w-12 rounded-2xl bg-gradient-to-br from-blue-100 to-purple-100 flex items-center justify-center shadow-sm flex-shrink-0 ring-2 ring-white/50">
                 <img 
@@ -407,7 +407,7 @@
                 </div>
               {/if}
             </div>
-          </div>
+          </Card>
         </div>
 
         <!-- Main Question: What did you eat? -->
@@ -430,9 +430,13 @@
           {:else if productsWithQuestions.length > 0}
             <div class="space-y-3">
               {#each productsWithQuestions as product}
-                <button 
+                <Card 
+                  variant="default"
+                  hover
+                  interactive
+                  padding={false}
+                  class="w-full p-4 sm:p-5 rounded-3xl focus:outline-none focus:ring-2 focus:ring-purple-500/30 active:scale-[0.98]"
                   onclick={() => handleProductFeedback(product)}
-                  class="w-full p-4 sm:p-5 bg-white rounded-3xl hover:shadow-xl transition-all duration-300 text-left group relative overflow-hidden focus:outline-none focus:ring-2 focus:ring-purple-500/30 active:scale-[0.98]"
                 >
                   <div class="absolute inset-0 bg-gradient-to-r from-purple-500/5 to-pink-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                   <div class="relative flex items-start justify-between">
@@ -459,7 +463,7 @@
                       <ChevronRight class="h-5 w-5 text-gray-400 group-hover:text-purple-600 transition-colors" />
                     </div>
                   </div>
-                </button>
+                </Card>
               {/each}
             </div>
           {:else}

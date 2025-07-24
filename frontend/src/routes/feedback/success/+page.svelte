@@ -2,7 +2,7 @@
   import { onMount } from 'svelte';
   import { Check, Heart, Home } from 'lucide-svelte';
   import { goto } from '$app/navigation';
-  import { Button } from '$lib/components/ui';
+  import { Button, Card } from '$lib/components/ui';
 
   let showConfetti = true;
   let showButton = false;
@@ -33,7 +33,7 @@
   </div>
 
   <div class="max-w-lg w-full relative z-10">
-    <div class="bg-white/20 backdrop-blur-2xl rounded-[2rem] p-12 shadow-2xl shadow-purple-500/10 border border-white/30 animate-slide-up">
+    <Card variant="glass" class="rounded-[2rem] p-12 shadow-2xl shadow-purple-500/10 animate-slide-up">
       <div class="text-center relative">
         <!-- Modern Success Icon -->
         <div class="relative inline-block mb-8">
@@ -94,7 +94,7 @@
         {/if}
 
       </div>
-    </div>
+    </Card>
 
   </div>
 

@@ -21,16 +21,16 @@
   const baseClasses = 'relative overflow-hidden transition-all duration-300 ease-out';
   
   const variantClasses = {
-    default: 'bg-white rounded-xl border border-gray-300 shadow-lg shadow-gray-900/10 backdrop-blur-sm',
-    elevated: 'bg-white rounded-2xl shadow-xl shadow-gray-900/15 border border-gray-200',
-    glass: 'bg-white/70 backdrop-blur-md rounded-2xl border border-white/30 shadow-lg shadow-gray-900/10',
-    gradient: 'bg-gradient-to-br from-white to-gray-50 rounded-2xl border border-gray-300/70 shadow-xl shadow-blue-500/15',
-    minimal: 'bg-gray-50 rounded-xl border border-gray-300 shadow-md shadow-gray-900/8'
+    default: 'bg-white rounded-xl border border-gray-200/50 shadow-lg shadow-gray-900/10 backdrop-blur-sm',
+    elevated: 'bg-white rounded-2xl shadow-xl shadow-gray-900/15 border border-gray-100/50',
+    glass: 'bg-white/70 backdrop-blur-md rounded-2xl border border-white/20 shadow-lg shadow-gray-900/10',
+    gradient: 'bg-gradient-to-br from-white to-gray-50 rounded-2xl border border-gray-200/40 shadow-xl shadow-blue-500/15',
+    minimal: 'bg-gray-50 rounded-xl border border-gray-200/30 shadow-md shadow-gray-900/8'
   };
   
   let paddingClasses = $derived(padding ? 'p-6 lg:p-8' : '');
   
-  let hoverClasses = $derived(hover ? 'hover:shadow-2xl hover:shadow-gray-900/20 hover:-translate-y-1 hover:scale-[1.02] hover:border-gray-400' : '');
+  let hoverClasses = $derived(hover ? 'hover:shadow-2xl hover:shadow-gray-900/20 hover:-translate-y-1 hover:scale-[1.02] hover:border-gray-300/60' : '');
   
   let interactiveClasses = $derived(interactive ? 'cursor-pointer group' : '');
 </script>

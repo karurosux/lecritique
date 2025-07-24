@@ -81,6 +81,18 @@ func main() {
 	
 	accountID := newAccount.ID
 
+	// Create owner team member record
+	err = db.Exec(`
+		INSERT INTO team_members (account_id, member_id, role, invited_by, invited_at, accepted_at, created_at, updated_at)
+		VALUES (?, ?, 'OWNER', ?, NOW(), NOW(), NOW(), NOW())
+	`, accountID, accountID, accountID).Error
+	
+	if err != nil {
+		log.Fatal("Failed to create owner team member record:", err)
+	} else {
+		fmt.Println("✅ Created owner team member record")
+	}
+
 	if subscriptionPlanID != "" {
 		err = db.Exec(`
 			INSERT INTO subscriptions (account_id, plan_id, status, current_period_start, current_period_end)

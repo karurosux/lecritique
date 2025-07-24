@@ -6,6 +6,7 @@
 	import { APP_CONFIG } from '$lib/constants/config';
 	import type { ModelsSubscriptionPlan } from '$lib/api/api';
 	import { Check, HelpCircle, User, Frown } from 'lucide-svelte';
+	import Card from '$lib/components/ui/Card.svelte';
 
 	let plans = $state([]);
 	let isLoading = $state(true);
@@ -94,7 +95,7 @@
 				
 				<!-- Trust Indicators -->
 				<div class="mt-20 text-center">
-					<div class="inline-flex items-center justify-center space-x-8 flex-wrap gap-y-4 bg-white/60 backdrop-blur-sm border border-gray-200 rounded-2xl px-8 py-6 shadow-lg">
+					<Card variant="glass" class="inline-flex items-center justify-center space-x-8 flex-wrap gap-y-4 px-8 py-6">
 						<div class="flex items-center text-sm text-gray-700">
 							<div class="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center mr-3">
 								<Check class="w-4 h-4 text-green-600" />
@@ -113,11 +114,11 @@
 							</div>
 							No setup fees
 						</div>
-					</div>
+					</Card>
 				</div>
 				
 				<!-- Help Section -->
-				<div class="mt-16 bg-white/80 backdrop-blur-md border border-gray-200 rounded-3xl p-8 max-w-2xl mx-auto shadow-xl">
+				<Card variant="glass" class="mt-16 max-w-2xl mx-auto">
 					<div class="text-center">
 						<div class="inline-flex items-center justify-center w-14 h-14 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl mb-4 shadow-lg">
 							<HelpCircle class="w-7 h-7 text-white" />
@@ -128,13 +129,13 @@
 							<a href={`mailto:${APP_CONFIG.emails.support}`} class="text-purple-600 hover:text-purple-700 font-medium transition-colors">{APP_CONFIG.emails.support}</a>
 						</p>
 					</div>
-				</div>
+				</Card>
 			{:else}
-				<div class="text-center py-24 bg-white/80 backdrop-blur-md border border-gray-200 rounded-3xl shadow-xl">
+				<Card variant="glass" class="text-center py-24">
 					<Frown class="w-16 h-16 text-gray-400 mx-auto mb-4" />
 					<p class="text-gray-700 mb-2">No plans available at the moment.</p>
 					<p class="text-sm text-gray-500">Please check back later or contact support.</p>
-				</div>
+				</Card>
 			{/if}
 		</div>
 	</div>
