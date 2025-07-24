@@ -438,8 +438,7 @@
                   class="w-full p-4 sm:p-5 rounded-3xl focus:outline-none focus:ring-2 focus:ring-purple-500/30 active:scale-[0.98]"
                   onclick={() => handleProductFeedback(product)}
                 >
-                  <div class="absolute inset-0 bg-gradient-to-r from-purple-500/5 to-pink-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                  <div class="relative flex items-start justify-between">
+                  <div class="flex items-start justify-between">
                     <div class="flex-1 min-w-0">
                       <div class="flex items-start gap-4">
                         <div class="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-gradient-to-br from-purple-400 to-pink-400 flex items-center justify-center flex-shrink-0 shadow-lg group-hover:shadow-xl transition-shadow">

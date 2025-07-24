@@ -18,6 +18,9 @@
   
   let className = restProps.class || '';
   
+  // Extract class from restProps to avoid duplication
+  const { class: _, ...forwardedProps } = restProps;
+  
   const baseClasses = 'relative overflow-hidden transition-all duration-300 ease-out';
   
   const variantClasses = {
@@ -35,7 +38,7 @@
   let interactiveClasses = $derived(interactive ? 'cursor-pointer group' : '');
 </script>
 
-<div class="{baseClasses} {variantClasses[variant]} {paddingClasses} {hoverClasses} {interactiveClasses} {className}">
+<div class="{baseClasses} {variantClasses[variant]} {paddingClasses} {hoverClasses} {interactiveClasses} {className}" {...forwardedProps}>
   {#if variant === 'gradient'}
     <div class="absolute inset-0 bg-gradient-to-br from-blue-500/5 via-purple-500/5 to-pink-500/5 rounded-2xl"></div>
   {/if}
