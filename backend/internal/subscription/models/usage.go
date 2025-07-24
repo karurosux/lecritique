@@ -23,6 +23,11 @@ type SubscriptionUsage struct {
 	LastUpdatedAt       time.Time    `json:"last_updated_at"`
 }
 
+// TableName overrides the table name used by this model
+func (SubscriptionUsage) TableName() string {
+	return "subscription_usage"
+}
+
 // UsageEvent tracks individual usage events for auditing
 type UsageEvent struct {
 	sharedModels.BaseModel
