@@ -39,13 +39,7 @@
 
   // Start with basic metrics, we'll add questions dynamically
   let metricTypeOptions = $state([
-    { value: 'survey_responses', label: 'Total Survey Responses' },
-    { value: 'rating_questions', label: 'Rating Questions' },
-    { value: 'scale_questions', label: 'Scale Questions' }, 
-    { value: 'yes_no_questions', label: 'Yes/No Questions' },
-    { value: 'text_questions', label: 'Text Sentiment' },
-    { value: 'single_choice_questions', label: 'Single Choice Questions' },
-    { value: 'multiple_choice_questions', label: 'Multiple Choice Questions' }
+    { value: 'survey_responses', label: 'Total Survey Responses' }
   ]);
   
   // Store available questions from the API  
@@ -168,15 +162,11 @@
       
       if (timeSeriesFilters.metricTypes.length === 0) {
         timeSeriesFilters.metricTypes = [
-          'survey_responses',
-          'rating_questions',
-          'text_questions'
+          'survey_responses'
         ];
         
         comparisonFilters.metricTypes = [
-          'survey_responses', 
-          'rating_questions',
-          'text_questions'
+          'survey_responses'
         ];
       }
     } catch (err) {

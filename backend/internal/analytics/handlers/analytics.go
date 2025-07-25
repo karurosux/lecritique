@@ -2,53 +2,54 @@ package handlers
 
 import (
 	"fmt"
+	"kyooar/internal/shared/logger"
+	"kyooar/internal/shared/middleware"
+	"kyooar/internal/shared/models"
 	"net/http"
 	"time"
 
-	"github.com/google/uuid"
-	"github.com/labstack/echo/v4"
 	analyticsServices "kyooar/internal/analytics/services"
 	feedbackRepos "kyooar/internal/feedback/repositories"
 	menuRepos "kyooar/internal/menu/repositories"
 	organizationRepos "kyooar/internal/organization/repositories"
-	"kyooar/internal/shared/logger"
-	"kyooar/internal/shared/middleware"
-	"kyooar/internal/shared/models"
+
+	"github.com/google/uuid"
+	"github.com/labstack/echo/v4"
 	"github.com/samber/do"
 	"github.com/sirupsen/logrus"
 )
 
 type AnalyticsHandler struct {
 	feedbackRepo     feedbackRepos.FeedbackRepository
-	productRepo         menuRepos.ProductRepository
-	organizationRepo   organizationRepos.OrganizationRepository
+	productRepo      menuRepos.ProductRepository
+	organizationRepo organizationRepos.OrganizationRepository
 	analyticsService analyticsServices.AnalyticsService
 }
 
 func NewAnalyticsHandler(i *do.Injector) (*AnalyticsHandler, error) {
 	return &AnalyticsHandler{
 		feedbackRepo:     do.MustInvoke[feedbackRepos.FeedbackRepository](i),
-		productRepo:         do.MustInvoke[menuRepos.ProductRepository](i),
-		organizationRepo:   do.MustInvoke[organizationRepos.OrganizationRepository](i),
+		productRepo:      do.MustInvoke[menuRepos.ProductRepository](i),
+		organizationRepo: do.MustInvoke[organizationRepos.OrganizationRepository](i),
 		analyticsService: do.MustInvoke[analyticsServices.AnalyticsService](i),
 	}, nil
 }
 
 type ProductAnalytics struct {
-	ProductID        uuid.UUID `json:"product_id"`
-	ProductName      string    `json:"product_name"`
+	ProductID     uuid.UUID `json:"product_id"`
+	ProductName   string    `json:"product_name"`
 	AverageRating float64   `json:"average_rating"`
 	TotalFeedback int64     `json:"total_feedback"`
 }
 
 type OrganizationAnalytics struct {
-	OrganizationID      uuid.UUID       `json:"organization_id"`
-	OrganizationName    string          `json:"organization_name"`
-	TotalFeedback     int64           `json:"total_feedback"`
-	AverageRating     float64         `json:"average_rating"`
-	FeedbackToday     int64           `json:"feedback_today"`
-	FeedbackThisWeek  int64           `json:"feedback_this_week"`
-	FeedbackThisMonth int64           `json:"feedback_this_month"`
+	OrganizationID      uuid.UUID          `json:"organization_id"`
+	OrganizationName    string             `json:"organization_name"`
+	TotalFeedback       int64              `json:"total_feedback"`
+	AverageRating       float64            `json:"average_rating"`
+	FeedbackToday       int64              `json:"feedback_today"`
+	FeedbackThisWeek    int64              `json:"feedback_this_week"`
+	FeedbackThisMonth   int64              `json:"feedback_this_month"`
 	TopRatedProducts    []ProductAnalytics `json:"top_rated_products"`
 	LowestRatedProducts []ProductAnalytics `json:"lowest_rated_products"`
 }
@@ -70,7 +71,7 @@ type OrganizationAnalytics struct {
 // @Router /api/v1/analytics/organizations/{organizationId} [get]
 func (h *AnalyticsHandler) GetOrganizationAnalytics(c echo.Context) error {
 	ctx := c.Request().Context()
-	
+
 	organizationID, err := uuid.Parse(c.Param("organizationId"))
 	if err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, "Invalid organization ID")
@@ -99,25 +100,25 @@ func (h *AnalyticsHandler) GetOrganizationAnalytics(c echo.Context) error {
 			"organization_id": organizationID,
 		})
 	}
-	
+
 	// Debug logging
 	logger.Info("Analytics Debug - BEFORE creating struct", logrus.Fields{
-		"organization_id":    organizationID,
-		"total_feedback":   totalFeedback,
-		"average_rating":   averageRating,
-		"feedback_today":   feedbackToday,
+		"organization_id": organizationID,
+		"total_feedback":  totalFeedback,
+		"average_rating":  averageRating,
+		"feedback_today":  feedbackToday,
 	})
 
 	analytics := OrganizationAnalytics{
-		OrganizationID:      organizationID,
-		OrganizationName:    organization.Name,
+		OrganizationID:    organizationID,
+		OrganizationName:  organization.Name,
 		TotalFeedback:     totalFeedback,
 		AverageRating:     averageRating,
 		FeedbackToday:     feedbackToday,
 		FeedbackThisWeek:  feedbackThisWeek,
 		FeedbackThisMonth: feedbackThisMonth,
 	}
-	
+
 	logger.Info("Analytics Debug - AFTER creating struct", logrus.Fields{
 		"analytics.AverageRating": analytics.AverageRating,
 	})
@@ -139,7 +140,7 @@ func (h *AnalyticsHandler) GetOrganizationAnalytics(c echo.Context) error {
 			})
 		} else {
 			productAnalytics := make([]ProductAnalytics, 0, len(products))
-			
+
 			for _, analytics := range productAnalyticsMap {
 				if analytics.TotalFeedback > 0 {
 					productAnalytics = append(productAnalytics, ProductAnalytics{
@@ -185,9 +186,9 @@ func (h *AnalyticsHandler) GetOrganizationAnalytics(c echo.Context) error {
 
 	logger.Info("Analytics Debug - FINAL before response", logrus.Fields{
 		"analytics.AverageRating": analytics.AverageRating,
-		"full_analytics": analytics,
+		"full_analytics":          analytics,
 	})
-	
+
 	return c.JSON(http.StatusOK, map[string]interface{}{
 		"success": true,
 		"data":    analytics,
@@ -211,7 +212,7 @@ func (h *AnalyticsHandler) GetOrganizationAnalytics(c echo.Context) error {
 // @Router /api/v1/analytics/products/{productId} [get]
 func (h *AnalyticsHandler) GetProductAnalytics(c echo.Context) error {
 	ctx := c.Request().Context()
-	
+
 	productID, err := uuid.Parse(c.Param("productId"))
 	if err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, "Invalid product ID")
@@ -246,8 +247,8 @@ func (h *AnalyticsHandler) GetProductAnalytics(c echo.Context) error {
 	return c.JSON(http.StatusOK, map[string]interface{}{
 		"success": true,
 		"data": map[string]interface{}{
-			"product_id":         productID,
-			"product_name":       product.Name,
+			"product_id":      productID,
+			"product_name":    product.Name,
 			"total_feedback":  totalFeedback,
 			"average_rating":  averageRating,
 			"recent_feedback": recentFeedback.Data,
@@ -272,7 +273,7 @@ func (h *AnalyticsHandler) GetProductAnalytics(c echo.Context) error {
 // @Router /api/v1/analytics/dashboard/{organizationId} [get]
 func (h *AnalyticsHandler) GetDashboardMetrics(c echo.Context) error {
 	ctx := c.Request().Context()
-	
+
 	organizationID, err := uuid.Parse(c.Param("organizationId"))
 	if err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, "Invalid organization ID")
@@ -299,7 +300,7 @@ func (h *AnalyticsHandler) GetDashboardMetrics(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusInternalServerError, "Failed to get metrics")
 	}
 
-	return c.JSON(http.StatusOK, map[string]interface{}{
+	return c.JSON(http.StatusOK, map[string]any{
 		"success": true,
 		"data":    metrics,
 	})
@@ -322,7 +323,7 @@ func (h *AnalyticsHandler) GetDashboardMetrics(c echo.Context) error {
 // @Router /api/v1/analytics/products/{productId}/insights [get]
 func (h *AnalyticsHandler) GetProductInsights(c echo.Context) error {
 	ctx := c.Request().Context()
-	
+
 	productID, err := uuid.Parse(c.Param("productId"))
 	if err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, "Invalid product ID")
@@ -377,7 +378,7 @@ func (h *AnalyticsHandler) GetProductInsights(c echo.Context) error {
 // @Router /api/v1/analytics/organizations/{organizationId}/charts [get]
 func (h *AnalyticsHandler) GetOrganizationChartData(c echo.Context) error {
 	ctx := c.Request().Context()
-	
+
 	organizationID, err := uuid.Parse(c.Param("organizationId"))
 	if err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, "Invalid organization ID")
@@ -409,19 +410,19 @@ func (h *AnalyticsHandler) GetOrganizationChartData(c echo.Context) error {
 
 	// Get chart data
 	logger.Info("Getting organization chart data", logrus.Fields{
-		"organization_id": organizationID,
-		"filters": filters,
+		"organization_id":     organizationID,
+		"filters":             filters,
 		"resource_account_id": resourceAccountID,
 	})
-	
+
 	chartData, err := h.analyticsService.GetOrganizationChartData(ctx, organizationID, filters)
 	if err != nil {
 		logger.Error("Failed to get organization chart data", err, logrus.Fields{
-			"organization_id": organizationID,
-			"filters": filters,
+			"organization_id":     organizationID,
+			"filters":             filters,
 			"resource_account_id": resourceAccountID,
-			"error_type": fmt.Sprintf("%T", err),
-			"error_message": err.Error(),
+			"error_type":          fmt.Sprintf("%T", err),
+			"error_message":       err.Error(),
 		})
 		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("Failed to get chart data: %v", err))
 	}
@@ -431,4 +432,3 @@ func (h *AnalyticsHandler) GetOrganizationChartData(c echo.Context) error {
 		"data":    chartData,
 	})
 }
-

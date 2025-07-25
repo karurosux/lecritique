@@ -122,7 +122,30 @@
             {#each individualQuestions as question, index}
               <div class="border border-gray-200 rounded-xl overflow-hidden">
                 <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
-                  <h4 class="font-semibold text-gray-900 text-sm">{question.metric_name}</h4>
+                  <div class="flex items-center justify-between">
+                    <h4 class="font-semibold text-gray-900 text-sm">
+                      {#if question.metric_name.includes(' - ')}
+                        <span class="text-blue-600">{question.metric_name.split(' - ')[0]}</span>
+                        <span class="text-gray-500 mx-1">•</span>
+                        <span>{question.metric_name.split(' - ')[1]}</span>
+                      {:else}
+                        {question.metric_name}
+                      {/if}
+                    </h4>
+                    <span class="text-xs bg-gray-200 text-gray-700 px-2 py-1 rounded-full font-medium capitalize">
+                      {(() => {
+                        if (!question.metadata) {
+                          return question.metric_type.startsWith('question_') ? 'Question' : 'Metric';
+                        }
+                        try {
+                          const metadata = typeof question.metadata === 'string' ? JSON.parse(question.metadata) : question.metadata;
+                          return metadata.question_type?.replace('_', ' ') || 'Unknown';
+                        } catch {
+                          return question.metric_type.startsWith('question_') ? 'Question' : 'Metric';
+                        }
+                      })()}
+                    </span>
+                  </div>
                 </div>
                 <div class="p-4">
                   <TimeSeriesChart data={{ ...data, series: [question] }} />

@@ -267,15 +267,19 @@ func (r *feedbackRepository) populateQuestionDataBatch(ctx context.Context, feed
 		questionIDs = append(questionIDs, id)
 	}
 	
-	// Single query to get all question data
+	// Single query to get all question data including scale labels
 	var questions []struct {
-		ID   uuid.UUID `gorm:"column:id"`
-		Text string    `gorm:"column:text"`
-		Type string    `gorm:"column:type"`
+		ID       uuid.UUID `gorm:"column:id"`
+		Text     string    `gorm:"column:text"`
+		Type     string    `gorm:"column:type"`
+		MinLabel string    `gorm:"column:min_label"`
+		MaxLabel string    `gorm:"column:max_label"`
+		MinValue *int      `gorm:"column:min_value"`
+		MaxValue *int      `gorm:"column:max_value"`
 	}
 	
 	if err := r.DB.WithContext(ctx).Table("questions").
-		Select("id, text, type").
+		Select("id, text, type, min_label, max_label, min_value, max_value").
 		Where("id IN ?", questionIDs).
 		Find(&questions).Error; err != nil {
 		return err
@@ -284,9 +288,26 @@ func (r *feedbackRepository) populateQuestionDataBatch(ctx context.Context, feed
 	// Create lookup maps
 	questionTextMap := make(map[uuid.UUID]string)
 	questionTypeMap := make(map[uuid.UUID]string)
+	questionDataMap := make(map[uuid.UUID]struct {
+		MinLabel string
+		MaxLabel string
+		MinValue *int
+		MaxValue *int
+	})
 	for _, question := range questions {
 		questionTextMap[question.ID] = question.Text
 		questionTypeMap[question.ID] = question.Type
+		questionDataMap[question.ID] = struct {
+			MinLabel string
+			MaxLabel string
+			MinValue *int
+			MaxValue *int
+		}{
+			MinLabel: question.MinLabel,
+			MaxLabel: question.MaxLabel,
+			MinValue: question.MinValue,
+			MaxValue: question.MaxValue,
+		}
 	}
 	
 	// Update all feedback responses

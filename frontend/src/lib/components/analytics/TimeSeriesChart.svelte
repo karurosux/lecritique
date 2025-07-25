@@ -137,20 +137,7 @@
           return `${value.toFixed(1)}/${ratingMax} (${ratingMaxLabel})`;
           
         case 'scale':
-          const scaleMin = minValue || 1;
-          const scaleMax = maxValue || 10;
-          const scaleMinLabel = minLabel || 'Low';
-          const scaleMaxLabel = maxLabel || 'High';
-          
-          // Calculate position on scale as percentage
-          const scalePosition = ((value - scaleMin) / (scaleMax - scaleMin)) * 100;
-          let scaleDescription = '';
-          
-          if (scalePosition <= 20) scaleDescription = scaleMinLabel;
-          else if (scalePosition >= 80) scaleDescription = scaleMaxLabel;
-          else scaleDescription = 'Moderate';
-          
-          return `${value.toFixed(1)}/${scaleMax} (${scaleDescription})`;
+          return value.toFixed(1);
           
         case 'yes_no':
           return value.toFixed(1) + '% Yes';
@@ -256,7 +243,7 @@
               max: scaleMax,
               stepSize: 1,
               label: `Scale (${scaleMinLabel} ← → ${scaleMaxLabel})`,
-              formatter: (value: any) => `${scaleMinLabel} ← ${value.toFixed(1)} → ${scaleMaxLabel}`
+              formatter: (value: any) => value.toFixed(1)
             };
             
           case 'yes_no':
@@ -353,7 +340,7 @@
               max: 10,
               stepSize: 1,
               label: `${scaleLabel} (${lowLabel} ← → ${highLabel})`,
-              formatter: (value: any) => `${lowLabel} ← ${value.toFixed(1)} → ${highLabel}`
+              formatter: (value: any) => value.toFixed(1)
             };
           }
         }
@@ -397,7 +384,12 @@
     // Get appropriate Y-axis configuration
     const yAxisConfig = getYAxisConfig(data.series);
     console.log('Y-axis config:', yAxisConfig);
-    console.log('Series metadata:', data.series?.map(s => ({ metric_type: s.metric_type, metadata: s.metadata })));
+    console.log('Series data:', data.series?.map(s => ({ 
+      metric_type: s.metric_type, 
+      metric_name: s.metric_name,
+      metadata: s.metadata,
+      parsed_metadata: typeof s.metadata === 'string' ? JSON.parse(s.metadata) : s.metadata
+    })));
 
     // Prepare datasets
     const datasets = data.series.map((seriesData: any, index: number) => {
@@ -606,7 +598,6 @@
 
 <div class="time-series-chart">
   <div class="mb-6">
-    <h3 class="text-lg font-semibold text-gray-900 mb-4">Survey Response Trends</h3>
     
     {#if series.length === 0}
       <div class="text-center py-8 text-gray-500">

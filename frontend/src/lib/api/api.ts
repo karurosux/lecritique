@@ -211,7 +211,22 @@ export interface HandlersUpdateRoleRequest {
   role: "ADMIN" | "MANAGER" | "VIEWER";
 }
 
-export type KyooarInternalMenuModelsProduct = object;
+export interface KyooarInternalMenuModelsProduct {
+  category?: string;
+  created_at?: string;
+  currency?: string;
+  description?: string;
+  display_order?: number;
+  id?: string;
+  image?: string;
+  is_active?: boolean;
+  is_available?: boolean;
+  name?: string;
+  organization_id?: string;
+  price?: number;
+  tags?: string[];
+  updated_at?: string;
+}
 
 export interface ModelsAccount {
   created_at?: string;
@@ -282,7 +297,31 @@ export interface ModelsDateRange {
   start?: string;
 }
 
-export type ModelsFeedback = object;
+export interface ModelsDeviceInfo {
+  browser?: string;
+  ip?: string;
+  platform?: string;
+  user_agent?: string;
+}
+
+export interface ModelsFeedback {
+  created_at?: string;
+  customer_email?: string;
+  customer_name?: string;
+  customer_phone?: string;
+  device_info?: ModelsDeviceInfo;
+  id?: string;
+  is_complete?: boolean;
+  organization?: ModelsOrganization;
+  organization_id?: string;
+  overall_rating?: number;
+  product?: KyooarInternalMenuModelsProduct;
+  product_id?: string;
+  qr_code?: ModelsQRCode;
+  qr_code_id?: string;
+  responses?: ModelsResponse[];
+  updated_at?: string;
+}
 
 export interface ModelsGenerateQuestionnaireRequest {
   description?: string;
@@ -382,6 +421,13 @@ export interface ModelsQuestionnaire {
   product_id?: string;
   questions?: ModelsQuestion[];
   updated_at?: string;
+}
+
+export interface ModelsResponse {
+  answer?: any;
+  question_id?: string;
+  question_text?: string;
+  question_type?: ModelsQuestionType;
 }
 
 export interface ModelsSettings {
@@ -486,6 +532,7 @@ export interface ModelsTimeSeriesComparison {
 }
 
 export interface ModelsTimeSeriesData {
+  metadata?: string;
   metric_name?: string;
   metric_type?: string;
   points?: ModelsTimeSeriesPoint[];

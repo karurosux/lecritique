@@ -97,7 +97,20 @@ func (s *timeSeriesService) collectOrganizationMetrics(ctx context.Context, orga
 		return nil, err
 	}
 	
-	// Question data is now populated by the feedback repository to avoid N+1 queries
+	// Load all questions to get scale labels
+	questionMap := make(map[uuid.UUID]*feedbackModels.Question)
+	processedProducts := make(map[uuid.UUID]bool)
+	for _, feedback := range feedbacks {
+		if feedback.ProductID != uuid.Nil && !processedProducts[feedback.ProductID] {
+			questions, err := s.questionRepo.GetQuestionsByProductID(ctx, feedback.ProductID)
+			if err == nil {
+				for _, question := range questions {
+					questionMap[question.ID] = question
+				}
+			}
+			processedProducts[feedback.ProductID] = true
+		}
+	}
 	
 	// Group feedback by date, product, and question type for proper time series
 	timeSeriesData := make(map[string]map[string]map[string]struct {
@@ -118,7 +131,10 @@ func (s *timeSeriesService) collectOrganizationMetrics(ctx context.Context, orga
 		
 		if feedback.Responses != nil {
 			productKey := feedback.ProductID.String()
-			productName := "Product"
+			productName := feedback.Product.Name
+			if productName == "" {
+				productName = "Unknown Product"
+			}
 			
 			for _, response := range feedback.Responses {
 				questionTypeKey := string(response.QuestionType)
@@ -212,8 +228,24 @@ func (s *timeSeriesService) collectOrganizationMetrics(ctx context.Context, orga
 				case string(feedbackModels.QuestionTypeYesNo):
 					yesCount := 0
 					for _, resp := range questionData.responses {
-						if val, ok := resp.(bool); ok && val {
-							yesCount++
+						// Handle different formats of yes/no responses
+						switch v := resp.(type) {
+						case bool:
+							if v {
+								yesCount++
+							}
+						case string:
+							if v == "true" || v == "yes" || v == "1" {
+								yesCount++
+							}
+						case float64:
+							if v == 1 {
+								yesCount++
+							}
+						case int:
+							if v == 1 {
+								yesCount++
+							}
 						}
 					}
 					if count > 0 {
@@ -282,7 +314,10 @@ func (s *timeSeriesService) collectOrganizationMetrics(ctx context.Context, orga
 		feedbackDate := feedback.CreatedAt.Truncate(24 * time.Hour)
 		dateKey := feedbackDate.Format("2006-01-02")
 		productKey := feedback.ProductID.String()
-		productName := "Product"
+		productName := feedback.Product.Name
+		if productName == "" {
+			productName = "Unknown Product"
+		}
 		
 		if feedback.Responses != nil {
 			for _, response := range feedback.Responses {
@@ -329,13 +364,13 @@ func (s *timeSeriesService) collectOrganizationMetrics(ctx context.Context, orga
 	}
 	
 	// Create metrics for individual questions
-	for dateKey, questionMap := range individualQuestionData {
+	for dateKey, questionDataMap := range individualQuestionData {
 		date, err := time.Parse("2006-01-02", dateKey)
 		if err != nil {
 			continue
 		}
 		
-		for questionID, qData := range questionMap {
+		for questionID, qData := range questionDataMap {
 			if len(qData.responses) == 0 {
 				continue
 			}
@@ -362,8 +397,24 @@ func (s *timeSeriesService) collectOrganizationMetrics(ctx context.Context, orga
 			case string(feedbackModels.QuestionTypeYesNo):
 				yesCount := 0
 				for _, resp := range qData.responses {
-					if val, ok := resp.(bool); ok && val {
-						yesCount++
+					// Handle different formats of yes/no responses
+					switch v := resp.(type) {
+					case bool:
+						if v {
+							yesCount++
+						}
+					case string:
+						if v == "true" || v == "yes" || v == "1" {
+							yesCount++
+						}
+					case float64:
+						if v == 1 {
+							yesCount++
+						}
+					case int:
+						if v == 1 {
+							yesCount++
+						}
 					}
 				}
 				if questionCount > 0 {
@@ -402,9 +453,15 @@ func (s *timeSeriesService) collectOrganizationMetrics(ctx context.Context, orga
 			
 			// Keep the question ID in metric type for frontend compatibility
 			questionMetricType := "question_" + questionID
-			// Use just the question text, without product info
-			questionMetricName := qData.questionText
+			// Include product name with question text for clarity
+			questionMetricName := fmt.Sprintf("%s - %s", qData.productName, qData.questionText)
 			
+			
+			// Get the question from our map
+			var question *feedbackModels.Question
+			if questionUUID != nil {
+				question = questionMap[*questionUUID]
+			}
 			
 			metrics = append(metrics, models.TimeSeriesMetric{
 				AccountID:      accountID,
@@ -417,7 +474,7 @@ func (s *timeSeriesService) collectOrganizationMetrics(ctx context.Context, orga
 				Count:          int64(questionCount),
 				Timestamp:      date,
 				Granularity:    models.GranularityDaily,
-				Metadata:       s.createMetadataWithQuestion(qData.questionType, qData.productName, qData.questionText, nil),
+				Metadata:       s.createMetadataWithQuestion(qData.questionType, qData.productName, qData.questionText, question),
 			})
 		}
 	}
