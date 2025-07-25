@@ -422,7 +422,7 @@ func createTourQuestionnaires(db *gorm.DB, orgID string, productIDs map[string]s
 				{"How knowledgeable was your tour guide?", "scale", true, nil},
 				{"Would you recommend this tour to friends?", "yes_no", true, nil},
 				{"What did you enjoy most about the tour?", "text", false, nil},
-				{"What aspects could we improve?", "multiple_choice", false, []string{"Guide knowledge", "Tour duration", "Group size", "Meeting point", "Price value", "Route selection"}},
+				{"What aspects could we improve?", "multi_choice", false, []string{"Guide knowledge", "Tour duration", "Group size", "Meeting point", "Price value", "Route selection"}},
 				{"Overall satisfaction level", "scale", true, nil},
 			}
 
@@ -652,7 +652,7 @@ func createFeedback(db *gorm.DB, orgID string, qrCodeIDs map[string]string, prod
 					} else {
 						answer = "no"
 					}
-				case "multiple_choice":
+				case "multi_choice":
 					// Select 1-3 random options
 					if q.Options != nil && *q.Options != "" {
 						// Parse PostgreSQL array format: {option1,option2,option3}

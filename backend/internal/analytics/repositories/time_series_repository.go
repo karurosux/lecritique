@@ -70,10 +70,57 @@ func (r *timeSeriesRepository) CreateBatch(ctx context.Context, metrics []models
 func (r *timeSeriesRepository) GetTimeSeries(ctx context.Context, request models.TimeSeriesRequest) ([]models.TimeSeriesMetric, error) {
 	var metrics []models.TimeSeriesMetric
 	
-	query := r.db.WithContext(ctx).Model(&models.TimeSeriesMetric{}).
+	// Determine the date truncation based on granularity
+	var dateTrunc string
+	switch request.Granularity {
+	case models.GranularityHourly:
+		dateTrunc = "hour"
+	case models.GranularityDaily:
+		dateTrunc = "day"
+	case models.GranularityWeekly:
+		dateTrunc = "week"
+	case models.GranularityMonthly:
+		dateTrunc = "month"
+	default:
+		dateTrunc = "day"
+	}
+	
+	// Build the aggregation query using DATE_TRUNC
+	selectClause := fmt.Sprintf(`
+		gen_random_uuid() as id,
+		account_id,
+		organization_id,
+		product_id,
+		question_id,
+		metric_type,
+		metric_name,
+		DATE_TRUNC('%s', timestamp) as timestamp,
+		'%s' as granularity,
+		COALESCE(AVG(value), 0) as value,
+		COALESCE(SUM(count), 0) as count,
+		metadata,
+		NOW() as created_at,
+		NOW() as updated_at
+	`, dateTrunc, request.Granularity)
+	
+	groupClause := fmt.Sprintf(`
+		account_id,
+		organization_id,
+		product_id,
+		question_id,
+		metric_type,
+		metric_name,
+		DATE_TRUNC('%s', timestamp),
+		metadata
+	`, dateTrunc)
+	
+	query := r.db.WithContext(ctx).
+		Select(selectClause).
+		Table("time_series_metrics").
 		Where("organization_id = ?", request.OrganizationID).
 		Where("timestamp >= ? AND timestamp <= ?", request.StartDate, request.EndDate).
-		Where("granularity = ?", request.Granularity)
+		Where("granularity = ?", models.GranularityDaily). // Always query from daily data
+		Group(groupClause)
 	
 	if request.ProductID != nil {
 		query = query.Where("product_id = ?", *request.ProductID)
@@ -87,17 +134,16 @@ func (r *timeSeriesRepository) GetTimeSeries(ctx context.Context, request models
 		query = query.Where("metric_type IN ?", request.MetricTypes)
 	}
 	
-	
 	err := query.Order("timestamp ASC").Find(&metrics).Error
 	if err != nil {
 		logger.Error("Failed to get time series data", err, logrus.Fields{
 			"organization_id": request.OrganizationID,
 			"start_date":      request.StartDate,
 			"end_date":        request.EndDate,
+			"granularity":     request.Granularity,
 		})
 		return nil, err
 	}
-	
 	
 	return metrics, nil
 }
