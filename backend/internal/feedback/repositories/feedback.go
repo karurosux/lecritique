@@ -441,7 +441,18 @@ func (r *feedbackRepository) FindByOrganizationIDForAnalytics(ctx context.Contex
 		Limit(limit).
 		Order("created_at DESC").
 		Find(&feedbacks).Error
-	return feedbacks, err
+	
+	if err != nil {
+		return nil, err
+	}
+	
+	// Populate question data to avoid N+1 queries
+	if err := r.populateQuestionDataBatch(ctx, feedbacks); err != nil {
+		// Log error but don't fail the entire request since analytics can work without question details
+		return feedbacks, nil
+	}
+	
+	return feedbacks, nil
 }
 
 func (r *feedbackRepository) FindByProductIDForAnalytics(ctx context.Context, productID uuid.UUID, limit int) ([]models.Feedback, error) {

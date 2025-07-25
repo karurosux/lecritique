@@ -7,6 +7,7 @@ import (
 
 	"github.com/google/uuid"
 	"gorm.io/gorm"
+	gormLogger "gorm.io/gorm/logger"
 	"kyooar/internal/analytics/models"
 	"kyooar/internal/shared/logger"
 	"github.com/samber/do"
@@ -41,18 +42,23 @@ func (r *timeSeriesRepository) CreateBatch(ctx context.Context, metrics []models
 		return nil
 	}
 	
-	// Create in batches of 100 to avoid memory issues
-	batchSize := 100
+	// Temporarily silence database logs for bulk operations to reduce noise
+	dbWithSilentLogger := r.db.Session(&gorm.Session{Logger: gormLogger.Default.LogMode(gormLogger.Silent)})
+	
+	// Use larger batch size for better performance (500 instead of 100)
+	batchSize := 500
 	for i := 0; i < len(metrics); i += batchSize {
 		end := i + batchSize
 		if end > len(metrics) {
 			end = len(metrics)
 		}
 		
-		if err := r.db.WithContext(ctx).Create(metrics[i:end]).Error; err != nil {
+		// Use CreateInBatches for more efficient bulk inserts
+		if err := dbWithSilentLogger.WithContext(ctx).CreateInBatches(metrics[i:end], batchSize).Error; err != nil {
 			logger.Error("Failed to create time series batch", err, logrus.Fields{
 				"batch_start": i,
 				"batch_end":   end,
+				"total_metrics": len(metrics),
 			})
 			return err
 		}
@@ -81,26 +87,6 @@ func (r *timeSeriesRepository) GetTimeSeries(ctx context.Context, request models
 		query = query.Where("metric_type IN ?", request.MetricTypes)
 	}
 	
-	// Debug logging
-	logger.Info("Executing time series query", logrus.Fields{
-		"organization_id": request.OrganizationID,
-		"start_date":      request.StartDate,
-		"end_date":        request.EndDate,
-		"granularity":     request.Granularity,
-		"metric_types":    request.MetricTypes,
-	})
-	
-	// Debug: First check what metric types exist in the database for this organization
-	var existingTypes []string
-	r.db.WithContext(ctx).Model(&models.TimeSeriesMetric{}).
-		Where("organization_id = ?", request.OrganizationID).
-		Distinct("metric_type").
-		Pluck("metric_type", &existingTypes)
-	
-	logger.Info("Available metric types in database", logrus.Fields{
-		"organization_id": request.OrganizationID,
-		"metric_types": existingTypes,
-	})
 	
 	err := query.Order("timestamp ASC").Find(&metrics).Error
 	if err != nil {
@@ -112,10 +98,6 @@ func (r *timeSeriesRepository) GetTimeSeries(ctx context.Context, request models
 		return nil, err
 	}
 	
-	logger.Info("Time series query result", logrus.Fields{
-		"metrics_count": len(metrics),
-		"metrics":       metrics,
-	})
 	
 	return metrics, nil
 }
@@ -188,10 +170,6 @@ func (r *timeSeriesRepository) DeleteOrganizationMetrics(ctx context.Context, or
 		return result.Error
 	}
 	
-	logger.Info("Deleted organization time series metrics", logrus.Fields{
-		"organization_id": organizationID,
-		"deleted_count":   result.RowsAffected,
-	})
 	
 	return nil
 }

@@ -50,10 +50,6 @@ func NewTimeSeriesService(i *do.Injector) (TimeSeriesService, error) {
 func (s *timeSeriesService) CollectMetrics(ctx context.Context, organizationID uuid.UUID) error {
 	now := time.Now()
 	
-	logger.Info("Starting metric collection", logrus.Fields{
-		"organization_id": organizationID,
-	})
-	
 	// Get organization to retrieve the correct account_id
 	organization, err := s.organizationRepo.FindByID(ctx, organizationID)
 	if err != nil {
@@ -61,10 +57,6 @@ func (s *timeSeriesService) CollectMetrics(ctx context.Context, organizationID u
 	}
 	
 	accountID := organization.AccountID
-	logger.Info("Found organization", logrus.Fields{
-		"organization_id": organizationID,
-		"account_id": accountID,
-	})
 	
 	// Collect organization-level metrics
 	orgMetrics, err := s.collectOrganizationMetrics(ctx, organizationID, accountID, now)
@@ -75,10 +67,6 @@ func (s *timeSeriesService) CollectMetrics(ctx context.Context, organizationID u
 		return err
 	}
 	
-	logger.Info("Collected metrics", logrus.Fields{
-		"organization_id": organizationID,
-		"metrics_count": len(orgMetrics),
-	})
 	
 	// Delete all existing metrics for this organization to avoid duplicates
 	if err := s.timeSeriesRepo.DeleteOrganizationMetrics(ctx, organizationID); err != nil {
@@ -92,10 +80,6 @@ func (s *timeSeriesService) CollectMetrics(ctx context.Context, organizationID u
 		return fmt.Errorf("failed to save organization metrics: %w", err)
 	}
 	
-	logger.Info("Saved metrics successfully", logrus.Fields{
-		"organization_id": organizationID,
-		"metrics_count": len(orgMetrics),
-	})
 	
 	// Collect product-level metrics
 	// This would iterate through all products in the organization
@@ -113,23 +97,7 @@ func (s *timeSeriesService) collectOrganizationMetrics(ctx context.Context, orga
 		return nil, err
 	}
 	
-	// Build a map of question IDs to question details for metadata
-	questionDetailsMap := make(map[uuid.UUID]*feedbackModels.Question)
-	for _, feedback := range feedbacks {
-		if feedback.Responses != nil {
-			for _, response := range feedback.Responses {
-				if response.QuestionID != uuid.Nil {
-					if _, exists := questionDetailsMap[response.QuestionID]; !exists {
-						// Get question details including labels
-						question, err := s.questionRepo.GetQuestionByID(ctx, response.QuestionID)
-						if err == nil {
-							questionDetailsMap[response.QuestionID] = question
-						}
-					}
-				}
-			}
-		}
-	}
+	// Question data is now populated by the feedback repository to avoid N+1 queries
 	
 	// Group feedback by date, product, and question type for proper time series
 	timeSeriesData := make(map[string]map[string]map[string]struct {
@@ -281,14 +249,6 @@ func (s *timeSeriesService) collectOrganizationMetrics(ctx context.Context, orga
 					productID = &pid
 				}
 				
-				logger.Info("Creating question type metric", logrus.Fields{
-					"date": dateKey,
-					"product": questionData.productName,
-					"question_type": questionTypeKey,
-					"metric_type": metricType,
-					"value": value,
-					"count": count,
-				})
 				
 				metrics = append(metrics, models.TimeSeriesMetric{
 					AccountID:      accountID,
@@ -440,26 +400,11 @@ func (s *timeSeriesService) collectOrganizationMetrics(ctx context.Context, orga
 				questionUUID = &qid
 			}
 			
-			// Get question details from our map
-			var questionDetails *feedbackModels.Question
-			if questionUUID != nil {
-				questionDetails = questionDetailsMap[*questionUUID]
-			}
-			
 			// Keep the question ID in metric type for frontend compatibility
 			questionMetricType := "question_" + questionID
 			// Use just the question text, without product info
 			questionMetricName := qData.questionText
 			
-			logger.Info("Creating individual question metric", logrus.Fields{
-				"date": dateKey,
-				"product": qData.productName,
-				"question_id": questionID,
-				"question_text": qData.questionText,
-				"metric_type": questionMetricType,
-				"value": questionValue,
-				"count": questionCount,
-			})
 			
 			metrics = append(metrics, models.TimeSeriesMetric{
 				AccountID:      accountID,
@@ -472,7 +417,7 @@ func (s *timeSeriesService) collectOrganizationMetrics(ctx context.Context, orga
 				Count:          int64(questionCount),
 				Timestamp:      date,
 				Granularity:    models.GranularityDaily,
-				Metadata:       s.createMetadataWithQuestion(qData.questionType, qData.productName, qData.questionText, questionDetails),
+				Metadata:       s.createMetadataWithQuestion(qData.questionType, qData.productName, qData.questionText, nil),
 			})
 		}
 	}
