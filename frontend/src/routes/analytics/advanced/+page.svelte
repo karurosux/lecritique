@@ -1,3 +1,7 @@
+<svelte:head>
+  <title>Advanced Analytics - Kyooar</title>
+</svelte:head>
+
 <script lang="ts">
   import { getApiClient, handleApiError } from '$lib/api/client';
   import { auth } from '$lib/stores/auth';
