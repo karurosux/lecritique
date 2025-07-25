@@ -78,11 +78,11 @@ func (h *AuthHandler) Register(c echo.Context) error {
 	}
 
 	registerData := services.RegisterData{
-		Email:       req.Email,
-		Password:    req.Password,
-		Name:        req.Name,
-		FirstName:   req.FirstName,
-		LastName:    req.LastName,
+		Email:     req.Email,
+		Password:  req.Password,
+		Name:      req.Name,
+		FirstName: req.FirstName,
+		LastName:  req.LastName,
 	}
 
 	account, err := h.authService.Register(ctx, registerData)

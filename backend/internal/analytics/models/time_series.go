@@ -90,6 +90,7 @@ type TimeSeriesData struct {
 	ProductName string             `json:"product_name,omitempty"`
 	Points      []TimeSeriesPoint  `json:"points"`
 	Statistics  TimeSeriesStats    `json:"statistics"`
+	Metadata    *string            `json:"metadata,omitempty"`
 }
 
 // TimeSeriesStats represents statistical information about a time series

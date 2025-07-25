@@ -69,38 +69,103 @@
 
   let series = $derived(data?.series || []);
 
+  function cleanMetricName(metricName: string): string {
+    // Remove UUID patterns (8-4-4-4-12 hex characters)
+    let cleaned = metricName.replace(/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/gi, '');
+    
+    // Remove "product_" prefix
+    cleaned = cleaned.replace(/product_/gi, '');
+    
+    // Remove double underscores or dashes
+    cleaned = cleaned.replace(/[_-]{2,}/g, '_');
+    
+    // Remove leading/trailing underscores or dashes
+    cleaned = cleaned.replace(/^[_-]+|[_-]+$/g, '');
+    
+    // Convert underscores to spaces and capitalize words
+    cleaned = cleaned.replace(/_/g, ' ')
+      .split(' ')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+      .join(' ');
+    
+    // Special cases for known metric types
+    if (cleaned.toLowerCase().includes('rating questions')) return 'Rating Questions';
+    if (cleaned.toLowerCase().includes('scale questions')) return 'Scale Questions';
+    if (cleaned.toLowerCase().includes('yes no questions')) return 'Yes/No Questions';
+    if (cleaned.toLowerCase().includes('text questions')) return 'Text Questions';
+    if (cleaned.toLowerCase().includes('single choice questions')) return 'Single Choice Questions';
+    if (cleaned.toLowerCase().includes('multiple choice questions')) return 'Multiple Choice Questions';
+    if (cleaned.toLowerCase().includes('survey responses')) return 'Survey Responses';
+    
+    // If it's a question ID, try to extract just the question part
+    if (cleaned.toLowerCase().startsWith('question ')) {
+      return 'Question Response';
+    }
+    
+    return cleaned || 'Metric';
+  }
+
   function formatValue(value: number, metricType: string, seriesData?: any): string {
     // Check if this is a question metric
     if (metricType.startsWith('question_')) {
-      // Try to get question type from metadata
-      let questionType = seriesData?.metadata?.question_type;
+      // Try to get question type and labels from metadata
+      let metadata = seriesData?.metadata;
+      let questionType = metadata?.question_type;
+      let minLabel = metadata?.min_label;
+      let maxLabel = metadata?.max_label;
+      let minValue = metadata?.min_value;
+      let maxValue = metadata?.max_value;
       
       // If metadata is a string, try to parse it as JSON
       if (typeof seriesData?.metadata === 'string') {
         try {
           const parsed = JSON.parse(seriesData.metadata);
           questionType = parsed.question_type;
+          minLabel = parsed.min_label;
+          maxLabel = parsed.max_label;
+          minValue = parsed.min_value;
+          maxValue = parsed.max_value;
         } catch (e) {
-          console.warn('Failed to parse metadata:', seriesData.metadata);
+          // ignore parsing errors
         }
       }
       
       switch (questionType) {
         case 'rating':
-          return value.toFixed(1) + '/5';
+          const ratingMax = maxValue || 5;
+          const ratingMaxLabel = maxLabel || ratingMax.toString();
+          return `${value.toFixed(1)}/${ratingMax} (${ratingMaxLabel})`;
+          
         case 'scale':
-          return value.toFixed(1) + '/10';
+          const scaleMin = minValue || 1;
+          const scaleMax = maxValue || 10;
+          const scaleMinLabel = minLabel || 'Low';
+          const scaleMaxLabel = maxLabel || 'High';
+          
+          // Calculate position on scale as percentage
+          const scalePosition = ((value - scaleMin) / (scaleMax - scaleMin)) * 100;
+          let scaleDescription = '';
+          
+          if (scalePosition <= 20) scaleDescription = scaleMinLabel;
+          else if (scalePosition >= 80) scaleDescription = scaleMaxLabel;
+          else scaleDescription = 'Moderate';
+          
+          return `${value.toFixed(1)}/${scaleMax} (${scaleDescription})`;
+          
         case 'yes_no':
           return value.toFixed(1) + '% Yes';
+          
         case 'text':
           if (value >= -1 && value <= 1) {
             const sentiment = value > 0.1 ? 'Positive' : value < -0.1 ? 'Negative' : 'Neutral';
             return `${sentiment} (${value.toFixed(2)})`;
           }
           return Math.round(value).toLocaleString() + ' responses';
+          
         case 'single_choice':
         case 'multiple_choice':
           return Math.round(value).toLocaleString() + ' responses';
+          
         default:
           return value.toFixed(1);
       }
@@ -137,6 +202,190 @@
     }
   }
 
+  function getYAxisConfig(seriesData: any[]) {
+    // Analyze the data to determine appropriate Y-axis configuration
+    for (const series of seriesData) {
+      const metricType = series.metric_type;
+      
+      // Check if this is a question metric
+      if (metricType.startsWith('question_')) {
+        let metadata = series.metadata;
+        let questionType = metadata?.question_type;
+        let minLabel = metadata?.min_label;
+        let maxLabel = metadata?.max_label;
+        let minValue = metadata?.min_value;
+        let maxValue = metadata?.max_value;
+        
+        if (typeof series.metadata === 'string') {
+          try {
+            const parsed = JSON.parse(series.metadata);
+            questionType = parsed.question_type;
+            minLabel = parsed.min_label;
+            maxLabel = parsed.max_label;
+            minValue = parsed.min_value;
+            maxValue = parsed.max_value;
+          } catch (e) {
+            // ignore parsing errors
+          }
+        }
+        
+        // If we have explicit question type, use it
+        switch (questionType) {
+          case 'rating':
+            const ratingMin = minValue || 1;
+            const ratingMax = maxValue || 5;
+            const ratingMinLabel = minLabel || ratingMin.toString();
+            const ratingMaxLabel = maxLabel || ratingMax.toString();
+            
+            return {
+              min: ratingMin,
+              max: ratingMax,
+              stepSize: (ratingMax - ratingMin) / 8,
+              label: `Rating (${ratingMinLabel} ← → ${ratingMaxLabel})`,
+              formatter: (value: any) => `${ratingMinLabel} ← ${value.toFixed(1)} → ${ratingMaxLabel}`
+            };
+            
+          case 'scale':
+            const scaleMin = minValue || 1;
+            const scaleMax = maxValue || 10;
+            const scaleMinLabel = minLabel || scaleMin.toString();
+            const scaleMaxLabel = maxLabel || scaleMax.toString();
+            
+            return {
+              min: scaleMin,
+              max: scaleMax,
+              stepSize: 1,
+              label: `Scale (${scaleMinLabel} ← → ${scaleMaxLabel})`,
+              formatter: (value: any) => `${scaleMinLabel} ← ${value.toFixed(1)} → ${scaleMaxLabel}`
+            };
+            
+          case 'yes_no':
+            return {
+              min: 0,
+              max: 100,
+              stepSize: 10,
+              label: 'Yes Response Rate (%)',
+              formatter: (value: any) => `${value.toFixed(1)}%`
+            };
+            
+          case 'text':
+            // Check if values are sentiment scores (-1 to 1) or counts
+            const hasNegativeValues = series.points?.some((p: any) => p.value < 0);
+            if (hasNegativeValues) {
+              return {
+                min: -1,
+                max: 1,
+                stepSize: 0.2,
+                label: 'Sentiment Score (-1 to +1)',
+                formatter: (value: any) => {
+                  if (value > 0.1) return `+${value.toFixed(1)} (Positive)`;
+                  if (value < -0.1) return `${value.toFixed(1)} (Negative)`;
+                  return `${value.toFixed(1)} (Neutral)`;
+                }
+              };
+            }
+            break;
+        }
+        
+        // If no metadata available, try to infer from question text and values
+        const questionText = series.metric_name?.toLowerCase() || '';
+        const sampleValue = series.points?.[0]?.value;
+        
+        // Infer question type based on patterns
+        if (sampleValue !== undefined) {
+          // If value is between 0-100 and looks like a percentage
+          if (sampleValue >= 0 && sampleValue <= 100 && (sampleValue % 1 !== 0)) {
+            // Check if question suggests yes/no
+            if (questionText.includes('is ') || questionText.includes('do ') || 
+                questionText.includes('can ') || questionText.includes('will ')) {
+              return {
+                min: 0,
+                max: 100,
+                stepSize: 10,
+                label: 'Yes Response Rate (%)',
+                formatter: (value: any) => `${value.toFixed(1)}% Yes`
+              };
+            }
+          }
+          
+          // If value is between 1-5, likely a rating
+          if (sampleValue >= 1 && sampleValue <= 5) {
+            return {
+              min: 1,
+              max: 5,
+              stepSize: 0.5,
+              label: 'Average Rating (1-5)',
+              formatter: (value: any) => `${value.toFixed(1)}/5`
+            };
+          }
+          
+          // If value is between 1-10, likely a scale
+          if (sampleValue >= 1 && sampleValue <= 10) {
+            // Try to infer scale meaning from question text
+            let scaleLabel = 'Average Scale';
+            let lowLabel = '1';
+            let highLabel = '10';
+            
+            if (questionText.includes('spic') || questionText.includes('hot')) {
+              scaleLabel = 'Spiciness Level';
+              lowLabel = 'Mild';
+              highLabel = 'Very Spicy';
+            } else if (questionText.includes('satisf') || questionText.includes('happy')) {
+              scaleLabel = 'Satisfaction Level'; 
+              lowLabel = 'Poor';
+              highLabel = 'Excellent';
+            } else if (questionText.includes('quality') || questionText.includes('good')) {
+              scaleLabel = 'Quality Rating';
+              lowLabel = 'Poor';
+              highLabel = 'Excellent';
+            } else if (questionText.includes('recommend')) {
+              scaleLabel = 'Recommendation Score';
+              lowLabel = 'Never';
+              highLabel = 'Definitely';
+            } else if (questionText.includes('difficult') || questionText.includes('easy')) {
+              scaleLabel = 'Difficulty Level';
+              lowLabel = 'Very Easy';
+              highLabel = 'Very Hard';
+            }
+            
+            return {
+              min: 1,
+              max: 10,
+              stepSize: 1,
+              label: `${scaleLabel} (${lowLabel} ← → ${highLabel})`,
+              formatter: (value: any) => `${lowLabel} ← ${value.toFixed(1)} → ${highLabel}`
+            };
+          }
+        }
+        
+        // Default for individual questions
+        return {
+          beginAtZero: true,
+          label: 'Response Value',
+          formatter: (value: any) => value.toFixed(1)
+        };
+      }
+      
+      // Check for percentage-based metrics
+      if (metricType.includes('rate') || metricType.includes('completion')) {
+        return {
+          min: 0,
+          max: 100,
+          stepSize: 10,
+          label: 'Percentage (%)',
+          formatter: (value: any) => `${value.toFixed(1)}%`
+        };
+      }
+    }
+    
+    // Default configuration for count-based metrics
+    return {
+      beginAtZero: true,
+      label: 'Value',
+      formatter: (value: any) => Math.round(value).toLocaleString()
+    };
+  }
+
   function createChart() {
     if (!mounted || !chartCanvas || !data?.series) return;
     
@@ -145,31 +394,45 @@
       chart.destroy();
     }
 
-    console.log('Creating Chart.js chart with data:', data);
+    // Get appropriate Y-axis configuration
+    const yAxisConfig = getYAxisConfig(data.series);
+    console.log('Y-axis config:', yAxisConfig);
+    console.log('Series metadata:', data.series?.map(s => ({ metric_type: s.metric_type, metadata: s.metadata })));
 
     // Prepare datasets
     const datasets = data.series.map((seriesData: any, index: number) => {
-      console.log(`Series ${index} (${seriesData.metric_name}):`, seriesData.points);
-      
       const points = (seriesData.points || []).map((point: any) => {
         const timestamp = new Date(point.timestamp);
-        console.log('Point:', { 
-          originalTimestamp: point.timestamp, 
-          parsedDate: timestamp, 
-          value: point.value 
-        });
+        
+        // Validate the timestamp is a valid date
+        if (isNaN(timestamp.getTime())) {
+          console.warn('Invalid timestamp:', point.timestamp);
+          return null;
+        }
         
         return {
-          x: timestamp,
+          x: timestamp, // Use Date object directly
           y: point.value
         };
-      });
+      }).filter(Boolean); // Remove any null entries
+
+      // Use different colors based on question type for better visual distinction
+      let colorHue = 220 + index * 40; // default blue range
+      const metricType = seriesData.metric_type;
+      
+      if (metricType.includes('rating')) colorHue = 45; // orange for ratings
+      else if (metricType.includes('scale')) colorHue = 260; // purple for scales
+      else if (metricType.includes('yes_no')) colorHue = 140; // green for yes/no
+      else if (metricType.includes('text')) colorHue = 200; // blue for sentiment
+      else if (metricType.includes('choice')) colorHue = 20; // red for choices
+
+      const color = `hsl(${colorHue + index * 20}, 70%, 50%)`;
 
       return {
-        label: seriesData.metric_name,
+        label: cleanMetricName(seriesData.metric_name),
         data: points,
-        borderColor: colors[index % colors.length],
-        backgroundColor: colors[index % colors.length] + (showFill ? '20' : '00'),
+        borderColor: color,
+        backgroundColor: color + (showFill ? '20' : '00'),
         borderWidth: lineThickness,
         pointRadius: showDataPoints ? pointSize : 0,
         pointHoverRadius: showDataPoints ? pointSize + 2 : 4,
@@ -244,11 +507,19 @@
               unit: 'day' as const,
               displayFormats: {
                 day: 'MMM dd'
-              }
+              },
+              tooltipFormat: 'MMM dd, yyyy'
             },
+            // Force a time range when we have limited data points
+            min: datasets.length > 0 && datasets[0].data.length === 1 
+              ? new Date(datasets[0].data[0].x.getTime() - 24 * 60 * 60 * 1000) // 1 day before
+              : undefined,
+            max: datasets.length > 0 && datasets[0].data.length === 1
+              ? new Date(datasets[0].data[0].x.getTime() + 24 * 60 * 60 * 1000) // 1 day after  
+              : undefined,
             title: {
               display: true,
-              text: 'Time',
+              text: 'Date',
               font: {
                 size: 12,
                 weight: 'bold' as const
@@ -259,14 +530,37 @@
               display: gridLines,
               color: '#e5e7eb',
               borderColor: '#d1d5db'
+            },
+            ticks: {
+              display: true,
+              maxTicksLimit: 8,
+              color: '#6B7280',
+              font: {
+                size: 11
+              },
+              callback: function(value: any, index: number, values: any[]) {
+                return new Date(value).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+              }
             }
           },
           y: {
             type: yAxisScale,
-            beginAtZero: false,
+            ...(yAxisConfig.min !== undefined && { min: yAxisConfig.min }),
+            ...(yAxisConfig.max !== undefined && { max: yAxisConfig.max }),
+            ...(yAxisConfig.beginAtZero !== undefined && { beginAtZero: yAxisConfig.beginAtZero }),
+            ticks: {
+              ...(yAxisConfig.stepSize && { stepSize: yAxisConfig.stepSize }),
+              callback: function(value: any, index: number, values: any[]) {
+                return yAxisConfig.formatter ? yAxisConfig.formatter(value) : value;
+              },
+              color: '#6B7280',
+              font: {
+                size: 11
+              }
+            },
             title: {
               display: true,
-              text: 'Value',
+              text: yAxisConfig.label || 'Value',
               font: {
                 size: 12,
                 weight: 'bold' as const
@@ -320,158 +614,21 @@
       </div>
     {:else}
       <!-- Chart Controls -->
-      <div class="bg-gray-50 rounded-lg p-4 mb-4">
-        <h4 class="text-sm font-medium text-gray-700 mb-3">Chart Customization</h4>
-        
-        <!-- First Row: Basic Settings -->
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
-          <!-- Chart Type -->
-          <div>
-            <label class="text-xs text-gray-600 mb-1 block">Chart Type</label>
-            <select bind:value={chartType} class="w-full text-sm border border-gray-300 rounded px-2 py-1">
-              <option value="line">Line Chart</option>
-              <option value="bar">Bar Chart</option>
-            </select>
-          </div>
-
-          <!-- Theme -->
-          <div>
-            <label class="text-xs text-gray-600 mb-1 block">Color Theme</label>
-            <select bind:value={chartTheme} class="w-full text-sm border border-gray-300 rounded px-2 py-1">
-              <option value="default">Default</option>
-              <option value="dark">Dark</option>
-              <option value="colorful">Colorful</option>
-            </select>
-          </div>
-
-          <!-- Y-Axis Scale -->
-          <div>
-            <label class="text-xs text-gray-600 mb-1 block">Y-Axis Scale</label>
-            <select bind:value={yAxisScale} class="w-full text-sm border border-gray-300 rounded px-2 py-1">
-              <option value="linear">Linear</option>
-              <option value="logarithmic">Logarithmic</option>
-            </select>
-          </div>
-
-          <!-- Line Thickness -->
-          <div>
-            <label class="text-xs text-gray-600 mb-1 block">Line Thickness: {lineThickness}px</label>
-            <input 
-              type="range" 
-              bind:value={lineThickness} 
-              min="1" 
-              max="8" 
-              step="1"
-              class="w-full text-sm"
-            />
-          </div>
-        </div>
-
-        <!-- Second Row: Visual Settings -->
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
-          <!-- Point Size -->
-          <div>
-            <label class="text-xs text-gray-600 mb-1 block">Point Size: {pointSize}px</label>
-            <input 
-              type="range" 
-              bind:value={pointSize} 
-              min="2" 
-              max="12" 
-              step="1"
-              class="w-full text-sm"
-            />
-          </div>
-
-          <!-- Show Fill -->
-          <div class="flex items-center pt-4">
-            <input 
-              type="checkbox" 
-              bind:checked={showFill} 
-              id="showFill"
-              class="mr-2"
-            />
-            <label for="showFill" class="text-xs text-gray-600">Fill Area</label>
-          </div>
-          
-          <!-- Show Data Points -->
-          <div class="flex items-center pt-4">
-            <input 
-              type="checkbox" 
-              bind:checked={showDataPoints} 
-              id="showDataPoints"
-              class="mr-2"
-            />
-            <label for="showDataPoints" class="text-xs text-gray-600">Data Points</label>
-          </div>
-          
-          <!-- Smooth Lines -->
-          <div class="flex items-center pt-4">
-            <input 
-              type="checkbox" 
-              bind:checked={lineSmooth} 
-              id="lineSmooth"
-              class="mr-2"
-            />
-            <label for="lineSmooth" class="text-xs text-gray-600">Smooth Lines</label>
-          </div>
-        </div>
-
-        <!-- Third Row: Display Settings -->
-        <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
-          <!-- Grid Lines -->
-          <div class="flex items-center">
-            <input 
-              type="checkbox" 
-              bind:checked={gridLines} 
-              id="gridLines"
-              class="mr-2"
-            />
-            <label for="gridLines" class="text-xs text-gray-600">Grid Lines</label>
-          </div>
-
-          <!-- Show Legend -->
-          <div class="flex items-center">
-            <input 
-              type="checkbox" 
-              bind:checked={showLegend} 
-              id="showLegend"
-              class="mr-2"
-            />
-            <label for="showLegend" class="text-xs text-gray-600">Legend</label>
-          </div>
-
-          <!-- Show Title -->
-          <div class="flex items-center">
-            <input 
-              type="checkbox" 
-              bind:checked={showTitle} 
-              id="showTitle"
-              class="mr-2"
-            />
-            <label for="showTitle" class="text-xs text-gray-600">Title</label>
-          </div>
-
-          <!-- Show Tooltips -->
-          <div class="flex items-center">
-            <input 
-              type="checkbox" 
-              bind:checked={showTooltips} 
-              id="showTooltips"
-              class="mr-2"
-            />
-            <label for="showTooltips" class="text-xs text-gray-600">Tooltips</label>
-          </div>
-
-          <!-- Animate Chart -->
-          <div class="flex items-center">
-            <input 
-              type="checkbox" 
-              bind:checked={animateChart} 
-              id="animateChart"
-              class="mr-2"
-            />
-            <label for="animateChart" class="text-xs text-gray-600">Animations</label>
-          </div>
+      <div class="flex items-center gap-2 mb-6">
+        <span class="text-sm font-medium text-gray-700">View:</span>
+        <div class="flex bg-gray-100 rounded-lg p-1">
+          <button
+            class="px-3 py-1.5 text-sm font-medium rounded-md transition-all {chartType === 'line' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-600 hover:text-gray-900'}"
+            onclick={() => chartType = 'line'}
+          >
+            Line
+          </button>
+          <button
+            class="px-3 py-1.5 text-sm font-medium rounded-md transition-all {chartType === 'bar' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-600 hover:text-gray-900'}"
+            onclick={() => chartType = 'bar'}
+          >
+            Bar
+          </button>
         </div>
       </div>
 

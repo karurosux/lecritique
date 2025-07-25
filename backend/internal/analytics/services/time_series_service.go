@@ -2,6 +2,7 @@ package services
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"math"
 	"sort"
@@ -33,6 +34,7 @@ type timeSeriesService struct {
 	feedbackRepo   feedbackRepos.FeedbackRepository
 	organizationRepo organizationRepos.OrganizationRepository
 	analyticsService AnalyticsService
+	questionRepo   feedbackRepos.QuestionRepository
 }
 
 func NewTimeSeriesService(i *do.Injector) (TimeSeriesService, error) {
@@ -41,6 +43,7 @@ func NewTimeSeriesService(i *do.Injector) (TimeSeriesService, error) {
 		feedbackRepo:     do.MustInvoke[feedbackRepos.FeedbackRepository](i),
 		organizationRepo: do.MustInvoke[organizationRepos.OrganizationRepository](i),
 		analyticsService: do.MustInvoke[AnalyticsService](i),
+		questionRepo:     do.MustInvoke[feedbackRepos.QuestionRepository](i),
 	}, nil
 }
 
@@ -110,6 +113,24 @@ func (s *timeSeriesService) collectOrganizationMetrics(ctx context.Context, orga
 		return nil, err
 	}
 	
+	// Build a map of question IDs to question details for metadata
+	questionDetailsMap := make(map[uuid.UUID]*feedbackModels.Question)
+	for _, feedback := range feedbacks {
+		if feedback.Responses != nil {
+			for _, response := range feedback.Responses {
+				if response.QuestionID != uuid.Nil {
+					if _, exists := questionDetailsMap[response.QuestionID]; !exists {
+						// Get question details including labels
+						question, err := s.questionRepo.GetQuestionByID(ctx, response.QuestionID)
+						if err == nil {
+							questionDetailsMap[response.QuestionID] = question
+						}
+					}
+				}
+			}
+		}
+	}
+	
 	// Group feedback by date, product, and question type for proper time series
 	timeSeriesData := make(map[string]map[string]map[string]struct {
 		responses []interface{}
@@ -129,7 +150,7 @@ func (s *timeSeriesService) collectOrganizationMetrics(ctx context.Context, orga
 		
 		if feedback.Responses != nil {
 			productKey := feedback.ProductID.String()
-			productName := "Product " + productKey[:8]
+			productName := "Product"
 			
 			for _, response := range feedback.Responses {
 				questionTypeKey := string(response.QuestionType)
@@ -301,7 +322,7 @@ func (s *timeSeriesService) collectOrganizationMetrics(ctx context.Context, orga
 		feedbackDate := feedback.CreatedAt.Truncate(24 * time.Hour)
 		dateKey := feedbackDate.Format("2006-01-02")
 		productKey := feedback.ProductID.String()
-		productName := "Product " + productKey[:8]
+		productName := "Product"
 		
 		if feedback.Responses != nil {
 			for _, response := range feedback.Responses {
@@ -419,8 +440,16 @@ func (s *timeSeriesService) collectOrganizationMetrics(ctx context.Context, orga
 				questionUUID = &qid
 			}
 			
+			// Get question details from our map
+			var questionDetails *feedbackModels.Question
+			if questionUUID != nil {
+				questionDetails = questionDetailsMap[*questionUUID]
+			}
+			
+			// Keep the question ID in metric type for frontend compatibility
 			questionMetricType := "question_" + questionID
-			questionMetricName := fmt.Sprintf("%s - %s", qData.questionText, qData.productName)
+			// Use just the question text, without product info
+			questionMetricName := qData.questionText
 			
 			logger.Info("Creating individual question metric", logrus.Fields{
 				"date": dateKey,
@@ -443,7 +472,7 @@ func (s *timeSeriesService) collectOrganizationMetrics(ctx context.Context, orga
 				Count:          int64(questionCount),
 				Timestamp:      date,
 				Granularity:    models.GranularityDaily,
-				Metadata:       s.createMetadataWithQuestion(qData.questionType, qData.productName, qData.questionText),
+				Metadata:       s.createMetadataWithQuestion(qData.questionType, qData.productName, qData.questionText, questionDetails),
 			})
 		}
 	}
@@ -476,13 +505,44 @@ func (s *timeSeriesService) createMetadata(questionType string) *string {
 }
 
 func (s *timeSeriesService) createMetadataWithProduct(questionType string, productName string) *string {
-	metadata := fmt.Sprintf(`{"question_type": "%s", "product_name": "%s"}`, questionType, productName)
+	// Only include question type, not product info
+	metadata := fmt.Sprintf(`{"question_type": "%s"}`, questionType)
 	return &metadata
 }
 
-func (s *timeSeriesService) createMetadataWithQuestion(questionType string, productName string, questionText string) *string {
-	metadata := fmt.Sprintf(`{"question_type": "%s", "product_name": "%s", "question_text": "%s"}`, questionType, productName, questionText)
-	return &metadata
+func (s *timeSeriesService) createMetadataWithQuestion(questionType string, productName string, questionText string, question *feedbackModels.Question) *string {
+	// Create metadata with question type, text, and scale labels if available
+	metadataMap := map[string]interface{}{
+		"question_type": questionType,
+		"question_text": questionText,
+	}
+	
+	// Add scale labels if available
+	if question != nil {
+		if question.MinLabel != "" {
+			metadataMap["min_label"] = question.MinLabel
+		}
+		if question.MaxLabel != "" {
+			metadataMap["max_label"] = question.MaxLabel
+		}
+		if question.MinValue != nil {
+			metadataMap["min_value"] = *question.MinValue
+		}
+		if question.MaxValue != nil {
+			metadataMap["max_value"] = *question.MaxValue
+		}
+	}
+	
+	// Convert to JSON string
+	metadataBytes, err := json.Marshal(metadataMap)
+	if err != nil {
+		// Fallback to simple format
+		metadata := fmt.Sprintf(`{"question_type": "%s", "question_text": "%s"}`, questionType, questionText)
+		return &metadata
+	}
+	
+	metadataStr := string(metadataBytes)
+	return &metadataStr
 }
 
 func (s *timeSeriesService) analyzeSentiment(text string) float64 {
@@ -516,8 +576,8 @@ func (s *timeSeriesService) getMetricName(questionType string, questionTexts []s
 }
 
 func (s *timeSeriesService) getMetricNameWithProduct(questionType string, productName string, questionTexts []string) string {
-	baseMetricName := s.getMetricName(questionType, questionTexts)
-	return fmt.Sprintf("%s - %s", baseMetricName, productName)
+	// Just return the base metric name without product info to keep it clean
+	return s.getMetricName(questionType, questionTexts)
 }
 
 func (s *timeSeriesService) GetTimeSeries(ctx context.Context, request models.TimeSeriesRequest) (*models.TimeSeriesResponse, error) {
@@ -544,6 +604,7 @@ func (s *timeSeriesService) GetTimeSeries(ctx context.Context, request models.Ti
 				MetricType: metric.MetricType,
 				MetricName: metric.MetricName,
 				ProductID:  metric.ProductID,
+				Metadata:   metric.Metadata,
 				Points: []models.TimeSeriesPoint{{
 					Timestamp: metric.Timestamp,
 					Value:     metric.Value,
