@@ -65,6 +65,20 @@
     }
   });
 
+  // Reactive effect to reload data when time series filters change
+  $effect(() => {
+    // Track specific filter changes
+    timeSeriesFilters.startDate;
+    timeSeriesFilters.endDate;
+    timeSeriesFilters.granularity;
+    timeSeriesFilters.metricTypes;
+    timeSeriesFilters.productId;
+    
+    if (hasInitialized && selectedOrganization) {
+      loadTimeSeriesData();
+    }
+  });
+
   async function loadOrganizations() {
     try {
       const api = getApiClient();
@@ -75,7 +89,6 @@
         if (organizations.length > 0) {
           selectedOrganization = organizations[0].id;
           await loadProducts();
-          loadTimeSeriesData();
           loadComparisonData();
         }
       }
@@ -108,19 +121,27 @@
     
     try {
       const api = getApiClient();
-      const allQuestions = [];
+      const productIds = availableProducts.map(p => p.id);
       
-      // Load questions for each product
-      for (const product of availableProducts) {
-        const response = await api.api.v1OrganizationsProductsQuestionsList(selectedOrganization, product.id);
-        if (response.data.success && response.data.data) {
-          response.data.data.forEach(question => {
-            allQuestions.push({
-              ...question,
-              productName: product.name
-            });
+      // Load questions for all products in a single batch request
+      const response = await api.api.v1OrganizationsQuestionsBatchCreate(selectedOrganization, {
+        product_ids: productIds
+      });
+      
+      const allQuestions = [];
+      if (response.data.success && response.data.data) {
+        // Create a map of product ID to product name for quick lookup
+        const productMap = {};
+        availableProducts.forEach(product => {
+          productMap[product.id] = product.name;
+        });
+        
+        response.data.data.forEach(question => {
+          allQuestions.push({
+            ...question,
+            productName: productMap[question.product_id] || 'Unknown Product'
           });
-        }
+        });
       }
       
       availableQuestions = allQuestions;
@@ -270,14 +291,10 @@
   function handleOrganizationChange() {
     if (selectedOrganization) {
       loadProducts();
-      loadTimeSeriesData();
       loadComparisonData();
     }
   }
 
-  function handleTimeSeriesFilterChange() {
-    loadTimeSeriesData();
-  }
 
   function handleComparisonFilterChange() {
     loadComparisonData();
@@ -383,13 +400,11 @@
                 <Input 
                   type="date" 
                   bind:value={timeSeriesFilters.startDate}
-                  onchange={handleTimeSeriesFilterChange}
                   class="text-xs"
                 />
                 <Input 
                   type="date" 
                   bind:value={timeSeriesFilters.endDate}
-                  onchange={handleTimeSeriesFilterChange}
                   class="text-xs"
                 />
               </div>
@@ -399,7 +414,6 @@
               <label class="text-sm font-medium text-gray-700">Granularity</label>
               <Select 
                 bind:value={timeSeriesFilters.granularity}
-                onchange={handleTimeSeriesFilterChange}
                 options={granularityOptions}
               />
             </div>
@@ -456,7 +470,6 @@
                                   } else {
                                     timeSeriesFilters.metricTypes = timeSeriesFilters.metricTypes.filter(t => t !== question.value);
                                   }
-                                  handleTimeSeriesFilterChange();
                                 }}
                               />
                               <div class="flex-1 min-w-0">

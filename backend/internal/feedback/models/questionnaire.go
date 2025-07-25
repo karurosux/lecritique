@@ -116,3 +116,15 @@ type UpdateQuestionRequest struct {
 	MinLabel     string         `json:"min_label,omitempty"`
 	MaxLabel     string         `json:"max_label,omitempty"`
 }
+
+type BatchQuestionsRequest struct {
+	ProductIDs []uuid.UUID `json:"product_ids" binding:"required"`
+}
+
+// Optimized response model for batch questions - only essential fields
+type BatchQuestionResponse struct {
+	ID        uuid.UUID    `json:"id"`
+	ProductID uuid.UUID    `json:"product_id"`
+	Text      string       `json:"text"`
+	Type      QuestionType `json:"type"`
+}

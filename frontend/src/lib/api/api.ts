@@ -248,6 +248,10 @@ export interface ModelsAccount {
   updated_at?: string;
 }
 
+export interface ModelsBatchQuestionsRequest {
+  product_ids: string[];
+}
+
 export interface ModelsComparisonInsight {
   change?: number;
   message?: string;
@@ -1980,6 +1984,30 @@ export class Api<
       this.request<ResponseResponse, ResponseResponse>({
         path: `/api/v1/organizations/${organizationId}/questionnaires/${id}`,
         method: "DELETE",
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description Get all questions for multiple products in a single request
+     *
+     * @tags questions
+     * @name V1OrganizationsQuestionsBatchCreate
+     * @summary Get questions for multiple products
+     * @request POST:/api/v1/organizations/{organizationId}/questions/batch
+     * @secure
+     */
+    v1OrganizationsQuestionsBatchCreate: (
+      organizationId: string,
+      request: ModelsBatchQuestionsRequest,
+      params: RequestParams = {},
+    ) =>
+      this.request<Record<string, any>, Record<string, any>>({
+        path: `/api/v1/organizations/${organizationId}/questions/batch`,
+        method: "POST",
+        body: request,
         secure: true,
         type: ContentType.Json,
         format: "json",

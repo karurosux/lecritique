@@ -78,6 +78,7 @@ func (m *Module) RegisterRoutes(v1 *echo.Group) {
 	organizations.DELETE("/:organizationId/products/:productId/questions/:questionId", questionHandler.DeleteQuestion)
 	organizations.POST("/:organizationId/products/:productId/questions/reorder", questionHandler.ReorderQuestions)
 	organizations.GET("/:organizationId/questions/products-with-questions", questionHandler.GetProductsWithQuestions)
+	organizations.POST("/:organizationId/questions/batch", questionHandler.GetQuestionsByProducts)
 	
 	// AI question generation routes under organizations (moved from feedback module)
 	organizations.POST("/:organizationId/products/:productId/ai/generate-questions", questionnaireHandler.GenerateQuestions)

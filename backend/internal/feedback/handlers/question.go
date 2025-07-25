@@ -97,6 +97,46 @@ func (h *QuestionHandler) GetQuestionsByProduct(c echo.Context) error {
 	})
 }
 
+// GetQuestionsByProducts gets questions for multiple products in batch (optimized)
+// @Summary Get questions for multiple products (optimized payload)
+// @Description Get essential question fields for multiple products in a single request - returns only ID, ProductID, Text, and Type
+// @Tags questions
+// @Accept json
+// @Produce json
+// @Param organizationId path string true "Organization ID"
+// @Param request body models.BatchQuestionsRequest true "Product IDs"
+// @Success 200 {object} map[string]interface{} "Questions retrieved successfully"
+// @Failure 400 {object} map[string]interface{} "Invalid request"
+// @Failure 401 {object} map[string]interface{} "Unauthorized"
+// @Failure 403 {object} map[string]interface{} "Access denied"
+// @Failure 404 {object} map[string]interface{} "Organization not found"
+// @Failure 500 {object} map[string]interface{} "Server error"
+// @Router /api/v1/organizations/{organizationId}/questions/batch [post]
+// @Security BearerAuth
+func (h *QuestionHandler) GetQuestionsByProducts(c echo.Context) error {
+	accountID := middleware.GetResourceAccountID(c)
+
+	organizationID, err := uuid.Parse(c.Param("organizationId"))
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, "Invalid organization ID")
+	}
+
+	var request models.BatchQuestionsRequest
+	if err := c.Bind(&request); err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, "Invalid request body")
+	}
+
+	questions, err := h.questionService.GetQuestionsByProductsOptimized(c.Request().Context(), accountID, organizationID, request.ProductIDs)
+	if err != nil {
+		return err
+	}
+
+	return c.JSON(http.StatusOK, map[string]interface{}{
+		"success": true,
+		"data":    questions,
+	})
+}
+
 // GetQuestion gets a specific question
 // @Summary Get a specific question
 // @Description Get details of a specific question

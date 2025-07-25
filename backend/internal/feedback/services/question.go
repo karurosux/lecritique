@@ -17,6 +17,8 @@ import (
 type QuestionService interface {
 	CreateQuestion(ctx context.Context, accountID, productID uuid.UUID, request *models.CreateQuestionRequest) (*models.Question, error)
 	GetQuestionsByProduct(ctx context.Context, accountID, productID uuid.UUID) ([]*models.Question, error)
+	GetQuestionsByProducts(ctx context.Context, accountID, organizationID uuid.UUID, productIDs []uuid.UUID) ([]*models.Question, error)
+	GetQuestionsByProductsOptimized(ctx context.Context, accountID, organizationID uuid.UUID, productIDs []uuid.UUID) ([]*models.BatchQuestionResponse, error)
 	GetQuestion(ctx context.Context, accountID, questionID uuid.UUID) (*models.Question, error)
 	UpdateQuestion(ctx context.Context, accountID, questionID uuid.UUID, request *models.UpdateQuestionRequest) (*models.Question, error)
 	DeleteQuestion(ctx context.Context, accountID, questionID uuid.UUID) error
@@ -105,6 +107,86 @@ func (s *questionService) GetQuestionsByProduct(ctx context.Context, accountID, 
 	}
 
 	return questions, nil
+}
+
+func (s *questionService) GetQuestionsByProducts(ctx context.Context, accountID, organizationID uuid.UUID, productIDs []uuid.UUID) ([]*models.Question, error) {
+	if len(productIDs) == 0 {
+		return []*models.Question{}, nil
+	}
+
+	// Verify organization ownership
+	organization, err := s.organizationRepo.FindByID(ctx, organizationID)
+	if err != nil {
+		return nil, echo.NewHTTPError(http.StatusNotFound, "Organization not found")
+	}
+
+	if organization.AccountID != accountID {
+		return nil, echo.NewHTTPError(http.StatusForbidden, "Access denied")
+	}
+
+	// Verify all products belong to this organization
+	for _, productID := range productIDs {
+		product, err := s.productRepo.FindByID(ctx, productID)
+		if err != nil {
+			return nil, echo.NewHTTPError(http.StatusNotFound, fmt.Sprintf("Product %s not found", productID))
+		}
+		if product.OrganizationID != organizationID {
+			return nil, echo.NewHTTPError(http.StatusForbidden, fmt.Sprintf("Product %s does not belong to organization", productID))
+		}
+	}
+
+	questions, err := s.questionRepo.GetQuestionsByProductIDs(ctx, productIDs)
+	if err != nil {
+		return nil, echo.NewHTTPError(http.StatusInternalServerError, "Failed to get questions")
+	}
+
+	return questions, nil
+}
+
+func (s *questionService) GetQuestionsByProductsOptimized(ctx context.Context, accountID, organizationID uuid.UUID, productIDs []uuid.UUID) ([]*models.BatchQuestionResponse, error) {
+	if len(productIDs) == 0 {
+		return []*models.BatchQuestionResponse{}, nil
+	}
+
+	// Verify organization ownership
+	organization, err := s.organizationRepo.FindByID(ctx, organizationID)
+	if err != nil {
+		return nil, echo.NewHTTPError(http.StatusNotFound, "Organization not found")
+	}
+
+	if organization.AccountID != accountID {
+		return nil, echo.NewHTTPError(http.StatusForbidden, "Access denied")
+	}
+
+	// Verify all products belong to this organization
+	for _, productID := range productIDs {
+		product, err := s.productRepo.FindByID(ctx, productID)
+		if err != nil {
+			return nil, echo.NewHTTPError(http.StatusNotFound, fmt.Sprintf("Product %s not found", productID))
+		}
+		if product.OrganizationID != organizationID {
+			return nil, echo.NewHTTPError(http.StatusForbidden, fmt.Sprintf("Product %s does not belong to organization", productID))
+		}
+	}
+
+	// Get full questions from repository
+	questions, err := s.questionRepo.GetQuestionsByProductIDs(ctx, productIDs)
+	if err != nil {
+		return nil, echo.NewHTTPError(http.StatusInternalServerError, "Failed to get questions")
+	}
+
+	// Convert to optimized response format
+	result := make([]*models.BatchQuestionResponse, len(questions))
+	for i, question := range questions {
+		result[i] = &models.BatchQuestionResponse{
+			ID:        question.ID,
+			ProductID: question.ProductID,
+			Text:      question.Text,
+			Type:      question.Type,
+		}
+	}
+
+	return result, nil
 }
 
 func (s *questionService) GetQuestion(ctx context.Context, accountID, questionID uuid.UUID) (*models.Question, error) {

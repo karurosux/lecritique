@@ -365,6 +365,15 @@ definitions:
       updated_at:
         type: string
     type: object
+  models.BatchQuestionsRequest:
+    properties:
+      product_ids:
+        items:
+          type: string
+        type: array
+    required:
+    - product_ids
+    type: object
   models.ComparisonInsight:
     properties:
       change:
@@ -3098,6 +3107,61 @@ paths:
       summary: Update questionnaire
       tags:
       - questionnaires
+  /api/v1/organizations/{organizationId}/questions/batch:
+    post:
+      consumes:
+      - application/json
+      description: Get all questions for multiple products in a single request
+      parameters:
+      - description: Organization ID
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      - description: Product IDs
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.BatchQuestionsRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Questions retrieved successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid request
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: Access denied
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Organization not found
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Server error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get questions for multiple products
+      tags:
+      - questions
   /api/v1/organizations/{organizationId}/questions/products-with-questions:
     get:
       description: Get list of product IDs that have questions for a organization

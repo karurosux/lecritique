@@ -12,6 +12,7 @@ import (
 type QuestionRepository interface {
 	CreateQuestion(ctx context.Context, question *models.Question) error
 	GetQuestionsByProductID(ctx context.Context, productID uuid.UUID) ([]*models.Question, error)
+	GetQuestionsByProductIDs(ctx context.Context, productIDs []uuid.UUID) ([]*models.Question, error)
 	GetQuestionByID(ctx context.Context, questionID uuid.UUID) (*models.Question, error)
 	UpdateQuestion(ctx context.Context, question *models.Question) error
 	DeleteQuestion(ctx context.Context, questionID uuid.UUID) error
@@ -38,6 +39,19 @@ func (r *questionRepository) GetQuestionsByProductID(ctx context.Context, produc
 	err := r.db.WithContext(ctx).
 		Where("product_id = ?", productID).
 		Order("display_order ASC").
+		Find(&questions).Error
+	return questions, err
+}
+
+func (r *questionRepository) GetQuestionsByProductIDs(ctx context.Context, productIDs []uuid.UUID) ([]*models.Question, error) {
+	if len(productIDs) == 0 {
+		return []*models.Question{}, nil
+	}
+	
+	var questions []*models.Question
+	err := r.db.WithContext(ctx).
+		Where("product_id IN ?", productIDs).
+		Order("product_id ASC, display_order ASC").
 		Find(&questions).Error
 	return questions, err
 }
