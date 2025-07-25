@@ -33,6 +33,7 @@ type FeedbackRepository interface {
 	CountByOrganizationID(ctx context.Context, organizationID uuid.UUID, since time.Time) (int64, error)
 	CountByProductID(ctx context.Context, productID uuid.UUID) (int64, error)
 	CountByQRCodeID(ctx context.Context, qrCodeID uuid.UUID) (int64, error)
+	CountByQRCodeIDs(ctx context.Context, qrCodeIDs []uuid.UUID) (map[uuid.UUID]int64, error)
 	GetAverageRating(ctx context.Context, organizationID uuid.UUID, productID *uuid.UUID) (float64, error)
 	Delete(ctx context.Context, id uuid.UUID) error
 	// Analytics methods
@@ -78,12 +79,10 @@ func (r *feedbackRepository) FindByOrganizationID(ctx context.Context, organizat
 		return nil, err
 	}
 	
-	// Populate question text for each feedback
-	for i := range feedbacks {
-		if err := r.populateQuestionData(ctx, &feedbacks[i]); err != nil {
-			// Log error but don't fail the entire request
-			fmt.Printf("Error populating question data for feedback %s: %v\n", feedbacks[i].ID, err)
-		}
+	// Populate question text for all feedback in batch
+	if err := r.populateQuestionDataBatch(ctx, feedbacks); err != nil {
+		// Log error but don't fail the entire request
+		fmt.Printf("Error populating question data in batch: %v\n", err)
 	}
 	
 	totalPages := int(total) / req.Limit
@@ -136,12 +135,10 @@ func (r *feedbackRepository) FindByOrganizationIDWithFilters(ctx context.Context
 		return nil, err
 	}
 	
-	// Populate question text for each feedback
-	for i := range feedbacks {
-		if err := r.populateQuestionData(ctx, &feedbacks[i]); err != nil {
-			// Log error but don't fail the entire request
-			fmt.Printf("Error populating question data for feedback %s: %v\n", feedbacks[i].ID, err)
-		}
+	// Populate question text for all feedback in batch
+	if err := r.populateQuestionDataBatch(ctx, feedbacks); err != nil {
+		// Log error but don't fail the entire request
+		fmt.Printf("Error populating question data in batch: %v\n", err)
 	}
 	
 	totalPages := int(total) / req.Limit
@@ -244,6 +241,70 @@ func (r *feedbackRepository) populateQuestionData(ctx context.Context, feedback 
 	return nil
 }
 
+// populateQuestionDataBatch populates question data for multiple feedback items in a single query
+func (r *feedbackRepository) populateQuestionDataBatch(ctx context.Context, feedbacks []models.Feedback) error {
+	if len(feedbacks) == 0 {
+		return nil
+	}
+	
+	// Collect all unique question IDs from all feedback items
+	questionIDSet := make(map[uuid.UUID]bool)
+	for _, feedback := range feedbacks {
+		for _, response := range feedback.Responses {
+			if response.QuestionID != uuid.Nil {
+				questionIDSet[response.QuestionID] = true
+			}
+		}
+	}
+	
+	if len(questionIDSet) == 0 {
+		return nil
+	}
+	
+	// Convert set to slice
+	var questionIDs []uuid.UUID
+	for id := range questionIDSet {
+		questionIDs = append(questionIDs, id)
+	}
+	
+	// Single query to get all question data
+	var questions []struct {
+		ID   uuid.UUID `gorm:"column:id"`
+		Text string    `gorm:"column:text"`
+		Type string    `gorm:"column:type"`
+	}
+	
+	if err := r.DB.WithContext(ctx).Table("questions").
+		Select("id, text, type").
+		Where("id IN ?", questionIDs).
+		Find(&questions).Error; err != nil {
+		return err
+	}
+	
+	// Create lookup maps
+	questionTextMap := make(map[uuid.UUID]string)
+	questionTypeMap := make(map[uuid.UUID]string)
+	for _, question := range questions {
+		questionTextMap[question.ID] = question.Text
+		questionTypeMap[question.ID] = question.Type
+	}
+	
+	// Update all feedback responses
+	for i := range feedbacks {
+		for j := range feedbacks[i].Responses {
+			questionID := feedbacks[i].Responses[j].QuestionID
+			if text, exists := questionTextMap[questionID]; exists {
+				feedbacks[i].Responses[j].QuestionText = text
+			}
+			if qType, exists := questionTypeMap[questionID]; exists {
+				feedbacks[i].Responses[j].QuestionType = models.QuestionType(qType)
+			}
+		}
+	}
+	
+	return nil
+}
+
 func (r *feedbackRepository) FindByProductID(ctx context.Context, productID uuid.UUID, req sharedModels.PageRequest) (*sharedModels.PageResponse[models.Feedback], error) {
 	var feedbacks []models.Feedback
 	var total int64
@@ -306,6 +367,44 @@ func (r *feedbackRepository) CountByQRCodeID(ctx context.Context, qrCodeID uuid.
 		Where("qr_code_id = ?", qrCodeID).
 		Count(&count).Error
 	return count, err
+}
+
+func (r *feedbackRepository) CountByQRCodeIDs(ctx context.Context, qrCodeIDs []uuid.UUID) (map[uuid.UUID]int64, error) {
+	if len(qrCodeIDs) == 0 {
+		return make(map[uuid.UUID]int64), nil
+	}
+	
+	type result struct {
+		QRCodeID uuid.UUID `gorm:"column:qr_code_id"`
+		Count    int64     `gorm:"column:count"`
+	}
+	
+	var results []result
+	err := r.DB.WithContext(ctx).
+		Model(&models.Feedback{}).
+		Select("qr_code_id, COUNT(*) as count").
+		Where("qr_code_id IN ?", qrCodeIDs).
+		Group("qr_code_id").
+		Scan(&results).Error
+	
+	if err != nil {
+		return nil, err
+	}
+	
+	// Convert to map
+	countMap := make(map[uuid.UUID]int64)
+	for _, r := range results {
+		countMap[r.QRCodeID] = r.Count
+	}
+	
+	// Ensure all QR codes have an entry (even if 0)
+	for _, id := range qrCodeIDs {
+		if _, exists := countMap[id]; !exists {
+			countMap[id] = 0
+		}
+	}
+	
+	return countMap, nil
 }
 
 func (r *feedbackRepository) GetAverageRating(ctx context.Context, organizationID uuid.UUID, productID *uuid.UUID) (float64, error) {

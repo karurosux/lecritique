@@ -218,3 +218,11 @@ type OrganizationChartData struct {
 		FiltersApplied map[string]interface{} `json:"filters_applied"`
 	} `json:"summary"`
 }
+
+// ProductAnalytics represents analytics data for a single product
+type ProductAnalytics struct {
+	ProductID        uuid.UUID `json:"product_id"`
+	ProductName      string    `json:"product_name"`
+	AverageRating    float64   `json:"average_rating"`
+	TotalFeedback    int64     `json:"total_feedback"`
+}

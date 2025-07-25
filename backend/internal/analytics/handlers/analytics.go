@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"fmt"
 	"net/http"
 	"time"
 
@@ -121,52 +122,63 @@ func (h *AnalyticsHandler) GetOrganizationAnalytics(c echo.Context) error {
 		"analytics.AverageRating": analytics.AverageRating,
 	})
 
-	// Get product analytics
+	// Get product analytics using batch method to avoid N+1 queries
 	products, err := h.productRepo.FindByOrganizationID(ctx, organizationID)
 	if err == nil && len(products) > 0 {
-		productAnalytics := make([]ProductAnalytics, 0, len(products))
-
+		// Extract product IDs
+		var productIDs []uuid.UUID
 		for _, product := range products {
-			avgRating, _ := h.feedbackRepo.GetAverageRating(ctx, organizationID, &product.ID)
-			count, _ := h.feedbackRepo.CountByProductID(ctx, product.ID)
-
-			if count > 0 {
-				productAnalytics = append(productAnalytics, ProductAnalytics{
-					ProductID:        product.ID,
-					ProductName:      product.Name,
-					AverageRating: avgRating,
-					TotalFeedback: count,
-				})
-			}
+			productIDs = append(productIDs, product.ID)
 		}
 
-		// Sort and get top/bottom products
-		if len(productAnalytics) > 0 {
-			// Sort by rating (descending)
-			for i := 0; i < len(productAnalytics)-1; i++ {
-				for j := i + 1; j < len(productAnalytics); j++ {
-					if productAnalytics[i].AverageRating < productAnalytics[j].AverageRating {
-						productAnalytics[i], productAnalytics[j] = productAnalytics[j], productAnalytics[i]
-					}
+		// Get all product analytics in a single batch call
+		productAnalyticsMap, err := h.analyticsService.GetProductAnalyticsBatch(ctx, organizationID, productIDs)
+		if err != nil {
+			logger.Error("Failed to get product analytics batch", err, logrus.Fields{
+				"organization_id": organizationID,
+			})
+		} else {
+			productAnalytics := make([]ProductAnalytics, 0, len(products))
+			
+			for _, analytics := range productAnalyticsMap {
+				if analytics.TotalFeedback > 0 {
+					productAnalytics = append(productAnalytics, ProductAnalytics{
+						ProductID:     analytics.ProductID,
+						ProductName:   analytics.ProductName,
+						AverageRating: analytics.AverageRating,
+						TotalFeedback: analytics.TotalFeedback,
+					})
 				}
 			}
 
-			// Get top 5
-			topCount := 5
-			if len(productAnalytics) < topCount {
-				topCount = len(productAnalytics)
-			}
-			analytics.TopRatedProducts = productAnalytics[:topCount]
+			// Sort and get top/bottom products
+			if len(productAnalytics) > 0 {
+				// Sort by rating (descending)
+				for i := 0; i < len(productAnalytics)-1; i++ {
+					for j := i + 1; j < len(productAnalytics); j++ {
+						if productAnalytics[i].AverageRating < productAnalytics[j].AverageRating {
+							productAnalytics[i], productAnalytics[j] = productAnalytics[j], productAnalytics[i]
+						}
+					}
+				}
 
-			// Get bottom 5
-			bottomStart := len(productAnalytics) - 5
-			if bottomStart < 0 {
-				bottomStart = 0
-			}
-			if bottomStart < topCount {
-				analytics.LowestRatedProducts = []ProductAnalytics{}
-			} else {
-				analytics.LowestRatedProducts = productAnalytics[bottomStart:]
+				// Get top 5
+				topCount := 5
+				if len(productAnalytics) < topCount {
+					topCount = len(productAnalytics)
+				}
+				analytics.TopRatedProducts = productAnalytics[:topCount]
+
+				// Get bottom 5
+				bottomStart := len(productAnalytics) - 5
+				if bottomStart < 0 {
+					bottomStart = 0
+				}
+				if bottomStart < topCount {
+					analytics.LowestRatedProducts = []ProductAnalytics{}
+				} else {
+					analytics.LowestRatedProducts = productAnalytics[bottomStart:]
+				}
 			}
 		}
 	}
@@ -396,13 +408,22 @@ func (h *AnalyticsHandler) GetOrganizationChartData(c echo.Context) error {
 	}
 
 	// Get chart data
+	logger.Info("Getting organization chart data", logrus.Fields{
+		"organization_id": organizationID,
+		"filters": filters,
+		"resource_account_id": resourceAccountID,
+	})
+	
 	chartData, err := h.analyticsService.GetOrganizationChartData(ctx, organizationID, filters)
 	if err != nil {
 		logger.Error("Failed to get organization chart data", err, logrus.Fields{
 			"organization_id": organizationID,
 			"filters": filters,
+			"resource_account_id": resourceAccountID,
+			"error_type": fmt.Sprintf("%T", err),
+			"error_message": err.Error(),
 		})
-		return echo.NewHTTPError(http.StatusInternalServerError, "Failed to get chart data")
+		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("Failed to get chart data: %v", err))
 	}
 
 	return c.JSON(http.StatusOK, map[string]interface{}{

@@ -9,9 +9,11 @@ import (
 
 	"github.com/google/uuid"
 	analyticsModels "kyooar/internal/analytics/models"
+	analyticsRepos "kyooar/internal/analytics/repositories"
 	feedbackModels "kyooar/internal/feedback/models"
 	feedbackRepos "kyooar/internal/feedback/repositories"
 	menuRepos "kyooar/internal/menu/repositories"
+	qrcodeModels "kyooar/internal/qrcode/models"
 	qrcodeRepos "kyooar/internal/qrcode/repositories"
 	organizationRepos "kyooar/internal/organization/repositories"
 	"kyooar/internal/shared/logger"
@@ -28,20 +30,25 @@ type AnalyticsService interface {
 	// Chart aggregation methods
 	GetOrganizationChartData(ctx context.Context, organizationID uuid.UUID, filters map[string]interface{}) (*analyticsModels.OrganizationChartData, error)
 	GetQuestionChartData(ctx context.Context, questionID uuid.UUID, filters map[string]interface{}) (*analyticsModels.ChartData, error)
+	
+	// Batch product metrics
+	GetProductAnalyticsBatch(ctx context.Context, organizationID uuid.UUID, productIDs []uuid.UUID) (map[uuid.UUID]analyticsModels.ProductAnalytics, error)
 }
 
 type analyticsService struct {
-	feedbackRepo   feedbackRepos.FeedbackRepository
-	productRepo       menuRepos.ProductRepository
-	qrCodeRepo     qrcodeRepos.QRCodeRepository
-	organizationRepo organizationRepos.OrganizationRepository
+	analyticsRepo    analyticsRepos.AnalyticsRepository
+	feedbackRepo     feedbackRepos.FeedbackRepository  // Keep for now, will refactor gradually
+	productRepo      menuRepos.ProductRepository        // Keep for now, will refactor gradually
+	qrCodeRepo       qrcodeRepos.QRCodeRepository      // Keep for now, will refactor gradually
+	organizationRepo organizationRepos.OrganizationRepository // Keep for now, will refactor gradually
 }
 
 func NewAnalyticsService(i *do.Injector) (AnalyticsService, error) {
 	return &analyticsService{
-		feedbackRepo:   do.MustInvoke[feedbackRepos.FeedbackRepository](i),
-		productRepo:       do.MustInvoke[menuRepos.ProductRepository](i),
-		qrCodeRepo:     do.MustInvoke[qrcodeRepos.QRCodeRepository](i),
+		analyticsRepo:    do.MustInvoke[analyticsRepos.AnalyticsRepository](i),
+		feedbackRepo:     do.MustInvoke[feedbackRepos.FeedbackRepository](i),
+		productRepo:      do.MustInvoke[menuRepos.ProductRepository](i),
+		qrCodeRepo:       do.MustInvoke[qrcodeRepos.QRCodeRepository](i),
 		organizationRepo: do.MustInvoke[organizationRepos.OrganizationRepository](i),
 	}, nil
 }
@@ -49,30 +56,23 @@ func NewAnalyticsService(i *do.Injector) (AnalyticsService, error) {
 func (s *analyticsService) GetDashboardMetrics(ctx context.Context, organizationID uuid.UUID) (*analyticsModels.DashboardMetrics, error) {
 	metrics := &analyticsModels.DashboardMetrics{}
 	
-	totalCount, err := s.feedbackRepo.CountByOrganizationID(ctx, organizationID, time.Time{})
+	// Get feedback counts using the analytics repository (single optimized query)
+	feedbackCounts, err := s.analyticsRepo.GetFeedbackCounts(ctx, organizationID)
 	if err != nil {
-		logger.Error("Failed to get total feedback count", err, logrus.Fields{
+		logger.Error("Failed to get feedback counts", err, logrus.Fields{
 			"organization_id": organizationID,
 		})
-	}
-	metrics.TotalFeedbacks = totalCount
-	
-	todayStart := time.Now().Truncate(24 * time.Hour)
-	todayCount, err := s.feedbackRepo.CountByOrganizationID(ctx, organizationID, todayStart)
-	if err != nil {
-		logger.Error("Failed to get today's feedback count", err, logrus.Fields{
-			"organization_id": organizationID,
-		})
-	}
-	metrics.TodaysFeedback = todayCount
-	
-	yesterdayStart := todayStart.AddDate(0, 0, -1)
-	yesterdayCount, _ := s.feedbackRepo.CountByOrganizationID(ctx, organizationID, yesterdayStart)
-	if yesterdayCount > 0 {
-		metrics.TrendVsYesterday = float64(todayCount-yesterdayCount) / float64(yesterdayCount) * 100
+	} else {
+		metrics.TotalFeedbacks = feedbackCounts.Total
+		metrics.TodaysFeedback = feedbackCounts.Today
+		
+		if feedbackCounts.Yesterday > 0 {
+			metrics.TrendVsYesterday = float64(feedbackCounts.Today-feedbackCounts.Yesterday) / float64(feedbackCounts.Yesterday) * 100
+		}
 	}
 	
-	qrMetrics, err := s.getQRCodeMetrics(ctx, organizationID)
+	// Get QR code metrics using the analytics repository (single optimized query)
+	qrMetrics, err := s.analyticsRepo.GetQRCodeMetrics(ctx, organizationID)
 	if err != nil {
 		logger.Error("Failed to get QR code metrics", err, logrus.Fields{
 			"organization_id": organizationID,
@@ -83,51 +83,36 @@ func (s *analyticsService) GetDashboardMetrics(ctx context.Context, organization
 		metrics.ScansToday = qrMetrics.ScansToday
 	}
 	
-	// Calculate completion rate using recent data (last 30 days)
-	// This avoids issues with historical data from before scan tracking
-	thirtyDaysAgo := time.Now().AddDate(0, 0, -30)
-	recentFeedbackCount, _ := s.feedbackRepo.CountByOrganizationID(ctx, organizationID, thirtyDaysAgo)
-	
-	if metrics.TotalQRScans > 0 && recentFeedbackCount > 0 {
-		// Use recent feedback vs total scans for a more realistic rate
-		rate := float64(recentFeedbackCount) / float64(metrics.TotalQRScans) * 100
+	// Calculate completion rate using recent data (already fetched)
+	if metrics.TotalQRScans > 0 && feedbackCounts != nil && feedbackCounts.Recent30Days > 0 {
+		rate := float64(feedbackCounts.Recent30Days) / float64(metrics.TotalQRScans) * 100
 		if rate > 100 {
-			// Still cap at 100% as safety measure
 			metrics.CompletionRate = 100.0
 		} else {
 			metrics.CompletionRate = rate
 		}
 	} else {
-		// Show 0% if insufficient data
 		metrics.CompletionRate = 0.0
 	}
 	
-	deviceMetrics, err := s.getDeviceMetrics(ctx, organizationID)
+	// Get feedback data once and use it for multiple metrics
+	feedback, err := s.feedbackRepo.FindByOrganizationIDForAnalytics(ctx, organizationID, 1000)
 	if err != nil {
-		logger.Error("Failed to get device metrics", err, logrus.Fields{
+		logger.Error("Failed to get feedback for dashboard metrics", err, logrus.Fields{
 			"organization_id": organizationID,
 		})
-	} else {
-		metrics.DeviceBreakdown = deviceMetrics
+		// Continue with empty feedback array to avoid breaking other metrics
+		feedback = []feedbackModels.Feedback{}
 	}
 	
-	responseTime, err := s.getAverageResponseTime(ctx, organizationID)
-	if err != nil {
-		logger.Error("Failed to get response time", err, logrus.Fields{
-			"organization_id": organizationID,
-		})
-	} else {
-		metrics.AverageResponseTime = responseTime
-	}
+	// Use shared feedback data for device metrics
+	metrics.DeviceBreakdown = s.getDeviceMetricsFromFeedback(feedback)
 	
-	peakHours, err := s.getPeakUsageHours(ctx, organizationID)
-	if err != nil {
-		logger.Error("Failed to get peak hours", err, logrus.Fields{
-			"organization_id": organizationID,
-		})
-	} else {
-		metrics.PeakHours = peakHours
-	}
+	// Use shared feedback data for response time
+	metrics.AverageResponseTime = s.getAverageResponseTimeFromFeedback(ctx, feedback)
+	
+	// Use shared feedback data for peak hours
+	metrics.PeakHours = s.getPeakUsageHoursFromFeedback(feedback)
 	
 	qrPerformance, err := s.getQRCodePerformance(ctx, organizationID)
 	if err != nil {
@@ -577,6 +562,10 @@ func (s *analyticsService) getDeviceMetrics(ctx context.Context, organizationID 
 		return nil, err
 	}
 	
+	return s.getDeviceMetricsFromFeedback(feedback), nil
+}
+
+func (s *analyticsService) getDeviceMetricsFromFeedback(feedback []feedbackModels.Feedback) map[string]int64 {
 	deviceBreakdown := make(map[string]int64)
 	platformBreakdown := make(map[string]int64)
 	
@@ -598,21 +587,62 @@ func (s *analyticsService) getDeviceMetrics(ctx context.Context, organizationID 
 		result[k+" Browser"] = v
 	}
 	
-	return result, nil
+	return result
 }
 
 func (s *analyticsService) getAverageResponseTime(ctx context.Context, organizationID uuid.UUID) (float64, error) {
+	// Get feedback with QR code data preloaded
 	feedback, err := s.feedbackRepo.FindByOrganizationIDForAnalytics(ctx, organizationID, 500)
 	if err != nil {
 		return 0, err
+	}
+	
+	return s.getAverageResponseTimeFromFeedback(ctx, feedback), nil
+}
+
+func (s *analyticsService) getAverageResponseTimeFromFeedback(ctx context.Context, feedback []feedbackModels.Feedback) float64 {
+	if len(feedback) == 0 {
+		return 0
+	}
+	
+	// Extract unique QR code IDs
+	qrCodeIDMap := make(map[uuid.UUID]bool)
+	for _, f := range feedback {
+		if f.QRCodeID != uuid.Nil {
+			qrCodeIDMap[f.QRCodeID] = true
+		}
+	}
+	
+	if len(qrCodeIDMap) == 0 {
+		return 0
+	}
+	
+	// Fetch all QR codes in a single query
+	var qrCodeIDs []uuid.UUID
+	for id := range qrCodeIDMap {
+		qrCodeIDs = append(qrCodeIDs, id)
+	}
+	
+	qrCodes, err := s.qrCodeRepo.FindByIDs(ctx, qrCodeIDs)
+	if err != nil {
+		logger.Error("Failed to get QR codes for response time calculation", err, logrus.Fields{
+			"qr_code_count": len(qrCodeIDs),
+		})
+		return 0
+	}
+	
+	// Create lookup map
+	qrCodeMap := make(map[uuid.UUID]*qrcodeModels.QRCode)
+	for i := range qrCodes {
+		qrCodeMap[qrCodes[i].ID] = &qrCodes[i]
 	}
 	
 	var totalTime float64
 	var count int
 	
 	for _, f := range feedback {
-		qrCode, err := s.qrCodeRepo.FindByID(ctx, f.QRCodeID)
-		if err != nil || qrCode.LastScannedAt == nil {
+		qrCode, exists := qrCodeMap[f.QRCodeID]
+		if !exists || qrCode.LastScannedAt == nil {
 			continue
 		}
 		
@@ -624,19 +654,23 @@ func (s *analyticsService) getAverageResponseTime(ctx context.Context, organizat
 	}
 	
 	if count == 0 {
-		return 0, nil
+		return 0
 	}
 	
-	return totalTime / float64(count), nil
+	return totalTime / float64(count)
 }
 
 func (s *analyticsService) getPeakUsageHours(ctx context.Context, organizationID uuid.UUID) ([]int, error) {
-	weekAgo := time.Now().AddDate(0, 0, -7)
 	feedback, err := s.feedbackRepo.FindByOrganizationIDForAnalytics(ctx, organizationID, 1000)
 	if err != nil {
 		return nil, err
 	}
 	
+	return s.getPeakUsageHoursFromFeedback(feedback), nil
+}
+
+func (s *analyticsService) getPeakUsageHoursFromFeedback(feedback []feedbackModels.Feedback) []int {
+	weekAgo := time.Now().AddDate(0, 0, -7)
 	recentFeedback := filterFeedbackByDate(feedback, weekAgo)
 	
 	hourCounts := make(map[int]int64)
@@ -667,7 +701,7 @@ func (s *analyticsService) getPeakUsageHours(ctx context.Context, organizationID
 		peakHours = append(peakHours, h.hour)
 	}
 	
-	return peakHours, nil
+	return peakHours
 }
 
 func (s *analyticsService) getQRCodePerformance(ctx context.Context, organizationID uuid.UUID) ([]analyticsModels.QRCodePerformance, error) {
@@ -681,16 +715,29 @@ func (s *analyticsService) getQRCodePerformance(ctx context.Context, organizatio
 		return nil, err
 	}
 	
+	if len(qrCodes) == 0 {
+		return []analyticsModels.QRCodePerformance{}, nil
+	}
+	
+	// Get all QR code IDs
+	var qrCodeIDs []uuid.UUID
+	for _, qr := range qrCodes {
+		qrCodeIDs = append(qrCodeIDs, qr.ID)
+	}
+	
+	// Get feedback counts for all QR codes in a single query
+	feedbackCounts, err := s.feedbackRepo.CountByQRCodeIDs(ctx, qrCodeIDs)
+	if err != nil {
+		logger.Error("Failed to count feedback for QR codes", err, logrus.Fields{
+			"organization_id": organizationID,
+		})
+		feedbackCounts = make(map[uuid.UUID]int64)
+	}
+	
 	var performance []analyticsModels.QRCodePerformance
 	
 	for _, qr := range qrCodes {
-		feedbackCount, err := s.feedbackRepo.CountByQRCodeID(ctx, qr.ID)
-		if err != nil {
-			logger.Error("Failed to count feedback for QR code", err, logrus.Fields{
-				"qr_code_id": qr.ID,
-			})
-			feedbackCount = 0
-		}
+		feedbackCount := feedbackCounts[qr.ID]
 		
 		conversionRate := 0.0
 		if qr.ScansCount > 0 && feedbackCount > 0 {
@@ -732,19 +779,47 @@ func (s *analyticsService) getQRCodePerformance(ctx context.Context, organizatio
 // Chart aggregation implementations
 
 func (s *analyticsService) GetOrganizationChartData(ctx context.Context, organizationID uuid.UUID, filters map[string]interface{}) (*analyticsModels.OrganizationChartData, error) {
+	logger.Info("Starting GetOrganizationChartData", logrus.Fields{
+		"organization_id": organizationID,
+		"filters": filters,
+	})
+	
 	feedbackFilters := s.buildFeedbackFilters(filters)
+	logger.Info("Built feedback filters", logrus.Fields{
+		"feedback_filters": feedbackFilters,
+	})
 	
 	feedback, err := s.feedbackRepo.FindByOrganizationIDWithFilters(ctx, organizationID, sharedModels.PageRequest{
 		Page: 1, Limit: 10000, // Large limit to get all relevant data
 	}, feedbackFilters)
 	if err != nil {
-		return nil, err
+		logger.Error("Failed to fetch feedback data", err, logrus.Fields{
+			"organization_id": organizationID,
+			"feedback_filters": feedbackFilters,
+			"error_type": fmt.Sprintf("%T", err),
+		})
+		return nil, fmt.Errorf("failed to fetch feedback data: %w", err)
 	}
+	
+	logger.Info("Fetched feedback data", logrus.Fields{
+		"organization_id": organizationID,
+		"feedback_count": len(feedback.Data),
+		"total_feedback": feedback.Total,
+	})
 	
 	products, err := s.productRepo.FindByOrganizationID(ctx, organizationID)
 	if err != nil {
-		logger.Error("Failed to get products", err, logrus.Fields{"organization_id": organizationID})
+		logger.Error("Failed to get products", err, logrus.Fields{
+			"organization_id": organizationID,
+			"error_type": fmt.Sprintf("%T", err),
+		})
+		return nil, fmt.Errorf("failed to fetch products: %w", err)
 	}
+	
+	logger.Info("Fetched products", logrus.Fields{
+		"organization_id": organizationID,
+		"product_count": len(products),
+	})
 	
 	productMap := make(map[uuid.UUID]string)
 	if products != nil {
@@ -944,10 +1019,15 @@ func (s *analyticsService) aggregateRatingResponses(responses []feedbackModels.R
 		scale = 10
 	}
 	
+	var average float64
+	if total > 0 {
+		average = sum / float64(total)
+	}
+	
 	return map[string]interface{}{
 		"scale":        scale,
 		"distribution": distribution,
-		"average":      sum / float64(total),
+		"average":      average,
 		"total":        total,
 		"percentages":  percentages,
 	}
@@ -993,10 +1073,15 @@ func (s *analyticsService) aggregateScaleResponses(responses []feedbackModels.Re
 		scale = 10
 	}
 	
+	var average float64
+	if total > 0 {
+		average = sum / float64(total)
+	}
+	
 	return map[string]interface{}{
 		"scale":        scale,
 		"distribution": distribution,
-		"average":      sum / float64(total),
+		"average":      average,
 		"total":        total,
 		"percentages":  percentages,
 		"is_scale":     true, // Flag to differentiate from rating
@@ -1073,6 +1158,46 @@ func (s *analyticsService) aggregateChoiceResponses(responses []feedbackModels.R
 	}
 	
 	return result
+}
+
+// GetProductAnalyticsBatch returns analytics for multiple products in a single optimized query
+func (s *analyticsService) GetProductAnalyticsBatch(ctx context.Context, organizationID uuid.UUID, productIDs []uuid.UUID) (map[uuid.UUID]analyticsModels.ProductAnalytics, error) {
+	if len(productIDs) == 0 {
+		return make(map[uuid.UUID]analyticsModels.ProductAnalytics), nil
+	}
+
+	// Get product metrics in a single query
+	metricsMap, err := s.analyticsRepo.GetProductRatingsAndCounts(ctx, organizationID, productIDs)
+	if err != nil {
+		return nil, err
+	}
+
+	// Get product names
+	products, err := s.productRepo.FindByOrganizationID(ctx, organizationID)
+	if err != nil {
+		return nil, err
+	}
+
+	productNameMap := make(map[uuid.UUID]string)
+	for _, product := range products {
+		productNameMap[product.ID] = product.Name
+	}
+
+	// Convert to ProductAnalytics
+	result := make(map[uuid.UUID]analyticsModels.ProductAnalytics)
+	for _, productID := range productIDs {
+		metrics := metricsMap[productID]
+		productName := productNameMap[productID]
+		
+		result[productID] = analyticsModels.ProductAnalytics{
+			ProductID:     productID,
+			ProductName:   productName,
+			AverageRating: metrics.AverageRating,
+			TotalFeedback: metrics.FeedbackCount,
+		}
+	}
+
+	return result, nil
 }
 
 func (s *analyticsService) aggregateYesNoResponses(responses []feedbackModels.Response) map[string]interface{} {

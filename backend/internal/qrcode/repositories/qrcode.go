@@ -15,6 +15,7 @@ import (
 type QRCodeRepository interface {
 	Create(ctx context.Context, qrCode *models.QRCode) error
 	FindByID(ctx context.Context, id uuid.UUID, preloads ...string) (*models.QRCode, error)
+	FindByIDs(ctx context.Context, ids []uuid.UUID) ([]models.QRCode, error)
 	FindByCode(ctx context.Context, code string) (*models.QRCode, error)
 	FindByOrganizationID(ctx context.Context, organizationID uuid.UUID) ([]models.QRCode, error)
 	Update(ctx context.Context, qrCode *models.QRCode) error
@@ -31,6 +32,18 @@ func NewQRCodeRepository(i *do.Injector) (QRCodeRepository, error) {
 	return &qrCodeRepository{
 		BaseRepository: sharedRepos.NewBaseRepository[models.QRCode](db),
 	}, nil
+}
+
+func (r *qrCodeRepository) FindByIDs(ctx context.Context, ids []uuid.UUID) ([]models.QRCode, error) {
+	if len(ids) == 0 {
+		return []models.QRCode{}, nil
+	}
+	
+	var qrCodes []models.QRCode
+	err := r.DB.WithContext(ctx).
+		Where("id IN ?", ids).
+		Find(&qrCodes).Error
+	return qrCodes, err
 }
 
 func (r *qrCodeRepository) FindByCode(ctx context.Context, code string) (*models.QRCode, error) {

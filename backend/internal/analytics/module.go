@@ -14,6 +14,9 @@ type Module struct {
 }
 
 func NewModule(i *do.Injector) *Module {
+	// Register analytics repositories
+	do.Provide(i, repositories.NewAnalyticsRepository)
+	
 	// Register time series services
 	do.Provide(i, repositories.NewTimeSeriesRepository)
 	do.Provide(i, services.NewTimeSeriesService)
