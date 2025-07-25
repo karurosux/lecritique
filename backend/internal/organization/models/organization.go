@@ -75,7 +75,7 @@ type Product struct {
 	Price         float64           `json:"price"`
 	Currency      string            `gorm:"default:'USD'" json:"currency"`
 	Image         string            `json:"image"`
-	Tags          pq.StringArray    `gorm:"type:text[]" json:"tags"`
+	Tags          pq.StringArray    `gorm:"type:text[]" json:"tags" swaggertype:"array,string"`
 	IsAvailable   bool              `gorm:"default:true" json:"is_available"`
 	IsActive      bool              `gorm:"default:true" json:"is_active"`
 	DisplayOrder  int               `gorm:"default:0" json:"display_order"`

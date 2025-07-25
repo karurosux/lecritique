@@ -296,6 +296,37 @@ definitions:
     - role
     type: object
   kyooar_internal_menu_models.Product:
+    properties:
+      category:
+        type: string
+      created_at:
+        type: string
+      currency:
+        type: string
+      description:
+        type: string
+      display_order:
+        type: integer
+      id:
+        type: string
+      image:
+        type: string
+      is_active:
+        type: boolean
+      is_available:
+        type: boolean
+      name:
+        type: string
+      organization_id:
+        type: string
+      price:
+        type: number
+      tags:
+        items:
+          type: string
+        type: array
+      updated_at:
+        type: string
     type: object
   models.Account:
     properties:
@@ -427,7 +458,53 @@ definitions:
       start:
         type: string
     type: object
+  models.DeviceInfo:
+    properties:
+      browser:
+        type: string
+      ip:
+        type: string
+      platform:
+        type: string
+      user_agent:
+        type: string
+    type: object
   models.Feedback:
+    properties:
+      created_at:
+        type: string
+      customer_email:
+        type: string
+      customer_name:
+        type: string
+      customer_phone:
+        type: string
+      device_info:
+        $ref: '#/definitions/models.DeviceInfo'
+      id:
+        type: string
+      is_complete:
+        type: boolean
+      organization:
+        $ref: '#/definitions/models.Organization'
+      organization_id:
+        type: string
+      overall_rating:
+        type: integer
+      product:
+        $ref: '#/definitions/kyooar_internal_menu_models.Product'
+      product_id:
+        type: string
+      qr_code:
+        $ref: '#/definitions/models.QRCode'
+      qr_code_id:
+        type: string
+      responses:
+        items:
+          $ref: '#/definitions/models.Response'
+        type: array
+      updated_at:
+        type: string
     type: object
   models.GenerateQuestionnaireRequest:
     properties:
@@ -671,6 +748,16 @@ definitions:
         type: array
       updated_at:
         type: string
+    type: object
+  models.Response:
+    properties:
+      answer: {}
+      question_id:
+        type: string
+      question_text:
+        type: string
+      question_type:
+        $ref: '#/definitions/models.QuestionType'
     type: object
   models.Settings:
     properties:

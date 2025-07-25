@@ -5682,7 +5682,54 @@
             }
         },
         "kyooar_internal_menu_models.Product": {
-            "type": "object"
+            "type": "object",
+            "properties": {
+                "category": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "currency": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "display_order": {
+                    "type": "integer"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "image": {
+                    "type": "string"
+                },
+                "is_active": {
+                    "type": "boolean"
+                },
+                "is_available": {
+                    "type": "boolean"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "organization_id": {
+                    "type": "string"
+                },
+                "price": {
+                    "type": "number"
+                },
+                "tags": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
         },
         "models.Account": {
             "type": "object",
@@ -5880,8 +5927,78 @@
                 }
             }
         },
+        "models.DeviceInfo": {
+            "type": "object",
+            "properties": {
+                "browser": {
+                    "type": "string"
+                },
+                "ip": {
+                    "type": "string"
+                },
+                "platform": {
+                    "type": "string"
+                },
+                "user_agent": {
+                    "type": "string"
+                }
+            }
+        },
         "models.Feedback": {
-            "type": "object"
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "customer_email": {
+                    "type": "string"
+                },
+                "customer_name": {
+                    "type": "string"
+                },
+                "customer_phone": {
+                    "type": "string"
+                },
+                "device_info": {
+                    "$ref": "#/definitions/models.DeviceInfo"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "is_complete": {
+                    "type": "boolean"
+                },
+                "organization": {
+                    "$ref": "#/definitions/models.Organization"
+                },
+                "organization_id": {
+                    "type": "string"
+                },
+                "overall_rating": {
+                    "type": "integer"
+                },
+                "product": {
+                    "$ref": "#/definitions/kyooar_internal_menu_models.Product"
+                },
+                "product_id": {
+                    "type": "string"
+                },
+                "qr_code": {
+                    "$ref": "#/definitions/models.QRCode"
+                },
+                "qr_code_id": {
+                    "type": "string"
+                },
+                "responses": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.Response"
+                    }
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
         },
         "models.GenerateQuestionnaireRequest": {
             "type": "object",
@@ -6228,6 +6345,21 @@
                 },
                 "updated_at": {
                     "type": "string"
+                }
+            }
+        },
+        "models.Response": {
+            "type": "object",
+            "properties": {
+                "answer": {},
+                "question_id": {
+                    "type": "string"
+                },
+                "question_text": {
+                    "type": "string"
+                },
+                "question_type": {
+                    "$ref": "#/definitions/models.QuestionType"
                 }
             }
         },
