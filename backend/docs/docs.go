@@ -6526,6 +6526,9 @@ const docTemplate = `{
         "models.TimeSeriesData": {
             "type": "object",
             "properties": {
+                "metadata": {
+                    "type": "string"
+                },
                 "metric_name": {
                     "type": "string"
                 },

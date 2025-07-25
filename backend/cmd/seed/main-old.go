@@ -1,7 +1,6 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
 	"log"
 	"math/rand"
@@ -28,160 +27,26 @@ func main() {
 	// Seed random number generator
 	rand.Seed(time.Now().UnixNano())
 
-	// Check and create subscription plans if needed
-	var subscriptionPlan struct {
-		ID string `gorm:"column:id"`
-	}
-	result := db.Table("subscription_plans").Select("id").Where("code = ? AND is_active = true", "professional").First(&subscriptionPlan)
-	subscriptionPlanID := subscriptionPlan.ID
-	
-	if result.Error == gorm.ErrRecordNotFound {
-		fmt.Println("⚠️  Professional subscription plan not found, trying starter plan")
-		result = db.Table("subscription_plans").Select("id").Where("code = ? AND is_active = true", "starter").First(&subscriptionPlan)
-		subscriptionPlanID = subscriptionPlan.ID
-		
-		if result.Error == gorm.ErrRecordNotFound {
-			fmt.Println("⚠️  Starter subscription plan not found, trying free plan")
-			result = db.Table("subscription_plans").Select("id").Where("code = ? AND is_active = true", "free").First(&subscriptionPlan)
-			subscriptionPlanID = subscriptionPlan.ID
-		}
-	}
-	
-	if subscriptionPlanID != "" {
-		fmt.Printf("✅ Found subscription plan: %s\n", subscriptionPlanID)
-	} else {
-		fmt.Println("❌ No subscription plans found!")
-	}
-
-	// Create admin account (owner) and viewer account
-	adminEmail := "admin@kyooar.com"
-	adminPassword := "Pass123!"
-	viewerEmail := "viewer@kyooar.com"  
-	viewerPassword := "Pass123!"
-
-	// Create admin account first
-	var adminAccountID string
-	{
-		// Check if admin account exists
-		var existingAccount struct {
-			ID string `gorm:"column:id"`
-		}
-		result := db.Table("accounts").Select("id").Where("email = ?", adminEmail).First(&existingAccount)
-		if result.Error == nil {
-			fmt.Printf("❌ Admin user with email %s already exists\n", adminEmail)
-			if len(os.Args) > 1 && os.Args[1] == "--force" {
-				fmt.Println("🔄 Deleting existing admin user...")
-				if err := db.Exec("DELETE FROM accounts WHERE email = ?", adminEmail).Error; err != nil {
-					log.Printf("Failed to delete existing admin user: %v\n", err)
-					return
-				}
-			} else {
-				return
-			}
-		}
-
-		// Create admin account
-		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(adminPassword), bcrypt.DefaultCost)
-		if err != nil {
-			log.Fatal("Failed to hash admin password:", err)
-		}
-
-		err = db.Raw(`
-			INSERT INTO accounts (email, password_hash, name, is_active, email_verified, email_verified_at)
-			VALUES (?, ?, ?, true, true, NOW())
-			RETURNING id
-		`, adminEmail, string(hashedPassword), "Kyooar Admin").Scan(&adminAccountID).Error
-		
-		if err != nil {
-			log.Fatal("Failed to create admin account:", err)
-		}
-		fmt.Printf("✅ Created admin account: %s\n", adminEmail)
-
-		// Create admin team member record (owner of their own account)
-		err = db.Exec(`
-			INSERT INTO team_members (account_id, member_id, role, invited_by, invited_at, accepted_at, created_at, updated_at)
-			VALUES (?, ?, 'OWNER', ?, NOW(), NOW(), NOW(), NOW())
-		`, adminAccountID, adminAccountID, adminAccountID).Error
-		if err != nil {
-			log.Fatal("Failed to create admin team member record:", err)
-		}
-
-		// Create subscription
-		if subscriptionPlanID != "" {
-			err = db.Exec(`
-				INSERT INTO subscriptions (account_id, plan_id, status, current_period_start, current_period_end)
-				VALUES (?, ?, 'active', NOW(), NOW() + INTERVAL '1 month')
-			`, adminAccountID, subscriptionPlanID).Error
-			if err != nil {
-				log.Printf("Failed to create admin subscription: %v\n", err)
-			}
-		}
-	}
-
-	// Create viewer account
-	var viewerAccountID string
-	{
-		// Check if viewer account exists
-		var existingAccount struct {
-			ID string `gorm:"column:id"`
-		}
-		result := db.Table("accounts").Select("id").Where("email = ?", viewerEmail).First(&existingAccount)
-		if result.Error == nil {
-			fmt.Printf("❌ Viewer user with email %s already exists\n", viewerEmail)
-			if len(os.Args) > 1 && os.Args[1] == "--force" {
-				fmt.Println("🔄 Deleting existing viewer user...")
-				if err := db.Exec("DELETE FROM accounts WHERE email = ?", viewerEmail).Error; err != nil {
-					log.Printf("Failed to delete existing viewer user: %v\n", err)
-					return
-				}
-			} else {
-				return
-			}
-		}
-
-		// Create viewer account
-		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(viewerPassword), bcrypt.DefaultCost)
-		if err != nil {
-			log.Fatal("Failed to hash viewer password:", err)
-		}
-
-		err = db.Raw(`
-			INSERT INTO accounts (email, password_hash, name, is_active, email_verified, email_verified_at)
-			VALUES (?, ?, ?, true, true, NOW())
-			RETURNING id
-		`, viewerEmail, string(hashedPassword), "Kyooar Viewer").Scan(&viewerAccountID).Error
-		
-		if err != nil {
-			log.Fatal("Failed to create viewer account:", err)
-		}
-		fmt.Printf("✅ Created viewer account: %s\n", viewerEmail)
-
-		// Create viewer team member record (owner of their own account)
-		err = db.Exec(`
-			INSERT INTO team_members (account_id, member_id, role, invited_by, invited_at, accepted_at, created_at, updated_at)
-			VALUES (?, ?, 'OWNER', ?, NOW(), NOW(), NOW(), NOW())
-		`, viewerAccountID, viewerAccountID, viewerAccountID).Error
-		if err != nil {
-			log.Fatal("Failed to create viewer team member record:", err)
-		}
-	}
-
-	// Define organizations that will be owned by admin
+	// Create two organizations with different themes
 	organizations := []struct {
-		orgName       string
-		orgDesc       string
-		orgPhone      string
-		orgWebsite    string
-		products      []Product
-		qrCodes       []QRCode
-		isTourCompany bool
+		email       string
+		password    string
+		companyName string
+		orgName     string
+		orgDesc     string
+		orgPhone    string
+		orgWebsite  string
+		products    []Product
+		qrCodes     []QRCode
 	}{
 		{
-			orgName:       "Explore Local - Tourist Guides",
-			orgDesc:       "Premium local tourist guide services with experienced guides",
-			orgPhone:      "+1-555-TOURS",
-			orgWebsite:    "https://explorelocal.com",
-			isTourCompany: true,
+			email:       "admin@explorelocal.com",
+			password:    "tourist123",
+			companyName: "Explore Local Tours",
+			orgName:     "Explore Local - Tourist Guides",
+			orgDesc:     "Premium local tourist guide services with experienced guides",
+			orgPhone:    "+1-555-TOURS",
+			orgWebsite:  "https://explorelocal.com",
 			products: []Product{
 				{"City Walking Tour", "2-hour guided walking tour of historic downtown", 45.00, "Tours"},
 				{"Food & Culture Tour", "4-hour culinary journey through local neighborhoods", 89.00, "Tours"},
@@ -199,11 +64,13 @@ func main() {
 			},
 		},
 		{
-			orgName:       "QuickPrint - Call & Print Center",
-			orgDesc:       "Fast printing, copying, and call center services",
-			orgPhone:      "+1-555-PRINT",
-			orgWebsite:    "https://quickprint.com",
-			isTourCompany: false,
+			email:       "admin@quickprint.com",
+			password:    "print123",
+			companyName: "QuickPrint Services",
+			orgName:     "QuickPrint - Call & Print Center",
+			orgDesc:     "Fast printing, copying, and call center services",
+			orgPhone:    "+1-555-PRINT",
+			orgWebsite:  "https://quickprint.com",
 			products: []Product{
 				{"B&W Printing", "Black and white printing per page", 0.10, "Printing"},
 				{"Color Printing", "Full color printing per page", 0.50, "Printing"},
@@ -226,17 +93,82 @@ func main() {
 		},
 	}
 
-	// Create organizations owned by admin
-	for _, org := range organizations {
-		fmt.Printf("\n🏢 Creating organization: %s\n", org.orgName)
+	// Check and create subscription plans if needed
+	var subscriptionPlanID string
+	result := db.Table("subscription_plans").Select("id").Where("code = ? AND is_active = true", "professional").First(&subscriptionPlanID)
+	if result.Error == gorm.ErrRecordNotFound {
+		fmt.Println("⚠️  Professional subscription plan not found, using starter plan")
+		db.Table("subscription_plans").Select("id").Where("code = ? AND is_active = true", "starter").First(&subscriptionPlanID)
+	}
 
-		// Create organization owned by admin
+	for _, org := range organizations {
+		fmt.Printf("\n🏢 Creating organization: %s\n", org.companyName)
+		
+		// Check if account exists
+		var existingAccount struct {
+			ID string `gorm:"column:id"`
+		}
+		result := db.Table("accounts").Select("id").Where("email = ?", org.email).First(&existingAccount)
+		if result.Error == nil {
+			fmt.Printf("❌ User with email %s already exists\n", org.email)
+			if len(os.Args) > 1 && os.Args[1] == "--force" {
+				fmt.Println("🔄 Deleting existing user...")
+				if err := db.Exec("DELETE FROM accounts WHERE email = ?", org.email).Error; err != nil {
+					log.Printf("Failed to delete existing user: %v\n", err)
+					continue
+				}
+			} else {
+				continue
+			}
+		}
+
+		// Create account
+		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(org.password), bcrypt.DefaultCost)
+		if err != nil {
+			log.Printf("Failed to hash password: %v\n", err)
+			continue
+		}
+
+		var accountID string
+		err = db.Raw(`
+			INSERT INTO accounts (email, password_hash, name, is_active, email_verified, email_verified_at)
+			VALUES (?, ?, ?, true, true, NOW())
+			RETURNING id
+		`, org.email, string(hashedPassword), org.companyName).Scan(&accountID).Error
+		
+		if err != nil {
+			log.Printf("Failed to create account: %v\n", err)
+			continue
+		}
+		fmt.Printf("✅ Created account: %s\n", org.email)
+
+		// Create owner team member
+		err = db.Exec(`
+			INSERT INTO team_members (account_id, member_id, role, invited_by, invited_at, accepted_at, created_at, updated_at)
+			VALUES (?, ?, 'OWNER', ?, NOW(), NOW(), NOW(), NOW())
+		`, accountID, accountID, accountID).Error
+		if err != nil {
+			log.Printf("Failed to create team member: %v\n", err)
+		}
+
+		// Create subscription
+		if subscriptionPlanID != "" {
+			err = db.Exec(`
+				INSERT INTO subscriptions (account_id, plan_id, status, current_period_start, current_period_end)
+				VALUES (?, ?, 'active', NOW(), NOW() + INTERVAL '1 month')
+			`, accountID, subscriptionPlanID).Error
+			if err != nil {
+				log.Printf("Failed to create subscription: %v\n", err)
+			}
+		}
+
+		// Create organization
 		var organizationID string
 		err = db.Raw(`
 			INSERT INTO organizations (account_id, name, description, email, phone, website, is_active)
 			VALUES (?, ?, ?, ?, ?, ?, true)
 			RETURNING id
-		`, adminAccountID, org.orgName, org.orgDesc, adminEmail, org.orgPhone, org.orgWebsite).Scan(&organizationID).Error
+		`, accountID, org.orgName, org.orgDesc, org.email, org.orgPhone, org.orgWebsite).Scan(&organizationID).Error
 		
 		if err != nil {
 			log.Printf("Failed to create organization: %v\n", err)
@@ -244,20 +176,9 @@ func main() {
 		}
 		fmt.Printf("✅ Created organization: %s\n", org.orgName)
 
-		// Add viewer as team member to this organization
-		err = db.Exec(`
-			INSERT INTO team_members (account_id, member_id, role, invited_by, invited_at, accepted_at, created_at, updated_at)
-			VALUES (?, ?, 'VIEWER', ?, NOW(), NOW(), NOW(), NOW())
-		`, adminAccountID, viewerAccountID, adminAccountID).Error
-		if err != nil {
-			log.Printf("Failed to add viewer to organization team: %v\n", err)
-		} else {
-			fmt.Printf("✅ Added viewer as team member to %s\n", org.orgName)
-		}
-
 		// Create location
 		locationName := "Main Office"
-		if org.isTourCompany {
+		if org.companyName == "Explore Local Tours" {
 			err = db.Exec(`
 				INSERT INTO locations (organization_id, name, address, city, state, country, postal_code, is_active)
 				VALUES (?, ?, ?, ?, ?, ?, ?, true)
@@ -310,7 +231,7 @@ func main() {
 		}
 
 		// Create questionnaires
-		if org.isTourCompany {
+		if org.companyName == "Explore Local Tours" {
 			createTourQuestionnaires(db, organizationID, productIDs)
 		} else {
 			createPrintQuestionnaires(db, organizationID, productIDs)
@@ -318,17 +239,14 @@ func main() {
 
 		// Create feedback
 		if len(qrCodeIDs) > 0 && len(productIDs) > 0 {
-			createFeedback(db, organizationID, qrCodeIDs, productIDs, org.isTourCompany)
+			createFeedback(db, organizationID, qrCodeIDs, productIDs, org.companyName == "Explore Local Tours")
 		}
 	}
 
 	fmt.Println("\n🎉 Complex seed data created successfully!")
 	fmt.Println("\n📧 Login credentials:")
-	fmt.Printf("Admin (Owner): %s / %s\n", adminEmail, adminPassword)
-	fmt.Printf("Viewer (Team Member): %s / %s\n", viewerEmail, viewerPassword)
-	fmt.Println("\nBoth users have access to both organizations:")
-	fmt.Println("- Explore Local - Tourist Guides")
-	fmt.Println("- QuickPrint - Call & Print Center")
+	fmt.Println("Tourist Guide Company: admin@explorelocal.com / tourist123")
+	fmt.Println("Print Service Company: admin@quickprint.com / print123")
 }
 
 type Product struct {
@@ -376,16 +294,15 @@ func createTourQuestionnaires(db *gorm.DB, orgID string, productIDs map[string]s
 			}
 
 			for i, q := range questions {
-				var optionsParam interface{}
+				var optionsJSON interface{}
 				if q.options != nil {
-					// Convert to PostgreSQL array format
-					optionsParam = fmt.Sprintf("{%s}", joinStringSlice(q.options, ","))
+					optionsJSON = q.options
 				}
 				
 				err = db.Exec(`
 					INSERT INTO questions (product_id, text, type, is_required, options, display_order)
 					VALUES (?, ?, ?, ?, ?, ?)
-				`, productID, q.text, q.qtype, q.required, optionsParam, i+1).Error
+				`, productID, q.text, q.qtype, q.required, optionsJSON, i+1).Error
 				
 				if err != nil {
 					fmt.Printf("Failed to create question for %s: %v\n", productName, err)
@@ -439,10 +356,15 @@ func createPrintQuestionnaires(db *gorm.DB, orgID string, productIDs map[string]
 			}
 
 			for i, q := range questions {
+				var optionsJSON interface{}
+				if q.options != nil {
+					optionsJSON = q.options
+				}
+				
 				err = db.Exec(`
 					INSERT INTO questions (product_id, text, type, is_required, options, display_order)
 					VALUES (?, ?, ?, ?, ?, ?)
-				`, productID, q.text, q.qtype, q.required, nil, i+1).Error
+				`, productID, q.text, q.qtype, q.required, optionsJSON, i+1).Error
 				
 				if err != nil {
 					fmt.Printf("Failed to create question for %s: %v\n", productName, err)
@@ -455,30 +377,30 @@ func createPrintQuestionnaires(db *gorm.DB, orgID string, productIDs map[string]
 }
 
 func createFeedback(db *gorm.DB, orgID string, qrCodeIDs map[string]string, productIDs map[string]string, isTourCompany bool) {
-	// Generate feedback over the past 90 days for better testing
+	// Generate feedback over the past 60 days
 	now := time.Now()
 	
-	// Enhanced feedback counts for thorough application testing
+	// Different patterns for different companies
 	feedbackCounts := map[string]int{}
 	if isTourCompany {
-		// Tourist company has more weekend traffic - increased for testing
+		// Tourist company has more weekend traffic
 		feedbackCounts = map[string]int{
-			"TOUR-DESK-01":  85,  // Reception desk - high traffic
-			"TOUR-BUS-01":   120, // Main tour bus - highest traffic
-			"TOUR-BUS-02":   95,  // Secondary bus
-			"TOUR-MEETING":  65,  // Meeting point
-			"TOUR-OFFICE":   75,  // Main office
+			"TOUR-DESK-01":  25,
+			"TOUR-BUS-01":   45,
+			"TOUR-BUS-02":   38,
+			"TOUR-MEETING":  15,
+			"TOUR-OFFICE":   20,
 		}
 	} else {
-		// Print shop has more weekday traffic - increased for testing
+		// Print shop has more weekday traffic
 		feedbackCounts = map[string]int{
-			"PRINT-DESK-01": 110, // Main service counter
-			"PRINT-DESK-02": 98,  // Secondary counter
-			"PRINT-SELF-01": 70,  // Self-service stations
-			"PRINT-SELF-02": 65,
-			"PRINT-CALL-01": 45,  // Call booths
-			"PRINT-CALL-02": 38,
-			"PRINT-PICKUP":  55,  // Pickup area
+			"PRINT-DESK-01": 55,
+			"PRINT-DESK-02": 48,
+			"PRINT-SELF-01": 35,
+			"PRINT-SELF-02": 32,
+			"PRINT-CALL-01": 22,
+			"PRINT-CALL-02": 18,
+			"PRINT-PICKUP":  25,
 		}
 	}
 
@@ -488,21 +410,12 @@ func createFeedback(db *gorm.DB, orgID string, qrCodeIDs map[string]string, prod
 		"James Thomas", "Patricia Lee", "Charles White", "Linda Harris", "Daniel Martin",
 		"Barbara Thompson", "Joseph Clark", "Elizabeth Lewis", "Thomas Walker", "Susan Hall",
 		"Christopher Young", "Jessica Allen", "Matthew King", "Nancy Wright", "Anthony Lopez",
-		"Amanda Chen", "Kevin O'Connor", "Sophia Patel", "Ryan Murphy", "Grace Kim",
-		"Tyler Jackson", "Olivia Rodriguez", "Nathan Brown", "Isabella Martinez", "Ethan Davis",
-		"Mia Thompson", "Alexander Lee", "Charlotte Wilson", "Benjamin Garcia", "Amelia Anderson",
-		"Lucas Miller", "Harper Taylor", "Mason Moore", "Evelyn White", "Logan Harris",
-		"Abigail Clark", "Jacob Lewis", "Emily Walker", "Michael Hall", "Madison Young",
-		"Aiden Allen", "Elizabeth King", "Jackson Wright", "Avery Lopez", "Sebastian Hill",
 	}
 
 	customerEmails := []string{
-		"john.smith@gmail.com", "emma.j@outlook.com", "m.brown@yahoo.com", "sarah.davis@email.com",
-		"w.wilson@company.com", "jen.garcia@gmail.com", "david.m@work.com", "lisa.anderson@email.com",
-		"robert.t@business.org", "maria.r@service.com", "james.thomas@email.com", "patricia.lee@gmail.com",
-		"c.white@company.com", "linda.h@business.com", "daniel.martin@email.com", "barbara.t@work.org",
-		"joseph.clark@email.com", "elizabeth.lewis@gmail.com", "thomas.walker@company.com", "susan.hall@email.com",
-		"", "", "", "", "", "", // Some customers don't provide email (20% anonymous)
+		"customer1@email.com", "customer2@email.com", "customer3@email.com", "customer4@email.com",
+		"customer5@email.com", "customer6@email.com", "customer7@email.com", "customer8@email.com",
+		"", "", "", "", // Some customers don't provide email
 	}
 
 	// Convert productIDs map to slice for random selection
@@ -520,8 +433,8 @@ func createFeedback(db *gorm.DB, orgID string, qrCodeIDs map[string]string, prod
 		}
 
 		for i := 0; i < count; i++ {
-			// Spread feedback over past 90 days with realistic patterns
-			daysAgo := rand.Intn(90)
+			// Spread feedback over past 60 days
+			daysAgo := rand.Intn(60)
 			feedbackDate := now.AddDate(0, 0, -daysAgo)
 			
 			// More feedback during business hours
@@ -631,17 +544,11 @@ func createFeedback(db *gorm.DB, orgID string, qrCodeIDs map[string]string, prod
 				}
 			}
 
-			// Create feedback record with properly serialized JSON
-			responsesJSON, err := json.Marshal(responses)
-			if err != nil {
-				log.Printf("Failed to marshal responses: %v\n", err)
-				continue
-			}
-
-			err = db.Exec(`
+			// Create feedback record
+			err := db.Exec(`
 				INSERT INTO feedbacks (organization_id, product_id, qr_code_id, customer_name, customer_email, overall_rating, responses, created_at, updated_at)
 				VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-			`, orgID, productID, qrID, customerName, customerEmail, overallRating, string(responsesJSON), feedbackDate, feedbackDate).Error
+			`, orgID, productID, qrID, customerName, customerEmail, overallRating, responses, feedbackDate, feedbackDate).Error
 
 			if err != nil {
 				log.Printf("Failed to create feedback: %v\n", err)
@@ -660,14 +567,33 @@ func min(a, b int) int {
 	return b
 }
 
-// Helper function to join string slice
-func joinStringSlice(slice []string, separator string) string {
-	if len(slice) == 0 {
-		return ""
+func splitOptions(options string) []string {
+	// Simple comma split - in production you'd want proper CSV parsing
+	result := []string{}
+	current := ""
+	for _, char := range options {
+		if char == ',' {
+			if current != "" {
+				result = append(result, current)
+				current = ""
+			}
+		} else {
+			current += string(char)
+		}
 	}
-	result := slice[0]
-	for i := 1; i < len(slice); i++ {
-		result += separator + slice[i]
+	if current != "" {
+		result = append(result, current)
+	}
+	return result
+}
+
+func joinOptions(options []string) string {
+	result := ""
+	for i, opt := range options {
+		if i > 0 {
+			result += ","
+		}
+		result += opt
 	}
 	return result
 }

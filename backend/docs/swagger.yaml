@@ -865,6 +865,8 @@ definitions:
     type: object
   models.TimeSeriesData:
     properties:
+      metadata:
+        type: string
       metric_name:
         type: string
       metric_type:
