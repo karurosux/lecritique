@@ -447,14 +447,7 @@
         } : false,
         plugins: {
           title: {
-            display: showTitle,
-            text: 'Survey Response Analysis Over Time',
-            font: {
-              size: 16,
-              weight: 'bold' as const
-            },
-            color: '#1f2937',
-            padding: 20
+            display: false
           },
           legend: {
             display: showLegend,
