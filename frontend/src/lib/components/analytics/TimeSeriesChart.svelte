@@ -2,7 +2,7 @@
   import { onMount, onDestroy } from 'svelte';
   import { Chart, registerables } from 'chart.js';
   import 'chartjs-adapter-date-fns';
-  import { TrendingUp, TrendingDown, Minus, ZoomIn, ZoomOut, Move, RotateCcw, Download, Eye, EyeOff } from 'lucide-svelte';
+  import { TrendingUp, TrendingDown, Minus, ZoomIn, ZoomOut, Move, RotateCcw, Eye, EyeOff } from 'lucide-svelte';
 
   interface Props {
     data: any;
@@ -35,8 +35,6 @@
   let showZoomControls = $state(true);
   let selectedDataSeries = $state<string[]>([]);
 
-  // Export functionality
-  let isExporting = $state(false);
   
   // Zoom plugin will be loaded dynamically
   let zoomPlugin: any = null;
@@ -229,25 +227,6 @@
     }
   }
 
-  function exportChart(format: 'png' | 'jpeg' | 'pdf') {
-    if (!chart) return;
-    
-    isExporting = true;
-    
-    try {
-      const canvas = chart.canvas;
-      const url = canvas.toDataURL(`image/${format === 'pdf' ? 'png' : format}`);
-      
-      const link = document.createElement('a');
-      link.download = `chart-${new Date().toISOString().split('T')[0]}.${format}`;
-      link.href = url;
-      link.click();
-    } catch (error) {
-      console.error('Error exporting chart:', error);
-    } finally {
-      isExporting = false;
-    }
-  }
 
 
   function getYAxisConfig(seriesData: any[]) {
@@ -768,18 +747,6 @@
             </div>
           {/if}
 
-          <!-- Export Controls -->
-          <div class="flex items-center gap-1">
-            <span class="text-sm font-medium text-gray-700 mr-2">Export:</span>
-            <button
-              class="p-2 text-gray-600 hover:text-green-600 hover:bg-green-50 rounded-lg transition-all {isExporting ? 'opacity-50 cursor-not-allowed' : ''}"
-              onclick={() => exportChart('png')}
-              disabled={isExporting}
-              title="Export as PNG"
-            >
-              <Download class="w-4 h-4" />
-            </button>
-          </div>
         </div>
         
         <!-- Interactive Settings -->
