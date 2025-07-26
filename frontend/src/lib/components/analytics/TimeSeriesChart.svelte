@@ -2,7 +2,7 @@
   import { onMount, onDestroy } from 'svelte';
   import { Chart, registerables } from 'chart.js';
   import 'chartjs-adapter-date-fns';
-  import { TrendingUp, TrendingDown, Minus } from 'lucide-svelte';
+  import { TrendingUp, TrendingDown, Minus, ZoomIn, ZoomOut, Move, RotateCcw, Download, Eye, EyeOff } from 'lucide-svelte';
 
   interface Props {
     data: any;
@@ -28,6 +28,18 @@
   let yAxisScale = $state<'linear' | 'logarithmic'>('linear');
   let showTooltips = $state(true);
   let chartTheme = $state<'default' | 'dark' | 'colorful'>('default');
+
+  // Interactive features
+  let enableZoom = $state(true);
+  let enablePan = $state(true);
+  let showZoomControls = $state(true);
+  let selectedDataSeries = $state<string[]>([]);
+
+  // Export functionality
+  let isExporting = $state(false);
+  
+  // Zoom plugin will be loaded dynamically
+  let zoomPlugin: any = null;
 
   // Register Chart.js components
   Chart.register(...registerables);
@@ -188,6 +200,55 @@
         return 'text-gray-600';
     }
   }
+
+  // Interactive functions
+  function resetZoom() {
+    if (chart) {
+      chart.resetZoom();
+    }
+  }
+
+  function zoomIn() {
+    if (chart) {
+      chart.zoom(1.1);
+    }
+  }
+
+  function zoomOut() {
+    if (chart) {
+      chart.zoom(0.9);
+    }
+  }
+
+  function toggleSeries(seriesLabel: string) {
+    const datasetIndex = chart?.data.datasets.findIndex(d => d.label === seriesLabel);
+    if (chart && datasetIndex !== undefined && datasetIndex >= 0) {
+      const meta = chart.getDatasetMeta(datasetIndex);
+      meta.hidden = !meta.hidden;
+      chart.update();
+    }
+  }
+
+  function exportChart(format: 'png' | 'jpeg' | 'pdf') {
+    if (!chart) return;
+    
+    isExporting = true;
+    
+    try {
+      const canvas = chart.canvas;
+      const url = canvas.toDataURL(`image/${format === 'pdf' ? 'png' : format}`);
+      
+      const link = document.createElement('a');
+      link.download = `chart-${new Date().toISOString().split('T')[0]}.${format}`;
+      link.href = url;
+      link.click();
+    } catch (error) {
+      console.error('Error exporting chart:', error);
+    } finally {
+      isExporting = false;
+    }
+  }
+
 
   function getYAxisConfig(seriesData: any[]) {
     // Analyze the data to determine appropriate Y-axis configuration
@@ -450,7 +511,7 @@
             display: false
           },
           legend: {
-            display: showLegend,
+            display: false, // We'll create custom interactive legend
             position: 'top' as const,
             align: 'center' as const,
             labels: {
@@ -463,27 +524,80 @@
           },
           tooltip: {
             enabled: showTooltips,
-            mode: 'point' as const,
+            mode: 'nearest' as const,
             intersect: false,
-            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+            backgroundColor: 'rgba(0, 0, 0, 0.9)',
             titleColor: 'white',
             bodyColor: 'white',
-            borderColor: 'rgba(255, 255, 255, 0.1)',
+            borderColor: 'rgba(255, 255, 255, 0.2)',
             borderWidth: 1,
+            cornerRadius: 8,
+            padding: 12,
+            displayColors: true,
             callbacks: {
               title: function(context: any) {
-                return new Date(context[0].parsed.x).toLocaleDateString();
+                const date = new Date(context[0].parsed.x);
+                return date.toLocaleDateString('en-US', { 
+                  weekday: 'short',
+                  year: 'numeric', 
+                  month: 'short', 
+                  day: 'numeric',
+                  hour: 'numeric',
+                  minute: '2-digit'
+                });
               },
               label: function(context: any) {
                 const datasetLabel = context.dataset.label || '';
-                const seriesData = data.series.find((s: any) => s.metric_name === datasetLabel);
+                const seriesData = data.series.find((s: any) => cleanMetricName(s.metric_name) === datasetLabel);
                 const formattedValue = seriesData 
                   ? formatValue(context.parsed.y, seriesData.metric_type, seriesData)
                   : context.parsed.y.toLocaleString();
                 return `${datasetLabel}: ${formattedValue}`;
+              },
+              afterBody: function(context: any) {
+                if (context.length > 0) {
+                  const seriesData = data.series.find((s: any) => cleanMetricName(s.metric_name) === context[0].dataset.label);
+                  if (seriesData?.metadata) {
+                    try {
+                      const metadata = typeof seriesData.metadata === 'string' ? JSON.parse(seriesData.metadata) : seriesData.metadata;
+                      if (metadata.question_type) {
+                        return [`Type: ${metadata.question_type.replace('_', ' ')}`];
+                      }
+                    } catch (e) {
+                      // ignore
+                    }
+                  }
+                }
+                return [];
               }
             }
-          }
+          },
+          zoom: enableZoom && zoomPlugin ? {
+            limits: {
+              x: {min: 'original', max: 'original'},
+              y: {min: 'original', max: 'original'}
+            },
+            pan: {
+              enabled: enablePan,
+              mode: 'xy' as const,
+            },
+            zoom: {
+              wheel: {
+                enabled: true,
+              },
+              pinch: {
+                enabled: true
+              },
+              mode: 'xy' as const,
+              onZoomComplete: function({chart}: any) {
+                // Optional: emit zoom event
+                const customEvent = new CustomEvent('chartZoom', {
+                  detail: { chart }
+                });
+                chartCanvas?.dispatchEvent(customEvent);
+              }
+            }
+          } : {}
         },
         scales: {
           x: {
@@ -577,7 +691,14 @@
     }
   });
 
-  onMount(() => {
+  onMount(async () => {
+    // Dynamically import zoom plugin on client side only
+    if (typeof window !== 'undefined') {
+      const zoomModule = await import('chartjs-plugin-zoom');
+      zoomPlugin = zoomModule.default;
+      Chart.register(zoomPlugin);
+    }
+    
     mounted = true;
     createChart();
   });
@@ -597,31 +718,161 @@
         <p>No data available for the selected time period</p>
       </div>
     {:else}
-      <!-- Chart Controls -->
-      <div class="flex items-center gap-2 mb-6">
-        <span class="text-sm font-medium text-gray-700">View:</span>
-        <div class="flex bg-gray-100 rounded-lg p-1">
-          <button
-            class="px-3 py-1.5 text-sm font-medium rounded-md transition-all {chartType === 'line' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-600 hover:text-gray-900'}"
-            onclick={() => chartType = 'line'}
-          >
-            Line
-          </button>
-          <button
-            class="px-3 py-1.5 text-sm font-medium rounded-md transition-all {chartType === 'bar' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-600 hover:text-gray-900'}"
-            onclick={() => chartType = 'bar'}
-          >
-            Bar
-          </button>
+      <!-- Enhanced Chart Controls -->
+      <div class="bg-white border border-gray-200 rounded-xl p-4 mb-6 shadow-sm">
+        <div class="flex flex-wrap items-center justify-between gap-4">
+          <!-- Chart Type Controls -->
+          <div class="flex items-center gap-2">
+            <span class="text-sm font-medium text-gray-700">Type:</span>
+            <div class="flex bg-gray-100 rounded-lg p-1">
+              <button
+                class="px-3 py-1.5 text-sm font-medium rounded-md transition-all {chartType === 'line' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-600 hover:text-gray-900'}"
+                onclick={() => chartType = 'line'}
+              >
+                Line
+              </button>
+              <button
+                class="px-3 py-1.5 text-sm font-medium rounded-md transition-all {chartType === 'bar' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-600 hover:text-gray-900'}"
+                onclick={() => chartType = 'bar'}
+              >
+                Bar
+              </button>
+            </div>
+          </div>
+
+          <!-- Zoom Controls -->
+          {#if showZoomControls}
+            <div class="flex items-center gap-1">
+              <span class="text-sm font-medium text-gray-700 mr-2">Zoom:</span>
+              <button
+                class="p-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all"
+                onclick={zoomIn}
+                title="Zoom In"
+              >
+                <ZoomIn class="w-4 h-4" />
+              </button>
+              <button
+                class="p-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all"
+                onclick={zoomOut}
+                title="Zoom Out"
+              >
+                <ZoomOut class="w-4 h-4" />
+              </button>
+              <button
+                class="p-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all"
+                onclick={resetZoom}
+                title="Reset Zoom"
+              >
+                <RotateCcw class="w-4 h-4" />
+              </button>
+            </div>
+          {/if}
+
+          <!-- Export Controls -->
+          <div class="flex items-center gap-1">
+            <span class="text-sm font-medium text-gray-700 mr-2">Export:</span>
+            <button
+              class="p-2 text-gray-600 hover:text-green-600 hover:bg-green-50 rounded-lg transition-all {isExporting ? 'opacity-50 cursor-not-allowed' : ''}"
+              onclick={() => exportChart('png')}
+              disabled={isExporting}
+              title="Export as PNG"
+            >
+              <Download class="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+        
+        <!-- Interactive Settings -->
+        <div class="mt-4 pt-4 border-t border-gray-100">
+          <div class="flex flex-wrap items-center gap-6 text-sm">
+            <label class="flex items-center gap-2 cursor-pointer">
+              <input 
+                type="checkbox" 
+                bind:checked={enableZoom}
+                class="rounded border-gray-300 text-blue-600 focus:ring-blue-500 focus:ring-offset-0"
+              />
+              <span class="text-gray-700">Enable Zoom</span>
+            </label>
+            <label class="flex items-center gap-2 cursor-pointer">
+              <input 
+                type="checkbox" 
+                bind:checked={enablePan}
+                class="rounded border-gray-300 text-blue-600 focus:ring-blue-500 focus:ring-offset-0"
+              />
+              <span class="text-gray-700">Enable Pan</span>
+            </label>
+            <label class="flex items-center gap-2 cursor-pointer">
+              <input 
+                type="checkbox" 
+                bind:checked={showTooltips}
+                class="rounded border-gray-300 text-blue-600 focus:ring-blue-500 focus:ring-offset-0"
+              />
+              <span class="text-gray-700">Show Tooltips</span>
+            </label>
+            <label class="flex items-center gap-2 cursor-pointer">
+              <input 
+                type="checkbox" 
+                bind:checked={animateChart}
+                class="rounded border-gray-300 text-blue-600 focus:ring-blue-500 focus:ring-offset-0"
+              />
+              <span class="text-gray-700">Animations</span>
+            </label>
+          </div>
         </div>
       </div>
 
+      <!-- Interactive Legend -->
+      {#if series.length > 0}
+        <div class="bg-white border border-gray-200 rounded-xl p-4 mb-6 shadow-sm">
+          <h4 class="text-sm font-semibold text-gray-900 mb-3">Data Series</h4>
+          <div class="flex flex-wrap gap-2">
+            {#each series as seriesData, index}
+              {@const isVisible = !chart?.getDatasetMeta(index)?.hidden}
+              <button
+                class="flex items-center gap-2 px-3 py-2 rounded-lg border transition-all {
+                  isVisible 
+                    ? 'border-gray-300 bg-white hover:bg-gray-50' 
+                    : 'border-gray-200 bg-gray-100 text-gray-500'
+                }"
+                onclick={() => toggleSeries(cleanMetricName(seriesData.metric_name))}
+              >
+                <div 
+                  class="w-3 h-3 rounded-full border-2"
+                  style="background-color: {isVisible ? colors[index % colors.length] : 'transparent'}; border-color: {colors[index % colors.length]}"
+                ></div>
+                <span class="text-sm font-medium">{cleanMetricName(seriesData.metric_name)}</span>
+                {#if isVisible}
+                  <Eye class="w-3 h-3" />
+                {:else}
+                  <EyeOff class="w-3 h-3" />
+                {/if}
+              </button>
+            {/each}
+          </div>
+        </div>
+      {/if}
+
       <!-- Chart Container -->
-      <div class="bg-white rounded-lg p-6 mb-6">
+      <div class="bg-white rounded-lg p-6 mb-6 shadow-sm">
         <div class="chart-container">
           <canvas bind:this={chartCanvas} class="w-full h-96"></canvas>
         </div>
+        
+        <!-- Interactive hints -->
+        <div class="mt-4 pt-4 border-t border-gray-100">
+          <div class="flex flex-wrap gap-4 text-xs text-gray-500">
+            <span class="flex items-center gap-1">
+              <Move class="w-3 h-3" />
+              Drag to pan
+            </span>
+            <span class="flex items-center gap-1">
+              <ZoomIn class="w-3 h-3" />
+              Mouse wheel to zoom
+            </span>
+          </div>
+        </div>
       </div>
+
       
       <!-- Statistics Cards -->
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-6">

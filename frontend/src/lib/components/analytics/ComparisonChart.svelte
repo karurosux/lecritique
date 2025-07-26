@@ -1,7 +1,7 @@
 <script lang="ts">
   import * as Plot from '@observablehq/plot';
   import { onMount } from 'svelte';
-  import { TrendingUp, TrendingDown, Minus, AlertTriangle, Info, CheckCircle } from 'lucide-svelte';
+  import { TrendingUp, TrendingDown, Minus, AlertTriangle, Info, CheckCircle, BarChart3, Maximize2, Filter, Eye, EyeOff } from 'lucide-svelte';
 
   interface Props {
     data: any;
@@ -10,6 +10,14 @@
   let { data }: Props = $props();
   let chartContainer: HTMLDivElement;
   let mounted = $state(false);
+
+  // Interactive features
+  let hoveredMetric = $state<string | null>(null);
+  let showDetailedBreakdown = $state(false);
+  let filteredMetricTypes = $state<string[]>([]);
+  let sortBy = $state<'name' | 'change' | 'value'>('change');
+  let sortOrder = $state<'asc' | 'desc'>('desc');
+  let viewMode = $state<'cards' | 'chart' | 'table'>('cards');
 
   function formatValue(value: number, metricType: string): string {
     if (metricType.includes('rate') || metricType.includes('completion')) {
@@ -107,8 +115,73 @@
     });
   }
 
-  let comparisons = $derived(data?.comparisons || []);
+  // Interactive functions
+
+  function toggleMetricFilter(metricType: string) {
+    if (filteredMetricTypes.includes(metricType)) {
+      filteredMetricTypes = filteredMetricTypes.filter(t => t !== metricType);
+    } else {
+      filteredMetricTypes = [...filteredMetricTypes, metricType];
+    }
+  }
+
+  function sortComparisons(comparisons: any[]) {
+    return [...comparisons].sort((a, b) => {
+      let aValue: number, bValue: number;
+      
+      switch (sortBy) {
+        case 'name':
+          aValue = a.metric_name.localeCompare(b.metric_name);
+          bValue = 0;
+          break;
+        case 'change':
+          aValue = Math.abs(a.change_percent);
+          bValue = Math.abs(b.change_percent);
+          break;
+        case 'value':
+          aValue = a.period2.value;
+          bValue = b.period2.value;
+          break;
+        default:
+          return 0;
+      }
+      
+      const result = sortBy === 'name' ? aValue : (aValue - bValue);
+      return sortOrder === 'asc' ? result : -result;
+    });
+  }
+
+  let allComparisons = $derived(data?.comparisons || []);
   let insights = $derived(data?.insights || []);
+  
+  // Filter and sort comparisons
+  let comparisons = $derived(() => {
+    let filtered = allComparisons;
+    
+    // Apply metric type filters
+    if (filteredMetricTypes.length > 0) {
+      filtered = filtered.filter((comp: any) => 
+        filteredMetricTypes.some(type => comp.metric_type.includes(type))
+      );
+    }
+    
+    return sortComparisons(filtered);
+  });
+
+  // Get unique metric types for filtering
+  let availableMetricTypes = $derived(() => {
+    const types = new Set<string>();
+    allComparisons.forEach((comp: any) => {
+      if (comp.metric_type.startsWith('question_')) {
+        types.add('Questions');
+      } else if (comp.metric_type.includes('survey')) {
+        types.add('Survey');
+      } else {
+        types.add('General');
+      }
+    });
+    return Array.from(types);
+  });
 
   // Process data for Observable Plot bar chart
   let plotData = $derived(() => {
@@ -226,24 +299,114 @@
         </div>
       {/if}
       
-      <!-- Comparison Cards -->
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-        {#each comparisons as comparison}
-          <div class="border rounded-lg {getBackgroundColor(comparison.trend, comparison.change_percent)}">
-            <div class="p-6">
-              <div class="flex items-start justify-between mb-4">
-                <h4 class="font-semibold text-gray-900">{comparison.metric_name}</h4>
-                <div class="flex items-center gap-2">
-                  {#snippet trendIcon()}
-                    {@const TrendIcon = getTrendIcon(comparison.trend)}
-                    <TrendIcon class="w-5 h-5 {getTrendColor(comparison.trend, comparison.change_percent)}" />
-                  {/snippet}
-                  {@render trendIcon()}
-                  <span class="font-semibold {getTrendColor(comparison.trend, comparison.change_percent)}">
-                    {comparison.change_percent > 0 ? '+' : ''}{comparison.change_percent.toFixed(1)}%
-                  </span>
-                </div>
+      <!-- Interactive Controls -->
+      <div class="bg-white border border-gray-200 rounded-xl p-4 mb-6 shadow-sm">
+        <div class="flex flex-wrap items-center justify-between gap-4">
+          <!-- View Mode Controls -->
+          <div class="flex items-center gap-2">
+            <span class="text-sm font-medium text-gray-700">View:</span>
+            <div class="flex bg-gray-100 rounded-lg p-1">
+              <button
+                class="px-3 py-1.5 text-sm font-medium rounded-md transition-all {viewMode === 'cards' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-600 hover:text-gray-900'}"
+                onclick={() => viewMode = 'cards'}
+              >
+                Cards
+              </button>
+              <button
+                class="px-3 py-1.5 text-sm font-medium rounded-md transition-all {viewMode === 'chart' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-600 hover:text-gray-900'}"
+                onclick={() => viewMode = 'chart'}
+              >
+                Chart
+              </button>
+              <button
+                class="px-3 py-1.5 text-sm font-medium rounded-md transition-all {viewMode === 'table' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-600 hover:text-gray-900'}"
+                onclick={() => viewMode = 'table'}
+              >
+                Table
+              </button>
+            </div>
+          </div>
+
+          <!-- Sort Controls -->
+          <div class="flex items-center gap-2">
+            <span class="text-sm font-medium text-gray-700">Sort by:</span>
+            <select 
+              bind:value={sortBy}
+              class="text-sm border border-gray-300 rounded-md px-2 py-1 bg-white"
+            >
+              <option value="change">Change %</option>
+              <option value="value">Current Value</option>
+              <option value="name">Name</option>
+            </select>
+            <button
+              class="p-1 text-gray-600 hover:text-blue-600 rounded transition-colors"
+              onclick={() => sortOrder = sortOrder === 'asc' ? 'desc' : 'asc'}
+              title="Toggle sort order"
+            >
+              <svg class="w-4 h-4 {sortOrder === 'desc' ? 'rotate-180' : ''} transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"></path>
+              </svg>
+            </button>
+          </div>
+
+          <!-- Filter Controls -->
+          {#if availableMetricTypes.length > 1}
+            <div class="flex items-center gap-2">
+              <span class="text-sm font-medium text-gray-700">Filter:</span>
+              <div class="flex gap-1">
+                {#each availableMetricTypes as metricType}
+                  <button
+                    class="px-2 py-1 text-xs rounded-md border transition-all {
+                      filteredMetricTypes.length === 0 || filteredMetricTypes.includes(metricType.toLowerCase())
+                        ? 'bg-blue-100 border-blue-300 text-blue-700'
+                        : 'bg-gray-100 border-gray-300 text-gray-600 hover:bg-gray-200'
+                    }"
+                    onclick={() => toggleMetricFilter(metricType.toLowerCase())}
+                  >
+                    {metricType}
+                  </button>
+                {/each}
               </div>
+            </div>
+          {/if}
+        </div>
+      </div>
+      
+      <!-- Dynamic View Based on Mode -->
+      {#if viewMode === 'cards'}
+        <!-- Enhanced Interactive Comparison Cards -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+          {#each comparisons as comparison}
+            <div 
+              class="border rounded-lg transition-all duration-200 hover:shadow-lg {
+                getBackgroundColor(comparison.trend, comparison.change_percent)
+              }"
+              onmouseenter={() => hoveredMetric = comparison.metric_name}
+              onmouseleave={() => hoveredMetric = null}
+            >
+              <div class="p-6">
+                <div class="flex items-start justify-between mb-4">
+                  <div class="flex-1">
+                    <h4 class="font-semibold text-gray-900 mb-1 {hoveredMetric === comparison.metric_name ? 'text-blue-700' : ''} transition-colors">
+                      {comparison.metric_name}
+                    </h4>
+                    <div class="text-xs text-gray-500 flex items-center gap-2">
+                      <span class="px-2 py-1 bg-gray-100 rounded-full capitalize">
+                        {comparison.metric_type.replace('_', ' ')}
+                      </span>
+                    </div>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    {#snippet trendIcon()}
+                      {@const TrendIcon = getTrendIcon(comparison.trend)}
+                      <TrendIcon class="w-5 h-5 {getTrendColor(comparison.trend, comparison.change_percent)}" />
+                    {/snippet}
+                    {@render trendIcon()}
+                    <span class="font-semibold {getTrendColor(comparison.trend, comparison.change_percent)}">
+                      {comparison.change_percent > 0 ? '+' : ''}{comparison.change_percent.toFixed(1)}%
+                    </span>
+                  </div>
+                </div>
               
               <div class="grid grid-cols-2 gap-6">
                 <!-- Period 1 -->
@@ -301,11 +464,139 @@
                     {comparison.change > 0 ? '+' : ''}{formatChange(comparison.change, comparison.metric_type)}
                   </span>
                 </div>
+                
+                <!-- Period 1 -->
+                <div class="transition-all duration-200 {hoveredMetric === comparison.metric_name ? 'bg-white bg-opacity-50 rounded-lg p-2' : ''}">
+                  <h5 class="text-sm font-medium text-gray-700 mb-2">Period 1</h5>
+                  <div class="space-y-1 text-sm">
+                    <div class="flex justify-between">
+                      <span class="text-gray-500">Total:</span>
+                      <span class="font-semibold">
+                        {formatValue(comparison.period1.value, comparison.metric_type)}
+                      </span>
+                    </div>
+                    <div class="flex justify-between">
+                      <span class="text-gray-500">Average:</span>
+                      <span class="font-semibold">
+                        {formatValue(comparison.period1.average, comparison.metric_type)}
+                      </span>
+                    </div>
+                    <div class="flex justify-between">
+                      <span class="text-gray-500">Count:</span>
+                      <span class="font-semibold">{comparison.period1.count.toLocaleString()}</span>
+                    </div>
+                  </div>
+                </div>
+                
+                <!-- Period 2 -->
+                <div class="transition-all duration-200 {hoveredMetric === comparison.metric_name ? 'bg-white bg-opacity-50 rounded-lg p-2' : ''}">
+                  <h5 class="text-sm font-medium text-gray-700 mb-2">Period 2</h5>
+                  <div class="space-y-1 text-sm">
+                    <div class="flex justify-between">
+                      <span class="text-gray-500">Total:</span>
+                      <span class="font-semibold">
+                        {formatValue(comparison.period2.value, comparison.metric_type)}
+                      </span>
+                    </div>
+                    <div class="flex justify-between">
+                      <span class="text-gray-500">Average:</span>
+                      <span class="font-semibold">
+                        {formatValue(comparison.period2.average, comparison.metric_type)}
+                      </span>
+                    </div>
+                    <div class="flex justify-between">
+                      <span class="text-gray-500">Count:</span>
+                      <span class="font-semibold">{comparison.period2.count.toLocaleString()}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- Change Summary -->
+              <div class="mt-4 pt-4 border-t border-gray-200">
+                <div class="flex items-center justify-between">
+                  <span class="text-sm text-gray-600">Absolute Change:</span>
+                  <span class="font-semibold {getTrendColor(comparison.trend, comparison.change_percent)}">
+                    {comparison.change > 0 ? '+' : ''}{formatChange(comparison.change, comparison.metric_type)}
+                  </span>
+                </div>
+              </div>
+
               </div>
             </div>
+          {/each}
+        </div>
+
+      {:else if viewMode === 'table'}
+        <!-- Table View -->
+        <div class="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm mb-8">
+          <div class="overflow-x-auto">
+            <table class="w-full">
+              <thead class="bg-gray-50 border-b border-gray-200">
+                <tr>
+                  <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Metric</th>
+                  <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Type</th>
+                  <th class="px-4 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">Period 1</th>
+                  <th class="px-4 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">Period 2</th>
+                  <th class="px-4 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">Change</th>
+                  <th class="px-4 py-3 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">Trend</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-gray-200">
+                {#each comparisons as comparison}
+                  <tr 
+                    class="hover:bg-gray-50 transition-colors"
+                  >
+                    <td class="px-4 py-3">
+                      <div class="font-medium text-gray-900">{comparison.metric_name}</div>
+                    </td>
+                    <td class="px-4 py-3">
+                      <span class="inline-block px-2 py-1 text-xs bg-gray-100 text-gray-700 rounded-full capitalize">
+                        {comparison.metric_type.replace('_', ' ')}
+                      </span>
+                    </td>
+                    <td class="px-4 py-3 text-right font-medium">
+                      {formatValue(comparison.period1.value, comparison.metric_type)}
+                    </td>
+                    <td class="px-4 py-3 text-right font-medium">
+                      {formatValue(comparison.period2.value, comparison.metric_type)}
+                    </td>
+                    <td class="px-4 py-3 text-right">
+                      <span class="font-semibold {getTrendColor(comparison.trend, comparison.change_percent)}">
+                        {comparison.change_percent > 0 ? '+' : ''}{comparison.change_percent.toFixed(1)}%
+                      </span>
+                    </td>
+                    <td class="px-4 py-3 text-center">
+                      {#snippet trendIcon()}
+                        {@const TrendIcon = getTrendIcon(comparison.trend)}
+                        <TrendIcon class="w-4 h-4 mx-auto {getTrendColor(comparison.trend, comparison.change_percent)}" />
+                      {/snippet}
+                      {@render trendIcon()}
+                    </td>
+                  </tr>
+                {/each}
+              </tbody>
+            </table>
           </div>
-        {/each}
-      </div>
+        </div>
+
+      {:else if viewMode === 'chart'}
+        <!-- Enhanced Chart View -->
+        <div class="bg-white border border-gray-200 rounded-xl p-6 mb-8 shadow-sm">
+          <div class="flex items-center justify-between mb-4">
+            <h4 class="text-lg font-semibold text-gray-900">Visual Comparison</h4>
+            <div class="flex items-center gap-2 text-sm text-gray-600">
+              <BarChart3 class="w-4 h-4" />
+              <span>{comparisons.length} metrics</span>
+            </div>
+          </div>
+          
+          {#if plotData.length > 0}
+            <!-- Observable Plot Chart -->
+            <div bind:this={chartContainer} class="chart-container w-full mb-6"></div>
+          {/if}
+        </div>
+      {/if}
       
       <!-- Insights -->
       {#if insights.length > 0}
@@ -338,60 +629,6 @@
         </div>
       {/if}
       
-      <!-- Visual Comparison Bar Chart -->
-      <div class="bg-white border rounded-lg p-6">
-        <h4 class="text-lg font-semibold text-gray-900 mb-4">Visual Comparison</h4>
-        
-        {#if plotData.length > 0}
-          <!-- Observable Plot Chart -->
-          <div bind:this={chartContainer} class="chart-container w-full mb-6"></div>
-        {/if}
-        
-        <!-- Detailed Bar Charts -->
-        <div class="space-y-6">
-          {#each comparisons as comparison}
-            <div>
-              <div class="flex items-center justify-between mb-2">
-                <h5 class="font-medium text-gray-700">{comparison.metric_name}</h5>
-                <span class="text-sm font-semibold {getTrendColor(comparison.trend, comparison.change_percent)}">
-                  {comparison.change_percent > 0 ? '+' : ''}{comparison.change_percent.toFixed(1)}%
-                </span>
-              </div>
-              
-              <!-- Bar chart -->
-              <div class="flex items-center gap-4">
-                <div class="flex-1">
-                  <div class="flex items-center gap-2 mb-1">
-                    <span class="text-xs text-gray-500 w-16">Period 1</span>
-                    <div class="flex-1 bg-gray-200 rounded-full h-2">
-                      <div 
-                        class="bg-blue-500 h-2 rounded-full" 
-                        style="width: {Math.max(5, (comparison.period1.value / Math.max(comparison.period1.value, comparison.period2.value)) * 100)}%"
-                      ></div>
-                    </div>
-                    <span class="text-xs font-medium text-gray-700 w-20 text-right">
-                      {formatValue(comparison.period1.value, comparison.metric_type)}
-                    </span>
-                  </div>
-                  
-                  <div class="flex items-center gap-2">
-                    <span class="text-xs text-gray-500 w-16">Period 2</span>
-                    <div class="flex-1 bg-gray-200 rounded-full h-2">
-                      <div 
-                        class="bg-green-500 h-2 rounded-full" 
-                        style="width: {Math.max(5, (comparison.period2.value / Math.max(comparison.period1.value, comparison.period2.value)) * 100)}%"
-                      ></div>
-                    </div>
-                    <span class="text-xs font-medium text-gray-700 w-20 text-right">
-                      {formatValue(comparison.period2.value, comparison.metric_type)}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          {/each}
-        </div>
-      </div>
     {/if}
   </div>
 </div>
