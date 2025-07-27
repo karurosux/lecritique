@@ -379,54 +379,78 @@
       
       // Create charts for each question type
       groupedComparisons().forEach((questions, questionType) => {
-        // Create section card
-        const sectionCard = document.createElement('div');
-        sectionCard.className = 'bg-white border border-gray-200 rounded-xl p-6 mb-8 shadow-sm';
+        // Create section divider with title
+        const sectionHeader = document.createElement('div');
+        sectionHeader.className = 'flex items-center gap-3 mb-6 mt-8';
+        
+        // Add decorative line
+        const leftLine = document.createElement('div');
+        leftLine.className = 'flex-1 h-px bg-gradient-to-r from-transparent to-gray-200';
+        sectionHeader.appendChild(leftLine);
         
         // Add section title
-        const title = document.createElement('h4');
-        title.className = 'text-lg font-semibold text-gray-900 mb-6 flex items-center gap-2';
-        title.innerHTML = `
-          <div class="h-6 w-6 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center">
-            <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        const titleContainer = document.createElement('div');
+        titleContainer.className = 'flex items-center gap-2 px-4';
+        titleContainer.innerHTML = `
+          <div class="h-8 w-8 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center shadow-lg">
+            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
             </svg>
           </div>
-          ${getQuestionTypeTitle(questionType)}
+          <h4 class="text-lg font-bold text-gray-900">${getQuestionTypeTitle(questionType)}</h4>
         `;
-        sectionCard.appendChild(title);
+        sectionHeader.appendChild(titleContainer);
         
-        // Create grid container for charts (full width)
+        // Add right decorative line
+        const rightLine = document.createElement('div');
+        rightLine.className = 'flex-1 h-px bg-gradient-to-l from-transparent to-gray-200';
+        sectionHeader.appendChild(rightLine);
+        
+        chartContainer.appendChild(sectionHeader);
+        
+        // Create grid container for charts
         const gridContainer = document.createElement('div');
-        gridContainer.className = 'space-y-6';
+        gridContainer.className = 'grid grid-cols-1 gap-6 mb-8';
         
         questions.forEach((comparison) => {
-          // Create individual chart card
+          // Create chart container with subtle styling
           const chartCard = document.createElement('div');
-          chartCard.className = 'bg-gradient-to-br from-gray-50 to-white border border-gray-100 rounded-lg p-4 hover:shadow-md transition-shadow duration-200';
+          chartCard.className = 'group relative';
+          
+          // Add subtle background
+          const bgDiv = document.createElement('div');
+          bgDiv.className = 'absolute inset-0 bg-gradient-to-br from-gray-50/50 to-white/50 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300';
+          chartCard.appendChild(bgDiv);
+          
+          // Main content container
+          const contentDiv = document.createElement('div');
+          contentDiv.className = 'relative p-6';
           
           // Add chart title
           const chartTitle = document.createElement('h5');
-          chartTitle.className = 'text-sm font-semibold text-gray-800 mb-3 truncate';
-          chartTitle.textContent = comparison.metric_name;
-          chartTitle.title = comparison.metric_name; // Show full title on hover
-          chartCard.appendChild(chartTitle);
+          chartTitle.className = 'text-sm font-semibold text-gray-700 mb-4 flex items-center gap-2';
+          chartTitle.innerHTML = `
+            <div class="h-1.5 w-1.5 bg-blue-500 rounded-full"></div>
+            <span class="truncate">${comparison.metric_name}</span>
+          `;
+          chartTitle.title = comparison.metric_name;
+          contentDiv.appendChild(chartTitle);
           
           // Create plot container
           const plotContainer = document.createElement('div');
           plotContainer.className = 'flex justify-center';
           
           // Use full width for charts
-          const fullChartWidth = chartWidth - 32; // Account for card padding
+          const fullChartWidth = chartWidth - 48;
           const chart = createChartForQuestionType(comparison, questionType, fullChartWidth);
           plotContainer.appendChild(chart);
-          chartCard.appendChild(plotContainer);
+          contentDiv.appendChild(plotContainer);
           
+          chartCard.appendChild(contentDiv);
           gridContainer.appendChild(chartCard);
         });
         
-        sectionCard.appendChild(gridContainer);
-        chartContainer.appendChild(sectionCard);
+        chartContainer.appendChild(gridContainer);
       });
     } catch (error) {
       console.error("Error rendering comparison charts:", error);
@@ -1541,16 +1565,16 @@
         </div>
       {:else if viewMode === "chart"}
         <!-- Enhanced Chart View -->
-        <div
-          class="bg-white border border-gray-200 rounded-xl p-6 mb-8 shadow-sm"
-          style="height: auto; min-height: 0;"
-        >
-          <div class="flex items-center justify-between mb-4">
-            <h4 class="text-lg font-semibold text-gray-900">
+        <div style="height: auto; min-height: 0;">
+          <div class="flex items-center justify-between mb-6">
+            <h4 class="text-xl font-bold text-gray-900 flex items-center gap-3">
+              <div class="h-10 w-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/25">
+                <BarChart3 class="w-5 h-5 text-white" />
+              </div>
               Visual Comparison
             </h4>
-            <div class="flex items-center gap-2 text-sm text-gray-600">
-              <BarChart3 class="w-4 h-4" />
+            <div class="flex items-center gap-2 text-sm text-gray-500 bg-gray-50 px-3 py-1.5 rounded-lg">
+              <Activity class="w-4 h-4" />
               <span>{comparisons.length} metrics</span>
             </div>
           </div>
@@ -1558,7 +1582,7 @@
           <!-- Charts Container -->
           <div
             bind:this={chartContainer}
-            class="chart-container w-full mb-6 min-h-0"
+            class="chart-container w-full"
             style="height: auto; overflow: visible;"
           ></div>
         </div>
