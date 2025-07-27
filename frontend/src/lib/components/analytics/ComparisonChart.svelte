@@ -916,11 +916,35 @@
                   >
                   <th
                     class="px-4 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider"
-                    >Period 1 Value</th
+                    >{(() => {
+                      // Check if we have any choice questions to adjust header
+                      const hasChoiceQuestions = comparisons.some(comp => {
+                        try {
+                          if (comp.metadata) {
+                            const metadata = JSON.parse(comp.metadata);
+                            return metadata.question_type === 'single_choice' || metadata.question_type === 'multi_choice';
+                          }
+                        } catch (e) {}
+                        return false;
+                      });
+                      return hasChoiceQuestions ? 'Period 1' : 'Period 1 Value';
+                    })()}</th
                   >
                   <th
                     class="px-4 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider"
-                    >Period 2 Value</th
+                    >{(() => {
+                      // Check if we have any choice questions to adjust header
+                      const hasChoiceQuestions = comparisons.some(comp => {
+                        try {
+                          if (comp.metadata) {
+                            const metadata = JSON.parse(comp.metadata);
+                            return metadata.question_type === 'single_choice' || metadata.question_type === 'multi_choice';
+                          }
+                        } catch (e) {}
+                        return false;
+                      });
+                      return hasChoiceQuestions ? 'Period 2' : 'Period 2 Value';
+                    })()}</th
                   >
                   <th
                     class="px-4 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider whitespace-nowrap"
@@ -995,28 +1019,52 @@
                       )}
                     </td>
                     <td class="px-4 py-3 text-right">
-                      <span
-                        class="font-semibold {getTrendColor(
-                          comparison.trend,
-                          comparison.change_percent,
-                        )}"
-                      >
-                        {comparison.change_percent > 0
-                          ? "+"
-                          : ""}{comparison.change_percent.toFixed(1)}%
-                      </span>
-                    </td>
-                    <td class="px-4 py-3 text-center">
-                      {#snippet trendIcon()}
-                        {@const TrendIcon = getTrendIcon(comparison.trend)}
-                        <TrendIcon
-                          class="w-4 h-4 mx-auto {getTrendColor(
+                      {#if (() => {
+                        try {
+                          if (comparison.metadata) {
+                            const metadata = JSON.parse(comparison.metadata);
+                            return metadata.question_type !== 'single_choice' && metadata.question_type !== 'multi_choice';
+                          }
+                        } catch (e) {}
+                        return true;
+                      })()}
+                        <span
+                          class="font-semibold {getTrendColor(
                             comparison.trend,
                             comparison.change_percent,
                           )}"
-                        />
-                      {/snippet}
-                      {@render trendIcon()}
+                        >
+                          {comparison.change_percent > 0
+                            ? "+"
+                            : ""}{comparison.change_percent.toFixed(1)}%
+                        </span>
+                      {:else}
+                        <span class="text-gray-400 text-sm">-</span>
+                      {/if}
+                    </td>
+                    <td class="px-4 py-3 text-center">
+                      {#if (() => {
+                        try {
+                          if (comparison.metadata) {
+                            const metadata = JSON.parse(comparison.metadata);
+                            return metadata.question_type !== 'single_choice' && metadata.question_type !== 'multi_choice';
+                          }
+                        } catch (e) {}
+                        return true;
+                      })()}
+                        {#snippet trendIcon()}
+                          {@const TrendIcon = getTrendIcon(comparison.trend)}
+                          <TrendIcon
+                            class="w-4 h-4 mx-auto {getTrendColor(
+                              comparison.trend,
+                              comparison.change_percent,
+                            )}"
+                          />
+                        {/snippet}
+                        {@render trendIcon()}
+                      {:else}
+                        <span class="text-gray-400 text-sm">-</span>
+                      {/if}
                     </td>
                   </tr>
                 {/each}
