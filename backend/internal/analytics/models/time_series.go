@@ -42,6 +42,7 @@ type TimeSeriesComparison struct {
 	Change        float64            `json:"change"`
 	ChangePercent float64            `json:"change_percent"`
 	Trend         string             `json:"trend"`
+	Metadata      *string            `json:"metadata,omitempty"`
 }
 
 // TimePeriodMetrics represents metrics for a specific time period

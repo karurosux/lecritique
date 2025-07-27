@@ -40,3 +40,6 @@
 
 ## 📝 Comment Handling
 - If found comments, remove them unless it really provides important context or is a TODO item
+
+## 🚫 Design Guidelines
+- Dont use emojis as icons

@@ -83,6 +83,20 @@
     }
   });
 
+  // Reactive effect to reload comparison data when filters change
+  $effect(() => {
+    // Track comparison filter changes
+    comparisonFilters.period1Start;
+    comparisonFilters.period1End;
+    comparisonFilters.period2Start;
+    comparisonFilters.period2End;
+    comparisonFilters.metricTypes;
+    
+    if (hasInitialized && selectedOrganization && comparisonFilters.metricTypes.length > 0) {
+      loadComparisonData();
+    }
+  });
+
   async function loadOrganizations() {
     try {
       const api = getApiClient();
@@ -93,7 +107,6 @@
         if (organizations.length > 0) {
           selectedOrganization = organizations[0].id;
           await loadProducts();
-          loadComparisonData();
         }
       }
     } catch (err) {
@@ -264,6 +277,7 @@
       );
       
       if (response.data) {
+        console.log('Comparison API response:', response.data);
         comparisonData = response.data;
       }
     } catch (err) {
@@ -295,13 +309,7 @@
   function handleOrganizationChange() {
     if (selectedOrganization) {
       loadProducts();
-      loadComparisonData();
     }
-  }
-
-
-  function handleComparisonFilterChange() {
-    loadComparisonData();
   }
 </script>
 
@@ -549,7 +557,6 @@
                   <Input 
                     type="date" 
                     bind:value={comparisonFilters.period1Start}
-                    onchange={handleComparisonFilterChange}
                     class="text-sm"
                   />
                 </div>
@@ -558,7 +565,6 @@
                   <Input 
                     type="date" 
                     bind:value={comparisonFilters.period1End}
-                    onchange={handleComparisonFilterChange}
                     class="text-sm"
                   />
                 </div>
@@ -578,7 +584,6 @@
                   <Input 
                     type="date" 
                     bind:value={comparisonFilters.period2Start}
-                    onchange={handleComparisonFilterChange}
                     class="text-sm"
                   />
                 </div>
@@ -587,7 +592,6 @@
                   <Input 
                     type="date" 
                     bind:value={comparisonFilters.period2End}
-                    onchange={handleComparisonFilterChange}
                     class="text-sm"
                   />
                 </div>
@@ -646,7 +650,6 @@
                                   } else {
                                     comparisonFilters.metricTypes = comparisonFilters.metricTypes.filter(t => t !== question.value);
                                   }
-                                  handleComparisonFilterChange();
                                 }}
                               />
                               <div class="flex-1 min-w-0">

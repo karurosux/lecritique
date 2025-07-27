@@ -686,6 +686,7 @@ func (s *timeSeriesService) compareMetrics(period1Metrics, period2Metrics []mode
 			MetricType: metricType,
 			MetricName: period1Data[0].MetricName,
 			Period1:    s.aggregatePeriodMetrics(period1Data, request.Period1Start, request.Period1End),
+			Metadata:   period1Data[0].Metadata,
 		}
 		
 		if exists {
@@ -734,6 +735,15 @@ func (s *timeSeriesService) aggregatePeriodMetrics(metrics []models.TimeSeriesMe
 	
 	var dataPoints []models.TimeSeriesPoint
 	
+	isYesNoQuestion := false
+	if len(metrics) > 0 && metrics[0].Metadata != nil {
+		fmt.Printf("DEBUG: Metadata=%s, MetricType=%s\n", *metrics[0].Metadata, metrics[0].MetricType)
+		if strings.Contains(*metrics[0].Metadata, `"question_type": "yes_no"`) {
+			isYesNoQuestion = true
+			fmt.Printf("DEBUG: Detected yes/no question\n")
+		}
+	}
+	
 	for _, metric := range metrics {
 		total += metric.Value
 		count += metric.Count
@@ -754,10 +764,28 @@ func (s *timeSeriesService) aggregatePeriodMetrics(metrics []models.TimeSeriesMe
 	
 	average := total / float64(len(metrics))
 	
+	// For certain question types, use average as the value instead of sum
+	value := total
+	if isYesNoQuestion {
+		value = average
+		fmt.Printf("DEBUG: Using average for yes/no question: %f\n", value)
+	}
+	
+	// For rating and scale questions, also use average as the main value
+	if len(metrics) > 0 && metrics[0].Metadata != nil {
+		if strings.Contains(*metrics[0].Metadata, `"question_type": "rating"`) {
+			value = average
+			fmt.Printf("DEBUG: Using average for rating question: %f\n", value)
+		} else if strings.Contains(*metrics[0].Metadata, `"question_type": "scale"`) {
+			value = average
+			fmt.Printf("DEBUG: Using average for scale question: %f\n", value)
+		}
+	}
+	
 	return models.TimePeriodMetrics{
 		StartDate:  startDate,
 		EndDate:    endDate,
-		Value:      total,
+		Value:      value,
 		Count:      count,
 		Average:    average,
 		Min:        min,
