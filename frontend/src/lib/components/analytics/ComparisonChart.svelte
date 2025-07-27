@@ -1,6 +1,7 @@
 <script lang="ts">
-  import * as Plot from "@observablehq/plot";
-  import { onMount } from "svelte";
+  import { Chart, registerables } from 'chart.js';
+  import 'chartjs-adapter-date-fns';
+  import { onMount, onDestroy } from "svelte";
   import {
     TrendingUp,
     TrendingDown,
@@ -30,6 +31,9 @@
   let { data }: Props = $props();
   let chartContainer: HTMLDivElement;
   let mounted = $state(false);
+  let chartInstances: Chart[] = [];
+
+  Chart.register(...registerables);
 
   // Interactive features
   let hoveredMetric = $state<string | null>(null);
@@ -121,7 +125,7 @@
         }
         return value.toFixed(0);
       } else if (questionType === 'text') {
-        // Text sentiment - convert numerical score to meaningful description
+        // Text sentiment - show both score and meaningful description
         const getSentimentLabel = (score) => {
           if (score >= 0.5) return "Very Positive";
           if (score >= 0.1) return "Positive";
@@ -130,7 +134,9 @@
           return "Very Negative";
         };
         
-        return getSentimentLabel(value);
+        const sentimentLabel = getSentimentLabel(value);
+        const scoreStr = value >= 0 ? `+${value.toFixed(2)}` : value.toFixed(2);
+        return `${scoreStr} (${sentimentLabel})`;
       } else {
         // Fallback to name-based detection for compatibility
         const lowerName = metricName?.toLowerCase() || '';
@@ -157,6 +163,19 @@
       }
     } else if (metricType === "survey_responses") {
       return includeUnits ? Math.round(value).toLocaleString() + " responses" : Math.round(value).toLocaleString();
+    } else if (metricType.includes("sentiment") || metricName?.toLowerCase().includes("sentiment")) {
+      // Handle sentiment metrics
+      const getSentimentLabel = (score) => {
+        if (score >= 0.5) return "Very Positive";
+        if (score >= 0.1) return "Positive";
+        if (score >= -0.1) return "Neutral";
+        if (score >= -0.5) return "Negative";
+        return "Very Negative";
+      };
+      
+      const sentimentLabel = getSentimentLabel(value);
+      const scoreStr = value >= 0 ? `+${value.toFixed(2)}` : value.toFixed(2);
+      return `${scoreStr} (${sentimentLabel})`;
     } else {
       return Math.round(value).toLocaleString();
     }
@@ -312,89 +331,537 @@
     )
   );
 
-  // Process data for Observable Plot bar chart
-  let plotData = $derived(
-    comparisons.length === 0
-      ? []
-      : comparisons.flatMap((comp: any) => [
-          {
-            metric: comp.metric_name,
-            period: "Period 1",
-            value: comp.period1.value,
-            metric_type: comp.metric_type,
-          },
-          {
-            metric: comp.metric_name,
-            period: "Period 2",
-            value: comp.period2.value,
-            metric_type: comp.metric_type,
-          },
-        ])
-  );
+  // Group comparisons by question type for better visualization
+  let groupedComparisons = $derived(() => {
+    const groups = new Map();
+    
+    comparisons.forEach((comp: any) => {
+      let questionType = 'other';
+      try {
+        if (comp.metadata) {
+          const metadata = JSON.parse(comp.metadata);
+          questionType = metadata.question_type || 'other';
+        }
+      } catch (e) {}
+      
+      if (!groups.has(questionType)) {
+        groups.set(questionType, []);
+      }
+      groups.get(questionType).push(comp);
+    });
+    
+    return groups;
+  });
 
-  function renderChart() {
+  function renderCharts() {
     if (!mounted || !chartContainer) return;
 
+    // Destroy existing chart instances
+    chartInstances.forEach(chart => {
+      if (chart) {
+        chart.destroy();
+      }
+    });
+    chartInstances = [];
 
-    // Clear previous chart
+    // Clear previous charts
     chartContainer.innerHTML = "";
 
-    if (plotData.length === 0) {
+    if (comparisons.length === 0) {
       chartContainer.innerHTML =
         '<div class="text-center py-8 text-gray-500">No comparison data for chart</div>';
       return;
     }
 
     try {
-      // Create the plot
-      const plot = Plot.plot({
-        title: "Period Comparison",
-        width: 600,
-        height: 300,
-        marginTop: 40,
-        marginRight: 40,
-        marginBottom: 80,
-        marginLeft: 100,
-        x: {
-          label: "Metrics",
-        },
-        y: {
-          label: "Value",
-          grid: true,
-        },
-        color: {
-          legend: true,
-          range: ["#3B82F6", "#10B981"],
-        },
-        marks: [
-          Plot.barY(plotData, {
-            x: "metric",
-            y: "value",
-            fill: "period",
-            tip: true,
-          }),
-          Plot.ruleY([0]),
-        ],
+      const containerWidth = chartContainer.offsetWidth || 800;
+      const chartWidth = containerWidth - 48; // Use full width minus padding
+      
+      // Create charts for each question type
+      groupedComparisons().forEach((questions, questionType) => {
+        // Create section card
+        const sectionCard = document.createElement('div');
+        sectionCard.className = 'bg-white border border-gray-200 rounded-xl p-6 mb-8 shadow-sm';
+        
+        // Add section title
+        const title = document.createElement('h4');
+        title.className = 'text-lg font-semibold text-gray-900 mb-6 flex items-center gap-2';
+        title.innerHTML = `
+          <div class="h-6 w-6 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center">
+            <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+            </svg>
+          </div>
+          ${getQuestionTypeTitle(questionType)}
+        `;
+        sectionCard.appendChild(title);
+        
+        // Create grid container for charts (full width)
+        const gridContainer = document.createElement('div');
+        gridContainer.className = 'space-y-6';
+        
+        questions.forEach((comparison) => {
+          // Create individual chart card
+          const chartCard = document.createElement('div');
+          chartCard.className = 'bg-gradient-to-br from-gray-50 to-white border border-gray-100 rounded-lg p-4 hover:shadow-md transition-shadow duration-200';
+          
+          // Add chart title
+          const chartTitle = document.createElement('h5');
+          chartTitle.className = 'text-sm font-semibold text-gray-800 mb-3 truncate';
+          chartTitle.textContent = comparison.metric_name;
+          chartTitle.title = comparison.metric_name; // Show full title on hover
+          chartCard.appendChild(chartTitle);
+          
+          // Create plot container
+          const plotContainer = document.createElement('div');
+          plotContainer.className = 'flex justify-center';
+          
+          // Use full width for charts
+          const fullChartWidth = chartWidth - 32; // Account for card padding
+          const chart = createChartForQuestionType(comparison, questionType, fullChartWidth);
+          plotContainer.appendChild(chart);
+          chartCard.appendChild(plotContainer);
+          
+          gridContainer.appendChild(chartCard);
+        });
+        
+        sectionCard.appendChild(gridContainer);
+        chartContainer.appendChild(sectionCard);
       });
-
-      chartContainer.appendChild(plot);
     } catch (error) {
-      console.error("Error rendering comparison chart:", error);
+      console.error("Error rendering comparison charts:", error);
       chartContainer.innerHTML =
-        '<div class="text-center py-8 text-red-500">Error rendering comparison chart</div>';
+        '<div class="text-center py-8 text-red-500">Error rendering comparison charts</div>';
     }
   }
+  
+  function getQuestionTypeTitle(questionType: string): string {
+    switch (questionType) {
+      case 'single_choice': return 'Single Choice Questions';
+      case 'multi_choice': return 'Multiple Choice Questions';
+      case 'rating': return 'Rating Questions (1-5)';
+      case 'scale': return 'Scale Questions (1-10)';
+      case 'yes_no': return 'Yes/No Questions';
+      case 'text': return 'Text/Sentiment Questions';
+      default: return 'Other Metrics';
+    }
+  }
+  
+  function createChartForQuestionType(comparison: any, questionType: string, width: number) {
+    const canvas = document.createElement('canvas');
+    canvas.style.width = width + 'px';
+    canvas.style.height = '300px';
+    canvas.style.maxWidth = '100%';
+    
+    try {
+      if (questionType === 'single_choice') {
+        return createDoughnutChart(canvas, comparison, 'Single Choice Comparison');
+      } else if (questionType === 'multi_choice') {
+        return createPolarChart(canvas, comparison, 'Multiple Choice Comparison');
+      } else if (questionType === 'yes_no') {
+        console.log('Creating yes/no chart for:', comparison);
+        return createPieChart(canvas, comparison, 'Yes/No Comparison');
+      } else if (questionType === 'rating' || questionType === 'scale') {
+        return createBarChart(canvas, comparison, `${questionType.charAt(0).toUpperCase() + questionType.slice(1)} Comparison`);
+      } else {
+        return createBarChart(canvas, comparison, 'Value Comparison');
+      }
+    } catch (error) {
+      console.error(`Error creating chart for question type ${questionType}:`, error);
+      // Create error message on canvas
+      const ctx = canvas.getContext('2d');
+      if (ctx) {
+        ctx.fillStyle = '#EF4444';
+        ctx.font = '14px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('Error rendering chart', canvas.width / 2, canvas.height / 2);
+      }
+      return canvas;
+    }
+  }
+  
+  function createDoughnutChart(canvas: HTMLCanvasElement, comparison: any, title: string) {
+    const choiceData = getChoiceDistributionData(comparison);
+    
+    // Create subtitle with meaningful information
+    const period1Info = formatValue(comparison.period1.value, comparison.metric_type, true, comparison.metric_name, false, comparison, comparison.period1);
+    const period2Info = formatValue(comparison.period2.value, comparison.metric_type, true, comparison.metric_name, false, comparison, comparison.period2);
+    
+    const chart = new Chart(canvas, {
+      type: 'doughnut',
+      data: {
+        labels: choiceData.labels,
+        datasets: [
+          {
+            label: 'Period 1',
+            data: choiceData.period1Data,
+            backgroundColor: [
+              '#3B82F680', '#EF444480', '#F59E0B80', '#10B98180', '#8B5CF680', '#F97316A0'
+            ],
+            borderColor: [
+              '#3B82F6', '#EF4444', '#F59E0B', '#10B981', '#8B5CF6', '#F97316'
+            ],
+            borderWidth: 2
+          },
+          {
+            label: 'Period 2',
+            data: choiceData.period2Data,
+            backgroundColor: [
+              '#3B82F6B0', '#EF4444B0', '#F59E0BB0', '#10B981B0', '#8B5CF6B0', '#F97316B0'
+            ],
+            borderColor: [
+              '#3B82F6', '#EF4444', '#F59E0B', '#10B981', '#8B5CF6', '#F97316'
+            ],
+            borderWidth: 2
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          title: { 
+            display: true, 
+            text: formatChartTitle(title, period1Info, period2Info),
+            font: { size: 12 }
+          },
+          legend: { position: 'bottom' },
+          tooltip: {
+            callbacks: {
+              label: (context) => `${context.dataset.label} - ${context.label}: ${context.parsed} selections`
+            }
+          }
+        }
+      }
+    });
+    
+    chartInstances.push(chart);
+    return canvas;
+  }
 
-  // Re-render when data changes
+  function createPolarChart(canvas: HTMLCanvasElement, comparison: any, title: string) {
+    const choiceData = getChoiceDistributionData(comparison);
+    
+    // Create subtitle with meaningful information
+    const period1Info = formatValue(comparison.period1.value, comparison.metric_type, true, comparison.metric_name, false, comparison, comparison.period1);
+    const period2Info = formatValue(comparison.period2.value, comparison.metric_type, true, comparison.metric_name, false, comparison, comparison.period2);
+    
+    // For polar charts, use grouped bar instead for better comparison
+    const chart = new Chart(canvas, {
+      type: 'bar',
+      data: {
+        labels: choiceData.labels,
+        datasets: [
+          {
+            label: 'Period 1',
+            data: choiceData.period1Data,
+            backgroundColor: '#3B82F680',
+            borderColor: '#3B82F6',
+            borderWidth: 2,
+            maxBarThickness: 60,
+            barPercentage: 0.8,
+            categoryPercentage: 0.9
+          },
+          {
+            label: 'Period 2', 
+            data: choiceData.period2Data,
+            backgroundColor: '#10B98180',
+            borderColor: '#10B981',
+            borderWidth: 2,
+            maxBarThickness: 60,
+            barPercentage: 0.8,
+            categoryPercentage: 0.9
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          title: { 
+            display: true, 
+            text: formatChartTitle(title, period1Info, period2Info),
+            font: { size: 12 }
+          },
+          legend: { position: 'bottom' },
+          tooltip: {
+            callbacks: {
+              label: (context) => `${context.dataset.label}: ${context.parsed.y} selections`
+            }
+          }
+        },
+        scales: {
+          y: {
+            beginAtZero: true,
+            grid: { display: true }
+          },
+          x: {
+            grid: { display: false }
+          }
+        }
+      }
+    });
+    
+    chartInstances.push(chart);
+    return canvas;
+  }
+
+  function createPieChart(canvas: HTMLCanvasElement, comparison: any, title: string) {
+    // For yes/no questions, handle different data formats
+    console.log('Yes/No chart data:', comparison);
+    let chartData;
+    
+    if (comparison.period1.choice_distribution || comparison.period2.choice_distribution) {
+      // Use choice distribution if available
+      console.log('Using choice distribution for yes/no');
+      chartData = getChoiceDistributionData(comparison);
+    } else {
+      // Fallback to regular value data for yes/no
+      console.log('Using fallback data for yes/no');
+      chartData = {
+        labels: ['Period 1', 'Period 2'],
+        period1Data: [comparison.period1.average || comparison.period1.value || 0],
+        period2Data: [comparison.period2.average || comparison.period2.value || 0]
+      };
+    }
+    
+    console.log('Final yes/no chart data:', chartData);
+    
+    // Create subtitle with meaningful information
+    const period1Info = formatValue(comparison.period1.average || comparison.period1.value || 0, comparison.metric_type, true, comparison.metric_name, false, comparison, comparison.period1);
+    const period2Info = formatValue(comparison.period2.average || comparison.period2.value || 0, comparison.metric_type, true, comparison.metric_name, false, comparison, comparison.period2);
+    
+    // For yes/no questions, use simple bar chart showing period comparison
+    const chart = new Chart(canvas, {
+      type: 'bar',
+      data: {
+        labels: ['Period 1', 'Period 2'],
+        datasets: [{
+          label: 'Value',
+          data: [
+            comparison.period1.average || comparison.period1.value || 0,
+            comparison.period2.average || comparison.period2.value || 0
+          ],
+          backgroundColor: ['#3B82F680', '#10B98180'],
+          borderColor: ['#3B82F6', '#10B981'],
+          borderWidth: 2,
+          maxBarThickness: 80,
+          barPercentage: 0.7,
+          categoryPercentage: 0.8
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          title: { 
+            display: true, 
+            text: formatChartTitle(title, period1Info, period2Info),
+            font: { size: 12 }
+          },
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              label: (context) => {
+                const period = context.label;
+                const value = context.parsed.y;
+                const formattedValue = formatValue(value, comparison.metric_type, true, comparison.metric_name, false, comparison, period === 'Period 1' ? comparison.period1 : comparison.period2);
+                return `${period}: ${formattedValue.split('\n')[0]}`;
+              }
+            }
+          }
+        },
+        scales: {
+          y: {
+            beginAtZero: true,
+            grid: { display: true }
+          },
+          x: {
+            grid: { display: false }
+          }
+        }
+      }
+    });
+    
+    chartInstances.push(chart);
+    return canvas;
+  }
+
+  function createBarChart(canvas: HTMLCanvasElement, comparison: any, title: string) {
+    const valueData = [
+      comparison.period1.average || comparison.period1.value,
+      comparison.period2.average || comparison.period2.value
+    ];
+    
+    // Create subtitle with meaningful information
+    const period1Info = formatValue(valueData[0], comparison.metric_type, true, comparison.metric_name, true, comparison, comparison.period1);
+    const period2Info = formatValue(valueData[1], comparison.metric_type, true, comparison.metric_name, true, comparison, comparison.period2);
+    
+    // Check if this is a sentiment metric
+    const isSentiment = comparison.metric_type.includes('sentiment') || 
+                       comparison.metric_type.includes('text') ||
+                       (Math.abs(valueData[0]) <= 1 && Math.abs(valueData[1]) <= 1);
+    
+    // Check if this is a count/response metric
+    const isCount = comparison.metric_type === 'survey_responses' || 
+                   comparison.metric_type.includes('count');
+    
+    const chart = new Chart(canvas, {
+      type: 'bar',
+      data: {
+        labels: ['Period 1', 'Period 2'],
+        datasets: [{
+          label: 'Value',
+          data: valueData,
+          backgroundColor: isSentiment 
+            ? valueData.map(v => v >= 0 ? '#10B98180' : '#EF444480')
+            : ['#3B82F680', '#10B98180'],
+          borderColor: isSentiment 
+            ? valueData.map(v => v >= 0 ? '#10B981' : '#EF4444')
+            : ['#3B82F6', '#10B981'],
+          borderWidth: 2,
+          maxBarThickness: 80,
+          barPercentage: 0.7,
+          categoryPercentage: 0.8
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          title: { 
+            display: true, 
+            text: formatChartTitle(title, period1Info, period2Info),
+            font: { size: 12 }
+          },
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              label: (context) => {
+                const period = context.label;
+                const value = context.parsed.y;
+                // For survey responses, ensure we show integers
+                if (comparison.metric_type === 'survey_responses' || 
+                    comparison.metric_type.includes('count')) {
+                  return `${period}: ${Math.round(value).toLocaleString()} responses`;
+                }
+                const formattedValue = formatValue(value, comparison.metric_type, true, comparison.metric_name, true, comparison, period === 'Period 1' ? comparison.period1 : comparison.period2);
+                return `${period}: ${formattedValue.split('\n')[0]}`;
+              }
+            }
+          }
+        },
+        scales: {
+          y: {
+            beginAtZero: isCount || !isSentiment,
+            grid: { display: true },
+            ticks: {
+              callback: function(value: any) {
+                // Check if this is a survey response count
+                if (comparison.metric_type === 'survey_responses' || 
+                    comparison.metric_type.includes('count') ||
+                    comparison.metric_name?.toLowerCase().includes('responses')) {
+                  return Math.round(value).toLocaleString();
+                }
+                // Check if this is a sentiment metric (values between -1 and 1)
+                if (comparison.metric_type.includes('sentiment') || 
+                    comparison.metric_type.includes('text') ||
+                    (Math.abs(valueData[0]) <= 1 && Math.abs(valueData[1]) <= 1)) {
+                  const getSentimentLabel = (score: number) => {
+                    if (score >= 0.5) return "Very Positive";
+                    if (score >= 0.1) return "Positive";
+                    if (score >= -0.1) return "Neutral";
+                    if (score >= -0.5) return "Negative";
+                    return "Very Negative";
+                  };
+                  return `${value.toFixed(1)} (${getSentimentLabel(value)})`;
+                }
+                return value;
+              },
+              // Force integer steps for survey responses
+              stepSize: (comparison.metric_type === 'survey_responses' || 
+                       comparison.metric_type.includes('count')) ? 1 : undefined
+            }
+          }
+        }
+      }
+    });
+    
+    chartInstances.push(chart);
+    return canvas;
+  }
+
+  function getChoiceDistributionData(comparison: any) {
+    const allChoices = new Set();
+    if (comparison.period1.choice_distribution) {
+      Object.keys(comparison.period1.choice_distribution).forEach(choice => allChoices.add(choice));
+    }
+    if (comparison.period2.choice_distribution) {
+      Object.keys(comparison.period2.choice_distribution).forEach(choice => allChoices.add(choice));
+    }
+    
+    const labels = Array.from(allChoices);
+    const period1Data = labels.map(choice => comparison.period1.choice_distribution?.[choice] || 0);
+    const period2Data = labels.map(choice => comparison.period2.choice_distribution?.[choice] || 0);
+    
+    return { labels, period1Data, period2Data };
+  }
+
+  function formatChartTitle(title: string, period1Info: string, period2Info: string): string[] {
+    const titleLines = [title];
+    
+    // Split period info by newlines to handle scale labels properly
+    const period1Lines = period1Info.split('\n');
+    const period2Lines = period2Info.split('\n');
+    
+    // Add main period values
+    titleLines.push(`Period 1: ${period1Lines[0]}`);
+    titleLines.push(`Period 2: ${period2Lines[0]}`);
+    
+    // Add scale labels if they exist (for scale questions)
+    if (period1Lines.length > 1 && period1Lines[1]) {
+      titleLines.push(period1Lines[1]);
+    }
+    
+    return titleLines;
+  }
+
+  // Re-render when data or view mode changes
   $effect(() => {
-    if (mounted) {
-      renderChart();
+    if (mounted && viewMode === 'chart') {
+      // Small delay to ensure DOM is ready
+      setTimeout(() => {
+        renderCharts();
+      }, 100);
+    }
+  });
+
+  // Re-render charts when comparison data changes
+  $effect(() => {
+    // Watch for changes in comparisons data
+    comparisons.length;
+    if (mounted && viewMode === 'chart' && comparisons.length > 0) {
+      setTimeout(() => {
+        renderCharts();
+      }, 50);
     }
   });
 
   onMount(() => {
     mounted = true;
-    renderChart();
+    if (viewMode === 'chart') {
+      renderCharts();
+    }
+  });
+
+  onDestroy(() => {
+    // Clean up all chart instances
+    chartInstances.forEach(chart => {
+      if (chart) {
+        chart.destroy();
+      }
+    });
+    chartInstances = [];
   });
 </script>
 
@@ -1076,6 +1543,7 @@
         <!-- Enhanced Chart View -->
         <div
           class="bg-white border border-gray-200 rounded-xl p-6 mb-8 shadow-sm"
+          style="height: auto; min-height: 0;"
         >
           <div class="flex items-center justify-between mb-4">
             <h4 class="text-lg font-semibold text-gray-900">
@@ -1087,13 +1555,12 @@
             </div>
           </div>
 
-          {#if plotData.length > 0}
-            <!-- Observable Plot Chart -->
-            <div
-              bind:this={chartContainer}
-              class="chart-container w-full mb-6"
-            ></div>
-          {/if}
+          <!-- Charts Container -->
+          <div
+            bind:this={chartContainer}
+            class="chart-container w-full mb-6 min-h-0"
+            style="height: auto; overflow: visible;"
+          ></div>
         </div>
       {/if}
 
@@ -1178,9 +1645,13 @@
 </div>
 
 <style>
+  .chart-container {
+    min-height: 200px;
+  }
+  
   .chart-container :global(svg) {
-    width: 100% !important;
-    height: auto !important;
+    max-width: 100%;
+    height: auto;
   }
 
   .chart-container :global(.plot-title) {

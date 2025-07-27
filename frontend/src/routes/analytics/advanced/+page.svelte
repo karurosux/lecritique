@@ -669,7 +669,7 @@
       </Card>
       
       <!-- Comparison Chart -->
-      <Card class="p-6">
+      <Card class="p-6" style="height: auto; min-height: 0;">
         {#if comparisonData}
           <ComparisonChart data={comparisonData} />
         {:else}
