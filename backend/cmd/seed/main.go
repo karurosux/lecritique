@@ -421,6 +421,7 @@ func createTourQuestionnaires(db *gorm.DB, orgID string, productIDs map[string]s
 				{"How would you rate your overall tour experience?", "rating", true, nil},
 				{"How knowledgeable was your tour guide?", "scale", true, nil},
 				{"Would you recommend this tour to friends?", "yes_no", true, nil},
+				{"What type of tour experience do you prefer?", "single_choice", true, []string{"Historical sites", "Cultural experiences", "Nature/Scenic", "Food & Dining", "Adventure activities"}},
 				{"What did you enjoy most about the tour?", "text", false, nil},
 				{"What aspects could we improve?", "multi_choice", false, []string{"Guide knowledge", "Tour duration", "Group size", "Meeting point", "Price value", "Route selection"}},
 				{"Overall satisfaction level", "scale", true, nil},
@@ -474,6 +475,7 @@ func createPrintQuestionnaires(db *gorm.DB, orgID string, productIDs map[string]
 				{"How satisfied are you with our service?", "rating", true, nil},
 				{"How was the waiting time?", "scale", true, nil},
 				{"Would you use our services again?", "yes_no", true, nil},
+				{"What time of day do you typically visit us?", "single_choice", false, []string{"Morning (8-11 AM)", "Midday (11 AM-2 PM)", "Afternoon (2-5 PM)", "Evening (5-8 PM)"}},
 				{"Quality of the service/materials", "rating", true, nil},
 				{"Staff helpfulness", "rating", true, nil},
 				{"Any suggestions for improvement?", "text", false, nil},
@@ -490,10 +492,16 @@ func createPrintQuestionnaires(db *gorm.DB, orgID string, productIDs map[string]
 			}
 
 			for i, q := range questions {
+				var optionsParam interface{}
+				if q.options != nil {
+					// Convert to PostgreSQL array format
+					optionsParam = fmt.Sprintf("{%s}", joinStringSlice(q.options, ","))
+				}
+				
 				err = db.Exec(`
 					INSERT INTO questions (product_id, text, type, is_required, options, display_order)
 					VALUES (?, ?, ?, ?, ?, ?)
-				`, productID, q.text, q.qtype, q.required, nil, i+1).Error
+				`, productID, q.text, q.qtype, q.required, optionsParam, i+1).Error
 				
 				if err != nil {
 					fmt.Printf("Failed to create question for %s: %v\n", productName, err)
@@ -651,6 +659,15 @@ func createFeedback(db *gorm.DB, orgID string, qrCodeIDs map[string]string, prod
 						answer = "yes"
 					} else {
 						answer = "no"
+					}
+				case "single_choice":
+					// Select one random option
+					if q.Options != nil && *q.Options != "" {
+						// Parse PostgreSQL array format: {option1,option2,option3}
+						optionsArray := parsePostgreSQLArray(*q.Options)
+						if len(optionsArray) > 0 {
+							answer = optionsArray[rand.Intn(len(optionsArray))]
+						}
 					}
 				case "multi_choice":
 					// Select 1-3 random options

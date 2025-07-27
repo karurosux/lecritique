@@ -736,11 +736,23 @@ func (s *timeSeriesService) aggregatePeriodMetrics(metrics []models.TimeSeriesMe
 	var dataPoints []models.TimeSeriesPoint
 	
 	isYesNoQuestion := false
+	isSingleChoiceQuestion := false
+	isMultiChoiceQuestion := false
+	var questionID *uuid.UUID
+	
 	if len(metrics) > 0 && metrics[0].Metadata != nil {
 		fmt.Printf("DEBUG: Metadata=%s, MetricType=%s\n", *metrics[0].Metadata, metrics[0].MetricType)
 		if strings.Contains(*metrics[0].Metadata, `"question_type": "yes_no"`) {
 			isYesNoQuestion = true
 			fmt.Printf("DEBUG: Detected yes/no question\n")
+		} else if strings.Contains(*metrics[0].Metadata, `"question_type": "single_choice"`) {
+			isSingleChoiceQuestion = true
+			questionID = metrics[0].QuestionID
+			fmt.Printf("DEBUG: Detected single choice question\n")
+		} else if strings.Contains(*metrics[0].Metadata, `"question_type": "multi_choice"`) {
+			isMultiChoiceQuestion = true
+			questionID = metrics[0].QuestionID
+			fmt.Printf("DEBUG: Detected multi choice question\n")
 		}
 	}
 	
@@ -782,7 +794,7 @@ func (s *timeSeriesService) aggregatePeriodMetrics(metrics []models.TimeSeriesMe
 		}
 	}
 	
-	return models.TimePeriodMetrics{
+	result := models.TimePeriodMetrics{
 		StartDate:  startDate,
 		EndDate:    endDate,
 		Value:      value,
@@ -792,6 +804,16 @@ func (s *timeSeriesService) aggregatePeriodMetrics(metrics []models.TimeSeriesMe
 		Max:        max,
 		DataPoints: dataPoints,
 	}
+	
+	// For choice questions, get choice distribution
+	if (isSingleChoiceQuestion || isMultiChoiceQuestion) && questionID != nil {
+		choiceDistribution, mostPopular, topChoices := s.getChoiceDistribution(context.Background(), *questionID, startDate, endDate, isMultiChoiceQuestion)
+		result.ChoiceDistribution = choiceDistribution
+		result.MostPopularChoice = mostPopular
+		result.TopChoices = topChoices
+	}
+	
+	return result
 }
 
 func (s *timeSeriesService) calculateStatistics(points []models.TimeSeriesPoint) models.TimeSeriesStats {
@@ -931,6 +953,106 @@ func (s *timeSeriesService) generateInsights(comparisons []models.TimeSeriesComp
 	}
 	
 	return insights
+}
+
+func (s *timeSeriesService) getChoiceDistribution(ctx context.Context, questionID uuid.UUID, startDate, endDate time.Time, isMultiChoice bool) (map[string]int64, *models.ChoiceInfo, []models.ChoiceInfo) {
+	// Get all feedback responses for this question within the time period
+	feedbacks, err := s.feedbackRepo.FindByQuestionInPeriod(ctx, questionID, startDate, endDate)
+	if err != nil {
+		logger.Error("Failed to get feedback for choice distribution", err, logrus.Fields{
+			"question_id": questionID,
+			"start_date":  startDate,
+			"end_date":    endDate,
+		})
+		return nil, nil, nil
+	}
+	
+	choiceDistribution := make(map[string]int64)
+	
+	// Count choices
+	for _, feedback := range feedbacks {
+		if feedback.Responses != nil {
+			for _, response := range feedback.Responses {
+				if response.QuestionID == questionID {
+					if isMultiChoice {
+						// For multiple choice, the answer might be an array or comma-separated string
+						switch answer := response.Answer.(type) {
+						case []interface{}:
+							// Handle array of choices
+							for _, choice := range answer {
+								if choiceStr, ok := choice.(string); ok && choiceStr != "" {
+									choiceDistribution[choiceStr]++
+								}
+							}
+						case string:
+							// Handle comma-separated string or single choice
+							if answer != "" {
+								// Try to split by comma in case it's multiple selections
+								choices := strings.Split(answer, ",")
+								for _, choice := range choices {
+									trimmedChoice := strings.TrimSpace(choice)
+									if trimmedChoice != "" {
+										choiceDistribution[trimmedChoice]++
+									}
+								}
+							}
+						}
+					} else {
+						// Single choice - convert answer to string
+						if answerStr, ok := response.Answer.(string); ok && answerStr != "" {
+							choiceDistribution[answerStr]++
+						}
+					}
+				}
+			}
+		}
+	}
+	
+	// Find most popular choice
+	var mostPopular *models.ChoiceInfo
+	var maxCount int64 = 0
+	
+	for choice, count := range choiceDistribution {
+		if count > maxCount {
+			maxCount = count
+			mostPopular = &models.ChoiceInfo{
+				Choice: choice,
+				Count:  count,
+			}
+		}
+	}
+	
+	// Get top 3 choices sorted by count
+	var topChoices []models.ChoiceInfo
+	type choicePair struct {
+		choice string
+		count  int64
+	}
+	
+	var choices []choicePair
+	for choice, count := range choiceDistribution {
+		choices = append(choices, choicePair{choice: choice, count: count})
+	}
+	
+	// Sort by count (descending)
+	sort.Slice(choices, func(i, j int) bool {
+		return choices[i].count > choices[j].count
+	})
+	
+	// Take top 3
+	limit := 3
+	if len(choices) < limit {
+		limit = len(choices)
+	}
+	
+	for i := 0; i < limit; i++ {
+		topChoices = append(topChoices, models.ChoiceInfo{
+			Choice: choices[i].choice,
+			Count:  choices[i].count,
+		})
+	}
+	
+	return choiceDistribution, mostPopular, topChoices
 }
 
 func (s *timeSeriesService) CleanupOldMetrics(ctx context.Context, retentionDays int) error {

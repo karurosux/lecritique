@@ -39,6 +39,7 @@ type FeedbackRepository interface {
 	// Analytics methods
 	FindByOrganizationIDForAnalytics(ctx context.Context, organizationID uuid.UUID, limit int) ([]models.Feedback, error)
 	FindByProductIDForAnalytics(ctx context.Context, productID uuid.UUID, limit int) ([]models.Feedback, error)
+	FindByQuestionInPeriod(ctx context.Context, questionID uuid.UUID, startDate, endDate time.Time) ([]models.Feedback, error)
 	GetQuestionsByProductID(ctx context.Context, productID uuid.UUID) ([]models.Question, error)
 }
 
@@ -485,6 +486,28 @@ func (r *feedbackRepository) FindByProductIDForAnalytics(ctx context.Context, pr
 		Order("created_at DESC").
 		Find(&feedbacks).Error
 	return feedbacks, err
+}
+
+func (r *feedbackRepository) FindByQuestionInPeriod(ctx context.Context, questionID uuid.UUID, startDate, endDate time.Time) ([]models.Feedback, error) {
+	var feedbacks []models.Feedback
+	
+	// Query feedback where responses contain the specified question ID and within the date range
+	err := r.DB.WithContext(ctx).
+		Where("created_at >= ? AND created_at <= ?", startDate, endDate).
+		Where("responses::jsonb @> ?", fmt.Sprintf(`[{"question_id": "%s"}]`, questionID)).
+		Find(&feedbacks).Error
+	
+	if err != nil {
+		return nil, err
+	}
+	
+	// Populate question data for responses
+	if err := r.populateQuestionDataBatch(ctx, feedbacks); err != nil {
+		// Log error but continue since we still have the core feedback data
+		fmt.Printf("Error populating question data for choice distribution: %v\n", err)
+	}
+	
+	return feedbacks, nil
 }
 
 func (r *feedbackRepository) GetQuestionsByProductID(ctx context.Context, productID uuid.UUID) ([]models.Question, error) {

@@ -47,14 +47,23 @@ type TimeSeriesComparison struct {
 
 // TimePeriodMetrics represents metrics for a specific time period
 type TimePeriodMetrics struct {
-	StartDate     time.Time          `json:"start_date"`
-	EndDate       time.Time          `json:"end_date"`
-	Value         float64            `json:"value"`
-	Count         int64              `json:"count"`
-	Average       float64            `json:"average"`
-	Min           float64            `json:"min"`
-	Max           float64            `json:"max"`
-	DataPoints    []TimeSeriesPoint  `json:"data_points"`
+	StartDate        time.Time           `json:"start_date"`
+	EndDate          time.Time           `json:"end_date"`
+	Value            float64             `json:"value"`
+	Count            int64               `json:"count"`
+	Average          float64             `json:"average"`
+	Min              float64             `json:"min"`
+	Max              float64             `json:"max"`
+	DataPoints       []TimeSeriesPoint   `json:"data_points"`
+	ChoiceDistribution map[string]int64   `json:"choice_distribution,omitempty"`
+	MostPopularChoice  *ChoiceInfo        `json:"most_popular_choice,omitempty"`
+	TopChoices         []ChoiceInfo       `json:"top_choices,omitempty"`
+}
+
+// ChoiceInfo represents information about a choice option
+type ChoiceInfo struct {
+	Choice string `json:"choice"`
+	Count  int64  `json:"count"`
 }
 
 // TimeSeriesPoint represents a single point in a time series chart

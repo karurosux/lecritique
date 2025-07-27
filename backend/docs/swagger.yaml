@@ -374,6 +374,13 @@ definitions:
     required:
     - product_ids
     type: object
+  models.ChoiceInfo:
+    properties:
+      choice:
+        type: string
+      count:
+        type: integer
+    type: object
   models.ComparisonInsight:
     properties:
       change:
@@ -925,6 +932,11 @@ definitions:
     properties:
       average:
         type: number
+      choice_distribution:
+        additionalProperties:
+          format: int64
+          type: integer
+        type: object
       count:
         type: integer
       data_points:
@@ -937,8 +949,14 @@ definitions:
         type: number
       min:
         type: number
+      most_popular_choice:
+        $ref: '#/definitions/models.ChoiceInfo'
       start_date:
         type: string
+      top_choices:
+        items:
+          $ref: '#/definitions/models.ChoiceInfo'
+        type: array
       value:
         type: number
     type: object
@@ -948,6 +966,8 @@ definitions:
         type: number
       change_percent:
         type: number
+      metadata:
+        type: string
       metric_name:
         type: string
       metric_type:
@@ -3111,7 +3131,8 @@ paths:
     post:
       consumes:
       - application/json
-      description: Get all questions for multiple products in a single request
+      description: Get essential question fields for multiple products in a single
+        request - returns only ID, ProductID, Text, and Type
       parameters:
       - description: Organization ID
         in: path
@@ -3159,7 +3180,7 @@ paths:
             type: object
       security:
       - BearerAuth: []
-      summary: Get questions for multiple products
+      summary: Get questions for multiple products (optimized payload)
       tags:
       - questions
   /api/v1/organizations/{organizationId}/questions/products-with-questions:

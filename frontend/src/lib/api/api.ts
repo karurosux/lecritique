@@ -252,6 +252,11 @@ export interface ModelsBatchQuestionsRequest {
   product_ids: string[];
 }
 
+export interface ModelsChoiceInfo {
+  choice?: string;
+  count?: number;
+}
+
 export interface ModelsComparisonInsight {
   change?: number;
   message?: string;
@@ -516,18 +521,22 @@ export interface ModelsTeamMember {
 
 export interface ModelsTimePeriodMetrics {
   average?: number;
+  choice_distribution?: Record<string, number>;
   count?: number;
   data_points?: ModelsTimeSeriesPoint[];
   end_date?: string;
   max?: number;
   min?: number;
+  most_popular_choice?: ModelsChoiceInfo;
   start_date?: string;
+  top_choices?: ModelsChoiceInfo[];
   value?: number;
 }
 
 export interface ModelsTimeSeriesComparison {
   change?: number;
   change_percent?: number;
+  metadata?: string;
   metric_name?: string;
   metric_type?: string;
   period1?: ModelsTimePeriodMetrics;
@@ -1991,11 +2000,11 @@ export class Api<
       }),
 
     /**
-     * @description Get all questions for multiple products in a single request
+     * @description Get essential question fields for multiple products in a single request - returns only ID, ProductID, Text, and Type
      *
      * @tags questions
      * @name V1OrganizationsQuestionsBatchCreate
-     * @summary Get questions for multiple products
+     * @summary Get questions for multiple products (optimized payload)
      * @request POST:/api/v1/organizations/{organizationId}/questions/batch
      * @secure
      */

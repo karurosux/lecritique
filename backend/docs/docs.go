@@ -3151,7 +3151,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Get all questions for multiple products in a single request",
+                "description": "Get essential question fields for multiple products in a single request - returns only ID, ProductID, Text, and Type",
                 "consumes": [
                     "application/json"
                 ],
@@ -3161,7 +3161,7 @@ const docTemplate = `{
                 "tags": [
                     "questions"
                 ],
-                "summary": "Get questions for multiple products",
+                "summary": "Get questions for multiple products (optimized payload)",
                 "parameters": [
                     {
                         "type": "string",
@@ -5888,6 +5888,17 @@ const docTemplate = `{
                 }
             }
         },
+        "models.ChoiceInfo": {
+            "type": "object",
+            "properties": {
+                "choice": {
+                    "type": "string"
+                },
+                "count": {
+                    "type": "integer"
+                }
+            }
+        },
         "models.ComparisonInsight": {
             "type": "object",
             "properties": {
@@ -6699,6 +6710,13 @@ const docTemplate = `{
                 "average": {
                     "type": "number"
                 },
+                "choice_distribution": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "integer",
+                        "format": "int64"
+                    }
+                },
                 "count": {
                     "type": "integer"
                 },
@@ -6717,8 +6735,17 @@ const docTemplate = `{
                 "min": {
                     "type": "number"
                 },
+                "most_popular_choice": {
+                    "$ref": "#/definitions/models.ChoiceInfo"
+                },
                 "start_date": {
                     "type": "string"
+                },
+                "top_choices": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.ChoiceInfo"
+                    }
                 },
                 "value": {
                     "type": "number"
@@ -6733,6 +6760,9 @@ const docTemplate = `{
                 },
                 "change_percent": {
                     "type": "number"
+                },
+                "metadata": {
+                    "type": "string"
                 },
                 "metric_name": {
                     "type": "string"

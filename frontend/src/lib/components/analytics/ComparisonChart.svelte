@@ -96,9 +96,30 @@
           return `${baseValue}\n${minLabel} → ${maxLabel}`;
         }
         return baseValue;
-      } else if (questionType === 'single_choice' || questionType === 'multi_choice') {
-        // Choice questions
-        return isAverage ? value.toFixed(2) + " avg" : value.toFixed(0) + " total";
+      } else if (questionType === 'single_choice') {
+        // Single choice questions - show most popular choice if available
+        if (periodData?.most_popular_choice) {
+          return `"${periodData.most_popular_choice.choice}" (${periodData.most_popular_choice.count})`;
+        }
+        // Fallback to response count
+        if (includeUnits) {
+          return `${value.toFixed(0)} responses`;
+        }
+        return value.toFixed(0);
+      } else if (questionType === 'multi_choice') {
+        // Multi choice questions - show top 3 choices if available
+        if (periodData?.top_choices && periodData.top_choices.length > 0) {
+          const topChoicesText = periodData.top_choices
+            .slice(0, 3)
+            .map(choice => `${choice.choice} (${choice.count})`)
+            .join(', ');
+          return topChoicesText;
+        }
+        // Fallback to response count
+        if (includeUnits) {
+          return `${value.toFixed(0)} responses`;
+        }
+        return value.toFixed(0);
       } else if (questionType === 'text') {
         // Text sentiment - convert numerical score to meaningful description
         const getSentimentLabel = (score) => {
@@ -521,14 +542,25 @@
         <!-- Enhanced Interactive Comparison Cards -->
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
           {#each comparisons as comparison}
+            {@const isChoiceQuestion = (() => {
+              try {
+                if (comparison.metadata) {
+                  const metadata = JSON.parse(comparison.metadata);
+                  return metadata.question_type === 'single_choice' || metadata.question_type === 'multi_choice';
+                }
+              } catch (e) {}
+              return false;
+            })()}
             {@const isPositiveTrend = comparison.trend === 'improving' || 
               (comparison.metric_type.includes('rating') && comparison.change_percent > 0) ||
               (comparison.metric_type.includes('recommend') && comparison.change_percent > 0)}
-            {@const trendColorClass = Math.abs(comparison.change_percent) < 5 
-              ? 'from-gray-50 to-gray-100 border-gray-200' 
-              : isPositiveTrend
-                ? 'from-emerald-50 to-green-50 border-emerald-200'
-                : 'from-red-50 to-rose-50 border-red-200'}
+            {@const trendColorClass = isChoiceQuestion
+              ? 'from-blue-50 to-indigo-50 border-blue-200'
+              : Math.abs(comparison.change_percent) < 5 
+                ? 'from-gray-50 to-gray-100 border-gray-200' 
+                : isPositiveTrend
+                  ? 'from-emerald-50 to-green-50 border-emerald-200'
+                  : 'from-red-50 to-rose-50 border-red-200'}
             
             <div
               class="group relative bg-gradient-to-br {trendColorClass} rounded-2xl border-2 transition-all duration-300 hover:shadow-xl hover:scale-[1.02] overflow-hidden"
@@ -611,32 +643,74 @@
                   </div>
                   
                   <!-- Trend Indicator -->
-                  <div class="flex flex-col items-end gap-1">
-                    <div class="flex items-center gap-2 bg-white/90 rounded-xl px-3 py-2 shadow-md">
-                      {#snippet trendIcon()}
-                        {@const TrendIcon = getTrendIcon(comparison.trend)}
-                        <TrendIcon
-                          class="w-5 h-5 {Math.abs(comparison.change_percent) < 5 
-                            ? 'text-gray-500'
-                            : isPositiveTrend ? 'text-emerald-600' : 'text-red-600'}"
-                        />
-                      {/snippet}
-                      {@render trendIcon()}
-                      <span
-                        class="font-bold text-lg {Math.abs(comparison.change_percent) < 5 
-                          ? 'text-gray-700'
-                          : isPositiveTrend ? 'text-emerald-700' : 'text-red-700'}"
-                      >
-                        {comparison.change_percent > 0 ? "+" : ""}{comparison.change_percent.toFixed(1)}%
+                  {#if (() => {
+                    try {
+                      if (comparison.metadata) {
+                        const metadata = JSON.parse(comparison.metadata);
+                        return metadata.question_type !== 'single_choice' && metadata.question_type !== 'multi_choice';
+                      }
+                    } catch (e) {}
+                    return true;
+                  })()}
+                    <div class="flex flex-col items-end gap-1">
+                      <div class="flex items-center gap-2 bg-white/90 rounded-xl px-3 py-2 shadow-md">
+                        {#snippet trendIcon()}
+                          {@const TrendIcon = getTrendIcon(comparison.trend)}
+                          <TrendIcon
+                            class="w-5 h-5 {Math.abs(comparison.change_percent) < 5 
+                              ? 'text-gray-500'
+                              : isPositiveTrend ? 'text-emerald-600' : 'text-red-600'}"
+                          />
+                        {/snippet}
+                        {@render trendIcon()}
+                        <span
+                          class="font-bold text-lg {Math.abs(comparison.change_percent) < 5 
+                            ? 'text-gray-700'
+                            : isPositiveTrend ? 'text-emerald-700' : 'text-red-700'}"
+                        >
+                          {comparison.change_percent > 0 ? "+" : ""}{comparison.change_percent.toFixed(1)}%
+                        </span>
+                      </div>
+                      <span class="text-xs font-medium {Math.abs(comparison.change_percent) < 5 
+                        ? 'text-gray-500'
+                        : isPositiveTrend ? 'text-emerald-600' : 'text-red-600'}">
+                        {Math.abs(comparison.change_percent) < 5 ? 'Stable' : isPositiveTrend ? 'Improving' : 'Declining'}
                       </span>
                     </div>
-                    <span class="text-xs font-medium {Math.abs(comparison.change_percent) < 5 
-                      ? 'text-gray-500'
-                      : isPositiveTrend ? 'text-emerald-600' : 'text-red-600'}">
-                      {Math.abs(comparison.change_percent) < 5 ? 'Stable' : isPositiveTrend ? 'Improving' : 'Declining'}
-                    </span>
-                  </div>
+                  {/if}
                 </div>
+
+                <!-- Choice Question Note -->
+                {#if (() => {
+                  try {
+                    if (comparison.metadata) {
+                      const metadata = JSON.parse(comparison.metadata);
+                      return metadata.question_type === 'single_choice' || metadata.question_type === 'multi_choice';
+                    }
+                  } catch (e) {}
+                  return false;
+                })()}
+                  <div class="bg-blue-50/80 border border-blue-200/50 rounded-lg p-3 mb-4">
+                    <div class="flex items-start gap-2">
+                      <Info class="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
+                      <div class="text-xs text-blue-800">
+                        <span class="font-medium">Note:</span> {(() => {
+                          try {
+                            if (comparison.metadata) {
+                              const metadata = JSON.parse(comparison.metadata);
+                              if (metadata.question_type === 'single_choice') {
+                                return 'For single choice questions, this comparison shows the most popular choice selected in each period.';
+                              } else if (metadata.question_type === 'multi_choice') {
+                                return 'For multiple choice questions, this comparison shows the top 3 most selected options in each period.';
+                              }
+                            }
+                          } catch (e) {}
+                          return 'For choice questions, this comparison shows the most popular selections in each period.';
+                        })()}
+                      </div>
+                    </div>
+                  </div>
+                {/if}
 
                 <!-- Period Data -->
                 <div class="grid grid-cols-2 gap-4 mb-4">
@@ -650,7 +724,17 @@
                     </div>
                     <div class="space-y-2">
                       <div class="flex justify-between items-center">
-                        <span class="text-xs text-gray-600">Value</span>
+                        <span class="text-xs text-gray-600">{(() => {
+                          try {
+                            if (comparison.metadata) {
+                              const metadata = JSON.parse(comparison.metadata);
+                              if (metadata.question_type === 'single_choice') return 'Top Choice';
+                              if (metadata.question_type === 'multi_choice') return 'Top 3 Choices';
+                              return 'Value';
+                            }
+                          } catch (e) {}
+                          return 'Value';
+                        })()}</span>
                         <div class="flex items-center gap-1 text-right ml-2">
                           <span class="font-bold text-gray-900 text-xs whitespace-pre-line">
                             {formatValue(comparison.period1.value, comparison.metric_type, true, comparison.metric_name, false, comparison, comparison.period1)}
@@ -668,25 +752,35 @@
                           {/if}
                         </div>
                       </div>
-                      <div class="flex justify-between items-center">
-                        <span class="text-xs text-gray-600">Average</span>
-                        <div class="flex items-center gap-1 text-right ml-2">
-                          <span class="font-semibold text-gray-800 text-xs whitespace-pre-line">
-                            {formatValue(comparison.period1.average, comparison.metric_type, true, comparison.metric_name, true, comparison, comparison.period1)}
-                          </span>
-                          {#if (() => {
-                            try {
-                              if (comparison.metadata) {
-                                const metadata = JSON.parse(comparison.metadata);
-                                return metadata.question_type === 'rating';
-                              }
-                            } catch (e) {}
-                            return false;
-                          })()}
-                            <Star class="w-3 h-3 text-yellow-500" />
-                          {/if}
+                      {#if (() => {
+                        try {
+                          if (comparison.metadata) {
+                            const metadata = JSON.parse(comparison.metadata);
+                            return metadata.question_type !== 'single_choice' && metadata.question_type !== 'multi_choice';
+                          }
+                        } catch (e) {}
+                        return true;
+                      })()}
+                        <div class="flex justify-between items-center">
+                          <span class="text-xs text-gray-600">Average</span>
+                          <div class="flex items-center gap-1 text-right ml-2">
+                            <span class="font-semibold text-gray-800 text-xs whitespace-pre-line">
+                              {formatValue(comparison.period1.average, comparison.metric_type, true, comparison.metric_name, true, comparison, comparison.period1)}
+                            </span>
+                            {#if (() => {
+                              try {
+                                if (comparison.metadata) {
+                                  const metadata = JSON.parse(comparison.metadata);
+                                  return metadata.question_type === 'rating';
+                                }
+                              } catch (e) {}
+                              return false;
+                            })()}
+                              <Star class="w-3 h-3 text-yellow-500" />
+                            {/if}
+                          </div>
                         </div>
-                      </div>
+                      {/if}
                       <div class="flex justify-between items-center">
                         <span class="text-xs text-gray-600">Responses</span>
                         <span class="font-medium text-gray-700">
@@ -706,7 +800,17 @@
                     </div>
                     <div class="space-y-2">
                       <div class="flex justify-between items-center">
-                        <span class="text-xs text-gray-600">Value</span>
+                        <span class="text-xs text-gray-600">{(() => {
+                          try {
+                            if (comparison.metadata) {
+                              const metadata = JSON.parse(comparison.metadata);
+                              if (metadata.question_type === 'single_choice') return 'Top Choice';
+                              if (metadata.question_type === 'multi_choice') return 'Top 3 Choices';
+                              return 'Value';
+                            }
+                          } catch (e) {}
+                          return 'Value';
+                        })()}</span>
                         <div class="flex items-center gap-1 text-right ml-2">
                           <span class="font-bold text-gray-900 text-xs whitespace-pre-line">
                             {formatValue(comparison.period2.value, comparison.metric_type, true, comparison.metric_name, false, comparison, comparison.period2)}
@@ -724,25 +828,35 @@
                           {/if}
                         </div>
                       </div>
-                      <div class="flex justify-between items-center">
-                        <span class="text-xs text-gray-600">Average</span>
-                        <div class="flex items-center gap-1 text-right ml-2">
-                          <span class="font-semibold text-gray-800 text-xs whitespace-pre-line">
-                            {formatValue(comparison.period2.average, comparison.metric_type, true, comparison.metric_name, true, comparison, comparison.period2)}
-                          </span>
-                          {#if (() => {
-                            try {
-                              if (comparison.metadata) {
-                                const metadata = JSON.parse(comparison.metadata);
-                                return metadata.question_type === 'rating';
-                              }
-                            } catch (e) {}
-                            return false;
-                          })()}
-                            <Star class="w-3 h-3 text-yellow-500" />
-                          {/if}
+                      {#if (() => {
+                        try {
+                          if (comparison.metadata) {
+                            const metadata = JSON.parse(comparison.metadata);
+                            return metadata.question_type !== 'single_choice' && metadata.question_type !== 'multi_choice';
+                          }
+                        } catch (e) {}
+                        return true;
+                      })()}
+                        <div class="flex justify-between items-center">
+                          <span class="text-xs text-gray-600">Average</span>
+                          <div class="flex items-center gap-1 text-right ml-2">
+                            <span class="font-semibold text-gray-800 text-xs whitespace-pre-line">
+                              {formatValue(comparison.period2.average, comparison.metric_type, true, comparison.metric_name, true, comparison, comparison.period2)}
+                            </span>
+                            {#if (() => {
+                              try {
+                                if (comparison.metadata) {
+                                  const metadata = JSON.parse(comparison.metadata);
+                                  return metadata.question_type === 'rating';
+                                }
+                              } catch (e) {}
+                              return false;
+                            })()}
+                              <Star class="w-3 h-3 text-yellow-500" />
+                            {/if}
+                          </div>
                         </div>
-                      </div>
+                      {/if}
                       <div class="flex justify-between items-center">
                         <span class="text-xs text-gray-600">Responses</span>
                         <span class="font-medium text-gray-700">
@@ -754,21 +868,31 @@
                 </div>
 
                 <!-- Change Summary -->
-                <div class="bg-gradient-to-r from-white/50 to-white/30 rounded-xl p-4 backdrop-blur-sm border border-white/50">
-                  <div class="flex items-center justify-between">
-                    <div class="flex items-center gap-2">
-                      <svg class="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
-                      </svg>
-                      <span class="text-sm font-medium text-gray-700">Net Change</span>
+                {#if (() => {
+                  try {
+                    if (comparison.metadata) {
+                      const metadata = JSON.parse(comparison.metadata);
+                      return metadata.question_type !== 'single_choice' && metadata.question_type !== 'multi_choice';
+                    }
+                  } catch (e) {}
+                  return true;
+                })()}
+                  <div class="bg-gradient-to-r from-white/50 to-white/30 rounded-xl p-4 backdrop-blur-sm border border-white/50">
+                    <div class="flex items-center justify-between">
+                      <div class="flex items-center gap-2">
+                        <svg class="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
+                        </svg>
+                        <span class="text-sm font-medium text-gray-700">Net Change</span>
+                      </div>
+                      <span class="font-bold text-lg {Math.abs(comparison.change_percent) < 5 
+                        ? 'text-gray-700'
+                        : isPositiveTrend ? 'text-emerald-700' : 'text-red-700'}">
+                        {comparison.change > 0 ? "+" : ""}{formatChange(comparison.change, comparison.metric_type)}
+                      </span>
                     </div>
-                    <span class="font-bold text-lg {Math.abs(comparison.change_percent) < 5 
-                      ? 'text-gray-700'
-                      : isPositiveTrend ? 'text-emerald-700' : 'text-red-700'}">
-                      {comparison.change > 0 ? "+" : ""}{formatChange(comparison.change, comparison.metric_type)}
-                    </span>
                   </div>
-                </div>
+                {/if}
               </div>
             </div>
           {/each}
