@@ -146,7 +146,9 @@
                         }
                         const metadata = question.metadata;
                         if (metadata?.has_choice_series === true) {
-                          return `Single Choice (${question.choice_series?.length || 0} options)`;
+                          const questionType = metadata?.question_type || 'single_choice';
+                          const typeLabel = questionType === 'multi_choice' ? 'Multiple Choice' : 'Single Choice';
+                          return `${typeLabel} (${question.choice_series?.length || 0} options)`;
                         }
                         return metadata?.question_type?.replace('_', ' ') || 'Unknown';
                       })()}

@@ -199,6 +199,17 @@ func (s *timeSeriesService) collectOrganizationMetrics(ctx context.Context, orga
 			// Skip creating summary metric for single choice questions
 			continue
 		}
+		
+		// Handle multiple choice questions specially to create choice-specific metrics
+		if qData.QuestionType == string(feedbackModels.QuestionTypeMultiChoice) {
+			// Create choice-specific metrics
+			choiceMetrics := s.processMultiChoiceQuestion(
+				qData.Responses, qData, questionID, accountID, organizationID, date, questionMap,
+			)
+			metrics = append(metrics, choiceMetrics...)
+			// Skip creating summary metric for multiple choice questions
+			continue
+		}
 
 		// Process question using centralized logic for summary metric
 		questionValue := s.processQuestionByType(qData.QuestionType, qData.Responses)
@@ -1050,6 +1061,112 @@ func (s *timeSeriesService) processSingleChoiceQuestion(
 	return metrics
 }
 
+// processMultiChoiceQuestion creates metrics for each choice option in multiple choice questions
+func (s *timeSeriesService) processMultiChoiceQuestion(
+	responses []any,
+	questionData *QuestionData,
+	questionID string,
+	accountID, organizationID uuid.UUID,
+	date time.Time,
+	questionMap map[uuid.UUID]*feedbackModels.Question,
+) []models.TimeSeriesMetric {
+	var metrics []models.TimeSeriesMetric
+	choiceDistribution := make(map[string]int)
+
+	// Count choices - for multiple choice, responses can be arrays or comma-separated strings
+	for _, resp := range responses {
+		var choices []string
+		
+		switch v := resp.(type) {
+		case string:
+			// Handle comma-separated values or single choice strings
+			if strings.TrimSpace(v) != "" {
+				// Try to parse as JSON array first
+				var jsonArray []string
+				if err := json.Unmarshal([]byte(v), &jsonArray); err == nil {
+					choices = jsonArray
+				} else {
+					// Split by comma if not JSON
+					splitChoices := strings.Split(v, ",")
+					for _, choice := range splitChoices {
+						cleaned := strings.Trim(strings.TrimSpace(choice), `"'`)
+						if cleaned != "" {
+							choices = append(choices, cleaned)
+						}
+					}
+				}
+			}
+		case []interface{}:
+			// Handle JSON array responses
+			for _, choice := range v {
+				if choiceStr, ok := choice.(string); ok {
+					cleaned := strings.Trim(strings.TrimSpace(choiceStr), `"'`)
+					if cleaned != "" {
+						choices = append(choices, cleaned)
+					}
+				}
+			}
+		case []string:
+			// Handle string array responses
+			for _, choice := range v {
+				cleaned := strings.Trim(strings.TrimSpace(choice), `"'`)
+				if cleaned != "" {
+					choices = append(choices, cleaned)
+				}
+			}
+		}
+
+		// Count each choice
+		for _, choice := range choices {
+			if choice != "" {
+				choiceDistribution[choice]++
+			}
+		}
+	}
+
+	// Create separate metrics for each choice option
+	for choice, count := range choiceDistribution {
+		var productID *uuid.UUID
+		if pid, err := uuid.Parse(questionData.ProductID); err == nil {
+			productID = &pid
+		}
+
+		var questionUUID *uuid.UUID
+		if qid, err := uuid.Parse(questionID); err == nil {
+			questionUUID = &qid
+		}
+
+		// Get the question from our map
+		var question *feedbackModels.Question
+		if questionUUID != nil {
+			question = questionMap[*questionUUID]
+		}
+
+		// Create metric type and name for this specific choice option
+		choiceMetricType := fmt.Sprintf("question_%s_choice_%s", questionID, strings.ReplaceAll(strings.ToLower(choice), " ", "_"))
+		choiceMetricName := fmt.Sprintf("%s - %s: %s", questionData.ProductName, questionData.QuestionText, choice)
+
+		// Create metadata with choice information
+		choiceMetadata := s.createMetadataWithChoice(questionData.QuestionType, questionData.ProductName, questionData.QuestionText, choice, question)
+
+		metrics = append(metrics, models.TimeSeriesMetric{
+			AccountID:      accountID,
+			OrganizationID: organizationID,
+			ProductID:      productID,
+			QuestionID:     questionUUID,
+			MetricType:     choiceMetricType,
+			MetricName:     choiceMetricName,
+			Value:          float64(count),
+			Count:          int64(count),
+			Timestamp:      date,
+			Granularity:    models.GranularityDaily,
+			Metadata:       choiceMetadata,
+		})
+	}
+
+	return metrics
+}
+
 // processQuestionByType processes a question based on its type and returns the value
 func (s *timeSeriesService) processQuestionByType(questionType string, responses []any) float64 {
 	switch questionType {
@@ -1060,6 +1177,8 @@ func (s *timeSeriesService) processQuestionByType(questionType string, responses
 	case string(feedbackModels.QuestionTypeText):
 		return s.processTextQuestion(responses)
 	case string(feedbackModels.QuestionTypeSingleChoice):
+		return float64(len(responses)) // For summary metric, return total count
+	case string(feedbackModels.QuestionTypeMultiChoice):
 		return float64(len(responses)) // For summary metric, return total count
 	default:
 		return float64(len(responses))
@@ -1194,12 +1313,25 @@ func (s *timeSeriesService) groupMetricsWithChoiceHandling(metrics []models.Time
 		
 		// Create or get the base series
 		if _, exists := seriesMap[key]; !exists {
+			// Determine if this is single choice or multi choice by checking the first metric's metadata
+			var choiceMetadata *string
+			if len(choiceMetrics) > 0 && choiceMetrics[0].Metadata != nil {
+				if strings.Contains(*choiceMetrics[0].Metadata, `"question_type": "multi_choice"`) {
+					choiceMetadata = s.createMultiChoiceMetadata()
+				} else {
+					choiceMetadata = s.createSingleChoiceMetadata()
+				}
+			} else {
+				// Default to single choice if no metadata available
+				choiceMetadata = s.createSingleChoiceMetadata()
+			}
+			
 			// Create base series for the question
 			seriesMap[key] = &models.TimeSeriesData{
 				MetricType: baseMetricType,
 				MetricName: s.extractQuestionNameFromChoiceMetric(choiceMetrics[0]),
 				ProductID:  choiceMetrics[0].ProductID,
-				Metadata:   s.parseMetadata(s.createSingleChoiceMetadata()),
+				Metadata:   s.parseMetadata(choiceMetadata),
 				Points:     []models.TimeSeriesPoint{},
 			}
 		}
@@ -1261,6 +1393,12 @@ func (s *timeSeriesService) extractChoiceFromMetricType(metricType string) strin
 // createSingleChoiceMetadata creates metadata indicating this is a single choice question
 func (s *timeSeriesService) createSingleChoiceMetadata() *string {
 	metadata := `{"question_type": "single_choice", "has_choice_series": true}`
+	return &metadata
+}
+
+// createMultiChoiceMetadata creates metadata indicating this is a multi choice question
+func (s *timeSeriesService) createMultiChoiceMetadata() *string {
+	metadata := `{"question_type": "multi_choice", "has_choice_series": true}`
 	return &metadata
 }
 
