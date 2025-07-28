@@ -69,7 +69,7 @@
   let hasActiveFilters = $derived(searchQuery || statusFilter !== 'all' || sortBy !== 'name');
 </script>
 
-<Card variant="glass" class="mb-4">
+<Card variant="gradient" class="mb-4">
   <div class="flex flex-col lg:flex-row gap-4">
     <!-- Search Input -->
     <SearchInput
@@ -98,7 +98,7 @@
 
   <!-- Active Filters Display -->
   {#if hasActiveFilters}
-    <div class="flex items-center justify-between mt-4 pt-4 border-t border-gray-100">
+    <div class="flex items-center justify-between mt-4 pt-4 border-t border-gray-200">
       <div class="flex items-center space-x-2">
         <span class="text-sm text-gray-600">Active filters:</span>
         {#if searchQuery}

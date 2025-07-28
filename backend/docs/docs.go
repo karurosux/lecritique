@@ -5899,6 +5899,23 @@ const docTemplate = `{
                 }
             }
         },
+        "models.ChoiceSeriesData": {
+            "type": "object",
+            "properties": {
+                "choice": {
+                    "type": "string"
+                },
+                "points": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.TimeSeriesPoint"
+                    }
+                },
+                "statistics": {
+                    "$ref": "#/definitions/models.TimeSeriesStats"
+                }
+            }
+        },
         "models.ComparisonInsight": {
             "type": "object",
             "properties": {
@@ -6784,8 +6801,15 @@ const docTemplate = `{
         "models.TimeSeriesData": {
             "type": "object",
             "properties": {
+                "choice_series": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.ChoiceSeriesData"
+                    }
+                },
                 "metadata": {
-                    "type": "string"
+                    "type": "object",
+                    "additionalProperties": {}
                 },
                 "metric_name": {
                     "type": "string"

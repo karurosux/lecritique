@@ -475,63 +475,54 @@
       <!-- QR Code Performance Analytics -->
       {#if dashboardMetrics?.qr_performance}
         <div class="mb-8">
-          <Card variant="elevated" padding={false}>
-            <div class="p-6 lg:p-8">
-              <div class="mb-6">
-                <h3 class="text-xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
-                  QR Code Performance
-                </h3>
-                <p class="text-gray-600 font-medium">Usage and conversion analytics</p>
-              </div>
-
-              {#if dashboardMetrics.qr_performance.length > 0}
-                <div class="space-y-4">
-                  {#each dashboardMetrics.qr_performance as qr}
-                    <div class="relative group">
-                      <div class="absolute inset-0 bg-gradient-to-r from-blue-500/10 to-indigo-500/10 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                      <div class="relative bg-white/50 backdrop-blur-sm rounded-xl border border-gray-100 p-5 hover:shadow-lg hover:shadow-gray-900/5 transition-all duration-300 group-hover:border-gray-200">
-                        <div class="flex items-start justify-between mb-3">
-                          <div class="flex items-center space-x-3">
-                            <div class="h-10 w-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg">
-                              <QrCode class="h-5 w-5 text-white" />
-                            </div>
-                            <div>
-                              <p class="font-semibold text-gray-900">{qr.label || 'QR Code'}</p>
-                              <p class="text-sm text-gray-500">{qr.organization_name}</p>
-                              <p class="text-xs text-gray-400">{qr.location || 'No location set'}</p>
-                            </div>
-                          </div>
-                          <div class="text-right">
-                            <div class="flex flex-col items-end space-y-1">
-                              <div class="flex items-center space-x-2">
-                                <span class="text-sm text-gray-500">Scans:</span>
-                                <span class="font-bold text-blue-600">{qr.scans_count}</span>
-                              </div>
-                              <div class="flex items-center space-x-2">
-                                <span class="text-sm text-gray-500">Responses:</span>
-                                <span class="font-bold text-green-600">{qr.feedback_count}</span>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
+          <h3 class="text-lg font-semibold text-gray-900 mb-4">QR Code Performance</h3>
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {#if dashboardMetrics.qr_performance.length > 0}
+              {#each dashboardMetrics.qr_performance as qr}
+                <Card variant="gradient" hover interactive>
+                  <div class="space-y-4">
+                    <div class="flex items-center justify-between">
+                      <div>
+                        <p class="text-sm font-semibold text-gray-600 uppercase tracking-wide">{qr.label || 'QR Code'}</p>
+                        <p class="text-xs text-gray-500 mt-1">{qr.location || 'No location set'}</p>
+                      </div>
+                      <div class="h-12 w-12 bg-gradient-to-br from-purple-500 to-indigo-500 rounded-2xl flex items-center justify-center shadow-lg shadow-purple-500/25">
+                        <QrCode class="h-6 w-6 text-white" />
+                      </div>
+                    </div>
+                    
+                    <div class="space-y-3">
+                      <div class="flex items-center justify-between">
+                        <span class="text-sm text-gray-600">Scans</span>
+                        <span class="text-lg font-bold text-blue-600">{qr.scans_count}</span>
+                      </div>
+                      <div class="flex items-center justify-between">
+                        <span class="text-sm text-gray-600">Responses</span>
+                        <span class="text-lg font-bold text-green-600">{qr.feedback_count}</span>
+                      </div>
+                      <div class="pt-2 border-t border-gray-200">
                         <div class="flex items-center justify-between">
-                          <span class="text-sm text-gray-600">Conversion Rate:</span>
-                          <span class="font-bold text-indigo-600">{(qr.conversion_rate || 0).toFixed(1)}%</span>
+                          <span class="text-sm font-medium text-gray-600">Conversion Rate</span>
+                          <span class="text-2xl font-bold bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">
+                            {(qr.conversion_rate || 0).toFixed(1)}%
+                          </span>
                         </div>
                       </div>
                     </div>
-                  {/each}
-                </div>
-              {:else}
+                  </div>
+                </Card>
+              {/each}
+            {:else}
+              <Card variant="gradient" hover interactive>
                 <div class="text-center py-8">
                   <div class="h-12 w-12 bg-gray-100 rounded-xl flex items-center justify-center mx-auto mb-3">
                     <QrCode class="h-6 w-6 text-gray-400" />
                   </div>
                   <p class="text-gray-500">No QR code data available</p>
                 </div>
-              {/if}
-            </div>
-          </Card>
+              </Card>
+            {/if}
+          </div>
         </div>
       {/if}
     {/if}
