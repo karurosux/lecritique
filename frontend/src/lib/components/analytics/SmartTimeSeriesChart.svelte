@@ -28,13 +28,6 @@
         // Try to get question type from metadata
         if (series.metadata) {
           let metadata = series.metadata;
-          if (typeof metadata === 'string') {
-            try {
-              metadata = JSON.parse(metadata);
-            } catch (e) {
-              // ignore parsing errors
-            }
-          }
           if (metadata?.question_type) {
             questionType = metadata.question_type;
           }

@@ -22,6 +22,8 @@ type TimeSeriesRepository interface {
 	DeleteOldMetrics(ctx context.Context, before time.Time) error
 	DeleteOrganizationMetrics(ctx context.Context, organizationID uuid.UUID) error
 	GetLatestMetric(ctx context.Context, organizationID uuid.UUID, metricType string, productID *uuid.UUID) (*models.TimeSeriesMetric, error)
+	HasMetricsWithPattern(ctx context.Context, pattern string) bool
+	GetMetricTypesByPattern(ctx context.Context, pattern string) []string
 }
 
 type timeSeriesRepository struct {
@@ -242,4 +244,39 @@ func (r *timeSeriesRepository) GetLatestMetric(ctx context.Context, organization
 	}
 	
 	return &metric, nil
+}
+
+func (r *timeSeriesRepository) HasMetricsWithPattern(ctx context.Context, pattern string) bool {
+	var count int64
+	
+	err := r.db.WithContext(ctx).Model(&models.TimeSeriesMetric{}).
+		Where("metric_type LIKE ?", pattern+"%").
+		Count(&count).Error
+		
+	if err != nil {
+		logger.Error("Failed to check metrics with pattern", err, logrus.Fields{
+			"pattern": pattern,
+		})
+		return false
+	}
+	
+	return count > 0
+}
+
+func (r *timeSeriesRepository) GetMetricTypesByPattern(ctx context.Context, pattern string) []string {
+	var metricTypes []string
+	
+	err := r.db.WithContext(ctx).Model(&models.TimeSeriesMetric{}).
+		Select("DISTINCT metric_type").
+		Where("metric_type LIKE ?", pattern+"%").
+		Pluck("metric_type", &metricTypes).Error
+		
+	if err != nil {
+		logger.Error("Failed to get metric types by pattern", err, logrus.Fields{
+			"pattern": pattern,
+		})
+		return []string{}
+	}
+	
+	return metricTypes
 }

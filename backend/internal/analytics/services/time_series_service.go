@@ -196,6 +196,8 @@ func (s *timeSeriesService) collectOrganizationMetrics(ctx context.Context, orga
 				qData.Responses, qData, questionID, accountID, organizationID, date, questionMap,
 			)
 			metrics = append(metrics, choiceMetrics...)
+			// Skip creating summary metric for single choice questions
+			continue
 		}
 
 		// Process question using centralized logic for summary metric
@@ -377,38 +379,24 @@ func (s *timeSeriesService) getMetricNameWithProduct(questionType string, produc
 }
 
 func (s *timeSeriesService) GetTimeSeries(ctx context.Context, request models.TimeSeriesRequest) (*models.TimeSeriesResponse, error) {
-	// Get raw metrics from repository
+	// Get raw metrics from repository (including both summary and choice-specific metrics)
 	metrics, err := s.timeSeriesRepo.GetTimeSeries(ctx, request)
 	if err != nil {
 		return nil, err
 	}
-
-	// Group metrics by type and process
-	seriesMap := make(map[string]*models.TimeSeriesData)
-
-	for _, metric := range metrics {
-		key := fmt.Sprintf("%s:%s", metric.MetricType, metric.ProductID)
-
-		if series, exists := seriesMap[key]; exists {
-			series.Points = append(series.Points, models.TimeSeriesPoint{
-				Timestamp: metric.Timestamp,
-				Value:     metric.Value,
-				Count:     metric.Count,
-			})
-		} else {
-			seriesMap[key] = &models.TimeSeriesData{
-				MetricType: metric.MetricType,
-				MetricName: metric.MetricName,
-				ProductID:  metric.ProductID,
-				Metadata:   metric.Metadata,
-				Points: []models.TimeSeriesPoint{{
-					Timestamp: metric.Timestamp,
-					Value:     metric.Value,
-					Count:     metric.Count,
-				}},
-			}
-		}
+	
+	// Also get choice-specific metrics for single choice questions
+	choiceMetrics, err := s.getChoiceMetricsForRequest(ctx, request)
+	if err != nil {
+		return nil, err
 	}
+	
+	// Combine both metric sets
+	allMetrics := append(metrics, choiceMetrics...)
+	metrics = allMetrics
+
+	// Group and process metrics, handling single choice questions specially
+	seriesMap := s.groupMetricsWithChoiceHandling(metrics)
 
 	// Convert map to slice and calculate statistics
 	var series []models.TimeSeriesData
@@ -1011,7 +999,11 @@ func (s *timeSeriesService) processSingleChoiceQuestion(
 	// Count choices
 	for _, resp := range responses {
 		if choiceStr, ok := resp.(string); ok && strings.TrimSpace(choiceStr) != "" {
-			choiceDistribution[strings.TrimSpace(choiceStr)]++
+			// Clean the choice string by removing quotes and trimming whitespace
+			cleanChoice := strings.Trim(strings.TrimSpace(choiceStr), `"'`)
+			if cleanChoice != "" {
+				choiceDistribution[cleanChoice]++
+			}
 		}
 	}
 
@@ -1077,4 +1069,213 @@ func (s *timeSeriesService) processQuestionByType(questionType string, responses
 func (s *timeSeriesService) CleanupOldMetrics(ctx context.Context, retentionDays int) error {
 	cutoffDate := time.Now().AddDate(0, 0, -retentionDays)
 	return s.timeSeriesRepo.DeleteOldMetrics(ctx, cutoffDate)
+}
+
+
+// isSingleChoiceQuestion checks if a question is a single choice question
+func (s *timeSeriesService) isSingleChoiceQuestion(ctx context.Context, questionID string) bool {
+	// Parse question UUID to validate format
+	_, err := uuid.Parse(questionID)
+	if err != nil {
+		return false
+	}
+	
+	// Check if choice-specific metrics exist for this question by querying the repository
+	// This is more reliable than trying to get the question type directly
+	pattern := fmt.Sprintf("question_%s_choice_", questionID)
+	hasChoiceMetrics := s.timeSeriesRepo.HasMetricsWithPattern(ctx, pattern)
+	
+	return hasChoiceMetrics
+}
+
+// getChoiceSpecificMetrics returns all choice-specific metric types for a question
+func (s *timeSeriesService) getChoiceSpecificMetrics(ctx context.Context, questionID string) []string {
+	// Create a pattern to match choice-specific metrics
+	pattern := fmt.Sprintf("question_%s_choice_", questionID)
+	
+	// Get all metric types that match this pattern from the repository
+	choiceMetrics := s.timeSeriesRepo.GetMetricTypesByPattern(ctx, pattern)
+	
+	return choiceMetrics
+}
+
+// getChoiceMetricsForRequest gets choice-specific metrics for single choice questions in the request
+func (s *timeSeriesService) getChoiceMetricsForRequest(ctx context.Context, request models.TimeSeriesRequest) ([]models.TimeSeriesMetric, error) {
+	var allChoiceMetrics []models.TimeSeriesMetric
+	
+	for _, metricType := range request.MetricTypes {
+		if strings.HasPrefix(metricType, "question_") {
+			questionID := strings.TrimPrefix(metricType, "question_")
+			
+			if s.isSingleChoiceQuestion(ctx, questionID) {
+				choiceMetricTypes := s.getChoiceSpecificMetrics(ctx, questionID)
+				
+				if len(choiceMetricTypes) > 0 {
+					// Create a request for the choice-specific metrics
+					choiceRequest := request
+					choiceRequest.MetricTypes = choiceMetricTypes
+					
+					choiceMetrics, err := s.timeSeriesRepo.GetTimeSeries(ctx, choiceRequest)
+					if err != nil {
+						return nil, err
+					}
+					
+					allChoiceMetrics = append(allChoiceMetrics, choiceMetrics...)
+				}
+			}
+		}
+	}
+	
+	return allChoiceMetrics, nil
+}
+
+// groupMetricsWithChoiceHandling groups metrics and handles single choice questions specially
+func (s *timeSeriesService) groupMetricsWithChoiceHandling(metrics []models.TimeSeriesMetric) map[string]*models.TimeSeriesData {
+	seriesMap := make(map[string]*models.TimeSeriesData)
+	choiceMetricsMap := make(map[string][]models.TimeSeriesMetric) // question_id -> choice metrics
+	
+	// First pass: identify all questions that have choice metrics
+	questionHasChoiceMetrics := make(map[string]bool)
+	for _, metric := range metrics {
+		if strings.Contains(metric.MetricType, "_choice_") {
+			parts := strings.Split(metric.MetricType, "_choice_")
+			if len(parts) == 2 {
+				baseMetricType := parts[0]
+				questionHasChoiceMetrics[baseMetricType] = true
+			}
+		}
+	}
+	
+	// Second pass: process metrics
+	for _, metric := range metrics {
+		// Check if this is a choice-specific metric
+		if strings.Contains(metric.MetricType, "_choice_") {
+			// Extract the base question metric type
+			parts := strings.Split(metric.MetricType, "_choice_")
+			if len(parts) == 2 {
+				baseMetricType := parts[0] // e.g., "question_c83a860a-5a94-4390-bf11-a9af77bbf5ec"
+				choiceMetricsMap[baseMetricType] = append(choiceMetricsMap[baseMetricType], metric)
+				continue // Don't add choice metrics to regular series
+			}
+		}
+		
+		// Skip summary metrics for questions that have choice metrics
+		if strings.HasPrefix(metric.MetricType, "question_") && questionHasChoiceMetrics[metric.MetricType] {
+			continue
+		}
+		
+		// Handle regular metrics (non-choice-specific)
+		key := fmt.Sprintf("%s:%s", metric.MetricType, metric.ProductID)
+		
+		if series, exists := seriesMap[key]; exists {
+			series.Points = append(series.Points, models.TimeSeriesPoint{
+				Timestamp: metric.Timestamp,
+				Value:     metric.Value,
+				Count:     metric.Count,
+			})
+		} else {
+			seriesMap[key] = &models.TimeSeriesData{
+				MetricType: metric.MetricType,
+				MetricName: metric.MetricName,
+				ProductID:  metric.ProductID,
+				Metadata:   s.parseMetadata(metric.Metadata),
+				Points: []models.TimeSeriesPoint{{
+					Timestamp: metric.Timestamp,
+					Value:     metric.Value,
+					Count:     metric.Count,
+				}},
+			}
+		}
+	}
+	
+	// Process choice metrics and add them as choice_series to their base question series
+	for baseMetricType, choiceMetrics := range choiceMetricsMap {
+		key := fmt.Sprintf("%s:%s", baseMetricType, choiceMetrics[0].ProductID)
+		
+		// Create or get the base series
+		if _, exists := seriesMap[key]; !exists {
+			// Create base series for the question
+			seriesMap[key] = &models.TimeSeriesData{
+				MetricType: baseMetricType,
+				MetricName: s.extractQuestionNameFromChoiceMetric(choiceMetrics[0]),
+				ProductID:  choiceMetrics[0].ProductID,
+				Metadata:   s.parseMetadata(s.createSingleChoiceMetadata()),
+				Points:     []models.TimeSeriesPoint{},
+			}
+		}
+		
+		// Group choice metrics by choice option
+		choiceSeriesMap := make(map[string][]models.TimeSeriesPoint)
+		for _, metric := range choiceMetrics {
+			choice := s.extractChoiceFromMetricType(metric.MetricType)
+			choiceSeriesMap[choice] = append(choiceSeriesMap[choice], models.TimeSeriesPoint{
+				Timestamp: metric.Timestamp,
+				Value:     metric.Value,
+				Count:     metric.Count,
+			})
+		}
+		
+		// Convert to ChoiceSeriesData
+		var choiceSeries []models.ChoiceSeriesData
+		for choice, points := range choiceSeriesMap {
+			// Sort points by timestamp
+			sort.Slice(points, func(i, j int) bool {
+				return points[i].Timestamp.Before(points[j].Timestamp)
+			})
+			
+			choiceSeries = append(choiceSeries, models.ChoiceSeriesData{
+				Choice:     choice,
+				Points:     points,
+				Statistics: s.calculateStatistics(points),
+			})
+		}
+		
+		seriesMap[key].ChoiceSeries = choiceSeries
+	}
+	
+	return seriesMap
+}
+
+// extractQuestionNameFromChoiceMetric extracts the question name from a choice metric
+func (s *timeSeriesService) extractQuestionNameFromChoiceMetric(metric models.TimeSeriesMetric) string {
+	// Extract the question part from the metric name
+	// e.g., "City Walking Tour - What type of tour experience do you prefer?: Guided Tour"
+	// should become "City Walking Tour - What type of tour experience do you prefer?"
+	parts := strings.Split(metric.MetricName, ": ")
+	if len(parts) > 1 {
+		return strings.Join(parts[:len(parts)-1], ": ")
+	}
+	return metric.MetricName
+}
+
+// extractChoiceFromMetricType extracts the choice option from a choice-specific metric type
+func (s *timeSeriesService) extractChoiceFromMetricType(metricType string) string {
+	// e.g., "question_c83a860a-5a94-4390-bf11-a9af77bbf5ec_choice_guided_tour" -> "guided_tour"
+	parts := strings.Split(metricType, "_choice_")
+	if len(parts) == 2 {
+		return strings.ReplaceAll(parts[1], "_", " ")
+	}
+	return metricType
+}
+
+// createSingleChoiceMetadata creates metadata indicating this is a single choice question
+func (s *timeSeriesService) createSingleChoiceMetadata() *string {
+	metadata := `{"question_type": "single_choice", "has_choice_series": true}`
+	return &metadata
+}
+
+// parseMetadata parses a JSON metadata string into a map
+func (s *timeSeriesService) parseMetadata(metadataStr *string) map[string]any {
+	if metadataStr == nil {
+		return nil
+	}
+	
+	var metadata map[string]any
+	err := json.Unmarshal([]byte(*metadataStr), &metadata)
+	if err != nil {
+		// If parsing fails, return nil or empty map
+		return nil
+	}
+	
+	return metadata
 }

@@ -7,8 +7,7 @@
   // State for collapsible sections - all collapsed by default
   let expandedSections = $state({
     general: false,
-    individual: false,
-    singleChoice: false
+    individual: false
   });
 
   interface Props {
@@ -25,46 +24,12 @@
     ) || []
   );
 
-  // For individual questions (question_xxx format) - exclude single choice questions
+  // For individual questions (question_xxx format) - include ALL question types
   let individualQuestions = $derived(
     data?.series?.filter((s: any) => 
-      s.metric_type.startsWith('question_') && 
-      !s.metric_type.includes('_choice_')
+      s.metric_type.startsWith('question_')
     ) || []
   );
-
-  // For single choice questions - group by question and include all choice options
-  let singleChoiceQuestions = $derived(() => {
-    const choiceQuestions = data?.series?.filter((s: any) => s.metric_type.includes('_choice_')) || [];
-    // Group by question (extract question ID from metric_type: question_uuid_choice_option)
-    const grouped = {};
-    choiceQuestions.forEach(series => {
-      // Extract question ID from metric_type like "question_123-456-789_choice_option_name"
-      const matches = series.metric_type.match(/^question_([^_]+)_choice_/);
-      if (matches) {
-        const questionId = matches[1];
-        if (!grouped[questionId]) {
-          grouped[questionId] = {
-            questionId,
-            questionText: extractQuestionText(series.metric_name),
-            series: []
-          };
-        }
-        grouped[questionId].series.push(series);
-      }
-    });
-    return Object.values(grouped);
-  });
-
-  function extractQuestionText(metricName: string): string {
-    // Format: "Product - Question: Choice" -> extract "Question"
-    const parts = metricName.split(' - ');
-    if (parts.length > 1) {
-      const questionPart = parts[1].split(': ')[0];
-      return questionPart || metricName;
-    }
-    return metricName;
-  }
 
   function toggleSection(section: keyof typeof expandedSections) {
     expandedSections[section] = !expandedSections[section];
@@ -170,23 +135,30 @@
                         {question.metric_name}
                       {/if}
                     </h4>
-                    <span class="text-xs bg-gray-200 text-gray-700 px-2 py-1 rounded-full font-medium capitalize">
+                    <span class="text-xs px-2 py-1 rounded-full font-medium capitalize {
+                      question.metadata?.has_choice_series === true 
+                        ? 'bg-blue-200 text-blue-700' 
+                        : 'bg-gray-200 text-gray-700'
+                    }">
                       {(() => {
                         if (!question.metadata) {
                           return question.metric_type.startsWith('question_') ? 'Question' : 'Metric';
                         }
-                        try {
-                          const metadata = typeof question.metadata === 'string' ? JSON.parse(question.metadata) : question.metadata;
-                          return metadata.question_type?.replace('_', ' ') || 'Unknown';
-                        } catch {
-                          return question.metric_type.startsWith('question_') ? 'Question' : 'Metric';
+                        const metadata = question.metadata;
+                        if (metadata?.has_choice_series === true) {
+                          return `Single Choice (${question.choice_series?.length || 0} options)`;
                         }
+                        return metadata?.question_type?.replace('_', ' ') || 'Unknown';
                       })()}
                     </span>
                   </div>
                 </div>
                 <div class="p-4">
-                  <TimeSeriesChart data={{ ...data, series: [question] }} />
+                  {#if question.metadata?.has_choice_series === true}
+                    <ChoiceDistributionChart data={question} />
+                  {:else}
+                    <TimeSeriesChart data={{ ...data, series: [question] }} />
+                  {/if}
                 </div>
               </div>
             {/each}
@@ -195,56 +167,6 @@
       </Card>
     {/if}
 
-    <!-- Single Choice Questions - Show choice distribution charts -->
-    {#if singleChoiceQuestions.length > 0}
-      <Card variant="minimal" padding={false} class="group hover:shadow-lg transition-all duration-300 border">
-        <button 
-          class="w-full flex items-center gap-4 p-6 border-b border-gray-100/60 hover:bg-gray-50/50 transition-colors duration-200 text-left cursor-pointer"
-          onclick={() => toggleSection('singleChoice')}
-        >
-          <div class="h-12 w-12 bg-gradient-to-br from-blue-500 to-blue-700 rounded-2xl flex items-center justify-center shadow-lg shadow-blue-500/25">
-            <BarChart3 class="w-6 h-6 text-white" />
-          </div>
-          <div class="flex-1">
-            <h3 class="text-xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
-              Single Choice Questions
-            </h3>
-            <p class="text-gray-600 font-medium mt-1">Choice distribution trends for single selection questions</p>
-          </div>
-          <div class="flex items-center gap-2 text-gray-500">
-            <span class="text-sm font-medium">{singleChoiceQuestions.length} question{singleChoiceQuestions.length !== 1 ? 's' : ''}</span>
-            {#if expandedSections.singleChoice}
-              <ChevronUp class="w-5 h-5 transition-transform duration-200" />
-            {:else}
-              <ChevronDown class="w-5 h-5 transition-transform duration-200" />
-            {/if}
-          </div>
-        </button>
-        {#if expandedSections.singleChoice}
-          <div class="space-y-6 p-6 border-t border-gray-100/60">
-            {#each singleChoiceQuestions as questionGroup}
-              <div class="border border-gray-200 rounded-xl overflow-hidden">
-                <div class="bg-blue-50 px-4 py-3 border-b border-blue-200">
-                  <div class="flex items-center justify-between">
-                    <h4 class="font-semibold text-gray-900 text-sm">
-                      <span class="text-blue-600">Single Choice</span>
-                      <span class="text-gray-500 mx-1">•</span>
-                      <span>{questionGroup.questionText}</span>
-                    </h4>
-                    <span class="text-xs bg-blue-200 text-blue-700 px-2 py-1 rounded-full font-medium">
-                      {questionGroup.series.length} option{questionGroup.series.length !== 1 ? 's' : ''}
-                    </span>
-                  </div>
-                </div>
-                <div class="p-4">
-                  <ChoiceDistributionChart data={{ ...data, series: questionGroup.series }} />
-                </div>
-              </div>
-            {/each}
-          </div>
-        {/if}
-      </Card>
-    {/if}
   {/if}
 </div>
 

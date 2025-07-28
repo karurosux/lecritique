@@ -46,7 +46,8 @@
     '#F43F5E'  // rose
   ];
 
-  let series = $derived(data?.series || []);
+  // Use choice_series if available (new structure), otherwise fall back to series (old structure)
+  let series = $derived(data?.choice_series || data?.series || []);
 
   function formatChoiceValue(value: number): string {
     return `${Math.round(value).toLocaleString()} selections`;
@@ -98,13 +99,9 @@
   // Extract choice option from metadata or metric name
   function getChoiceLabel(seriesData: any): string {
     if (seriesData.metadata) {
-      try {
-        const metadata = typeof seriesData.metadata === 'string' ? JSON.parse(seriesData.metadata) : seriesData.metadata;
-        if (metadata.choice_option) {
-          return metadata.choice_option;
-        }
-      } catch (e) {
-        // ignore parsing errors
+      const metadata = seriesData.metadata;
+      if (metadata?.choice_option) {
+        return metadata.choice_option;
       }
     }
     
@@ -118,21 +115,25 @@
   }
 
   function createChart() {
-    if (!mounted || !chartCanvas || !data?.series) return;
+    if (!mounted || !chartCanvas || (!data?.series && !data?.choice_series)) return;
     
     if (chart) {
       chart.destroy();
     }
 
-    // Parse choice distribution data from series
-    const datasets = data.series.map((seriesData: any, index: number) => {
+    // Use choice_series if available (new structure), otherwise fall back to series (old structure)
+    const dataSource = data.choice_series || data.series;
+    
+    // Parse choice distribution data
+    const datasets = dataSource.map((seriesData: any, index: number) => {
       const points = (seriesData.points || []).map((point: any) => ({
         x: new Date(point.timestamp),
-        y: point.value
+        y: point.value || point.count
       }));
 
       const color = choiceColors[index % choiceColors.length];
-      const choiceLabel = getChoiceLabel(seriesData);
+      // For new structure, use choice field directly, otherwise use getChoiceLabel
+      const choiceLabel = seriesData.choice || getChoiceLabel(seriesData);
 
       return {
         label: choiceLabel,
@@ -291,12 +292,7 @@
   });
 </script>
 
-<div class="choice-distribution-chart bg-white rounded-lg border p-6">
-  <div class="flex items-center gap-2 mb-4">
-    <List class="w-5 h-5 text-blue-500" />
-    <h3 class="text-lg font-semibold text-gray-900">Choice Distribution Analysis</h3>
-  </div>
-
+<div class="choice-distribution-chart">
   {#if series.length === 0}
     <div class="text-center py-8 text-gray-500">
       <List class="w-12 h-12 mx-auto mb-4 opacity-50" />
@@ -304,7 +300,7 @@
     </div>
   {:else}
     <!-- Chart Controls -->
-    <div class="bg-gray-50 border border-gray-200 rounded-lg p-3 mb-4">
+    <div class="bg-white border border-gray-200 rounded-xl p-4 mb-6 shadow-sm">
       <div class="flex flex-wrap items-center justify-between gap-4">
         <!-- Zoom Controls -->
         {#if showZoomControls}
@@ -358,12 +354,12 @@
 
     <!-- Interactive Legend -->
     {#if series.length > 0}
-      <div class="bg-gray-50 border border-gray-200 rounded-lg p-3 mb-4">
-        <h4 class="text-sm font-semibold text-gray-900 mb-2">Choice Options</h4>
+      <div class="bg-white border border-gray-200 rounded-xl p-4 mb-6 shadow-sm">
+        <h4 class="text-sm font-semibold text-gray-900 mb-3">Choice Options</h4>
         <div class="flex flex-wrap gap-2">
           {#each series as seriesData, index}
             {@const isVisible = !chart?.getDatasetMeta(index)?.hidden}
-            {@const choiceLabel = getChoiceLabel(seriesData)}
+            {@const choiceLabel = seriesData.choice || getChoiceLabel(seriesData)}
             <button
               class="flex items-center gap-2 px-3 py-2 rounded-lg border transition-all {
                 isVisible 
@@ -388,17 +384,29 @@
       </div>
     {/if}
     
-    <!-- Chart -->
-    <div class="chart-container mb-6">
-      <canvas bind:this={chartCanvas} class="w-full h-80"></canvas>
+    <!-- Chart Container -->
+    <div class="bg-white rounded-lg p-6 mb-6 shadow-sm">
+      <div class="chart-container">
+        <canvas bind:this={chartCanvas} class="w-full h-96"></canvas>
+      </div>
+      
+      <!-- Interactive hints -->
+      <div class="mt-4 pt-4 border-t border-gray-100">
+        <div class="flex flex-wrap gap-4 text-xs text-gray-500">
+          <span class="flex items-center gap-1">
+            <ZoomIn class="w-3 h-3" />
+            Mouse wheel to zoom
+          </span>
+        </div>
+      </div>
     </div>
     
-    <!-- Statistics -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+    <!-- Statistics Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-6">
       {#each series as seriesData, index}
         {#if seriesData.statistics}
-          {@const choiceLabel = getChoiceLabel(seriesData)}
-          <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+          {@const choiceLabel = seriesData.choice || getChoiceLabel(seriesData)}
+          <div class="bg-gray-50 rounded-lg p-4">
             <div class="flex items-center justify-between mb-2">
               <h4 class="font-medium text-gray-900">{choiceLabel}</h4>
               <div class="flex items-center gap-1">
@@ -412,29 +420,38 @@
               </div>
             </div>
             
-            <div class="space-y-2 text-sm">
-              <div class="flex justify-between">
-                <span class="text-gray-600">Average:</span>
-                <span class="font-semibold">{formatChoiceValue(seriesData.statistics.average)}</span>
+            <div class="grid grid-cols-2 gap-2 text-sm">
+              <div>
+                <span class="text-gray-500">Average:</span>
+                <span class="font-semibold ml-1">
+                  {formatChoiceValue(seriesData.statistics.average)}
+                </span>
               </div>
-              <div class="flex justify-between">
-                <span class="text-gray-600">Total:</span>
-                <span class="font-semibold">{formatChoiceValue(seriesData.statistics.total)}</span>
+              <div>
+                <span class="text-gray-500">Total:</span>
+                <span class="font-semibold ml-1">
+                  {formatChoiceValue(seriesData.statistics.total)}
+                </span>
               </div>
-              <div class="flex justify-between">
-                <span class="text-gray-600">Peak:</span>
-                <span class="font-semibold">{formatChoiceValue(seriesData.statistics.max)}</span>
+              <div>
+                <span class="text-gray-500">Min:</span>
+                <span class="font-semibold ml-1">
+                  {formatChoiceValue(seriesData.statistics.min)}
+                </span>
               </div>
-              <div class="flex justify-between">
-                <span class="text-gray-600">Minimum:</span>
-                <span class="font-semibold">{formatChoiceValue(seriesData.statistics.min)}</span>
+              <div>
+                <span class="text-gray-500">Max:</span>
+                <span class="font-semibold ml-1">
+                  {formatChoiceValue(seriesData.statistics.max)}
+                </span>
               </div>
-              {#if seriesData.statistics.trend_strength > 0}
-                <div class="text-xs text-gray-500 pt-1 border-t">
-                  Trend strength: {(seriesData.statistics.trend_strength * 100).toFixed(1)}%
-                </div>
-              {/if}
             </div>
+            
+            {#if seriesData.statistics.trend_strength > 0}
+              <div class="mt-2 text-xs text-gray-500">
+                Trend strength: {(seriesData.statistics.trend_strength * 100).toFixed(1)}%
+              </div>
+            {/if}
           </div>
         {/if}
       {/each}

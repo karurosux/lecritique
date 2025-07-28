@@ -94,13 +94,21 @@ type TimeSeriesResponse struct {
 
 // TimeSeriesData represents a complete time series dataset
 type TimeSeriesData struct {
-	MetricType  string             `json:"metric_type"`
-	MetricName  string             `json:"metric_name"`
-	ProductID   *uuid.UUID         `json:"product_id,omitempty"`
-	ProductName string             `json:"product_name,omitempty"`
-	Points      []TimeSeriesPoint  `json:"points"`
-	Statistics  TimeSeriesStats    `json:"statistics"`
-	Metadata    *string            `json:"metadata,omitempty"`
+	MetricType   string             `json:"metric_type"`
+	MetricName   string             `json:"metric_name"`
+	ProductID    *uuid.UUID         `json:"product_id,omitempty"`
+	ProductName  string             `json:"product_name,omitempty"`
+	Points       []TimeSeriesPoint  `json:"points"`
+	Statistics   TimeSeriesStats    `json:"statistics"`
+	Metadata     map[string]any     `json:"metadata,omitempty"`
+	ChoiceSeries []ChoiceSeriesData `json:"choice_series,omitempty"`
+}
+
+// ChoiceSeriesData represents time series data for a specific choice option
+type ChoiceSeriesData struct {
+	Choice     string            `json:"choice"`
+	Points     []TimeSeriesPoint `json:"points"`
+	Statistics TimeSeriesStats   `json:"statistics"`
 }
 
 // TimeSeriesStats represents statistical information about a time series

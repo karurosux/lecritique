@@ -127,17 +127,13 @@
       let maxValue = metadata?.max_value;
       
       // If metadata is a string, try to parse it as JSON
-      if (typeof seriesData?.metadata === 'string') {
-        try {
-          const parsed = JSON.parse(seriesData.metadata);
-          questionType = parsed.question_type;
-          minLabel = parsed.min_label;
-          maxLabel = parsed.max_label;
-          minValue = parsed.min_value;
-          maxValue = parsed.max_value;
-        } catch (e) {
-          // ignore parsing errors
-        }
+      if (seriesData?.metadata) {
+        const parsed = seriesData.metadata;
+        questionType = parsed.question_type;
+        minLabel = parsed.min_label;
+        maxLabel = parsed.max_label;
+        minValue = parsed.min_value;
+        maxValue = parsed.max_value;
       }
       
       switch (questionType) {
@@ -243,17 +239,13 @@
         let minValue = metadata?.min_value;
         let maxValue = metadata?.max_value;
         
-        if (typeof series.metadata === 'string') {
-          try {
-            const parsed = JSON.parse(series.metadata);
-            questionType = parsed.question_type;
-            minLabel = parsed.min_label;
-            maxLabel = parsed.max_label;
-            minValue = parsed.min_value;
-            maxValue = parsed.max_value;
-          } catch (e) {
-            // ignore parsing errors
-          }
+        if (series.metadata) {
+          const parsed = series.metadata;
+          questionType = parsed.question_type;
+          minLabel = parsed.min_label;
+          maxLabel = parsed.max_label;
+          minValue = parsed.min_value;
+          maxValue = parsed.max_value;
         }
         
         // If we have explicit question type, use it
@@ -428,7 +420,7 @@
       metric_type: s.metric_type, 
       metric_name: s.metric_name,
       metadata: s.metadata,
-      parsed_metadata: typeof s.metadata === 'string' ? JSON.parse(s.metadata) : s.metadata
+      parsed_metadata: s.metadata
     })));
 
     // Prepare datasets
@@ -538,7 +530,7 @@
                   const seriesData = data.series.find((s: any) => cleanMetricName(s.metric_name) === context[0].dataset.label);
                   if (seriesData?.metadata) {
                     try {
-                      const metadata = typeof seriesData.metadata === 'string' ? JSON.parse(seriesData.metadata) : seriesData.metadata;
+                      const metadata = seriesData.metadata;
                       if (metadata.question_type) {
                         return [`Type: ${metadata.question_type.replace('_', ' ')}`];
                       }
