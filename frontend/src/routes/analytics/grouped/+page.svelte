@@ -4,7 +4,7 @@
   import { goto } from '$app/navigation';
   import { Card, Button, Select } from '$lib/components/ui';
   import ChartDataWidgetGrouped from '$lib/components/analytics/ChartDataWidgetGrouped.svelte';
-  import { BarChart3, Activity, Download, Utensils, Calendar } from 'lucide-svelte';
+  import { BarChart3, Activity, Download, Package, Calendar } from 'lucide-svelte';
 
   let loading = $state(true);
   let error = $state('');
@@ -140,7 +140,7 @@
       <div class="space-y-3">
         <div class="flex items-center space-x-3">
           <div class="h-12 w-12 bg-gradient-to-br from-purple-500 to-pink-600 rounded-2xl flex items-center justify-center shadow-lg shadow-purple-500/25">
-            <Utensils class="h-6 w-6 text-white" />
+            <Package class="h-6 w-6 text-white" />
           </div>
           <div>
             <h1 class="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
@@ -263,7 +263,7 @@
         <!-- Product Filter -->
         <div class="flex items-center space-x-4">
           <div class="h-10 w-10 bg-gradient-to-br from-purple-500 to-pink-600 rounded-xl flex items-center justify-center">
-            <Utensils class="h-5 w-5 text-white" />
+            <Package class="h-5 w-5 text-white" />
           </div>
           <Select
             bind:value={filters.productId}

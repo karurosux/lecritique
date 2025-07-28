@@ -6,10 +6,11 @@
   import { getApiClient, handleApiError } from '$lib/api/client';
   import { auth } from '$lib/stores/auth';
   import { goto } from '$app/navigation';
-  import { Card, Button, Select, Input } from '$lib/components/ui';
+  import { Card, Button, Select, Input, NoDataAvailable } from '$lib/components/ui';
   import SeparatedTimeSeriesCharts from '$lib/components/analytics/SeparatedTimeSeriesCharts.svelte';
   import ComparisonChart from '$lib/components/analytics/ComparisonChart.svelte';
-  import { TrendingUp, Calendar, BarChart3, Activity, Filter, RefreshCw, Building2 } from 'lucide-svelte';
+  import { FeatureGate, FEATURES } from '$lib/components/subscription';
+  import { TrendingUp, Calendar, BarChart3, Activity, Filter, RefreshCw, Building2, Lock, ChevronDown } from 'lucide-svelte';
 
   let loading = $state(true);
   let collectingMetrics = $state(false);
@@ -126,10 +127,29 @@
         // Load questions for the first product if any
         if (availableProducts.length > 0) {
           await loadQuestionsForProducts();
+        } else {
+          // Clear existing data when no products are available
+          availableQuestions = [];
+          availableProductGroups = {};
+          metricTypeOptions = [
+            { value: 'survey_responses', label: 'Total Survey Responses' }
+          ];
+          // Reset filters to default
+          timeSeriesFilters.metricTypes = ['survey_responses'];
+          comparisonFilters.metricTypes = ['survey_responses'];
         }
       }
     } catch (err) {
       console.error('Error loading products:', err);
+      // Clear data on error as well
+      availableProducts = [];
+      availableQuestions = [];
+      availableProductGroups = {};
+      metricTypeOptions = [
+        { value: 'survey_responses', label: 'Total Survey Responses' }
+      ];
+      timeSeriesFilters.metricTypes = ['survey_responses'];
+      comparisonFilters.metricTypes = ['survey_responses'];
     }
   }
   
@@ -462,9 +482,7 @@
                           <span class="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full font-medium">
                             {productData.individualQuestions.filter(q => timeSeriesFilters.metricTypes.includes(q.value)).length} selected
                           </span>
-                          <svg class="w-4 h-4 text-gray-400 group-open:rotate-180 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-                          </svg>
+                          <ChevronDown class="w-4 h-4 text-gray-400 group-open:rotate-180 transition-transform duration-200" />
                         </div>
                       </summary>
                       
@@ -509,17 +527,12 @@
         {:else if timeSeriesData}
           <SeparatedTimeSeriesCharts data={timeSeriesData} />
         {:else}
-          <div class="text-center py-12">
-            <div class="bg-gradient-to-br from-purple-50 to-pink-50 rounded-2xl p-8 max-w-md mx-auto">
-              <BarChart3 class="w-12 h-12 mx-auto mb-4 text-purple-400" />
-              <h3 class="text-lg font-semibold text-gray-900 mb-2">No Analytics Data Yet</h3>
-              <p class="text-gray-600 mb-6">Collect metrics to start analyzing your survey responses over time.</p>
-              <Button variant="gradient" size="lg" onclick={collectMetrics} disabled={collectingMetrics}>
-                <RefreshCw class={`w-4 h-4 mr-2 ${collectingMetrics ? 'animate-spin' : ''}`} />
-                {collectingMetrics ? 'Collecting Metrics...' : 'Collect Metrics Now'}
-              </Button>
-            </div>
-          </div>
+          <NoDataAvailable 
+            title="No Analytics Data Yet"
+            description="Collect metrics to start analyzing your survey responses over time"
+            icon={BarChart3}
+            variant="inline"
+          />
         {/if}
       </Card>
     </div>
@@ -630,9 +643,7 @@
                           <span class="text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded-full font-medium">
                             {productData.individualQuestions.filter(q => comparisonFilters.metricTypes.includes(q.value)).length} selected
                           </span>
-                          <svg class="w-4 h-4 text-gray-400 group-open:rotate-180 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-                          </svg>
+                          <ChevronDown class="w-4 h-4 text-gray-400 group-open:rotate-180 transition-transform duration-200" />
                         </div>
                       </summary>
                       
@@ -673,17 +684,12 @@
         {#if comparisonData}
           <ComparisonChart data={comparisonData} />
         {:else}
-          <div class="text-center py-12">
-            <div class="bg-gradient-to-br from-purple-50 to-pink-50 rounded-2xl p-8 max-w-md mx-auto">
-              <Activity class="w-12 h-12 mx-auto mb-4 text-purple-400" />
-              <h3 class="text-lg font-semibold text-gray-900 mb-2">No Comparison Data Yet</h3>
-              <p class="text-gray-600 mb-6">Collect metrics to compare performance between different time periods.</p>
-              <Button variant="gradient" size="lg" onclick={collectMetrics} disabled={collectingMetrics}>
-                <RefreshCw class={`w-4 h-4 mr-2 ${collectingMetrics ? 'animate-spin' : ''}`} />
-                {collectingMetrics ? 'Collecting Metrics...' : 'Collect Metrics Now'}
-              </Button>
-            </div>
-          </div>
+          <NoDataAvailable 
+            title="No Comparison Data Yet"
+            description="Collect metrics to compare performance between different time periods"
+            icon={Activity}
+            variant="inline"
+          />
         {/if}
       </Card>
     </div>

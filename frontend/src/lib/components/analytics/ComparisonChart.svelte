@@ -23,6 +23,7 @@
     CheckSquare,
     MessageSquare,
   } from "lucide-svelte";
+  import { NoDataAvailable } from '$lib/components/ui';
 
   interface Props {
     data: any;
@@ -892,13 +893,12 @@
 <div class="comparison-chart">
   <div class="mb-8">
     {#if comparisons.length === 0}
-      <div class="text-center py-12">
-        <div class="bg-gradient-to-br from-purple-50 to-pink-50 rounded-2xl p-8 max-w-md mx-auto">
-          <Activity class="w-12 h-12 mx-auto mb-4 text-purple-400" />
-          <h3 class="text-lg font-semibold text-gray-900 mb-2">No Comparison Data</h3>
-          <p class="text-gray-600">Select questions above to compare metrics between periods.</p>
-        </div>
-      </div>
+      <NoDataAvailable 
+        title="No Comparison Data"
+        description="Select questions above to compare metrics between periods"
+        icon={Activity}
+        variant="inline"
+      />
     {:else}
       <!-- Period Summary Header -->
       {#if data?.request}

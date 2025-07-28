@@ -1,7 +1,7 @@
 <script lang="ts">
   import TimeSeriesChart from './TimeSeriesChart.svelte';
   import ChoiceDistributionChart from './ChoiceDistributionChart.svelte';
-  import { Card } from '$lib/components/ui';
+  import { Card, NoDataAvailable } from '$lib/components/ui';
   import { BarChart3, TrendingUp, Info, ChevronDown, ChevronUp } from 'lucide-svelte';
 
   // State for collapsible sections - all collapsed by default
@@ -37,29 +37,14 @@
 </script>
 
 <div class="separated-timeseries-charts space-y-6">
-  <!-- Information Banner -->
-  <Card variant="glass" class="border-blue-200/60 bg-gradient-to-r from-blue-50/80 to-indigo-50/60">
-    <div class="flex items-start gap-4">
-      <div class="h-10 w-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/25 flex-shrink-0">
-        <Info class="w-5 h-5 text-white" />
-      </div>
-      <div>
-        <h4 class="font-semibold text-blue-900 mb-2">Individual Question Charts</h4>
-        <p class="text-sm text-blue-700/80 leading-relaxed">
-          Each question is displayed individually with its appropriate scale and formatting for precise analysis.
-        </p>
-      </div>
-    </div>
-  </Card>
 
   {#if !data?.series || data.series.length === 0}
-    <Card variant="minimal" class="text-center py-12">
-      <div class="text-gray-500">
-        <BarChart3 class="w-16 h-16 mx-auto mb-4 opacity-40" />
-        <h3 class="text-lg font-medium mb-2">No Data Available</h3>
-        <p class="text-sm">No time series data is available for the selected filters.</p>
-      </div>
-    </Card>
+    <NoDataAvailable 
+      title="No Data Available"
+      description="No time series data is available for the selected filters"
+      icon={BarChart3}
+      variant="inline"
+    />
   {:else}
     <!-- General Metrics -->
     {#if generalMetrics.length > 0}
