@@ -1,7 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import { Button, Card, ConfirmDialog } from '$lib/components/ui';
-  import { Plus, Trash2, Sparkles, Loader2, Edit2, GripVertical } from 'lucide-svelte';
+  import { Button, Card, ConfirmDialog, NoDataAvailable } from '$lib/components/ui';
+  import { Plus, Trash2, Sparkles, Loader2, Edit2, GripVertical, AlertTriangle, ClipboardList } from 'lucide-svelte';
   import QuestionEditor from './QuestionEditor.svelte';
   import { QuestionApi } from '$lib/api/question';
   import type { Question, GeneratedQuestion } from '$lib/api/questionnaire';
@@ -279,9 +279,11 @@
 <div class="question-builder space-y-6">
   <!-- Error Display -->
   {#if error}
-    <div class="bg-red-50 border border-red-200 rounded-md p-4">
-      <p class="text-sm text-red-800">{error}</p>
-    </div>
+    <NoDataAvailable
+      title="Error Loading Questions"
+      description={error}
+      icon={AlertTriangle}
+    />
   {/if}
 
   <!-- Loading overlay for AI generation -->
@@ -369,15 +371,19 @@
       </div>
 
       {#if loading && !generatingQuestions}
-        <div class="text-center py-8">
-          <Loader2 class="h-8 w-8 animate-spin mx-auto mb-4 text-blue-600" />
-          <p class="text-gray-600">Loading...</p>
-        </div>
+        <NoDataAvailable
+          title="Loading Questions..."
+          description="Please wait while we load your questionnaire"
+          icon={ClipboardList}
+          variant="inline"
+        />
       {:else if questions.length === 0}
-        <div class="text-center py-8 text-gray-500">
-          <p>No questions added yet.</p>
-          <p class="text-sm mt-1">Click "Add Question" to get started or use AI to generate questions automatically.</p>
-        </div>
+        <NoDataAvailable
+          title="No Questions Added Yet"
+          description="Click 'Add Question' to get started or use AI to generate questions automatically"
+          icon={ClipboardList}
+          variant="inline"
+        />
       {:else}
         <div class="space-y-3">
           {#each questions as question, index}

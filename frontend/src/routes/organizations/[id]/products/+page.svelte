@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { PageData } from './$types';
-	import { Button, Card, Input, Select, ConfirmDialog } from '$lib/components/ui';
+	import { Button, Card, Input, Select, ConfirmDialog, NoDataAvailable } from '$lib/components/ui';
 	import { Plus } from 'lucide-svelte';
 	import ProductCard from '$lib/components/products/ProductCard.svelte';
 	import AddProductModal from '$lib/components/products/AddProductModal.svelte';
@@ -253,28 +253,31 @@
 
 	<!-- Products Grid -->
 	{#if filteredProducts.length === 0}
-		<div class="text-center py-12">
-			<div class="w-24 h-24 mx-auto bg-gray-100 rounded-full flex items-center justify-center mb-4">
-				<Plus class="h-8 w-8 text-gray-400" />
+		{#if productsWithQuestionnaires.length === 0}
+			<!-- No products at all -->
+			<div class="space-y-4">
+				<NoDataAvailable
+					title="No products yet"
+					description="Start building your product catalog by adding your first product"
+					icon={Plus}
+				/>
+				<div class="text-center">
+					<RoleGate roles={['OWNER', 'ADMIN', 'MANAGER']}>
+						<Button onclick={handleAddProduct}>
+							<Plus class="mr-2 h-4 w-4" />
+							Add First Product
+						</Button>
+					</RoleGate>
+				</div>
 			</div>
-			<h3 class="text-lg font-semibold mb-2">
-				{productsWithQuestionnaires.length === 0 ? 'No products yet' : 'No products match your filters'}
-			</h3>
-			<p class="text-gray-500 mb-4">
-				{productsWithQuestionnaires.length === 0 
-					? 'Start building your product catalog by adding your first product'
-					: 'Try adjusting your search or filters'
-				}
-			</p>
-			{#if productsWithQuestionnaires.length === 0}
-				<RoleGate roles={['OWNER', 'ADMIN', 'MANAGER']}>
-					<Button onclick={handleAddProduct}>
-						<Plus class="mr-2 h-4 w-4" />
-						Add First Product
-					</Button>
-				</RoleGate>
-			{/if}
-		</div>
+		{:else}
+			<!-- No products match filters -->
+			<NoDataAvailable
+				title="No products match your filters"
+				description="Try adjusting your search or filters"
+				icon={Plus}
+			/>
+		{/if}
 	{:else}
 		<div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
 			{#each filteredProducts as product (product.id)}

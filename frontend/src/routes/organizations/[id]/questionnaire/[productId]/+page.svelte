@@ -1,7 +1,7 @@
 <script lang="ts">
   import { page } from '$app/stores';
   import { goto } from '$app/navigation';
-  import { Button, Card } from '$lib/components/ui';
+  import { Button } from '$lib/components/ui';
   import { ArrowLeft, ClipboardList } from 'lucide-svelte';
   import QuestionnaireBuilder from '$lib/components/questionnaires/QuestionnaireBuilder.svelte';
   import { getApiClient } from '$lib/api';
@@ -72,15 +72,7 @@
 
   <!-- Content -->
   <div class="space-y-6">
-    {#if error}
-      <Card class="p-6">
-        <div class="bg-red-50 border border-red-200 rounded-lg p-4">
-          <p class="text-red-800 font-medium">{error}</p>
-        </div>
-      </Card>
-    {/if}
-
-    {#if !loading && !error}
+    {#if !loading}
       <QuestionnaireBuilder
         {organizationId}
         {productId}

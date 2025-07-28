@@ -8,9 +8,11 @@
     Search,
     Layers,
     Grid,
+    Loader2,
   } from "lucide-svelte";
   import ChartDataWidget from "./ChartDataWidget.svelte";
   import ChartContent from "./ChartContent.svelte";
+  import { getApiClient, handleApiError } from "$lib/api/client";
 
   interface BackendChartData {
     question_id: string;
@@ -70,6 +72,10 @@
     showOnlyWithData = $bindable(false),
     viewMode = $bindable<"grouped" | "all">(groupByProduct ? "grouped" : "all"),
     hideControls = false,
+    lazyLoading = false,
+    organizationId = "",
+    filters = {},
+    availableProducts = [],
   }: {
     chartData: OrganizationChartData | null;
     title?: string;
@@ -79,47 +85,128 @@
     showOnlyWithData?: boolean;
     viewMode?: "grouped" | "all";
     hideControls?: boolean;
+    lazyLoading?: boolean;
+    organizationId?: string;
+    filters?: Record<string, any>;
+    availableProducts?: any[];
   } = $props();
 
   let expandedGroups = $state(new Set<string>());
+  let loadingGroups = $state(new Set<string>());
+  let groupChartData = $state(new Map<string, BackendChartData[]>());
+  let lastFilters = $state<string>("");
 
   // Group charts by product
   const productGroups = $derived(() => {
-    if (!chartData?.charts) return [];
-
     const groups = new Map<string, ProductGroup>();
 
-    chartData.charts.forEach((chart) => {
-      const productId = chart.product_id || "no-product";
-      const productName = chart.product_name || "General Questions";
-
-      if (!groups.has(productId)) {
+    // For lazy loading, prioritize availableProducts when we have them
+    if (lazyLoading && availableProducts.length > 0) {
+      availableProducts.forEach((product) => {
+        const productId = product.id;
+        const productName = product.name;
+        const loadedCharts = groupChartData.get(productId) || [];
+        
+        // Calculate totals from loaded chart data
+        let totalResponses = 0;
+        let averageScore: number | undefined = undefined;
+        
+        if (loadedCharts.length > 0) {
+          // Sum up responses from all charts for this product
+          totalResponses = loadedCharts.reduce((sum, chart) => sum + (chart.data.total || 0), 0);
+          
+          // Calculate average score from loaded charts
+          const scoredCharts = loadedCharts.filter(chart => 
+            (chart.chart_type === "rating" || chart.chart_type === "scale") && 
+            chart.data.average !== undefined
+          );
+          
+          if (scoredCharts.length > 0) {
+            const weightedSum = scoredCharts.reduce((sum, chart) => 
+              sum + (chart.data.average! * (chart.data.total || 1)), 0
+            );
+            const totalWeight = scoredCharts.reduce((sum, chart) => sum + (chart.data.total || 1), 0);
+            averageScore = totalWeight > 0 ? weightedSum / totalWeight : undefined;
+          }
+        }
+        
         groups.set(productId, {
           product_id: productId,
           product_name: productName,
-          charts: [],
-          totalResponses: 0,
-          averageScore: undefined,
+          charts: loadedCharts,
+          totalResponses: loadedCharts.length > 0 ? totalResponses : -1, // -1 indicates unloaded
+          averageScore,
         });
-      }
+      });
+      
+      return Array.from(groups.values());
+    } else if (chartData?.charts) {
+      // Regular mode or lazy loading with existing chart data
+      chartData.charts.forEach((chart) => {
+        const productId = chart.product_id || "no-product";
+        const productName = chart.product_name || "General Questions";
 
-      const group = groups.get(productId)!;
-      group.charts.push(chart);
-      group.totalResponses += chart.data.total || 0;
-
-      // Calculate average score for rating/scale questions
-      if (
-        (chart.chart_type === "rating" || chart.chart_type === "scale") &&
-        chart.data.average
-      ) {
-        if (!group.averageScore) {
-          group.averageScore = chart.data.average;
-        } else {
-          // Simple average (could be weighted by responses if needed)
-          group.averageScore = (group.averageScore + chart.data.average) / 2;
+        if (!groups.has(productId)) {
+          groups.set(productId, {
+            product_id: productId,
+            product_name: productName,
+            charts: [],
+            totalResponses: 0,
+            averageScore: undefined,
+          });
         }
-      }
-    });
+
+        const group = groups.get(productId)!;
+        
+        // For lazy loading, only store summary info initially
+        if (lazyLoading) {
+          // For summary data, we just want to count unique responses per product
+          // The chart.data.total in summary mode represents responses to that specific question
+          group.totalResponses += chart.data.total || 0;
+          
+          // Don't populate the charts array initially - this will be populated lazily
+          if (groupChartData.has(productId)) {
+            // If we have loaded chart data, use it
+            group.charts = groupChartData.get(productId) || [];
+            
+            // Calculate average score from loaded data
+            group.charts.forEach((loadedChart) => {
+              if (
+                (loadedChart.chart_type === "rating" || loadedChart.chart_type === "scale") &&
+                loadedChart.data.average
+              ) {
+                if (!group.averageScore) {
+                  group.averageScore = loadedChart.data.average;
+                } else {
+                  group.averageScore = (group.averageScore + loadedChart.data.average) / 2;
+                }
+              }
+            });
+          }
+          // In lazy mode, keep charts empty until loaded
+          if (!groupChartData.has(productId)) {
+            group.charts = [];
+          }
+        } else {
+          // Non-lazy loading: use full chart data as before
+          group.charts.push(chart);
+          group.totalResponses += chart.data.total || 0;
+
+          // Calculate average score for rating/scale questions
+          if (
+            (chart.chart_type === "rating" || chart.chart_type === "scale") &&
+            chart.data.average
+          ) {
+            if (!group.averageScore) {
+              group.averageScore = chart.data.average;
+            } else {
+              // Simple average (could be weighted by responses if needed)
+              group.averageScore = (group.averageScore + chart.data.average) / 2;
+            }
+          }
+        }
+      });
+    }
 
     return Array.from(groups.values()).sort(
       (a, b) => b.totalResponses - a.totalResponses,
@@ -208,13 +295,54 @@
     };
   });
 
-  function toggleGroup(productId: string) {
+  async function toggleGroup(productId: string) {
     if (expandedGroups.has(productId)) {
       expandedGroups.delete(productId);
     } else {
       expandedGroups.add(productId);
+      
+      // If lazy loading is enabled and we don't have data for this group, load it
+      if (lazyLoading && !groupChartData.has(productId) && organizationId) {
+        await loadGroupData(productId);
+      }
     }
     expandedGroups = new Set(expandedGroups);
+  }
+
+  async function loadGroupData(productId: string) {
+    if (loadingGroups.has(productId)) return; // Already loading
+    
+    loadingGroups.add(productId);
+    loadingGroups = new Set(loadingGroups);
+    
+    try {
+      const api = getApiClient();
+      const chartParams = {
+        ...filters,
+        product_id: productId === "no-product" ? undefined : productId,
+      };
+      
+      const response = await api.api.v1AnalyticsOrganizationsChartsList(
+        organizationId,
+        chartParams
+      );
+      
+      if (response.data?.data?.charts) {
+        // Filter charts for this specific product
+        const productCharts = response.data.data.charts.filter((chart: BackendChartData) => {
+          const chartProductId = chart.product_id || "no-product";
+          return chartProductId === productId;
+        });
+        
+        groupChartData.set(productId, productCharts);
+        groupChartData = new Map(groupChartData);
+      }
+    } catch (err) {
+      console.error(`Error loading charts for product ${productId}:`, err);
+    } finally {
+      loadingGroups.delete(productId);
+      loadingGroups = new Set(loadingGroups);
+    }
   }
 
   function expandAll() {
@@ -239,9 +367,31 @@
       expandAll();
     }
   });
+
+  // Watch for filter changes and reload expanded sections
+  $effect(() => {
+    if (!lazyLoading || !organizationId) return;
+    
+    const currentFilters = JSON.stringify(filters);
+    
+    // If filters changed and we have cached data, reload expanded sections
+    if (lastFilters && lastFilters !== currentFilters && expandedGroups.size > 0) {
+      // Clear cached data for all groups
+      groupChartData.clear();
+      groupChartData = new Map(groupChartData);
+      
+      // Reload data for all currently expanded groups
+      const expandedArray = Array.from(expandedGroups);
+      expandedArray.forEach(productId => {
+        loadGroupData(productId);
+      });
+    }
+    
+    lastFilters = currentFilters;
+  });
 </script>
 
-{#if !chartData || !chartData.charts || chartData.charts.length === 0}
+{#if lazyLoading ? (availableProducts.length === 0) : (!chartData || !chartData.charts || chartData.charts.length === 0)}
   <NoDataAvailable
     title="No Analytics Data Available"
     description="Start collecting customer feedback to unlock powerful insights and beautiful analytics visualizations."
@@ -350,17 +500,17 @@
                     <div
                       class="flex items-center gap-4 text-sm text-gray-600 mt-1"
                     >
-                      <span>{group.charts.length} questions</span>
+                      <span>{group.totalResponses === -1 ? '--' : group.charts.length} questions</span>
                       <span>•</span>
                       <span
-                        >{group.totalResponses.toLocaleString()} responses</span
+                        >{group.totalResponses === -1 ? '--' : group.totalResponses.toLocaleString()} responses</span
                       >
                     </div>
                   </div>
                 </div>
 
                 <div class="flex items-center gap-3">
-                  {#if group.totalResponses === 0}
+                  {#if group.totalResponses === 0 && group.charts.length > 0}
                     <span
                       class="px-2 py-1 bg-gray-100 text-gray-600 text-xs font-medium rounded"
                     >
@@ -378,13 +528,35 @@
               <!-- Group Content -->
               {#if isExpanded}
                 <div class="border-t border-gray-200 p-6">
-                  <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                    {#each group.charts as chart (chart.question_id)}
-                      <div class="p-6 border border-gray-200 rounded-lg bg-white">
-                        <ChartContent {chart} />
+                  {#if lazyLoading && loadingGroups.has(group.product_id)}
+                    <!-- Loading state for this group -->
+                    <div class="flex items-center justify-center py-12">
+                      <div class="flex items-center gap-3 text-gray-600">
+                        <Loader2 class="h-5 w-5 animate-spin" />
+                        <span class="text-sm font-medium">Loading charts for {group.product_name}...</span>
                       </div>
-                    {/each}
-                  </div>
+                    </div>
+                  {:else}
+                    {@const chartsToRender = lazyLoading ? (groupChartData.get(group.product_id) || []) : group.charts}
+                    {#if chartsToRender.length > 0}
+                      <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                        {#each chartsToRender as chart (chart.question_id)}
+                          <div class="p-6 border border-gray-200 rounded-lg bg-white">
+                            <ChartContent {chart} />
+                          </div>
+                        {/each}
+                      </div>
+                    {:else}
+                      <div class="py-8">
+                        <NoDataAvailable
+                          title="No Charts Available"
+                          description="No analytics data found for {group.product_name}."
+                          icon={BarChart3}
+                          variant="inline"
+                        />
+                      </div>
+                    {/if}
+                  {/if}
                 </div>
               {/if}
             </Card>

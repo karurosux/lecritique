@@ -89,7 +89,7 @@
     aria-modal="true"
     tabindex="-1"
   >
-    <div class="relative bg-white rounded-lg shadow-xl {sizeClasses[size]} w-full mx-4 max-h-screen overflow-y-auto"
+    <div class="relative bg-white rounded-lg shadow-xl {sizeClasses[size]} w-full mx-4 my-8 max-h-[calc(100vh-4rem)] overflow-y-auto"
          class:animate-modal-enter={animationPhase === 'showing'}
          class:opacity-0={animationPhase !== 'showing'}>
       {#if title || showClose}

@@ -123,24 +123,14 @@
         chartParams.product_id = filters.productId;
       }
 
-      const [analyticsResponse, chartResponse, dashboardResponse] =
-        await Promise.all([
-          api.api.v1AnalyticsOrganizationsDetail(selectedOrganization),
-          api.api.v1AnalyticsOrganizationsChartsList(
-            selectedOrganization,
-            chartParams,
-          ),
-          api.api.v1AnalyticsDashboardDetail(selectedOrganization),
-        ]);
+      // For lazy loading, we only load summary data initially
+      const [analyticsResponse, dashboardResponse] = await Promise.all([
+        api.api.v1AnalyticsOrganizationsDetail(selectedOrganization),
+        api.api.v1AnalyticsDashboardDetail(selectedOrganization),
+      ]);
 
       if (analyticsResponse.data?.data) {
         analyticsData = analyticsResponse.data.data;
-      }
-
-      if (chartResponse.data?.data) {
-        chartData = chartResponse.data.data;
-      } else {
-        chartData = null;
       }
 
       if (dashboardResponse.data?.data) {
@@ -152,11 +142,79 @@
           average_conversion_rate: dashboardResponse.data.data.completion_rate,
         };
       }
+
+      // For lazy loading, don't load any chart data initially
+      // Set chartData to empty structure so component knows there are no sections to show
+      chartData = {
+        organization_id: selectedOrganization,
+        charts: [],
+        summary: {
+          total_responses: 0,
+          date_range: {
+            start: "",
+            end: ""
+          },
+          filters_applied: {}
+        }
+      };
     } catch (err) {
       console.error("Error loading analytics:", err);
       error = handleApiError(err);
     } finally {
       loading = false;
+    }
+  }
+
+  async function loadProductSummary(chartParams: Record<string, any>) {
+    try {
+      const api = getApiClient();
+      const response = await api.api.v1AnalyticsOrganizationsChartsList(
+        selectedOrganization,
+        chartParams
+      );
+
+      if (response.data?.data) {
+        // Create a lightweight version with just product info and response counts
+        // Strip out all the detailed chart data, keeping only metadata
+        chartData = {
+          ...response.data.data,
+          charts: response.data.data.charts?.map((chart: any) => ({
+            question_id: chart.question_id,
+            question_text: chart.question_text,
+            question_type: chart.question_type,
+            chart_type: chart.chart_type,
+            product_id: chart.product_id,
+            product_name: chart.product_name,
+            data: {
+              total: chart.data?.total || 0,
+              // Remove all other data fields for lazy loading
+            },
+          })) || [],
+        };
+      } else {
+        chartData = null;
+      }
+    } catch (err) {
+      console.error("Error loading product summary:", err);
+      chartData = null;
+    }
+  }
+
+  async function loadFullChartData(chartParams: Record<string, any>) {
+    try {
+      const api = getApiClient();
+      const chartResponse = await api.api.v1AnalyticsOrganizationsChartsList(
+        selectedOrganization,
+        chartParams,
+      );
+
+      if (chartResponse.data?.data) {
+        chartData = chartResponse.data.data;
+      } else {
+        chartData = null;
+      }
+    } catch (err) {
+      console.error("Error loading full chart data:", err);
     }
   }
 
@@ -460,6 +518,16 @@
         bind:showOnlyWithData
         bind:viewMode
         hideControls={true}
+        lazyLoading={true}
+        organizationId={selectedOrganization}
+        {availableProducts}
+        filters={{
+          days: filters.days,
+          productId: filters.productId,
+          date_from: filters.days !== DaysFilters.ALL_TIME 
+            ? new Date(new Date().getTime() - parseInt(filters.days) * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
+            : undefined
+        }}
       />
 
       {#if chartData?.feedbacks?.length > 0}
