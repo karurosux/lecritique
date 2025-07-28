@@ -20,6 +20,8 @@ type FeedbackService interface {
 	GetByOrganizationID(ctx context.Context, accountID uuid.UUID, organizationID uuid.UUID, page, limit int) (*sharedModels.PageResponse[models.Feedback], error)
 	GetByOrganizationIDWithFilters(ctx context.Context, accountID uuid.UUID, organizationID uuid.UUID, page, limit int, filters feedbackRepos.FeedbackFilter) (*sharedModels.PageResponse[models.Feedback], error)
 	GetStats(ctx context.Context, accountID uuid.UUID, organizationID uuid.UUID) (*FeedbackStats, error)
+	GetByOrganizationIDForAnalytics(ctx context.Context, organizationID uuid.UUID, limit int) ([]models.Feedback, error)
+	GetByQuestionInPeriod(ctx context.Context, questionID uuid.UUID, startDate, endDate time.Time) ([]models.Feedback, error)
 }
 
 type feedbackService struct {
@@ -168,4 +170,12 @@ func (s *feedbackService) normalizeScore(score float64) float64 {
 
 	// Unknown scale, assume it's already correct but clamp to 5
 	return 5
+}
+
+func (s *feedbackService) GetByOrganizationIDForAnalytics(ctx context.Context, organizationID uuid.UUID, limit int) ([]models.Feedback, error) {
+	return s.feedbackRepo.FindByOrganizationIDForAnalytics(ctx, organizationID, limit)
+}
+
+func (s *feedbackService) GetByQuestionInPeriod(ctx context.Context, questionID uuid.UUID, startDate, endDate time.Time) ([]models.Feedback, error) {
+	return s.feedbackRepo.FindByQuestionInPeriod(ctx, questionID, startDate, endDate)
 }

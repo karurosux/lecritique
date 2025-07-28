@@ -19,6 +19,7 @@ type OrganizationService interface {
 	GetByID(ctx context.Context, accountID uuid.UUID, organizationID uuid.UUID) (*models.Organization, error)
 	GetByAccountID(ctx context.Context, accountID uuid.UUID) ([]models.Organization, error)
 	CountByAccountID(ctx context.Context, accountID uuid.UUID) (int64, error)
+	GetByIDForAnalytics(ctx context.Context, organizationID uuid.UUID) (*models.Organization, error)
 }
 
 type organizationService struct {
@@ -169,4 +170,8 @@ func (s *organizationService) CountByAccountID(ctx context.Context, accountID uu
 		return 0, errors.Wrap(err, "DATABASE_ERROR", "Unable to count organizations", 500)
 	}
 	return count, nil
+}
+
+func (s *organizationService) GetByIDForAnalytics(ctx context.Context, organizationID uuid.UUID) (*models.Organization, error) {
+	return s.organizationRepo.FindByID(ctx, organizationID)
 }

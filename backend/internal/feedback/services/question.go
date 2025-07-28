@@ -24,6 +24,7 @@ type QuestionService interface {
 	DeleteQuestion(ctx context.Context, accountID, questionID uuid.UUID) error
 	ReorderQuestions(ctx context.Context, accountID, productID uuid.UUID, questionIDs []uuid.UUID) error
 	GetProductsWithQuestions(ctx context.Context, accountID, organizationID uuid.UUID) ([]uuid.UUID, error)
+	GetQuestionsByProductIDForAnalytics(ctx context.Context, productID uuid.UUID) ([]*models.Question, error)
 }
 
 type questionService struct {
@@ -303,4 +304,8 @@ func (s *questionService) GetProductsWithQuestions(ctx context.Context, accountI
 	}
 
 	return s.questionRepo.GetProductsWithQuestions(ctx, organizationID)
+}
+
+func (s *questionService) GetQuestionsByProductIDForAnalytics(ctx context.Context, productID uuid.UUID) ([]*models.Question, error) {
+	return s.questionRepo.GetQuestionsByProductID(ctx, productID)
 }
