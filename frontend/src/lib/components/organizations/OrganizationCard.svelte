@@ -75,10 +75,8 @@
   <Card 
     variant="gradient" 
     hover 
-    interactive 
     class="group relative transform transition-all duration-300 animate-fade-in-up !pb-3"
     style="animation-delay: {index * 100}ms"
-    onclick={handleClick}
   >
     <!-- Header Section -->
     <div class="flex items-center space-x-4 mb-4">
@@ -177,7 +175,7 @@
         </div>
       </RoleGate>
       <Button size="sm" variant="gradient" onclick={(e) => { e.stopPropagation(); handleViewDetails(); }}>
-        View Details
+        View
       </Button>
     </div>
   </Card>
@@ -187,10 +185,8 @@
   <Card 
     variant="gradient" 
     hover 
-    interactive 
     class="group relative transition-all duration-300 animate-fade-in-up !pb-3 !pt-3"
     style="animation-delay: {index * 50}ms"
-    onclick={handleClick}
   >
     <div class="flex items-center justify-between">
       <div class="flex items-center space-x-4 flex-1 min-w-0">

@@ -49,7 +49,7 @@
   <select
     bind:value
     onchange={handleChange}
-    class="appearance-none w-full {sizeClasses[size]} border border-gray-200 rounded-xl bg-white/50 backdrop-blur-sm shadow-sm hover:shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent cursor-pointer transition-all duration-200 {!value ? 'text-gray-400' : ''}"
+    class="appearance-none w-full {sizeClasses[size]} border border-gray-200 rounded-xl bg-white/50 backdrop-blur-sm hover:shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent cursor-pointer transition-all duration-200 {!value ? 'text-gray-400' : ''}"
     {...restProps}
   >
     {#if placeholder && !value}
