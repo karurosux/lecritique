@@ -108,7 +108,7 @@
         <span class="text-sm text-gray-600">Active filters:</span>
         {#if searchQuery}
           <FilterChip
-            label="Search: "{searchQuery}""
+            label="Search: {searchQuery}"
             value="search"
             variant="blue"
             onremove={removeSearchFilter} />

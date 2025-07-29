@@ -4,7 +4,7 @@ definitions:
       token:
         type: string
     required:
-      - token
+    - token
     type: object
   handlers.AuthResponse:
     properties:
@@ -28,7 +28,7 @@ definitions:
       new_email:
         type: string
     required:
-      - new_email
+    - new_email
     type: object
   handlers.CheckoutResponse:
     properties:
@@ -42,21 +42,21 @@ definitions:
       session_id:
         type: string
     required:
-      - session_id
+    - session_id
     type: object
   handlers.ConfirmEmailChangeRequest:
     properties:
       token:
         type: string
     required:
-      - token
+    - token
     type: object
   handlers.CreateCheckoutRequest:
     properties:
       plan_id:
         type: string
     required:
-      - plan_id
+    - plan_id
     type: object
   handlers.CreateOrganizationRequest:
     properties:
@@ -73,7 +73,7 @@ definitions:
       website:
         type: string
     required:
-      - name
+    - name
     type: object
   handlers.CreateProductRequest:
     properties:
@@ -91,15 +91,15 @@ definitions:
         minimum: 0
         type: number
     required:
-      - name
-      - organization_id
+    - name
+    - organization_id
     type: object
   handlers.CreateSubscriptionRequest:
     properties:
       plan_id:
         type: string
     required:
-      - plan_id
+    - plan_id
     type: object
   handlers.GenerateQRCodeRequest:
     properties:
@@ -114,22 +114,22 @@ definitions:
         type: string
       type:
         allOf:
-          - $ref: "#/definitions/models.QRCodeType"
+        - $ref: '#/definitions/models.QRCodeType'
         enum:
-          - table
-          - location
-          - takeaway
-          - delivery
-          - general
+        - table
+        - location
+        - takeaway
+        - delivery
+        - general
     required:
-      - label
-      - organization_id
-      - type
+    - label
+    - organization_id
+    - type
     type: object
   handlers.GenerateQRCodeResponse:
     properties:
       data:
-        $ref: "#/definitions/models.QRCode"
+        $ref: '#/definitions/models.QRCode'
       success:
         type: boolean
     type: object
@@ -139,14 +139,14 @@ definitions:
         type: string
       role:
         allOf:
-          - $ref: "#/definitions/models.MemberRole"
+        - $ref: '#/definitions/models.MemberRole'
         enum:
-          - ADMIN
-          - MANAGER
-          - VIEWER
+        - ADMIN
+        - MANAGER
+        - VIEWER
     required:
-      - email
-      - role
+    - email
+    - role
     type: object
   handlers.InvoiceResponse:
     properties:
@@ -178,20 +178,20 @@ definitions:
       password:
         type: string
     required:
-      - email
-      - password
+    - email
+    - password
     type: object
   handlers.PasswordResetRequest:
     properties:
       email:
         type: string
     required:
-      - email
+    - email
     type: object
   handlers.PaymentMethodResponse:
     properties:
       card:
-        $ref: "#/definitions/handlers.CardDetailsResponse"
+        $ref: '#/definitions/handlers.CardDetailsResponse'
       id:
         type: string
       is_default:
@@ -208,7 +208,7 @@ definitions:
     properties:
       data:
         items:
-          $ref: "#/definitions/models.QRCode"
+          $ref: '#/definitions/models.QRCode'
         type: array
       success:
         type: boolean
@@ -230,15 +230,15 @@ definitions:
         minLength: 8
         type: string
     required:
-      - email
-      - password
+    - email
+    - password
     type: object
   handlers.ResendVerificationRequest:
     properties:
       email:
         type: string
     required:
-      - email
+    - email
     type: object
   handlers.ResetPasswordRequest:
     properties:
@@ -248,15 +248,15 @@ definitions:
       token:
         type: string
     required:
-      - new_password
-      - token
+    - new_password
+    - token
     type: object
   handlers.SetDefaultPaymentRequest:
     properties:
       payment_method_id:
         type: string
     required:
-      - payment_method_id
+    - payment_method_id
     type: object
   handlers.UpdateProfileRequest:
     properties:
@@ -281,7 +281,7 @@ definitions:
   handlers.UpdateQRCodeResponse:
     properties:
       data:
-        $ref: "#/definitions/models.QRCode"
+        $ref: '#/definitions/models.QRCode'
       success:
         type: boolean
     type: object
@@ -289,13 +289,13 @@ definitions:
     properties:
       role:
         allOf:
-          - $ref: "#/definitions/models.MemberRole"
+        - $ref: '#/definitions/models.MemberRole'
         enum:
-          - ADMIN
-          - MANAGER
-          - VIEWER
+        - ADMIN
+        - MANAGER
+        - VIEWER
     required:
-      - role
+    - role
     type: object
   kyooar_internal_menu_models.Product:
     properties:
@@ -359,11 +359,10 @@ definitions:
       subscription_id:
         type: string
       team_members:
-        description:
-          'Organizations      []Organization  `json:"organizations,omitempty"`  //
+        description: 'Organizations      []Organization  `json:"organizations,omitempty"`  //
           TODO: Add when organization domain is ready'
         items:
-          $ref: "#/definitions/models.TeamMember"
+          $ref: '#/definitions/models.TeamMember'
         type: array
       updated_at:
         type: string
@@ -375,7 +374,7 @@ definitions:
           type: string
         type: array
     required:
-      - product_ids
+    - product_ids
     type: object
   models.ChoiceInfo:
     properties:
@@ -390,10 +389,10 @@ definitions:
         type: string
       points:
         items:
-          $ref: "#/definitions/models.TimeSeriesPoint"
+          $ref: '#/definitions/models.TimeSeriesPoint'
         type: array
       statistics:
-        $ref: "#/definitions/models.TimeSeriesStats"
+        $ref: '#/definitions/models.TimeSeriesStats'
     type: object
   models.ComparisonInsight:
     properties:
@@ -435,14 +434,14 @@ definitions:
     properties:
       comparisons:
         items:
-          $ref: "#/definitions/models.TimeSeriesComparison"
+          $ref: '#/definitions/models.TimeSeriesComparison'
         type: array
       insights:
         items:
-          $ref: "#/definitions/models.ComparisonInsight"
+          $ref: '#/definitions/models.ComparisonInsight'
         type: array
       request:
-        $ref: "#/definitions/models.ComparisonRequest"
+        $ref: '#/definitions/models.ComparisonRequest'
     type: object
   models.CreateQuestionRequest:
     properties:
@@ -463,10 +462,10 @@ definitions:
       text:
         type: string
       type:
-        $ref: "#/definitions/models.QuestionType"
+        $ref: '#/definitions/models.QuestionType'
     required:
-      - text
-      - type
+    - text
+    - type
     type: object
   models.CreateQuestionnaireRequest:
     properties:
@@ -479,7 +478,7 @@ definitions:
       product_id:
         type: string
     required:
-      - name
+    - name
     type: object
   models.DateRange:
     properties:
@@ -510,28 +509,28 @@ definitions:
       customer_phone:
         type: string
       device_info:
-        $ref: "#/definitions/models.DeviceInfo"
+        $ref: '#/definitions/models.DeviceInfo'
       id:
         type: string
       is_complete:
         type: boolean
       organization:
-        $ref: "#/definitions/models.Organization"
+        $ref: '#/definitions/models.Organization'
       organization_id:
         type: string
       overall_rating:
         type: integer
       product:
-        $ref: "#/definitions/kyooar_internal_menu_models.Product"
+        $ref: '#/definitions/kyooar_internal_menu_models.Product'
       product_id:
         type: string
       qr_code:
-        $ref: "#/definitions/models.QRCode"
+        $ref: '#/definitions/models.QRCode'
       qr_code_id:
         type: string
       responses:
         items:
-          $ref: "#/definitions/models.Response"
+          $ref: '#/definitions/models.Response'
         type: array
       updated_at:
         type: string
@@ -545,7 +544,7 @@ definitions:
       name:
         type: string
     required:
-      - name
+    - name
     type: object
   models.GeneratedQuestion:
     properties:
@@ -564,20 +563,20 @@ definitions:
       text:
         type: string
       type:
-        $ref: "#/definitions/models.QuestionType"
+        $ref: '#/definitions/models.QuestionType'
     type: object
   models.MemberRole:
     enum:
-      - OWNER
-      - ADMIN
-      - MANAGER
-      - VIEWER
+    - OWNER
+    - ADMIN
+    - MANAGER
+    - VIEWER
     type: string
     x-enum-varnames:
-      - RoleOwner
-      - RoleAdmin
-      - RoleManager
-      - RoleViewer
+    - RoleOwner
+    - RoleAdmin
+    - RoleManager
+    - RoleViewer
   models.Organization:
     properties:
       account_id:
@@ -597,14 +596,13 @@ definitions:
       logo:
         type: string
       name:
-        description:
-          'Account     Account        `json:"account,omitempty"` // TODO:
+        description: 'Account     Account        `json:"account,omitempty"` // TODO:
           Add when cross-domain refs are ready'
         type: string
       phone:
         type: string
       settings:
-        $ref: "#/definitions/models.Settings"
+        $ref: '#/definitions/models.Settings'
       updated_at:
         type: string
       website:
@@ -631,30 +629,30 @@ definitions:
         description: Free text location description
         type: string
       organization:
-        $ref: "#/definitions/models.Organization"
+        $ref: '#/definitions/models.Organization'
       organization_id:
         type: string
       scans_count:
         type: integer
       type:
-        $ref: "#/definitions/models.QRCodeType"
+        $ref: '#/definitions/models.QRCodeType'
       updated_at:
         type: string
     type: object
   models.QRCodeType:
     enum:
-      - table
-      - location
-      - takeaway
-      - delivery
-      - general
+    - table
+    - location
+    - takeaway
+    - delivery
+    - general
     type: string
     x-enum-varnames:
-      - QRCodeTypeTable
-      - QRCodeTypeLocation
-      - QRCodeTypeTakeaway
-      - QRCodeTypeDelivery
-      - QRCodeTypeGeneral
+    - QRCodeTypeTable
+    - QRCodeTypeLocation
+    - QRCodeTypeTakeaway
+    - QRCodeTypeDelivery
+    - QRCodeTypeGeneral
   models.Question:
     properties:
       created_at:
@@ -678,24 +676,24 @@ definitions:
           type: string
         type: array
       product:
-        $ref: "#/definitions/kyooar_internal_menu_models.Product"
+        $ref: '#/definitions/kyooar_internal_menu_models.Product'
       product_id:
         type: string
       text:
         type: string
       type:
-        $ref: "#/definitions/models.QuestionType"
+        $ref: '#/definitions/models.QuestionType'
       updated_at:
         type: string
     type: object
   models.QuestionType:
     enum:
-      - rating
-      - scale
-      - multi_choice
-      - single_choice
-      - text
-      - yes_no
+    - rating
+    - scale
+    - multi_choice
+    - single_choice
+    - text
+    - yes_no
     type: string
     x-enum-comments:
       QuestionTypeMultiChoice: Multiple choice
@@ -705,19 +703,19 @@ definitions:
       QuestionTypeText: Free text
       QuestionTypeYesNo: Yes/No
     x-enum-descriptions:
-      - 1-5 stars
-      - 1-10 scale
-      - Multiple choice
-      - Single choice
-      - Free text
-      - Yes/No
+    - 1-5 stars
+    - 1-10 scale
+    - Multiple choice
+    - Single choice
+    - Free text
+    - Yes/No
     x-enum-varnames:
-      - QuestionTypeRating
-      - QuestionTypeScale
-      - QuestionTypeMultiChoice
-      - QuestionTypeSingleChoice
-      - QuestionTypeText
-      - QuestionTypeYesNo
+    - QuestionTypeRating
+    - QuestionTypeScale
+    - QuestionTypeMultiChoice
+    - QuestionTypeSingleChoice
+    - QuestionTypeText
+    - QuestionTypeYesNo
   models.Questionnaire:
     properties:
       created_at:
@@ -733,16 +731,16 @@ definitions:
       name:
         type: string
       organization:
-        $ref: "#/definitions/models.Organization"
+        $ref: '#/definitions/models.Organization'
       organization_id:
         type: string
       product:
-        $ref: "#/definitions/kyooar_internal_menu_models.Product"
+        $ref: '#/definitions/kyooar_internal_menu_models.Product'
       product_id:
         type: string
       questions:
         items:
-          $ref: "#/definitions/models.Question"
+          $ref: '#/definitions/models.Question'
         type: array
       updated_at:
         type: string
@@ -755,7 +753,7 @@ definitions:
       question_text:
         type: string
       question_type:
-        $ref: "#/definitions/models.QuestionType"
+        $ref: '#/definitions/models.QuestionType'
     type: object
   models.Settings:
     properties:
@@ -771,7 +769,7 @@ definitions:
   models.Subscription:
     properties:
       account:
-        $ref: "#/definitions/models.Account"
+        $ref: '#/definitions/models.Account'
       account_id:
         type: string
       cancel_at:
@@ -787,11 +785,11 @@ definitions:
       id:
         type: string
       plan:
-        $ref: "#/definitions/models.SubscriptionPlan"
+        $ref: '#/definitions/models.SubscriptionPlan'
       plan_id:
         type: string
       status:
-        $ref: "#/definitions/models.SubscriptionStatus"
+        $ref: '#/definitions/models.SubscriptionStatus'
       updated_at:
         type: string
     type: object
@@ -844,16 +842,16 @@ definitions:
     type: object
   models.SubscriptionStatus:
     enum:
-      - active
-      - pending
-      - canceled
-      - expired
+    - active
+    - pending
+    - canceled
+    - expired
     type: string
     x-enum-varnames:
-      - SubscriptionActive
-      - SubscriptionPending
-      - SubscriptionCanceled
-      - SubscriptionExpired
+    - SubscriptionActive
+    - SubscriptionPending
+    - SubscriptionCanceled
+    - SubscriptionExpired
   models.SubscriptionUsage:
     properties:
       created_at:
@@ -875,7 +873,7 @@ definitions:
       qr_codes_count:
         type: integer
       subscription:
-        $ref: "#/definitions/models.Subscription"
+        $ref: '#/definitions/models.Subscription'
       subscription_id:
         type: string
       team_members_count:
@@ -888,7 +886,7 @@ definitions:
       accepted_at:
         type: string
       account:
-        $ref: "#/definitions/models.Account"
+        $ref: '#/definitions/models.Account'
       account_id:
         description: The organization account
         type: string
@@ -901,12 +899,12 @@ definitions:
       invited_by:
         type: string
       member:
-        $ref: "#/definitions/models.Account"
+        $ref: '#/definitions/models.Account'
       member_id:
         description: The member's account ID
         type: string
       role:
-        $ref: "#/definitions/models.MemberRole"
+        $ref: '#/definitions/models.MemberRole'
       updated_at:
         type: string
     type: object
@@ -923,7 +921,7 @@ definitions:
         type: integer
       data_points:
         items:
-          $ref: "#/definitions/models.TimeSeriesPoint"
+          $ref: '#/definitions/models.TimeSeriesPoint'
         type: array
       end_date:
         type: string
@@ -932,12 +930,12 @@ definitions:
       min:
         type: number
       most_popular_choice:
-        $ref: "#/definitions/models.ChoiceInfo"
+        $ref: '#/definitions/models.ChoiceInfo'
       start_date:
         type: string
       top_choices:
         items:
-          $ref: "#/definitions/models.ChoiceInfo"
+          $ref: '#/definitions/models.ChoiceInfo'
         type: array
       value:
         type: number
@@ -955,9 +953,9 @@ definitions:
       metric_type:
         type: string
       period1:
-        $ref: "#/definitions/models.TimePeriodMetrics"
+        $ref: '#/definitions/models.TimePeriodMetrics'
       period2:
-        $ref: "#/definitions/models.TimePeriodMetrics"
+        $ref: '#/definitions/models.TimePeriodMetrics'
       trend:
         type: string
     type: object
@@ -965,7 +963,7 @@ definitions:
     properties:
       choice_series:
         items:
-          $ref: "#/definitions/models.ChoiceSeriesData"
+          $ref: '#/definitions/models.ChoiceSeriesData'
         type: array
       metadata:
         additionalProperties: {}
@@ -976,14 +974,14 @@ definitions:
         type: string
       points:
         items:
-          $ref: "#/definitions/models.TimeSeriesPoint"
+          $ref: '#/definitions/models.TimeSeriesPoint'
         type: array
       product_id:
         type: string
       product_name:
         type: string
       statistics:
-        $ref: "#/definitions/models.TimeSeriesStats"
+        $ref: '#/definitions/models.TimeSeriesStats'
     type: object
   models.TimeSeriesPoint:
     properties:
@@ -1020,13 +1018,13 @@ definitions:
   models.TimeSeriesResponse:
     properties:
       request:
-        $ref: "#/definitions/models.TimeSeriesRequest"
+        $ref: '#/definitions/models.TimeSeriesRequest'
       series:
         items:
-          $ref: "#/definitions/models.TimeSeriesData"
+          $ref: '#/definitions/models.TimeSeriesData'
         type: array
       summary:
-        $ref: "#/definitions/models.TimeSeriesSummary"
+        $ref: '#/definitions/models.TimeSeriesSummary'
     type: object
   models.TimeSeriesStats:
     properties:
@@ -1048,7 +1046,7 @@ definitions:
   models.TimeSeriesSummary:
     properties:
       date_range:
-        $ref: "#/definitions/models.DateRange"
+        $ref: '#/definitions/models.DateRange'
       granularity:
         type: string
       metrics_summary:
@@ -1076,7 +1074,7 @@ definitions:
       text:
         type: string
       type:
-        $ref: "#/definitions/models.QuestionType"
+        $ref: '#/definitions/models.QuestionType'
     type: object
   response.ErrorData:
     properties:
@@ -1089,7 +1087,7 @@ definitions:
   response.Meta:
     properties:
       pagination:
-        $ref: "#/definitions/response.Pagination"
+        $ref: '#/definitions/response.Pagination'
       request_id:
         type: string
       timestamp:
@@ -1112,9 +1110,9 @@ definitions:
     properties:
       data: {}
       error:
-        $ref: "#/definitions/response.ErrorData"
+        $ref: '#/definitions/response.ErrorData'
       meta:
-        $ref: "#/definitions/response.Meta"
+        $ref: '#/definitions/response.Meta'
       success:
         type: boolean
     type: object
@@ -1144,118 +1142,116 @@ paths:
   /api/v1/ai/generate-questionnaire/{productId}:
     post:
       consumes:
-        - application/json
-      description:
-        Generate AI questions and create a complete questionnaire for a
+      - application/json
+      description: Generate AI questions and create a complete questionnaire for a
         product
       parameters:
-        - description: Product ID
-          in: path
-          name: productId
-          required: true
-          type: string
-        - description: Questionnaire generation data
-          in: body
-          name: questionnaire
-          required: true
-          schema:
-            $ref: "#/definitions/models.GenerateQuestionnaireRequest"
+      - description: Product ID
+        in: path
+        name: productId
+        required: true
+        type: string
+      - description: Questionnaire generation data
+        in: body
+        name: questionnaire
+        required: true
+        schema:
+          $ref: '#/definitions/models.GenerateQuestionnaireRequest'
       produces:
-        - application/json
+      - application/json
       responses:
         "201":
           description: Created
           schema:
             allOf:
-              - $ref: "#/definitions/response.Response"
-              - properties:
-                  data:
-                    $ref: "#/definitions/models.Questionnaire"
-                type: object
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/models.Questionnaire'
+              type: object
         "400":
           description: Bad Request
           schema:
-            $ref: "#/definitions/response.Response"
+            $ref: '#/definitions/response.Response'
         "401":
           description: Unauthorized
           schema:
-            $ref: "#/definitions/response.Response"
+            $ref: '#/definitions/response.Response'
         "404":
           description: Not Found
           schema:
-            $ref: "#/definitions/response.Response"
+            $ref: '#/definitions/response.Response'
         "500":
           description: Internal Server Error
           schema:
-            $ref: "#/definitions/response.Response"
+            $ref: '#/definitions/response.Response'
       security:
-        - Bearer: []
+      - Bearer: []
       summary: Generate and save AI questionnaire
       tags:
-        - questionnaires
-        - ai
+      - questionnaires
+      - ai
   /api/v1/ai/generate-questions/{productId}:
     post:
       consumes:
-        - application/json
+      - application/json
       description: Generate AI-powered questions for a specific product
       parameters:
-        - description: Product ID
-          in: path
-          name: productId
-          required: true
-          type: string
+      - description: Product ID
+        in: path
+        name: productId
+        required: true
+        type: string
       produces:
-        - application/json
+      - application/json
       responses:
         "200":
           description: OK
           schema:
             allOf:
-              - $ref: "#/definitions/response.Response"
-              - properties:
-                  data:
-                    items:
-                      $ref: "#/definitions/models.GeneratedQuestion"
-                    type: array
-                type: object
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/models.GeneratedQuestion'
+                  type: array
+              type: object
         "400":
           description: Bad Request
           schema:
-            $ref: "#/definitions/response.Response"
+            $ref: '#/definitions/response.Response'
         "401":
           description: Unauthorized
           schema:
-            $ref: "#/definitions/response.Response"
+            $ref: '#/definitions/response.Response'
         "404":
           description: Not Found
           schema:
-            $ref: "#/definitions/response.Response"
+            $ref: '#/definitions/response.Response'
         "500":
           description: Internal Server Error
           schema:
-            $ref: "#/definitions/response.Response"
+            $ref: '#/definitions/response.Response'
       security:
-        - Bearer: []
+      - Bearer: []
       summary: Generate AI questions
       tags:
-        - questionnaires
-        - ai
+      - questionnaires
+      - ai
   /api/v1/analytics/dashboard/{organizationId}:
     get:
       consumes:
-        - application/json
-      description:
-        Get basic analytics metrics for the dashboard including satisfaction,
+      - application/json
+      description: Get basic analytics metrics for the dashboard including satisfaction,
         recommendation rate, and recent feedback
       parameters:
-        - description: Organization ID
-          in: path
-          name: organizationId
-          required: true
-          type: string
+      - description: Organization ID
+        in: path
+        name: organizationId
+        required: true
+        type: string
       produces:
-        - application/json
+      - application/json
       responses:
         "200":
           description: OK
@@ -1265,43 +1261,42 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: "#/definitions/response.Response"
+            $ref: '#/definitions/response.Response'
         "401":
           description: Unauthorized
           schema:
-            $ref: "#/definitions/response.Response"
+            $ref: '#/definitions/response.Response'
         "403":
           description: Forbidden
           schema:
-            $ref: "#/definitions/response.Response"
+            $ref: '#/definitions/response.Response'
         "404":
           description: Not Found
           schema:
-            $ref: "#/definitions/response.Response"
+            $ref: '#/definitions/response.Response'
         "500":
           description: Internal Server Error
           schema:
-            $ref: "#/definitions/response.Response"
+            $ref: '#/definitions/response.Response'
       security:
-        - ApiKeyAuth: []
+      - ApiKeyAuth: []
       summary: Get dashboard metrics
       tags:
-        - analytics
+      - analytics
   /api/v1/analytics/organizations/{organizationId}:
     get:
       consumes:
-        - application/json
-      description:
-        Get comprehensive analytics data for a organization including ratings,
+      - application/json
+      description: Get comprehensive analytics data for a organization including ratings,
         feedback counts, and product performance
       parameters:
-        - description: Organization ID
-          in: path
-          name: organizationId
-          required: true
-          type: string
+      - description: Organization ID
+        in: path
+        name: organizationId
+        required: true
+        type: string
       produces:
-        - application/json
+      - application/json
       responses:
         "200":
           description: OK
@@ -1311,55 +1306,54 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: "#/definitions/response.Response"
+            $ref: '#/definitions/response.Response'
         "401":
           description: Unauthorized
           schema:
-            $ref: "#/definitions/response.Response"
+            $ref: '#/definitions/response.Response'
         "403":
           description: Forbidden
           schema:
-            $ref: "#/definitions/response.Response"
+            $ref: '#/definitions/response.Response'
         "404":
           description: Not Found
           schema:
-            $ref: "#/definitions/response.Response"
+            $ref: '#/definitions/response.Response'
         "500":
           description: Internal Server Error
           schema:
-            $ref: "#/definitions/response.Response"
+            $ref: '#/definitions/response.Response'
       security:
-        - ApiKeyAuth: []
+      - ApiKeyAuth: []
       summary: Get organization analytics
       tags:
-        - analytics
+      - analytics
   /api/v1/analytics/organizations/{organizationId}/charts:
     get:
       consumes:
-        - application/json
-      description:
-        Get pre-aggregated chart data for all questions in a organization
+      - application/json
+      description: Get pre-aggregated chart data for all questions in a organization
         with optional filters
       parameters:
-        - description: Organization ID
-          in: path
-          name: organizationId
-          required: true
-          type: string
-        - description: Start date (YYYY-MM-DD)
-          in: query
-          name: date_from
-          type: string
-        - description: End date (YYYY-MM-DD)
-          in: query
-          name: date_to
-          type: string
-        - description: Filter by specific product ID
-          in: query
-          name: product_id
-          type: string
+      - description: Organization ID
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      - description: Start date (YYYY-MM-DD)
+        in: query
+        name: date_from
+        type: string
+      - description: End date (YYYY-MM-DD)
+        in: query
+        name: date_to
+        type: string
+      - description: Filter by specific product ID
+        in: query
+        name: product_id
+        type: string
       produces:
-        - application/json
+      - application/json
       responses:
         "200":
           description: OK
@@ -1369,213 +1363,210 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: "#/definitions/response.Response"
+            $ref: '#/definitions/response.Response'
         "401":
           description: Unauthorized
           schema:
-            $ref: "#/definitions/response.Response"
+            $ref: '#/definitions/response.Response'
         "403":
           description: Forbidden
           schema:
-            $ref: "#/definitions/response.Response"
+            $ref: '#/definitions/response.Response'
         "404":
           description: Not Found
           schema:
-            $ref: "#/definitions/response.Response"
+            $ref: '#/definitions/response.Response'
         "500":
           description: Internal Server Error
           schema:
-            $ref: "#/definitions/response.Response"
+            $ref: '#/definitions/response.Response'
       security:
-        - ApiKeyAuth: []
+      - ApiKeyAuth: []
       summary: Get organization chart data
       tags:
-        - analytics
+      - analytics
   /api/v1/analytics/organizations/{organizationId}/collect-metrics:
     post:
       consumes:
-        - application/json
+      - application/json
       description: Manually trigger the collection of time series metrics for analytics
       parameters:
-        - description: Organization ID
-          in: path
-          name: organizationId
-          required: true
-          type: string
+      - description: Organization ID
+        in: path
+        name: organizationId
+        required: true
+        type: string
       produces:
-        - application/json
+      - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: "#/definitions/response.Response"
+            $ref: '#/definitions/response.Response'
         "400":
           description: Bad Request
           schema:
-            $ref: "#/definitions/response.Response"
+            $ref: '#/definitions/response.Response'
         "401":
           description: Unauthorized
           schema:
-            $ref: "#/definitions/response.Response"
+            $ref: '#/definitions/response.Response'
         "403":
           description: Forbidden
           schema:
-            $ref: "#/definitions/response.Response"
+            $ref: '#/definitions/response.Response'
         "404":
           description: Not Found
           schema:
-            $ref: "#/definitions/response.Response"
+            $ref: '#/definitions/response.Response'
         "500":
           description: Internal Server Error
           schema:
-            $ref: "#/definitions/response.Response"
+            $ref: '#/definitions/response.Response'
       security:
-        - ApiKeyAuth: []
+      - ApiKeyAuth: []
       summary: Collect metrics for an organization
       tags:
-        - analytics
+      - analytics
   /api/v1/analytics/organizations/{organizationId}/compare:
     post:
       consumes:
-        - application/json
-      description:
-        Compare metrics between two different time periods to identify
+      - application/json
+      description: Compare metrics between two different time periods to identify
         trends and changes
       parameters:
-        - description: Organization ID
-          in: path
-          name: organizationId
-          required: true
-          type: string
-        - description: Comparison request
-          in: body
-          name: body
-          required: true
-          schema:
-            $ref: "#/definitions/models.ComparisonRequest"
+      - description: Organization ID
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      - description: Comparison request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/models.ComparisonRequest'
       produces:
-        - application/json
+      - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: "#/definitions/models.ComparisonResponse"
+            $ref: '#/definitions/models.ComparisonResponse'
         "400":
           description: Bad Request
           schema:
-            $ref: "#/definitions/response.Response"
+            $ref: '#/definitions/response.Response'
         "401":
           description: Unauthorized
           schema:
-            $ref: "#/definitions/response.Response"
+            $ref: '#/definitions/response.Response'
         "403":
           description: Forbidden
           schema:
-            $ref: "#/definitions/response.Response"
+            $ref: '#/definitions/response.Response'
         "404":
           description: Not Found
           schema:
-            $ref: "#/definitions/response.Response"
+            $ref: '#/definitions/response.Response'
         "500":
           description: Internal Server Error
           schema:
-            $ref: "#/definitions/response.Response"
+            $ref: '#/definitions/response.Response'
       security:
-        - ApiKeyAuth: []
+      - ApiKeyAuth: []
       summary: Compare analytics between two time periods
       tags:
-        - analytics
+      - analytics
   /api/v1/analytics/organizations/{organizationId}/time-series:
     get:
       consumes:
-        - application/json
-      description:
-        Get time series data for various metrics with customizable granularity
+      - application/json
+      description: Get time series data for various metrics with customizable granularity
         and date range
       parameters:
-        - description: Organization ID
-          in: path
-          name: organizationId
-          required: true
+      - description: Organization ID
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      - collectionFormat: csv
+        description: Metric types to retrieve
+        in: query
+        items:
           type: string
-        - collectionFormat: csv
-          description: Metric types to retrieve
-          in: query
-          items:
-            type: string
-          name: metric_types
-          required: true
-          type: array
-        - description: Start date (ISO 8601)
-          in: query
-          name: start_date
-          required: true
-          type: string
-        - description: End date (ISO 8601)
-          in: query
-          name: end_date
-          required: true
-          type: string
-        - description: Data granularity (hourly, daily, weekly, monthly)
-          in: query
-          name: granularity
-          required: true
-          type: string
-        - description: Filter by product ID
-          in: query
-          name: product_id
-          type: string
-        - description: Filter by question ID
-          in: query
-          name: question_id
-          type: string
+        name: metric_types
+        required: true
+        type: array
+      - description: Start date (ISO 8601)
+        in: query
+        name: start_date
+        required: true
+        type: string
+      - description: End date (ISO 8601)
+        in: query
+        name: end_date
+        required: true
+        type: string
+      - description: Data granularity (hourly, daily, weekly, monthly)
+        in: query
+        name: granularity
+        required: true
+        type: string
+      - description: Filter by product ID
+        in: query
+        name: product_id
+        type: string
+      - description: Filter by question ID
+        in: query
+        name: question_id
+        type: string
       produces:
-        - application/json
+      - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: "#/definitions/models.TimeSeriesResponse"
+            $ref: '#/definitions/models.TimeSeriesResponse'
         "400":
           description: Bad Request
           schema:
-            $ref: "#/definitions/response.Response"
+            $ref: '#/definitions/response.Response'
         "401":
           description: Unauthorized
           schema:
-            $ref: "#/definitions/response.Response"
+            $ref: '#/definitions/response.Response'
         "403":
           description: Forbidden
           schema:
-            $ref: "#/definitions/response.Response"
+            $ref: '#/definitions/response.Response'
         "404":
           description: Not Found
           schema:
-            $ref: "#/definitions/response.Response"
+            $ref: '#/definitions/response.Response'
         "500":
           description: Internal Server Error
           schema:
-            $ref: "#/definitions/response.Response"
+            $ref: '#/definitions/response.Response'
       security:
-        - ApiKeyAuth: []
+      - ApiKeyAuth: []
       summary: Get time series analytics data
       tags:
-        - analytics
+      - analytics
   /api/v1/analytics/products/{productId}:
     get:
       consumes:
-        - application/json
-      description:
-        Get detailed analytics data for a specific product including ratings,
+      - application/json
+      description: Get detailed analytics data for a specific product including ratings,
         feedback count, and recent feedback
       parameters:
-        - description: Product ID
-          in: path
-          name: productId
-          required: true
-          type: string
+      - description: Product ID
+        in: path
+        name: productId
+        required: true
+        type: string
       produces:
-        - application/json
+      - application/json
       responses:
         "200":
           description: OK
@@ -1585,43 +1576,42 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: "#/definitions/response.Response"
+            $ref: '#/definitions/response.Response'
         "401":
           description: Unauthorized
           schema:
-            $ref: "#/definitions/response.Response"
+            $ref: '#/definitions/response.Response'
         "403":
           description: Forbidden
           schema:
-            $ref: "#/definitions/response.Response"
+            $ref: '#/definitions/response.Response'
         "404":
           description: Not Found
           schema:
-            $ref: "#/definitions/response.Response"
+            $ref: '#/definitions/response.Response'
         "500":
           description: Internal Server Error
           schema:
-            $ref: "#/definitions/response.Response"
+            $ref: '#/definitions/response.Response'
       security:
-        - ApiKeyAuth: []
+      - ApiKeyAuth: []
       summary: Get product analytics
       tags:
-        - analytics
+      - analytics
   /api/v1/analytics/products/{productId}/insights:
     get:
       consumes:
-        - application/json
-      description:
-        Get detailed insights for a specific product including question-level
+      - application/json
+      description: Get detailed insights for a specific product including question-level
         analytics
       parameters:
-        - description: Product ID
-          in: path
-          name: productId
-          required: true
-          type: string
+      - description: Product ID
+        in: path
+        name: productId
+        required: true
+        type: string
       produces:
-        - application/json
+      - application/json
       responses:
         "200":
           description: OK
@@ -1631,675 +1621,673 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: "#/definitions/response.Response"
+            $ref: '#/definitions/response.Response'
         "401":
           description: Unauthorized
           schema:
-            $ref: "#/definitions/response.Response"
+            $ref: '#/definitions/response.Response'
         "403":
           description: Forbidden
           schema:
-            $ref: "#/definitions/response.Response"
+            $ref: '#/definitions/response.Response'
         "404":
           description: Not Found
           schema:
-            $ref: "#/definitions/response.Response"
+            $ref: '#/definitions/response.Response'
         "500":
           description: Internal Server Error
           schema:
-            $ref: "#/definitions/response.Response"
+            $ref: '#/definitions/response.Response'
       security:
-        - ApiKeyAuth: []
+      - ApiKeyAuth: []
       summary: Get product insights
       tags:
-        - analytics
+      - analytics
   /api/v1/auth/cancel-deactivation:
     post:
       consumes:
-        - application/json
+      - application/json
       description: Cancel a pending account deactivation request
       produces:
-        - application/json
+      - application/json
       responses:
         "200":
           description: OK
           schema:
             allOf:
-              - $ref: "#/definitions/response.Response"
-              - properties:
-                  data:
-                    additionalProperties:
-                      type: string
-                    type: object
-                type: object
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  additionalProperties:
+                    type: string
+                  type: object
+              type: object
         "400":
           description: Bad Request
           schema:
-            $ref: "#/definitions/response.Response"
+            $ref: '#/definitions/response.Response'
         "401":
           description: Unauthorized
           schema:
-            $ref: "#/definitions/response.Response"
+            $ref: '#/definitions/response.Response'
       security:
-        - ApiKeyAuth: []
+      - ApiKeyAuth: []
       summary: Cancel account deactivation
       tags:
-        - auth
+      - auth
   /api/v1/auth/change-email:
     post:
       consumes:
-        - application/json
+      - application/json
       description: Request to change the account email address
       parameters:
-        - description: New email address
-          in: body
-          name: request
-          required: true
-          schema:
-            $ref: "#/definitions/handlers.ChangeEmailRequest"
+      - description: New email address
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.ChangeEmailRequest'
       produces:
-        - application/json
+      - application/json
       responses:
         "200":
           description: OK
           schema:
             allOf:
-              - $ref: "#/definitions/response.Response"
-              - properties:
-                  data:
-                    additionalProperties:
-                      type: string
-                    type: object
-                type: object
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  additionalProperties:
+                    type: string
+                  type: object
+              type: object
         "400":
           description: Bad Request
           schema:
-            $ref: "#/definitions/response.Response"
+            $ref: '#/definitions/response.Response'
         "401":
           description: Unauthorized
           schema:
-            $ref: "#/definitions/response.Response"
+            $ref: '#/definitions/response.Response'
       security:
-        - ApiKeyAuth: []
+      - ApiKeyAuth: []
       summary: Request email change
       tags:
-        - auth
+      - auth
   /api/v1/auth/confirm-email-change:
     post:
       consumes:
-        - application/json
+      - application/json
       description: Confirm email change using the token sent to the new email
       parameters:
-        - description: Email change token
-          in: body
-          name: request
-          required: true
-          schema:
-            $ref: "#/definitions/handlers.ConfirmEmailChangeRequest"
+      - description: Email change token
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.ConfirmEmailChangeRequest'
       produces:
-        - application/json
+      - application/json
       responses:
         "200":
           description: OK
           schema:
             allOf:
-              - $ref: "#/definitions/response.Response"
-              - properties:
-                  data:
-                    additionalProperties:
-                      type: string
-                    type: object
-                type: object
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  additionalProperties:
+                    type: string
+                  type: object
+              type: object
         "400":
           description: Bad Request
           schema:
-            $ref: "#/definitions/response.Response"
+            $ref: '#/definitions/response.Response'
       summary: Confirm email change
       tags:
-        - auth
+      - auth
   /api/v1/auth/deactivate:
     post:
       consumes:
-        - application/json
+      - application/json
       description: Request to deactivate the account with a 15-day grace period
       produces:
-        - application/json
+      - application/json
       responses:
         "200":
           description: OK
           schema:
             allOf:
-              - $ref: "#/definitions/response.Response"
-              - properties:
-                  data:
-                    additionalProperties: true
-                    type: object
-                type: object
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  additionalProperties: true
+                  type: object
+              type: object
         "400":
           description: Bad Request
           schema:
-            $ref: "#/definitions/response.Response"
+            $ref: '#/definitions/response.Response'
         "401":
           description: Unauthorized
           schema:
-            $ref: "#/definitions/response.Response"
+            $ref: '#/definitions/response.Response'
       security:
-        - ApiKeyAuth: []
+      - ApiKeyAuth: []
       summary: Request account deactivation
       tags:
-        - auth
+      - auth
   /api/v1/auth/forgot-password:
     post:
       consumes:
-        - application/json
+      - application/json
       description: Send password reset email to the specified email address
       parameters:
-        - description: Email address
-          in: body
-          name: request
-          required: true
-          schema:
-            $ref: "#/definitions/handlers.PasswordResetRequest"
+      - description: Email address
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.PasswordResetRequest'
       produces:
-        - application/json
+      - application/json
       responses:
         "200":
           description: OK
           schema:
             allOf:
-              - $ref: "#/definitions/response.Response"
-              - properties:
-                  data:
-                    additionalProperties:
-                      type: string
-                    type: object
-                type: object
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  additionalProperties:
+                    type: string
+                  type: object
+              type: object
         "400":
           description: Bad Request
           schema:
-            $ref: "#/definitions/response.Response"
+            $ref: '#/definitions/response.Response'
       summary: Send password reset email
       tags:
-        - auth
+      - auth
   /api/v1/auth/login:
     post:
       consumes:
-        - application/json
+      - application/json
       description: Authenticate and get JWT token
       parameters:
-        - description: Login credentials
-          in: body
-          name: request
-          required: true
-          schema:
-            $ref: "#/definitions/handlers.LoginRequest"
+      - description: Login credentials
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.LoginRequest'
       produces:
-        - application/json
+      - application/json
       responses:
         "200":
           description: OK
           schema:
             allOf:
-              - $ref: "#/definitions/response.Response"
-              - properties:
-                  data:
-                    $ref: "#/definitions/handlers.AuthResponse"
-                type: object
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/handlers.AuthResponse'
+              type: object
         "400":
           description: Bad Request
           schema:
-            $ref: "#/definitions/response.Response"
+            $ref: '#/definitions/response.Response'
         "401":
           description: Unauthorized
           schema:
-            $ref: "#/definitions/response.Response"
+            $ref: '#/definitions/response.Response'
       summary: Login to account
       tags:
-        - auth
+      - auth
   /api/v1/auth/profile:
     put:
       consumes:
-        - application/json
-      description:
-        Update user profile information including company name and personal
+      - application/json
+      description: Update user profile information including company name and personal
         details
       parameters:
-        - description: Profile update data
-          in: body
-          name: request
-          required: true
-          schema:
-            $ref: "#/definitions/handlers.UpdateProfileRequest"
+      - description: Profile update data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.UpdateProfileRequest'
       produces:
-        - application/json
+      - application/json
       responses:
         "200":
           description: OK
           schema:
             allOf:
-              - $ref: "#/definitions/response.Response"
-              - properties:
-                  data: {}
-                type: object
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data: {}
+              type: object
         "400":
           description: Bad Request
           schema:
-            $ref: "#/definitions/response.Response"
+            $ref: '#/definitions/response.Response'
         "401":
           description: Unauthorized
           schema:
-            $ref: "#/definitions/response.Response"
+            $ref: '#/definitions/response.Response'
         "500":
           description: Internal Server Error
           schema:
-            $ref: "#/definitions/response.Response"
+            $ref: '#/definitions/response.Response'
       security:
-        - BearerAuth: []
+      - BearerAuth: []
       summary: Update user profile
       tags:
-        - auth
+      - auth
   /api/v1/auth/refresh:
     post:
       consumes:
-        - application/json
+      - application/json
       description: Refresh an existing JWT token to get a new one
       produces:
-        - application/json
+      - application/json
       responses:
         "200":
           description: OK
           schema:
             allOf:
-              - $ref: "#/definitions/response.Response"
-              - properties:
-                  data:
-                    additionalProperties:
-                      type: string
-                    type: object
-                type: object
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  additionalProperties:
+                    type: string
+                  type: object
+              type: object
         "400":
           description: Bad Request
           schema:
-            $ref: "#/definitions/response.Response"
+            $ref: '#/definitions/response.Response'
         "401":
           description: Unauthorized
           schema:
-            $ref: "#/definitions/response.Response"
+            $ref: '#/definitions/response.Response'
       security:
-        - ApiKeyAuth: []
+      - ApiKeyAuth: []
       summary: Refresh JWT token
       tags:
-        - auth
+      - auth
   /api/v1/auth/register:
     post:
       consumes:
-        - application/json
+      - application/json
       description: Create a new organization owner account
       parameters:
-        - description: Registration details
-          in: body
-          name: request
-          required: true
-          schema:
-            $ref: "#/definitions/handlers.RegisterRequest"
+      - description: Registration details
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.RegisterRequest'
       produces:
-        - application/json
+      - application/json
       responses:
         "201":
           description: Created
           schema:
             allOf:
-              - $ref: "#/definitions/response.Response"
-              - properties:
-                  data: {}
-                type: object
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data: {}
+              type: object
         "400":
           description: Bad Request
           schema:
-            $ref: "#/definitions/response.Response"
+            $ref: '#/definitions/response.Response'
         "409":
           description: Conflict
           schema:
-            $ref: "#/definitions/response.Response"
+            $ref: '#/definitions/response.Response'
       summary: Register a new account
       tags:
-        - auth
+      - auth
   /api/v1/auth/resend-verification:
     post:
       consumes:
-        - application/json
-      description:
-        Resend verification email to the specified email address (public
+      - application/json
+      description: Resend verification email to the specified email address (public
         endpoint)
       parameters:
-        - description: Email address
-          in: body
-          name: request
-          required: true
-          schema:
-            $ref: "#/definitions/handlers.ResendVerificationRequest"
+      - description: Email address
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.ResendVerificationRequest'
       produces:
-        - application/json
+      - application/json
       responses:
         "200":
           description: OK
           schema:
             allOf:
-              - $ref: "#/definitions/response.Response"
-              - properties:
-                  data:
-                    additionalProperties:
-                      type: string
-                    type: object
-                type: object
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  additionalProperties:
+                    type: string
+                  type: object
+              type: object
         "400":
           description: Bad Request
           schema:
-            $ref: "#/definitions/response.Response"
+            $ref: '#/definitions/response.Response'
       summary: Resend email verification
       tags:
-        - auth
+      - auth
   /api/v1/auth/reset-password:
     post:
       consumes:
-        - application/json
+      - application/json
       description: Reset password using reset token
       parameters:
-        - description: Reset token and new password
-          in: body
-          name: request
-          required: true
-          schema:
-            $ref: "#/definitions/handlers.ResetPasswordRequest"
+      - description: Reset token and new password
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.ResetPasswordRequest'
       produces:
-        - application/json
+      - application/json
       responses:
         "200":
           description: OK
           schema:
             allOf:
-              - $ref: "#/definitions/response.Response"
-              - properties:
-                  data:
-                    additionalProperties:
-                      type: string
-                    type: object
-                type: object
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  additionalProperties:
+                    type: string
+                  type: object
+              type: object
         "400":
           description: Bad Request
           schema:
-            $ref: "#/definitions/response.Response"
+            $ref: '#/definitions/response.Response'
       summary: Reset password
       tags:
-        - auth
+      - auth
   /api/v1/auth/send-verification:
     post:
       consumes:
-        - application/json
+      - application/json
       description: Send verification email to the authenticated account
       produces:
-        - application/json
+      - application/json
       responses:
         "200":
           description: OK
           schema:
             allOf:
-              - $ref: "#/definitions/response.Response"
-              - properties:
-                  data:
-                    additionalProperties:
-                      type: string
-                    type: object
-                type: object
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  additionalProperties:
+                    type: string
+                  type: object
+              type: object
         "400":
           description: Bad Request
           schema:
-            $ref: "#/definitions/response.Response"
+            $ref: '#/definitions/response.Response'
         "401":
           description: Unauthorized
           schema:
-            $ref: "#/definitions/response.Response"
+            $ref: '#/definitions/response.Response'
       security:
-        - ApiKeyAuth: []
+      - ApiKeyAuth: []
       summary: Send email verification
       tags:
-        - auth
+      - auth
   /api/v1/auth/verify-email:
     get:
       consumes:
-        - application/json
+      - application/json
       description: Verify email address using verification token
       parameters:
-        - description: Verification token
-          in: query
-          name: token
-          required: true
-          type: string
+      - description: Verification token
+        in: query
+        name: token
+        required: true
+        type: string
       produces:
-        - application/json
+      - application/json
       responses:
         "200":
           description: OK
           schema:
             allOf:
-              - $ref: "#/definitions/response.Response"
-              - properties:
-                  data:
-                    additionalProperties:
-                      type: string
-                    type: object
-                type: object
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  additionalProperties:
+                    type: string
+                  type: object
+              type: object
         "400":
           description: Bad Request
           schema:
-            $ref: "#/definitions/response.Response"
+            $ref: '#/definitions/response.Response'
       summary: Verify email address
       tags:
-        - auth
+      - auth
   /api/v1/organizations:
     get:
       description: Get all organizations for the authenticated account
       produces:
-        - application/json
+      - application/json
       responses:
         "200":
           description: OK
           schema:
             allOf:
-              - $ref: "#/definitions/response.Response"
-              - properties:
-                  data:
-                    items:
-                      $ref: "#/definitions/models.Organization"
-                    type: array
-                type: object
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/models.Organization'
+                  type: array
+              type: object
         "401":
           description: Unauthorized
           schema:
-            $ref: "#/definitions/response.Response"
+            $ref: '#/definitions/response.Response'
       security:
-        - BearerAuth: []
+      - BearerAuth: []
       summary: Get all organizations
       tags:
-        - organizations
+      - organizations
     post:
       consumes:
-        - application/json
+      - application/json
       description: Create a new organization for the authenticated account
       parameters:
-        - description: Organization details
-          in: body
-          name: request
-          required: true
-          schema:
-            $ref: "#/definitions/handlers.CreateOrganizationRequest"
+      - description: Organization details
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.CreateOrganizationRequest'
       produces:
-        - application/json
+      - application/json
       responses:
         "200":
           description: OK
           schema:
             allOf:
-              - $ref: "#/definitions/response.Response"
-              - properties:
-                  data:
-                    $ref: "#/definitions/models.Organization"
-                type: object
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/models.Organization'
+              type: object
         "400":
           description: Bad Request
           schema:
-            $ref: "#/definitions/response.Response"
+            $ref: '#/definitions/response.Response'
         "401":
           description: Unauthorized
           schema:
-            $ref: "#/definitions/response.Response"
+            $ref: '#/definitions/response.Response'
       security:
-        - BearerAuth: []
+      - BearerAuth: []
       summary: Create a new organization
       tags:
-        - organizations
+      - organizations
   /api/v1/organizations/{id}:
     delete:
       consumes:
-        - application/json
+      - application/json
       description: Delete a organization from the system
       parameters:
-        - description: Organization ID
-          in: path
-          name: id
-          required: true
-          type: string
+      - description: Organization ID
+        in: path
+        name: id
+        required: true
+        type: string
       produces:
-        - application/json
+      - application/json
       responses:
         "200":
           description: OK
           schema:
             allOf:
-              - $ref: "#/definitions/response.Response"
-              - properties:
-                  data:
-                    additionalProperties:
-                      type: string
-                    type: object
-                type: object
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  additionalProperties:
+                    type: string
+                  type: object
+              type: object
         "400":
           description: Bad Request
           schema:
-            $ref: "#/definitions/response.Response"
+            $ref: '#/definitions/response.Response'
         "401":
           description: Unauthorized
           schema:
-            $ref: "#/definitions/response.Response"
+            $ref: '#/definitions/response.Response'
         "404":
           description: Not Found
           schema:
-            $ref: "#/definitions/response.Response"
+            $ref: '#/definitions/response.Response'
       security:
-        - ApiKeyAuth: []
+      - ApiKeyAuth: []
       summary: Delete organization
       tags:
-        - organizations
+      - organizations
     get:
       consumes:
-        - application/json
+      - application/json
       description: Get a specific organization by its ID
       parameters:
-        - description: Organization ID
-          in: path
-          name: id
-          required: true
-          type: string
+      - description: Organization ID
+        in: path
+        name: id
+        required: true
+        type: string
       produces:
-        - application/json
+      - application/json
       responses:
         "200":
           description: OK
           schema:
             allOf:
-              - $ref: "#/definitions/response.Response"
-              - properties:
-                  data:
-                    $ref: "#/definitions/models.Organization"
-                type: object
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/models.Organization'
+              type: object
         "400":
           description: Bad Request
           schema:
-            $ref: "#/definitions/response.Response"
+            $ref: '#/definitions/response.Response'
         "401":
           description: Unauthorized
           schema:
-            $ref: "#/definitions/response.Response"
+            $ref: '#/definitions/response.Response'
         "404":
           description: Not Found
           schema:
-            $ref: "#/definitions/response.Response"
+            $ref: '#/definitions/response.Response'
       security:
-        - ApiKeyAuth: []
+      - ApiKeyAuth: []
       summary: Get organization by ID
       tags:
-        - organizations
+      - organizations
     put:
       consumes:
-        - application/json
+      - application/json
       description: Update a organization's information
       parameters:
-        - description: Organization ID
-          in: path
-          name: id
-          required: true
-          type: string
-        - description: Fields to update
-          in: body
-          name: updates
-          required: true
-          schema:
-            additionalProperties: true
-            type: object
+      - description: Organization ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Fields to update
+        in: body
+        name: updates
+        required: true
+        schema:
+          additionalProperties: true
+          type: object
       produces:
-        - application/json
+      - application/json
       responses:
         "200":
           description: OK
           schema:
             allOf:
-              - $ref: "#/definitions/response.Response"
-              - properties:
-                  data:
-                    additionalProperties:
-                      type: string
-                    type: object
-                type: object
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  additionalProperties:
+                    type: string
+                  type: object
+              type: object
         "400":
           description: Bad Request
           schema:
-            $ref: "#/definitions/response.Response"
+            $ref: '#/definitions/response.Response'
         "401":
           description: Unauthorized
           schema:
-            $ref: "#/definitions/response.Response"
+            $ref: '#/definitions/response.Response'
         "404":
           description: Not Found
           schema:
-            $ref: "#/definitions/response.Response"
+            $ref: '#/definitions/response.Response'
       security:
-        - ApiKeyAuth: []
+      - ApiKeyAuth: []
       summary: Update organization
       tags:
-        - organizations
+      - organizations
   /api/v1/organizations/{organizationId}/analytics:
     get:
       consumes:
-        - application/json
+      - application/json
       description: Get feedback analytics and statistics for a organization
       parameters:
-        - description: Organization ID
-          in: path
-          name: organizationId
-          required: true
-          type: string
+      - description: Organization ID
+        in: path
+        name: organizationId
+        required: true
+        type: string
       produces:
-        - application/json
+      - application/json
       responses:
         "200":
           description: OK
@@ -2309,71 +2297,70 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: "#/definitions/response.Response"
+            $ref: '#/definitions/response.Response'
         "401":
           description: Unauthorized
           schema:
-            $ref: "#/definitions/response.Response"
+            $ref: '#/definitions/response.Response'
         "500":
           description: Internal Server Error
           schema:
-            $ref: "#/definitions/response.Response"
+            $ref: '#/definitions/response.Response'
       security:
-        - ApiKeyAuth: []
+      - ApiKeyAuth: []
       summary: Get feedback statistics
       tags:
-        - feedback
+      - feedback
   /api/v1/organizations/{organizationId}/feedback:
     get:
       consumes:
-        - application/json
-      description:
-        Get all feedback for a specific organization with pagination and
+      - application/json
+      description: Get all feedback for a specific organization with pagination and
         optional filters
       parameters:
-        - description: Organization ID
-          in: path
-          name: organizationId
-          required: true
-          type: string
-        - description: "Page number (default: 1)"
-          in: query
-          name: page
-          type: integer
-        - description: "Items per page (default: 20, max: 100)"
-          in: query
-          name: limit
-          type: integer
-        - description: Search in comments, customer name, or email
-          in: query
-          name: search
-          type: string
-        - description: Minimum rating (1-5)
-          in: query
-          name: rating_min
-          type: integer
-        - description: Maximum rating (1-5)
-          in: query
-          name: rating_max
-          type: integer
-        - description: Start date (YYYY-MM-DD format)
-          in: query
-          name: date_from
-          type: string
-        - description: End date (YYYY-MM-DD format)
-          in: query
-          name: date_to
-          type: string
-        - description: Filter by specific product ID
-          in: query
-          name: product_id
-          type: string
-        - description: Filter by completion status
-          in: query
-          name: is_complete
-          type: boolean
+      - description: Organization ID
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      - description: 'Page number (default: 1)'
+        in: query
+        name: page
+        type: integer
+      - description: 'Items per page (default: 20, max: 100)'
+        in: query
+        name: limit
+        type: integer
+      - description: Search in comments, customer name, or email
+        in: query
+        name: search
+        type: string
+      - description: Minimum rating (1-5)
+        in: query
+        name: rating_min
+        type: integer
+      - description: Maximum rating (1-5)
+        in: query
+        name: rating_max
+        type: integer
+      - description: Start date (YYYY-MM-DD format)
+        in: query
+        name: date_from
+        type: string
+      - description: End date (YYYY-MM-DD format)
+        in: query
+        name: date_to
+        type: string
+      - description: Filter by specific product ID
+        in: query
+        name: product_id
+        type: string
+      - description: Filter by completion status
+        in: query
+        name: is_complete
+        type: boolean
       produces:
-        - application/json
+      - application/json
       responses:
         "200":
           description: OK
@@ -2383,127 +2370,127 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: "#/definitions/response.Response"
+            $ref: '#/definitions/response.Response'
         "401":
           description: Unauthorized
           schema:
-            $ref: "#/definitions/response.Response"
+            $ref: '#/definitions/response.Response'
         "500":
           description: Internal Server Error
           schema:
-            $ref: "#/definitions/response.Response"
+            $ref: '#/definitions/response.Response'
       security:
-        - ApiKeyAuth: []
+      - ApiKeyAuth: []
       summary: Get organization feedback with filters
       tags:
-        - feedback
+      - feedback
   /api/v1/organizations/{organizationId}/products:
     get:
       consumes:
-        - application/json
+      - application/json
       description: Get all products for a specific organization
       parameters:
-        - description: Organization ID
-          in: path
-          name: organizationId
-          required: true
-          type: string
+      - description: Organization ID
+        in: path
+        name: organizationId
+        required: true
+        type: string
       produces:
-        - application/json
+      - application/json
       responses:
         "200":
           description: OK
           schema:
             allOf:
-              - $ref: "#/definitions/response.Response"
-              - properties:
-                  data:
-                    items:
-                      $ref: "#/definitions/kyooar_internal_menu_models.Product"
-                    type: array
-                type: object
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/kyooar_internal_menu_models.Product'
+                  type: array
+              type: object
         "400":
           description: Bad Request
           schema:
-            $ref: "#/definitions/response.Response"
+            $ref: '#/definitions/response.Response'
         "401":
           description: Unauthorized
           schema:
-            $ref: "#/definitions/response.Response"
+            $ref: '#/definitions/response.Response'
         "404":
           description: Not Found
           schema:
-            $ref: "#/definitions/response.Response"
+            $ref: '#/definitions/response.Response'
         "500":
           description: Internal Server Error
           schema:
-            $ref: "#/definitions/response.Response"
+            $ref: '#/definitions/response.Response'
       security:
-        - ApiKeyAuth: []
+      - ApiKeyAuth: []
       summary: Get products by organization
       tags:
-        - products
+      - products
     post:
       consumes:
-        - application/json
+      - application/json
       description: Create a new product for a organization
       parameters:
-        - description: Organization ID
-          in: path
-          name: organizationId
-          required: true
-          type: string
-        - description: Product information
-          in: body
-          name: product
-          required: true
-          schema:
-            $ref: "#/definitions/handlers.CreateProductRequest"
+      - description: Organization ID
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      - description: Product information
+        in: body
+        name: product
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.CreateProductRequest'
       produces:
-        - application/json
+      - application/json
       responses:
         "200":
           description: OK
           schema:
             allOf:
-              - $ref: "#/definitions/response.Response"
-              - properties:
-                  data:
-                    $ref: "#/definitions/kyooar_internal_menu_models.Product"
-                type: object
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/kyooar_internal_menu_models.Product'
+              type: object
         "400":
           description: Bad Request
           schema:
-            $ref: "#/definitions/response.Response"
+            $ref: '#/definitions/response.Response'
         "401":
           description: Unauthorized
           schema:
-            $ref: "#/definitions/response.Response"
+            $ref: '#/definitions/response.Response'
         "500":
           description: Internal Server Error
           schema:
-            $ref: "#/definitions/response.Response"
+            $ref: '#/definitions/response.Response'
       security:
-        - ApiKeyAuth: []
+      - ApiKeyAuth: []
       summary: Create a new product
       tags:
-        - products
+      - products
   /api/v1/organizations/{organizationId}/products/{productId}/questions:
     get:
       description: Get all feedback questions for a specific product
       parameters:
-        - description: Organization ID
-          in: path
-          name: organizationId
-          required: true
-          type: string
-        - description: Product ID
-          in: path
-          name: productId
-          required: true
-          type: string
+      - description: Organization ID
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      - description: Product ID
+        in: path
+        name: productId
+        required: true
+        type: string
       produces:
-        - application/json
+      - application/json
       responses:
         "200":
           description: Questions retrieved successfully
@@ -2536,33 +2523,33 @@ paths:
             additionalProperties: true
             type: object
       security:
-        - BearerAuth: []
+      - BearerAuth: []
       summary: Get questions for a product
       tags:
-        - questions
+      - questions
     post:
       consumes:
-        - application/json
+      - application/json
       description: Add a new feedback question to a specific product
       parameters:
-        - description: Organization ID
-          in: path
-          name: organizationId
-          required: true
-          type: string
-        - description: Product ID
-          in: path
-          name: productId
-          required: true
-          type: string
-        - description: Question data
-          in: body
-          name: question
-          required: true
-          schema:
-            $ref: "#/definitions/models.CreateQuestionRequest"
+      - description: Organization ID
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      - description: Product ID
+        in: path
+        name: productId
+        required: true
+        type: string
+      - description: Question data
+        in: body
+        name: question
+        required: true
+        schema:
+          $ref: '#/definitions/models.CreateQuestionRequest'
       produces:
-        - application/json
+      - application/json
       responses:
         "201":
           description: Question created successfully
@@ -2595,31 +2582,31 @@ paths:
             additionalProperties: true
             type: object
       security:
-        - BearerAuth: []
+      - BearerAuth: []
       summary: Add a question to a product
       tags:
-        - questions
+      - questions
   /api/v1/organizations/{organizationId}/products/{productId}/questions/{questionId}:
     delete:
       description: Delete a feedback question from a product
       parameters:
-        - description: Organization ID
-          in: path
-          name: organizationId
-          required: true
-          type: string
-        - description: Product ID
-          in: path
-          name: productId
-          required: true
-          type: string
-        - description: Question ID
-          in: path
-          name: questionId
-          required: true
-          type: string
+      - description: Organization ID
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      - description: Product ID
+        in: path
+        name: productId
+        required: true
+        type: string
+      - description: Question ID
+        in: path
+        name: questionId
+        required: true
+        type: string
       produces:
-        - application/json
+      - application/json
       responses:
         "200":
           description: Question deleted successfully
@@ -2652,30 +2639,30 @@ paths:
             additionalProperties: true
             type: object
       security:
-        - BearerAuth: []
+      - BearerAuth: []
       summary: Delete a question
       tags:
-        - questions
+      - questions
     get:
       description: Get details of a specific question
       parameters:
-        - description: Organization ID
-          in: path
-          name: organizationId
-          required: true
-          type: string
-        - description: Product ID
-          in: path
-          name: productId
-          required: true
-          type: string
-        - description: Question ID
-          in: path
-          name: questionId
-          required: true
-          type: string
+      - description: Organization ID
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      - description: Product ID
+        in: path
+        name: productId
+        required: true
+        type: string
+      - description: Question ID
+        in: path
+        name: questionId
+        required: true
+        type: string
       produces:
-        - application/json
+      - application/json
       responses:
         "200":
           description: Question retrieved successfully
@@ -2708,38 +2695,38 @@ paths:
             additionalProperties: true
             type: object
       security:
-        - BearerAuth: []
+      - BearerAuth: []
       summary: Get a specific question
       tags:
-        - questions
+      - questions
     put:
       consumes:
-        - application/json
+      - application/json
       description: Update an existing question for a product
       parameters:
-        - description: Organization ID
-          in: path
-          name: organizationId
-          required: true
-          type: string
-        - description: Product ID
-          in: path
-          name: productId
-          required: true
-          type: string
-        - description: Question ID
-          in: path
-          name: questionId
-          required: true
-          type: string
-        - description: Question data
-          in: body
-          name: question
-          required: true
-          schema:
-            $ref: "#/definitions/models.UpdateQuestionRequest"
+      - description: Organization ID
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      - description: Product ID
+        in: path
+        name: productId
+        required: true
+        type: string
+      - description: Question ID
+        in: path
+        name: questionId
+        required: true
+        type: string
+      - description: Question data
+        in: body
+        name: question
+        required: true
+        schema:
+          $ref: '#/definitions/models.UpdateQuestionRequest'
       produces:
-        - application/json
+      - application/json
       responses:
         "200":
           description: Question updated successfully
@@ -2772,36 +2759,36 @@ paths:
             additionalProperties: true
             type: object
       security:
-        - BearerAuth: []
+      - BearerAuth: []
       summary: Update a question
       tags:
-        - questions
+      - questions
   /api/v1/organizations/{organizationId}/products/{productId}/questions/reorder:
     post:
       consumes:
-        - application/json
+      - application/json
       description: Reorder questions for a specific product
       parameters:
-        - description: Organization ID
-          in: path
-          name: organizationId
-          required: true
-          type: string
-        - description: Product ID
-          in: path
-          name: productId
-          required: true
-          type: string
-        - description: Question IDs in new order
-          in: body
-          name: order
-          required: true
-          schema:
-            items:
-              type: string
-            type: array
+      - description: Organization ID
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      - description: Product ID
+        in: path
+        name: productId
+        required: true
+        type: string
+      - description: Question IDs in new order
+        in: body
+        name: order
+        required: true
+        schema:
+          items:
+            type: string
+          type: array
       produces:
-        - application/json
+      - application/json
       responses:
         "200":
           description: Questions reordered successfully
@@ -2834,318 +2821,317 @@ paths:
             additionalProperties: true
             type: object
       security:
-        - BearerAuth: []
+      - BearerAuth: []
       summary: Reorder questions
       tags:
-        - questions
+      - questions
   /api/v1/organizations/{organizationId}/qr-codes:
     get:
       consumes:
-        - application/json
+      - application/json
       description: Get all QR codes for a specific organization
       parameters:
-        - description: Organization ID
-          in: path
-          name: organizationId
-          required: true
-          type: string
+      - description: Organization ID
+        in: path
+        name: organizationId
+        required: true
+        type: string
       produces:
-        - application/json
+      - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: "#/definitions/handlers.QRCodeListResponse"
+            $ref: '#/definitions/handlers.QRCodeListResponse'
         "400":
           description: Bad Request
           schema:
-            $ref: "#/definitions/response.Response"
+            $ref: '#/definitions/response.Response'
         "401":
           description: Unauthorized
           schema:
-            $ref: "#/definitions/response.Response"
+            $ref: '#/definitions/response.Response'
         "500":
           description: Internal Server Error
           schema:
-            $ref: "#/definitions/response.Response"
+            $ref: '#/definitions/response.Response'
       security:
-        - ApiKeyAuth: []
+      - ApiKeyAuth: []
       summary: Get QR codes by organization
       tags:
-        - qr-codes
+      - qr-codes
     post:
       consumes:
-        - application/json
+      - application/json
       description: Generate a new QR code for a organization
       parameters:
-        - description: QR code information
-          in: body
-          name: qr_code
-          required: true
-          schema:
-            $ref: "#/definitions/handlers.GenerateQRCodeRequest"
+      - description: QR code information
+        in: body
+        name: qr_code
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.GenerateQRCodeRequest'
       produces:
-        - application/json
+      - application/json
       responses:
         "201":
           description: Created
           schema:
-            $ref: "#/definitions/handlers.GenerateQRCodeResponse"
+            $ref: '#/definitions/handlers.GenerateQRCodeResponse'
         "400":
           description: Bad Request
           schema:
-            $ref: "#/definitions/response.Response"
+            $ref: '#/definitions/response.Response'
         "401":
           description: Unauthorized
           schema:
-            $ref: "#/definitions/response.Response"
+            $ref: '#/definitions/response.Response'
         "500":
           description: Internal Server Error
           schema:
-            $ref: "#/definitions/response.Response"
+            $ref: '#/definitions/response.Response'
       security:
-        - ApiKeyAuth: []
+      - ApiKeyAuth: []
       summary: Generate QR code
       tags:
-        - qr-codes
+      - qr-codes
   /api/v1/organizations/{organizationId}/questionnaires:
     get:
       consumes:
-        - application/json
+      - application/json
       description: Get all questionnaires for a organization
       parameters:
-        - description: Organization ID
-          in: path
-          name: organizationId
-          required: true
-          type: string
+      - description: Organization ID
+        in: path
+        name: organizationId
+        required: true
+        type: string
       produces:
-        - application/json
+      - application/json
       responses:
         "200":
           description: OK
           schema:
             allOf:
-              - $ref: "#/definitions/response.Response"
-              - properties:
-                  data:
-                    items:
-                      $ref: "#/definitions/models.Questionnaire"
-                    type: array
-                type: object
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/models.Questionnaire'
+                  type: array
+              type: object
         "400":
           description: Bad Request
           schema:
-            $ref: "#/definitions/response.Response"
+            $ref: '#/definitions/response.Response'
         "401":
           description: Unauthorized
           schema:
-            $ref: "#/definitions/response.Response"
+            $ref: '#/definitions/response.Response'
       security:
-        - Bearer: []
+      - Bearer: []
       summary: List questionnaires
       tags:
-        - questionnaires
+      - questionnaires
     post:
       consumes:
-        - application/json
+      - application/json
       description: Create a new questionnaire for a organization
       parameters:
-        - description: Organization ID
-          in: path
-          name: organizationId
-          required: true
-          type: string
-        - description: Questionnaire data
-          in: body
-          name: questionnaire
-          required: true
-          schema:
-            $ref: "#/definitions/models.CreateQuestionnaireRequest"
+      - description: Organization ID
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      - description: Questionnaire data
+        in: body
+        name: questionnaire
+        required: true
+        schema:
+          $ref: '#/definitions/models.CreateQuestionnaireRequest'
       produces:
-        - application/json
+      - application/json
       responses:
         "201":
           description: Created
           schema:
             allOf:
-              - $ref: "#/definitions/response.Response"
-              - properties:
-                  data:
-                    $ref: "#/definitions/models.Questionnaire"
-                type: object
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/models.Questionnaire'
+              type: object
         "400":
           description: Bad Request
           schema:
-            $ref: "#/definitions/response.Response"
+            $ref: '#/definitions/response.Response'
         "401":
           description: Unauthorized
           schema:
-            $ref: "#/definitions/response.Response"
+            $ref: '#/definitions/response.Response'
         "500":
           description: Internal Server Error
           schema:
-            $ref: "#/definitions/response.Response"
+            $ref: '#/definitions/response.Response'
       security:
-        - Bearer: []
+      - Bearer: []
       summary: Create questionnaire
       tags:
-        - questionnaires
+      - questionnaires
   /api/v1/organizations/{organizationId}/questionnaires/{id}:
     delete:
       consumes:
-        - application/json
+      - application/json
       description: Delete a questionnaire
       parameters:
-        - description: Organization ID
-          in: path
-          name: organizationId
-          required: true
-          type: string
-        - description: Questionnaire ID
-          in: path
-          name: id
-          required: true
-          type: string
+      - description: Organization ID
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      - description: Questionnaire ID
+        in: path
+        name: id
+        required: true
+        type: string
       produces:
-        - application/json
+      - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: "#/definitions/response.Response"
+            $ref: '#/definitions/response.Response'
         "400":
           description: Bad Request
           schema:
-            $ref: "#/definitions/response.Response"
+            $ref: '#/definitions/response.Response'
         "401":
           description: Unauthorized
           schema:
-            $ref: "#/definitions/response.Response"
+            $ref: '#/definitions/response.Response'
         "404":
           description: Not Found
           schema:
-            $ref: "#/definitions/response.Response"
+            $ref: '#/definitions/response.Response'
       security:
-        - Bearer: []
+      - Bearer: []
       summary: Delete questionnaire
       tags:
-        - questionnaires
+      - questionnaires
     get:
       consumes:
-        - application/json
+      - application/json
       description: Get a specific questionnaire by ID
       parameters:
-        - description: Organization ID
-          in: path
-          name: organizationId
-          required: true
-          type: string
-        - description: Questionnaire ID
-          in: path
-          name: id
-          required: true
-          type: string
+      - description: Organization ID
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      - description: Questionnaire ID
+        in: path
+        name: id
+        required: true
+        type: string
       produces:
-        - application/json
+      - application/json
       responses:
         "200":
           description: OK
           schema:
             allOf:
-              - $ref: "#/definitions/response.Response"
-              - properties:
-                  data:
-                    $ref: "#/definitions/models.Questionnaire"
-                type: object
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/models.Questionnaire'
+              type: object
         "400":
           description: Bad Request
           schema:
-            $ref: "#/definitions/response.Response"
+            $ref: '#/definitions/response.Response'
         "401":
           description: Unauthorized
           schema:
-            $ref: "#/definitions/response.Response"
+            $ref: '#/definitions/response.Response'
         "404":
           description: Not Found
           schema:
-            $ref: "#/definitions/response.Response"
+            $ref: '#/definitions/response.Response'
       security:
-        - Bearer: []
+      - Bearer: []
       summary: Get questionnaire
       tags:
-        - questionnaires
+      - questionnaires
     put:
       consumes:
-        - application/json
+      - application/json
       description: Update an existing questionnaire
       parameters:
-        - description: Organization ID
-          in: path
-          name: organizationId
-          required: true
-          type: string
-        - description: Questionnaire ID
-          in: path
-          name: id
-          required: true
-          type: string
-        - description: Questionnaire data
-          in: body
-          name: questionnaire
-          required: true
-          schema:
-            $ref: "#/definitions/models.Questionnaire"
+      - description: Organization ID
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      - description: Questionnaire ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Questionnaire data
+        in: body
+        name: questionnaire
+        required: true
+        schema:
+          $ref: '#/definitions/models.Questionnaire'
       produces:
-        - application/json
+      - application/json
       responses:
         "200":
           description: OK
           schema:
             allOf:
-              - $ref: "#/definitions/response.Response"
-              - properties:
-                  data:
-                    $ref: "#/definitions/models.Questionnaire"
-                type: object
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/models.Questionnaire'
+              type: object
         "400":
           description: Bad Request
           schema:
-            $ref: "#/definitions/response.Response"
+            $ref: '#/definitions/response.Response'
         "401":
           description: Unauthorized
           schema:
-            $ref: "#/definitions/response.Response"
+            $ref: '#/definitions/response.Response'
         "404":
           description: Not Found
           schema:
-            $ref: "#/definitions/response.Response"
+            $ref: '#/definitions/response.Response'
       security:
-        - Bearer: []
+      - Bearer: []
       summary: Update questionnaire
       tags:
-        - questionnaires
+      - questionnaires
   /api/v1/organizations/{organizationId}/questions/batch:
     post:
       consumes:
-        - application/json
-      description:
-        Get essential question fields for multiple products in a single
+      - application/json
+      description: Get essential question fields for multiple products in a single
         request - returns only ID, ProductID, Text, and Type
       parameters:
-        - description: Organization ID
-          in: path
-          name: organizationId
-          required: true
-          type: string
-        - description: Product IDs
-          in: body
-          name: request
-          required: true
-          schema:
-            $ref: "#/definitions/models.BatchQuestionsRequest"
+      - description: Organization ID
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      - description: Product IDs
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.BatchQuestionsRequest'
       produces:
-        - application/json
+      - application/json
       responses:
         "200":
           description: Questions retrieved successfully
@@ -3178,21 +3164,21 @@ paths:
             additionalProperties: true
             type: object
       security:
-        - BearerAuth: []
+      - BearerAuth: []
       summary: Get questions for multiple products (optimized payload)
       tags:
-        - questions
+      - questions
   /api/v1/organizations/{organizationId}/questions/products-with-questions:
     get:
       description: Get list of product IDs that have questions for a organization
       parameters:
-        - description: Organization ID
-          in: path
-          name: organizationId
-          required: true
-          type: string
+      - description: Organization ID
+        in: path
+        name: organizationId
+        required: true
+        type: string
       produces:
-        - application/json
+      - application/json
       responses:
         "200":
           description: Products with questions retrieved successfully
@@ -3220,391 +3206,389 @@ paths:
             additionalProperties: true
             type: object
       security:
-        - BearerAuth: []
+      - BearerAuth: []
       summary: Get products that have questions
       tags:
-        - questions
+      - questions
   /api/v1/payment/checkout:
     post:
       consumes:
-        - application/json
+      - application/json
       description: Create a payment checkout session for a subscription plan
       parameters:
-        - description: Checkout request
-          in: body
-          name: request
-          required: true
-          schema:
-            $ref: "#/definitions/handlers.CreateCheckoutRequest"
+      - description: Checkout request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.CreateCheckoutRequest'
       produces:
-        - application/json
+      - application/json
       responses:
         "200":
           description: OK
           schema:
             allOf:
-              - $ref: "#/definitions/response.Response"
-              - properties:
-                  data:
-                    $ref: "#/definitions/handlers.CheckoutResponse"
-                type: object
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/handlers.CheckoutResponse'
+              type: object
         "400":
           description: Bad Request
           schema:
-            $ref: "#/definitions/response.Response"
+            $ref: '#/definitions/response.Response'
         "401":
           description: Unauthorized
           schema:
-            $ref: "#/definitions/response.Response"
+            $ref: '#/definitions/response.Response'
       security:
-        - BearerAuth: []
+      - BearerAuth: []
       summary: Create a checkout session
       tags:
-        - payment
+      - payment
   /api/v1/payment/checkout/complete:
     post:
       consumes:
-        - application/json
+      - application/json
       description: Complete a checkout session after payment
       parameters:
-        - description: Complete checkout request
-          in: body
-          name: request
-          required: true
-          schema:
-            $ref: "#/definitions/handlers.CompleteCheckoutRequest"
+      - description: Complete checkout request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.CompleteCheckoutRequest'
       produces:
-        - application/json
+      - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: "#/definitions/response.Response"
+            $ref: '#/definitions/response.Response'
         "400":
           description: Bad Request
           schema:
-            $ref: "#/definitions/response.Response"
+            $ref: '#/definitions/response.Response'
       summary: Complete a checkout session
       tags:
-        - payment
+      - payment
   /api/v1/payment/invoices:
     get:
       description: Get user's invoice history
       parameters:
-        - default: 10
-          description: Limit number of invoices
-          in: query
-          name: limit
-          type: integer
+      - default: 10
+        description: Limit number of invoices
+        in: query
+        name: limit
+        type: integer
       produces:
-        - application/json
+      - application/json
       responses:
         "200":
           description: OK
           schema:
             allOf:
-              - $ref: "#/definitions/response.Response"
-              - properties:
-                  data:
-                    items:
-                      $ref: "#/definitions/handlers.InvoiceResponse"
-                    type: array
-                type: object
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/handlers.InvoiceResponse'
+                  type: array
+              type: object
         "401":
           description: Unauthorized
           schema:
-            $ref: "#/definitions/response.Response"
+            $ref: '#/definitions/response.Response'
       security:
-        - BearerAuth: []
+      - BearerAuth: []
       summary: Get invoices
       tags:
-        - payment
+      - payment
   /api/v1/payment/methods:
     get:
       description: Get list of user's payment methods
       produces:
-        - application/json
+      - application/json
       responses:
         "200":
           description: OK
           schema:
             allOf:
-              - $ref: "#/definitions/response.Response"
-              - properties:
-                  data:
-                    items:
-                      $ref: "#/definitions/handlers.PaymentMethodResponse"
-                    type: array
-                type: object
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/handlers.PaymentMethodResponse'
+                  type: array
+              type: object
         "401":
           description: Unauthorized
           schema:
-            $ref: "#/definitions/response.Response"
+            $ref: '#/definitions/response.Response'
       security:
-        - BearerAuth: []
+      - BearerAuth: []
       summary: List payment methods
       tags:
-        - payment
+      - payment
   /api/v1/payment/methods/default:
     post:
       consumes:
-        - application/json
+      - application/json
       description: Set a payment method as default
       parameters:
-        - description: Set default payment request
-          in: body
-          name: request
-          required: true
-          schema:
-            $ref: "#/definitions/handlers.SetDefaultPaymentRequest"
+      - description: Set default payment request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.SetDefaultPaymentRequest'
       produces:
-        - application/json
+      - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: "#/definitions/response.Response"
+            $ref: '#/definitions/response.Response'
         "400":
           description: Bad Request
           schema:
-            $ref: "#/definitions/response.Response"
+            $ref: '#/definitions/response.Response'
         "401":
           description: Unauthorized
           schema:
-            $ref: "#/definitions/response.Response"
+            $ref: '#/definitions/response.Response'
       security:
-        - BearerAuth: []
+      - BearerAuth: []
       summary: Set default payment method
       tags:
-        - payment
+      - payment
   /api/v1/payment/portal:
     post:
-      description:
-        Create a customer portal session for self-service subscription
+      description: Create a customer portal session for self-service subscription
         management
       produces:
-        - application/json
+      - application/json
       responses:
         "200":
           description: OK
           schema:
             allOf:
-              - $ref: "#/definitions/response.Response"
-              - properties:
-                  data:
-                    $ref: "#/definitions/handlers.PortalResponse"
-                type: object
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/handlers.PortalResponse'
+              type: object
         "401":
           description: Unauthorized
           schema:
-            $ref: "#/definitions/response.Response"
+            $ref: '#/definitions/response.Response'
       security:
-        - BearerAuth: []
+      - BearerAuth: []
       summary: Create customer portal session
       tags:
-        - payment
+      - payment
   /api/v1/payment/webhook:
     post:
       consumes:
-        - application/json
+      - application/json
       description: Handle webhook events from payment provider
       produces:
-        - application/json
+      - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: "#/definitions/response.Response"
+            $ref: '#/definitions/response.Response'
         "400":
           description: Bad Request
           schema:
-            $ref: "#/definitions/response.Response"
+            $ref: '#/definitions/response.Response'
       summary: Handle payment webhook
       tags:
-        - payment
+      - payment
   /api/v1/plans:
     get:
       consumes:
-        - application/json
-      description:
-        Retrieve all available subscription plans with their features and
+      - application/json
+      description: Retrieve all available subscription plans with their features and
         pricing
       produces:
-        - application/json
+      - application/json
       responses:
         "200":
           description: OK
           schema:
             allOf:
-              - $ref: "#/definitions/response.Response"
-              - properties:
-                  data:
-                    items:
-                      $ref: "#/definitions/models.SubscriptionPlan"
-                    type: array
-                type: object
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/models.SubscriptionPlan'
+                  type: array
+              type: object
         "500":
           description: Internal Server Error
           schema:
-            $ref: "#/definitions/response.Response"
+            $ref: '#/definitions/response.Response'
       summary: Get available subscription plans
       tags:
-        - subscription
+      - subscription
   /api/v1/products/{id}:
     delete:
       consumes:
-        - application/json
+      - application/json
       description: Delete a product from the system
       parameters:
-        - description: Product ID
-          in: path
-          name: id
-          required: true
-          type: string
+      - description: Product ID
+        in: path
+        name: id
+        required: true
+        type: string
       produces:
-        - application/json
+      - application/json
       responses:
         "200":
           description: OK
           schema:
             allOf:
-              - $ref: "#/definitions/response.Response"
-              - properties:
-                  data:
-                    additionalProperties:
-                      type: string
-                    type: object
-                type: object
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  additionalProperties:
+                    type: string
+                  type: object
+              type: object
         "400":
           description: Bad Request
           schema:
-            $ref: "#/definitions/response.Response"
+            $ref: '#/definitions/response.Response'
         "401":
           description: Unauthorized
           schema:
-            $ref: "#/definitions/response.Response"
+            $ref: '#/definitions/response.Response'
         "404":
           description: Not Found
           schema:
-            $ref: "#/definitions/response.Response"
+            $ref: '#/definitions/response.Response'
         "500":
           description: Internal Server Error
           schema:
-            $ref: "#/definitions/response.Response"
+            $ref: '#/definitions/response.Response'
       security:
-        - ApiKeyAuth: []
+      - ApiKeyAuth: []
       summary: Delete a product
       tags:
-        - products
+      - products
     get:
       consumes:
-        - application/json
+      - application/json
       description: Get a specific product by its ID
       parameters:
-        - description: Product ID
-          in: path
-          name: id
-          required: true
-          type: string
+      - description: Product ID
+        in: path
+        name: id
+        required: true
+        type: string
       produces:
-        - application/json
+      - application/json
       responses:
         "200":
           description: OK
           schema:
             allOf:
-              - $ref: "#/definitions/response.Response"
-              - properties:
-                  data:
-                    $ref: "#/definitions/kyooar_internal_menu_models.Product"
-                type: object
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/kyooar_internal_menu_models.Product'
+              type: object
         "400":
           description: Bad Request
           schema:
-            $ref: "#/definitions/response.Response"
+            $ref: '#/definitions/response.Response'
         "401":
           description: Unauthorized
           schema:
-            $ref: "#/definitions/response.Response"
+            $ref: '#/definitions/response.Response'
         "404":
           description: Not Found
           schema:
-            $ref: "#/definitions/response.Response"
+            $ref: '#/definitions/response.Response'
         "500":
           description: Internal Server Error
           schema:
-            $ref: "#/definitions/response.Response"
+            $ref: '#/definitions/response.Response'
       security:
-        - ApiKeyAuth: []
+      - ApiKeyAuth: []
       summary: Get product by ID
       tags:
-        - products
+      - products
     put:
       consumes:
-        - application/json
+      - application/json
       description: Update a product's information
       parameters:
-        - description: Product ID
-          in: path
-          name: id
-          required: true
-          type: string
-        - description: Fields to update
-          in: body
-          name: updates
-          required: true
-          schema:
-            additionalProperties: true
-            type: object
+      - description: Product ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Fields to update
+        in: body
+        name: updates
+        required: true
+        schema:
+          additionalProperties: true
+          type: object
       produces:
-        - application/json
+      - application/json
       responses:
         "200":
           description: OK
           schema:
             allOf:
-              - $ref: "#/definitions/response.Response"
-              - properties:
-                  data:
-                    additionalProperties:
-                      type: string
-                    type: object
-                type: object
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  additionalProperties:
+                    type: string
+                  type: object
+              type: object
         "400":
           description: Bad Request
           schema:
-            $ref: "#/definitions/response.Response"
+            $ref: '#/definitions/response.Response'
         "401":
           description: Unauthorized
           schema:
-            $ref: "#/definitions/response.Response"
+            $ref: '#/definitions/response.Response'
         "404":
           description: Not Found
           schema:
-            $ref: "#/definitions/response.Response"
+            $ref: '#/definitions/response.Response'
         "500":
           description: Internal Server Error
           schema:
-            $ref: "#/definitions/response.Response"
+            $ref: '#/definitions/response.Response'
       security:
-        - ApiKeyAuth: []
+      - ApiKeyAuth: []
       summary: Update a product
       tags:
-        - products
+      - products
   /api/v1/public/feedback:
     post:
       consumes:
-        - application/json
+      - application/json
       description: Submit customer feedback for a product
       parameters:
-        - description: Feedback data
-          in: body
-          name: feedback
-          required: true
-          schema:
-            $ref: "#/definitions/models.Feedback"
+      - description: Feedback data
+        in: body
+        name: feedback
+        required: true
+        schema:
+          $ref: '#/definitions/models.Feedback'
       produces:
-        - application/json
+      - application/json
       responses:
         "200":
           description: OK
@@ -3614,27 +3598,27 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: "#/definitions/response.Response"
+            $ref: '#/definitions/response.Response'
         "500":
           description: Internal Server Error
           schema:
-            $ref: "#/definitions/response.Response"
+            $ref: '#/definitions/response.Response'
       summary: Submit feedback
       tags:
-        - public
+      - public
   /api/v1/public/organization/{id}/menu:
     get:
       consumes:
-        - application/json
+      - application/json
       description: Get public menu for a organization
       parameters:
-        - description: Organization ID
-          in: path
-          name: id
-          required: true
-          type: string
+      - description: Organization ID
+        in: path
+        name: id
+        required: true
+        type: string
       produces:
-        - application/json
+      - application/json
       responses:
         "200":
           description: OK
@@ -3644,32 +3628,31 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: "#/definitions/response.Response"
+            $ref: '#/definitions/response.Response'
         "404":
           description: Not Found
           schema:
-            $ref: "#/definitions/response.Response"
+            $ref: '#/definitions/response.Response'
       summary: Get organization menu
       tags:
-        - public
+      - public
   /api/v1/public/organization/{organizationId}/products/{productId}/questions:
     get:
-      description:
-        Get all feedback questions for a specific product (public access
+      description: Get all feedback questions for a specific product (public access
         for customer feedback)
       parameters:
-        - description: Organization ID
-          in: path
-          name: organizationId
-          required: true
-          type: string
-        - description: Product ID
-          in: path
-          name: productId
-          required: true
-          type: string
+      - description: Organization ID
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      - description: Product ID
+        in: path
+        name: productId
+        required: true
+        type: string
       produces:
-        - application/json
+      - application/json
       responses:
         "200":
           description: Questions retrieved successfully
@@ -3679,31 +3662,30 @@ paths:
         "400":
           description: Invalid request
           schema:
-            $ref: "#/definitions/response.Response"
+            $ref: '#/definitions/response.Response'
         "404":
           description: Product not found
           schema:
-            $ref: "#/definitions/response.Response"
+            $ref: '#/definitions/response.Response'
         "500":
           description: Server error
           schema:
-            $ref: "#/definitions/response.Response"
+            $ref: '#/definitions/response.Response'
       summary: Get questions for a product
       tags:
-        - public
+      - public
   /api/v1/public/organization/{organizationId}/questions/products-with-questions:
     get:
-      description:
-        Get all products that have feedback questions for a organization
+      description: Get all products that have feedback questions for a organization
         (public access for QR code scans)
       parameters:
-        - description: Organization ID
-          in: path
-          name: organizationId
-          required: true
-          type: string
+      - description: Organization ID
+        in: path
+        name: organizationId
+        required: true
+        type: string
       produces:
-        - application/json
+      - application/json
       responses:
         "200":
           description: Products with questions retrieved successfully
@@ -3713,31 +3695,31 @@ paths:
         "400":
           description: Invalid request
           schema:
-            $ref: "#/definitions/response.Response"
+            $ref: '#/definitions/response.Response'
         "404":
           description: Organization not found
           schema:
-            $ref: "#/definitions/response.Response"
+            $ref: '#/definitions/response.Response'
         "500":
           description: Server error
           schema:
-            $ref: "#/definitions/response.Response"
+            $ref: '#/definitions/response.Response'
       summary: Get products with questions
       tags:
-        - public
+      - public
   /api/v1/public/qr/{code}:
     get:
       consumes:
-        - application/json
+      - application/json
       description: Validate a QR code and return associated data
       parameters:
-        - description: QR Code
-          in: path
-          name: code
-          required: true
-          type: string
+      - description: QR Code
+        in: path
+        name: code
+        required: true
+        type: string
       produces:
-        - application/json
+      - application/json
       responses:
         "200":
           description: OK
@@ -3747,32 +3729,32 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: "#/definitions/response.Response"
+            $ref: '#/definitions/response.Response'
         "404":
           description: Not Found
           schema:
-            $ref: "#/definitions/response.Response"
+            $ref: '#/definitions/response.Response'
       summary: Validate QR code
       tags:
-        - public
+      - public
   /api/v1/public/questionnaire/{organizationId}/{productId}:
     get:
       consumes:
-        - application/json
+      - application/json
       description: Get questionnaire for a specific product
       parameters:
-        - description: Organization ID
-          in: path
-          name: organizationId
-          required: true
-          type: string
-        - description: Product ID
-          in: path
-          name: productId
-          required: true
-          type: string
+      - description: Organization ID
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      - description: Product ID
+        in: path
+        name: productId
+        required: true
+        type: string
       produces:
-        - application/json
+      - application/json
       responses:
         "200":
           description: OK
@@ -3782,27 +3764,27 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: "#/definitions/response.Response"
+            $ref: '#/definitions/response.Response'
         "404":
           description: Not Found
           schema:
-            $ref: "#/definitions/response.Response"
+            $ref: '#/definitions/response.Response'
       summary: Get questionnaire
       tags:
-        - public
+      - public
   /api/v1/qr-codes/{id}:
     delete:
       consumes:
-        - application/json
+      - application/json
       description: Delete a QR code from the system
       parameters:
-        - description: QR Code ID
-          in: path
-          name: id
-          required: true
-          type: string
+      - description: QR Code ID
+        in: path
+        name: id
+        required: true
+        type: string
       produces:
-        - application/json
+      - application/json
       responses:
         "200":
           description: OK
@@ -3812,529 +3794,526 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: "#/definitions/response.Response"
+            $ref: '#/definitions/response.Response'
         "401":
           description: Unauthorized
           schema:
-            $ref: "#/definitions/response.Response"
+            $ref: '#/definitions/response.Response'
         "500":
           description: Internal Server Error
           schema:
-            $ref: "#/definitions/response.Response"
+            $ref: '#/definitions/response.Response'
       security:
-        - ApiKeyAuth: []
+      - ApiKeyAuth: []
       summary: Delete QR code
       tags:
-        - qr-codes
+      - qr-codes
     patch:
       consumes:
-        - application/json
+      - application/json
       description: Update QR code details like active status, label, or location
       parameters:
-        - description: QR Code ID
-          in: path
-          name: id
-          required: true
-          type: string
-        - description: QR code update information
-          in: body
-          name: qr_code
-          required: true
-          schema:
-            $ref: "#/definitions/handlers.UpdateQRCodeRequest"
+      - description: QR Code ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: QR code update information
+        in: body
+        name: qr_code
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.UpdateQRCodeRequest'
       produces:
-        - application/json
+      - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: "#/definitions/handlers.UpdateQRCodeResponse"
+            $ref: '#/definitions/handlers.UpdateQRCodeResponse'
         "400":
           description: Bad Request
           schema:
-            $ref: "#/definitions/response.Response"
+            $ref: '#/definitions/response.Response'
         "401":
           description: Unauthorized
           schema:
-            $ref: "#/definitions/response.Response"
+            $ref: '#/definitions/response.Response'
         "404":
           description: Not Found
           schema:
-            $ref: "#/definitions/response.Response"
+            $ref: '#/definitions/response.Response'
         "500":
           description: Internal Server Error
           schema:
-            $ref: "#/definitions/response.Response"
+            $ref: '#/definitions/response.Response'
       security:
-        - ApiKeyAuth: []
+      - ApiKeyAuth: []
       summary: Update QR code
       tags:
-        - qr-codes
+      - qr-codes
   /api/v1/team/accept-invite:
     post:
       consumes:
-        - application/json
+      - application/json
       description: Accept a team invitation using the invitation token
       parameters:
-        - description: Invitation token
-          in: body
-          name: request
-          required: true
-          schema:
-            $ref: "#/definitions/handlers.AcceptInviteRequest"
+      - description: Invitation token
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.AcceptInviteRequest'
       produces:
-        - application/json
+      - application/json
       responses:
         "200":
           description: OK
           schema:
             allOf:
-              - $ref: "#/definitions/response.Response"
-              - properties:
-                  data:
-                    additionalProperties:
-                      type: string
-                    type: object
-                type: object
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  additionalProperties:
+                    type: string
+                  type: object
+              type: object
         "400":
           description: Bad Request
           schema:
-            $ref: "#/definitions/response.Response"
+            $ref: '#/definitions/response.Response'
         "404":
           description: Not Found
           schema:
-            $ref: "#/definitions/response.Response"
+            $ref: '#/definitions/response.Response'
         "500":
           description: Internal Server Error
           schema:
-            $ref: "#/definitions/response.Response"
+            $ref: '#/definitions/response.Response'
       summary: Accept team invitation
       tags:
-        - team
+      - team
   /api/v1/team/members:
     get:
       consumes:
-        - application/json
+      - application/json
       description: Get all team members for the account
       produces:
-        - application/json
+      - application/json
       responses:
         "200":
           description: OK
           schema:
             allOf:
-              - $ref: "#/definitions/response.Response"
-              - properties:
-                  data:
-                    items:
-                      $ref: "#/definitions/models.TeamMember"
-                    type: array
-                type: object
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/models.TeamMember'
+                  type: array
+              type: object
         "401":
           description: Unauthorized
           schema:
-            $ref: "#/definitions/response.Response"
+            $ref: '#/definitions/response.Response'
         "500":
           description: Internal Server Error
           schema:
-            $ref: "#/definitions/response.Response"
+            $ref: '#/definitions/response.Response'
       security:
-        - BearerAuth: []
+      - BearerAuth: []
       summary: List team members
       tags:
-        - team
+      - team
   /api/v1/team/members/{id}:
     delete:
       consumes:
-        - application/json
+      - application/json
       description: Remove a team member from the account
       parameters:
-        - description: Member ID
-          in: path
-          name: id
-          required: true
-          type: string
+      - description: Member ID
+        in: path
+        name: id
+        required: true
+        type: string
       produces:
-        - application/json
+      - application/json
       responses:
         "200":
           description: OK
           schema:
             allOf:
-              - $ref: "#/definitions/response.Response"
-              - properties:
-                  data:
-                    additionalProperties:
-                      type: string
-                    type: object
-                type: object
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  additionalProperties:
+                    type: string
+                  type: object
+              type: object
         "400":
           description: Bad Request
           schema:
-            $ref: "#/definitions/response.Response"
+            $ref: '#/definitions/response.Response'
         "401":
           description: Unauthorized
           schema:
-            $ref: "#/definitions/response.Response"
+            $ref: '#/definitions/response.Response'
         "403":
           description: Forbidden
           schema:
-            $ref: "#/definitions/response.Response"
+            $ref: '#/definitions/response.Response'
         "404":
           description: Not Found
           schema:
-            $ref: "#/definitions/response.Response"
+            $ref: '#/definitions/response.Response'
         "500":
           description: Internal Server Error
           schema:
-            $ref: "#/definitions/response.Response"
+            $ref: '#/definitions/response.Response'
       security:
-        - BearerAuth: []
+      - BearerAuth: []
       summary: Remove team member
       tags:
-        - team
+      - team
   /api/v1/team/members/{id}/resend-invitation:
     post:
       consumes:
-        - application/json
+      - application/json
       description: Resend an invitation email to a pending team member
       parameters:
-        - description: Invitation ID
-          in: path
-          name: id
-          required: true
-          type: string
+      - description: Invitation ID
+        in: path
+        name: id
+        required: true
+        type: string
       produces:
-        - application/json
+      - application/json
       responses:
         "200":
           description: OK
           schema:
             allOf:
-              - $ref: "#/definitions/response.Response"
-              - properties:
-                  data:
-                    additionalProperties:
-                      type: string
-                    type: object
-                type: object
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  additionalProperties:
+                    type: string
+                  type: object
+              type: object
         "401":
           description: Unauthorized
           schema:
-            $ref: "#/definitions/response.Response"
+            $ref: '#/definitions/response.Response'
         "403":
           description: Forbidden
           schema:
-            $ref: "#/definitions/response.Response"
+            $ref: '#/definitions/response.Response'
         "404":
           description: Not Found
           schema:
-            $ref: "#/definitions/response.Response"
+            $ref: '#/definitions/response.Response'
         "500":
           description: Internal Server Error
           schema:
-            $ref: "#/definitions/response.Response"
+            $ref: '#/definitions/response.Response'
       security:
-        - BearerAuth: []
+      - BearerAuth: []
       summary: Resend team invitation
       tags:
-        - team
+      - team
   /api/v1/team/members/{id}/role:
     put:
       consumes:
-        - application/json
+      - application/json
       description: Update the role of a team member
       parameters:
-        - description: Member ID
-          in: path
-          name: id
-          required: true
-          type: string
-        - description: New role
-          in: body
-          name: request
-          required: true
-          schema:
-            $ref: "#/definitions/handlers.UpdateRoleRequest"
+      - description: Member ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: New role
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.UpdateRoleRequest'
       produces:
-        - application/json
+      - application/json
       responses:
         "200":
           description: OK
           schema:
             allOf:
-              - $ref: "#/definitions/response.Response"
-              - properties:
-                  data:
-                    additionalProperties:
-                      type: string
-                    type: object
-                type: object
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  additionalProperties:
+                    type: string
+                  type: object
+              type: object
         "400":
           description: Bad Request
           schema:
-            $ref: "#/definitions/response.Response"
+            $ref: '#/definitions/response.Response'
         "401":
           description: Unauthorized
           schema:
-            $ref: "#/definitions/response.Response"
+            $ref: '#/definitions/response.Response'
         "403":
           description: Forbidden
           schema:
-            $ref: "#/definitions/response.Response"
+            $ref: '#/definitions/response.Response'
         "404":
           description: Not Found
           schema:
-            $ref: "#/definitions/response.Response"
+            $ref: '#/definitions/response.Response'
         "500":
           description: Internal Server Error
           schema:
-            $ref: "#/definitions/response.Response"
+            $ref: '#/definitions/response.Response'
       security:
-        - BearerAuth: []
+      - BearerAuth: []
       summary: Update team member role
       tags:
-        - team
+      - team
   /api/v1/team/members/invite:
     post:
       consumes:
-        - application/json
+      - application/json
       description: Invite a new team member to the account
       parameters:
-        - description: Invitation details
-          in: body
-          name: request
-          required: true
-          schema:
-            $ref: "#/definitions/handlers.InviteMemberRequest"
+      - description: Invitation details
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.InviteMemberRequest'
       produces:
-        - application/json
+      - application/json
       responses:
         "201":
           description: Created
           schema:
             allOf:
-              - $ref: "#/definitions/response.Response"
-              - properties:
-                  data:
-                    $ref: "#/definitions/models.TeamMember"
-                type: object
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/models.TeamMember'
+              type: object
         "400":
           description: Bad Request
           schema:
-            $ref: "#/definitions/response.Response"
+            $ref: '#/definitions/response.Response'
         "401":
           description: Unauthorized
           schema:
-            $ref: "#/definitions/response.Response"
+            $ref: '#/definitions/response.Response'
         "403":
           description: Forbidden
           schema:
-            $ref: "#/definitions/response.Response"
+            $ref: '#/definitions/response.Response'
         "409":
           description: Conflict
           schema:
-            $ref: "#/definitions/response.Response"
+            $ref: '#/definitions/response.Response'
         "500":
           description: Internal Server Error
           schema:
-            $ref: "#/definitions/response.Response"
+            $ref: '#/definitions/response.Response'
       security:
-        - BearerAuth: []
+      - BearerAuth: []
       summary: Invite team member
       tags:
-        - team
+      - team
   /api/v1/user/can-create-organization:
     get:
       consumes:
-        - application/json
-      description:
-        Check if the authenticated user can create more organizations based
+      - application/json
+      description: Check if the authenticated user can create more organizations based
         on their subscription plan
       produces:
-        - application/json
+      - application/json
       responses:
         "200":
           description: OK
           schema:
             allOf:
-              - $ref: "#/definitions/response.Response"
-              - properties:
-                  data:
-                    $ref: "#/definitions/services.PermissionResponse"
-                type: object
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/services.PermissionResponse'
+              type: object
         "401":
           description: Unauthorized
           schema:
-            $ref: "#/definitions/response.Response"
+            $ref: '#/definitions/response.Response'
         "500":
           description: Internal Server Error
           schema:
-            $ref: "#/definitions/response.Response"
+            $ref: '#/definitions/response.Response'
       security:
-        - BearerAuth: []
+      - BearerAuth: []
       summary: Check if user can create more organizations
       tags:
-        - subscription
+      - subscription
   /api/v1/user/subscription:
     delete:
       consumes:
-        - application/json
+      - application/json
       description: Cancel the current subscription for the authenticated user
       produces:
-        - application/json
+      - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: "#/definitions/response.Response"
+            $ref: '#/definitions/response.Response'
         "401":
           description: Unauthorized
           schema:
-            $ref: "#/definitions/response.Response"
+            $ref: '#/definitions/response.Response'
         "404":
           description: Not Found
           schema:
-            $ref: "#/definitions/response.Response"
+            $ref: '#/definitions/response.Response'
         "500":
           description: Internal Server Error
           schema:
-            $ref: "#/definitions/response.Response"
+            $ref: '#/definitions/response.Response'
       security:
-        - BearerAuth: []
+      - BearerAuth: []
       summary: Cancel user's subscription
       tags:
-        - subscription
+      - subscription
     get:
       consumes:
-        - application/json
-      description:
-        Retrieve the current subscription details for the authenticated
+      - application/json
+      description: Retrieve the current subscription details for the authenticated
         user
       produces:
-        - application/json
+      - application/json
       responses:
         "200":
           description: OK
           schema:
             allOf:
-              - $ref: "#/definitions/response.Response"
-              - properties:
-                  data:
-                    $ref: "#/definitions/models.Subscription"
-                type: object
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/models.Subscription'
+              type: object
         "401":
           description: Unauthorized
           schema:
-            $ref: "#/definitions/response.Response"
+            $ref: '#/definitions/response.Response'
         "404":
           description: Not Found
           schema:
-            $ref: "#/definitions/response.Response"
+            $ref: '#/definitions/response.Response'
         "500":
           description: Internal Server Error
           schema:
-            $ref: "#/definitions/response.Response"
+            $ref: '#/definitions/response.Response'
       security:
-        - BearerAuth: []
+      - BearerAuth: []
       summary: Get user's current subscription
       tags:
-        - subscription
+      - subscription
     post:
       consumes:
-        - application/json
+      - application/json
       description: Create a new subscription for the authenticated user
       parameters:
-        - description: Subscription details
-          in: body
-          name: request
-          required: true
-          schema:
-            $ref: "#/definitions/handlers.CreateSubscriptionRequest"
+      - description: Subscription details
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.CreateSubscriptionRequest'
       produces:
-        - application/json
+      - application/json
       responses:
         "201":
           description: Created
           schema:
             allOf:
-              - $ref: "#/definitions/response.Response"
-              - properties:
-                  data:
-                    $ref: "#/definitions/models.Subscription"
-                type: object
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/models.Subscription'
+              type: object
         "400":
           description: Bad Request
           schema:
-            $ref: "#/definitions/response.Response"
+            $ref: '#/definitions/response.Response'
         "401":
           description: Unauthorized
           schema:
-            $ref: "#/definitions/response.Response"
+            $ref: '#/definitions/response.Response'
         "500":
           description: Internal Server Error
           schema:
-            $ref: "#/definitions/response.Response"
+            $ref: '#/definitions/response.Response'
       security:
-        - BearerAuth: []
+      - BearerAuth: []
       summary: Create a new subscription
       tags:
-        - subscription
+      - subscription
   /api/v1/user/subscription/usage:
     get:
       consumes:
-        - application/json
-      description:
-        Retrieve the current subscription usage details for the authenticated
+      - application/json
+      description: Retrieve the current subscription usage details for the authenticated
         user
       produces:
-        - application/json
+      - application/json
       responses:
         "200":
           description: OK
           schema:
             allOf:
-              - $ref: "#/definitions/response.Response"
-              - properties:
-                  data:
-                    $ref: "#/definitions/models.SubscriptionUsage"
-                type: object
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/models.SubscriptionUsage'
+              type: object
         "401":
           description: Unauthorized
           schema:
-            $ref: "#/definitions/response.Response"
+            $ref: '#/definitions/response.Response'
         "404":
           description: Not Found
           schema:
-            $ref: "#/definitions/response.Response"
+            $ref: '#/definitions/response.Response'
         "500":
           description: Internal Server Error
           schema:
-            $ref: "#/definitions/response.Response"
+            $ref: '#/definitions/response.Response'
       security:
-        - BearerAuth: []
+      - BearerAuth: []
       summary: Get user's current subscription usage
       tags:
-        - subscription
+      - subscription
   /organizations/{organizationId}/questionnaires/{id}/questions:
     post:
       consumes:
-        - application/json
+      - application/json
       description: Add a new question to an existing questionnaire
       parameters:
-        - description: Questionnaire ID
-          in: path
-          name: id
-          required: true
-          type: string
-        - description: Question data
-          in: body
-          name: question
-          required: true
-          schema:
-            $ref: "#/definitions/models.Question"
+      - description: Questionnaire ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Question data
+        in: body
+        name: question
+        required: true
+        schema:
+          $ref: '#/definitions/models.Question'
       produces:
-        - application/json
+      - application/json
       responses:
         "201":
           description: Question added successfully
@@ -4357,28 +4336,28 @@ paths:
             additionalProperties: true
             type: object
       security:
-        - BearerAuth: []
+      - BearerAuth: []
       summary: Add a question to a questionnaire
       tags:
-        - questionnaires
+      - questionnaires
   /organizations/{organizationId}/questionnaires/{id}/questions/{questionId}:
     delete:
       consumes:
-        - application/json
+      - application/json
       description: Delete a question from a questionnaire
       parameters:
-        - description: Questionnaire ID
-          in: path
-          name: id
-          required: true
-          type: string
-        - description: Question ID
-          in: path
-          name: questionId
-          required: true
-          type: string
+      - description: Questionnaire ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Question ID
+        in: path
+        name: questionId
+        required: true
+        type: string
       produces:
-        - application/json
+      - application/json
       responses:
         "200":
           description: Question deleted successfully
@@ -4401,33 +4380,33 @@ paths:
             additionalProperties: true
             type: object
       security:
-        - BearerAuth: []
+      - BearerAuth: []
       summary: Delete a question
       tags:
-        - questionnaires
+      - questionnaires
     put:
       consumes:
-        - application/json
+      - application/json
       description: Update an existing question in a questionnaire
       parameters:
-        - description: Questionnaire ID
-          in: path
-          name: id
-          required: true
-          type: string
-        - description: Question ID
-          in: path
-          name: questionId
-          required: true
-          type: string
-        - description: Question data
-          in: body
-          name: question
-          required: true
-          schema:
-            $ref: "#/definitions/models.Question"
+      - description: Questionnaire ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Question ID
+        in: path
+        name: questionId
+        required: true
+        type: string
+      - description: Question data
+        in: body
+        name: question
+        required: true
+        schema:
+          $ref: '#/definitions/models.Question'
       produces:
-        - application/json
+      - application/json
       responses:
         "200":
           description: Question updated successfully
@@ -4450,31 +4429,31 @@ paths:
             additionalProperties: true
             type: object
       security:
-        - BearerAuth: []
+      - BearerAuth: []
       summary: Update a question
       tags:
-        - questionnaires
+      - questionnaires
   /organizations/{organizationId}/questionnaires/{id}/reorder:
     post:
       consumes:
-        - application/json
+      - application/json
       description: Reorder questions in a questionnaire
       parameters:
-        - description: Questionnaire ID
-          in: path
-          name: id
-          required: true
-          type: string
-        - description: Question IDs in new order
-          in: body
-          name: order
-          required: true
-          schema:
-            items:
-              type: string
-            type: array
+      - description: Questionnaire ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Question IDs in new order
+        in: body
+        name: order
+        required: true
+        schema:
+          items:
+            type: string
+          type: array
       produces:
-        - application/json
+      - application/json
       responses:
         "200":
           description: Questions reordered successfully
@@ -4497,10 +4476,10 @@ paths:
             additionalProperties: true
             type: object
       security:
-        - BearerAuth: []
+      - BearerAuth: []
       summary: Reorder questions
       tags:
-        - questionnaires
+      - questionnaires
 securityDefinitions:
   BearerAuth:
     description: Type "Bearer" followed by a space and JWT token.

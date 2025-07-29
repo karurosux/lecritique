@@ -9,9 +9,7 @@
     questionnaireStore,
     currentQuestionnaire,
     questionnaireLoading,
-    questionnaireError,
   } from '$lib/stores/questionnaire';
-  import type { Question } from '$lib/stores/questionnaire';
 
   interface FeedbackData {
     organization_id: string;
@@ -22,7 +20,6 @@
     comment?: string;
   }
 
-  // State variables
   let submitting = false;
   let error = '';
   let organizationId = '';
@@ -31,19 +28,14 @@
   let qrCode = '';
   let organizationName = '';
   let productName = '';
-
-  // Feedback form data
   let overallRating = 0;
   let responses: Record<string, any> = {};
   let comment = '';
   let customerEmail = '';
 
-  // Get questions from store
   $: questions = $currentQuestionnaire?.questions || [];
   $: loading = $questionnaireLoading;
-  $: questionnaireErrorMsg = $questionnaireError;
 
-  // Get URL parameters
   $: {
     organizationId = $page.url.searchParams.get('organization') || '';
     locationId = $page.url.searchParams.get('location') || '';
@@ -57,14 +49,12 @@
       return;
     }
 
-    // Fetch questionnaire or product questions
     if (productId) {
       await questionnaireStore.fetchProductQuestions(organizationId, productId);
     } else {
       await questionnaireStore.fetchQuestionnaire(organizationId, locationId);
     }
 
-    // Initialize responses based on fetched questions
     if ($currentQuestionnaire) {
       $currentQuestionnaire.questions.forEach(question => {
         if (question.type === 'rating' || question.type === 'scale') {
@@ -74,34 +64,18 @@
         }
       });
     }
-
-    // Fetch organization info if needed
-    try {
-      const api = getApiClient();
-      // For now, using placeholder data
-      organizationName = 'Demo Organization';
-      productName = productId ? 'Sample Product' : '';
-    } catch (err) {
-      console.error('Error fetching organization info:', err);
-    }
   });
-
-  function handleRatingClick(value: number) {
-    overallRating = value;
-  }
 
   function handleQuestionResponse(questionId: string, value: any) {
     responses[questionId] = value;
   }
 
   function validateForm(): boolean {
-    // Check overall rating
     if (overallRating === 0) {
       error = 'Please provide an overall rating';
       return false;
     }
 
-    // Check required questions
     for (const question of questions) {
       if (question.required) {
         const response = responses[question.id];
@@ -117,7 +91,6 @@
             return false;
           }
         } else if (!response && response !== false) {
-          // For yes/no, false is a valid response
           error = `Please answer: ${question.text}`;
           return false;
         }
@@ -156,26 +129,11 @@
 
       await api.api.v1PublicFeedbackCreate(feedbackData as any);
 
-      // Redirect to success page
       goto('/feedback/success');
     } catch (err) {
       error = handleApiError(err);
       submitting = false;
     }
-  }
-
-  // Helper function to render stars
-  function renderStars(
-    rating: number,
-    max: number = 5,
-    size: string = 'h-8 w-8'
-  ) {
-    return Array(max)
-      .fill(0)
-      .map((_, i) => ({
-        filled: i < rating,
-        index: i + 1,
-      }));
   }
 </script>
 
@@ -190,7 +148,6 @@
   class="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/50 py-8 px-4">
   <div class="max-w-2xl mx-auto">
     {#if loading}
-      <!-- Loading State -->
       <Card>
         <div class="text-center py-12">
           <Loader2 class="animate-spin h-8 w-8 text-blue-600 mx-auto mb-4" />
@@ -198,7 +155,6 @@
         </div>
       </Card>
     {:else if !organizationId}
-      <!-- Error State -->
       <Card>
         <div class="text-center py-12">
           <svg
@@ -219,7 +175,6 @@
         </div>
       </Card>
     {:else}
-      <!-- Feedback Form -->
       <form on:submit|preventDefault={handleSubmit} class="space-y-6">
         <!-- Header -->
         <Card variant="gradient">

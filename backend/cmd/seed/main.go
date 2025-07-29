@@ -71,54 +71,56 @@ func main() {
 			}
 			result := db.Table("accounts").Select("id").Where("email = ?", ownerEmail).First(&existingAccount)
 			if result.Error == nil {
-				fmt.Printf("❌ Owner user with email %s already exists\n", ownerEmail)
+				fmt.Printf("✅ Owner user with email %s already exists\n", ownerEmail)
+				ownerAccountID = existingAccount.ID
 				if len(os.Args) > 1 && os.Args[1] == "--force" {
 					fmt.Println("🔄 Deleting existing owner user...")
 					if err := db.Exec("DELETE FROM accounts WHERE email = ?", ownerEmail).Error; err != nil {
 						log.Printf("Failed to delete existing owner user: %v\n", err)
 						continue
 					}
-				} else {
-					continue
+					ownerAccountID = "" // Reset so we create new account
 				}
 			}
 
-			// Create owner account
-			hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
-			if err != nil {
-				log.Printf("Failed to hash owner password: %v\n", err)
-				continue
-			}
+			// Create owner account only if needed
+			if ownerAccountID == "" {
+				hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+				if err != nil {
+					log.Printf("Failed to hash owner password: %v\n", err)
+					continue
+				}
 
-			ownerName := fmt.Sprintf("Kyooar %s Owner", plan.Name)
-			err = db.Raw(`
-				INSERT INTO accounts (email, password_hash, name, is_active, email_verified, email_verified_at)
-				VALUES (?, ?, ?, true, true, NOW())
-				RETURNING id
-			`, ownerEmail, string(hashedPassword), ownerName).Scan(&ownerAccountID).Error
-			
-			if err != nil {
-				log.Printf("Failed to create owner account: %v\n", err)
-				continue
-			}
-			// Owner account created
+				ownerName := fmt.Sprintf("Kyooar %s Owner", plan.Name)
+				err = db.Raw(`
+					INSERT INTO accounts (email, password_hash, name, is_active, email_verified, email_verified_at)
+					VALUES (?, ?, ?, true, true, NOW())
+					RETURNING id
+				`, ownerEmail, string(hashedPassword), ownerName).Scan(&ownerAccountID).Error
+				
+				if err != nil {
+					log.Printf("Failed to create owner account: %v\n", err)
+					continue
+				}
+				// Owner account created
 
-			// Create owner team member record (owner of their own account)
-			err = db.Exec(`
-				INSERT INTO team_members (account_id, member_id, role, invited_by, invited_at, accepted_at, created_at, updated_at)
-				VALUES (?, ?, 'OWNER', ?, NOW(), NOW(), NOW(), NOW())
-			`, ownerAccountID, ownerAccountID, ownerAccountID).Error
-			if err != nil {
-				log.Printf("Failed to create owner team member record: %v\n", err)
-			}
+				// Create owner team member record (owner of their own account)
+				err = db.Exec(`
+					INSERT INTO team_members (account_id, member_id, role, invited_by, invited_at, accepted_at, created_at, updated_at)
+					VALUES (?, ?, 'OWNER', ?, NOW(), NOW(), NOW(), NOW())
+				`, ownerAccountID, ownerAccountID, ownerAccountID).Error
+				if err != nil {
+					log.Printf("Failed to create owner team member record: %v\n", err)
+				}
 
-			// Create subscription for owner
-			err = db.Exec(`
-				INSERT INTO subscriptions (account_id, plan_id, status, current_period_start, current_period_end)
-				VALUES (?, ?, 'active', NOW(), NOW() + INTERVAL '1 month')
-			`, ownerAccountID, plan.ID).Error
-			if err != nil {
-				log.Printf("Failed to create owner subscription: %v\n", err)
+				// Create subscription for owner
+				err = db.Exec(`
+					INSERT INTO subscriptions (account_id, plan_id, status, current_period_start, current_period_end)
+					VALUES (?, ?, 'active', NOW(), NOW() + INTERVAL '1 month')
+				`, ownerAccountID, plan.ID).Error
+				if err != nil {
+					log.Printf("Failed to create owner subscription: %v\n", err)
+				}
 			}
 		}
 
@@ -131,45 +133,47 @@ func main() {
 			}
 			result := db.Table("accounts").Select("id").Where("email = ?", memberEmail).First(&existingAccount)
 			if result.Error == nil {
-				fmt.Printf("❌ Member user with email %s already exists\n", memberEmail)
+				fmt.Printf("✅ Member user with email %s already exists\n", memberEmail)
+				memberAccountID = existingAccount.ID
 				if len(os.Args) > 1 && os.Args[1] == "--force" {
 					fmt.Println("🔄 Deleting existing member user...")
 					if err := db.Exec("DELETE FROM accounts WHERE email = ?", memberEmail).Error; err != nil {
 						log.Printf("Failed to delete existing member user: %v\n", err)
 						continue
 					}
-				} else {
-					continue
+					memberAccountID = "" // Reset so we create new account
 				}
 			}
 
-			// Create member account
-			hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
-			if err != nil {
-				log.Printf("Failed to hash member password: %v\n", err)
-				continue
-			}
+			// Create member account only if needed
+			if memberAccountID == "" {
+				hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+				if err != nil {
+					log.Printf("Failed to hash member password: %v\n", err)
+					continue
+				}
 
-			memberName := fmt.Sprintf("Kyooar %s Viewer", plan.Name)
-			err = db.Raw(`
-				INSERT INTO accounts (email, password_hash, name, is_active, email_verified, email_verified_at)
-				VALUES (?, ?, ?, true, true, NOW())
-				RETURNING id
-			`, memberEmail, string(hashedPassword), memberName).Scan(&memberAccountID).Error
-			
-			if err != nil {
-				log.Printf("Failed to create member account: %v\n", err)
-				continue
-			}
-			// Member account created
+				memberName := fmt.Sprintf("Kyooar %s Viewer", plan.Name)
+				err = db.Raw(`
+					INSERT INTO accounts (email, password_hash, name, is_active, email_verified, email_verified_at)
+					VALUES (?, ?, ?, true, true, NOW())
+					RETURNING id
+				`, memberEmail, string(hashedPassword), memberName).Scan(&memberAccountID).Error
+				
+				if err != nil {
+					log.Printf("Failed to create member account: %v\n", err)
+					continue
+				}
+				// Member account created
 
-			// Create member team member record (owner of their own account)
-			err = db.Exec(`
-				INSERT INTO team_members (account_id, member_id, role, invited_by, invited_at, accepted_at, created_at, updated_at)
-				VALUES (?, ?, 'OWNER', ?, NOW(), NOW(), NOW(), NOW())
-			`, memberAccountID, memberAccountID, memberAccountID).Error
-			if err != nil {
-				log.Printf("Failed to create member team member record: %v\n", err)
+				// Create member team member record (owner of their own account)
+				err = db.Exec(`
+					INSERT INTO team_members (account_id, member_id, role, invited_by, invited_at, accepted_at, created_at, updated_at)
+					VALUES (?, ?, 'OWNER', ?, NOW(), NOW(), NOW(), NOW())
+				`, memberAccountID, memberAccountID, memberAccountID).Error
+				if err != nil {
+					log.Printf("Failed to create member team member record: %v\n", err)
+				}
 			}
 		}
 
@@ -288,16 +292,8 @@ func main() {
 				}
 			}
 
-			// Create location
+			// Location will be created by the organization directly if needed
 			locationName := org.location
-			err = db.Exec(`
-				INSERT INTO locations (organization_id, name, address, city, state, country, postal_code, is_active)
-				VALUES (?, ?, ?, ?, ?, ?, ?, true)
-			`, organizationID, locationName, "123 Business Plaza", org.city, "CA", "USA", "94102").Error
-			if err != nil {
-				log.Printf("Failed to create location: %v\n", err)
-				continue
-			}
 
 			// Create products
 			productIDs := make(map[string]string)
