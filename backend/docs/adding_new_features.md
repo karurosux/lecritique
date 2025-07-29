@@ -8,11 +8,11 @@ With the new generic feature system, you can add new features without changing a
 
 ```sql
 -- Add email notification limit to all plans
-UPDATE subscription_plans 
+UPDATE subscription_plans
 SET features = jsonb_set(
     features,
     '{limits,max_emails_per_month}',
-    CASE 
+    CASE
         WHEN code = 'starter' THEN '100'
         WHEN code = 'professional' THEN '1000'
         WHEN code = 'enterprise' THEN '-1'
@@ -47,17 +47,17 @@ LimitEmailsPerMonth: {
 func (s *EmailService) SendNotification(accountID uuid.UUID) error {
     // Check limit
     canSend, reason, err := s.usageService.CanAddResource(
-        ctx, 
-        subscriptionID, 
+        ctx,
+        subscriptionID,
         "email_notification"
     )
     if !canSend {
         return errors.New(reason)
     }
-    
+
     // Send email
     // ...
-    
+
     // Track usage
     s.usageService.TrackUsage(ctx, subscriptionID, "email_notification", 1)
 }
@@ -69,7 +69,7 @@ func (s *EmailService) SendNotification(accountID uuid.UUID) error {
 
 ```sql
 -- Add SSO feature to enterprise plan
-UPDATE subscription_plans 
+UPDATE subscription_plans
 SET features = jsonb_set(
     features,
     '{flags,sso_enabled}',
@@ -91,11 +91,11 @@ if subscription.Plan.Features.GetFlag("sso_enabled") {
 
 ```sql
 -- Add custom webhook limits
-UPDATE subscription_plans 
+UPDATE subscription_plans
 SET features = jsonb_set(
     features,
     '{custom,webhook_urls}',
-    CASE 
+    CASE
         WHEN code = 'starter' THEN '[]'::jsonb
         WHEN code = 'professional' THEN '["https://api.kyooar.com/webhook"]'::jsonb
         WHEN code = 'enterprise' THEN '["custom"]'::jsonb

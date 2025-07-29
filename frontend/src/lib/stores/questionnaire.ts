@@ -1,7 +1,13 @@
 import { writable, derived } from 'svelte/store';
 import { getApiClient, handleApiError } from '$lib/api/client';
 
-export type QuestionType = 'rating' | 'scale' | 'single_choice' | 'multiple_choice' | 'yes_no' | 'text';
+export type QuestionType =
+  | 'rating'
+  | 'scale'
+  | 'single_choice'
+  | 'multiple_choice'
+  | 'yes_no'
+  | 'text';
 
 export interface QuestionOption {
   id: string;
@@ -48,12 +54,15 @@ function createQuestionnaireStore() {
     questionnaire: null,
     loading: false,
     error: null,
-    cache: new Map()
+    cache: new Map(),
   });
 
-  async function fetchQuestionnaire(organizationId: string, locationId?: string) {
+  async function fetchQuestionnaire(
+    organizationId: string,
+    locationId?: string
+  ) {
     const cacheKey = `${organizationId}-${locationId || 'default'}`;
-    
+
     update(state => {
       // Check cache
       const cached = state.cache.get(cacheKey);
@@ -62,52 +71,58 @@ function createQuestionnaireStore() {
           ...state,
           questionnaire: cached.data,
           loading: false,
-          error: null
+          error: null,
         };
       }
-      
+
       return { ...state, loading: true, error: null };
     });
 
     try {
       const api = getApiClient();
-      
+
       // For now, we'll use a fallback since the API might not have location-based questionnaires
       // We'll try to get the questionnaire for the organization
-      const response = await api.api.v1PublicQuestionnaireDetail(organizationId, 'default');
-      
+      const response = await api.api.v1PublicQuestionnaireDetail(
+        organizationId,
+        'default'
+      );
+
       // If the API returns an empty response or error, use default questions
-      const questionnaire: Questionnaire = response.data && typeof response.data === 'object' && 'questions' in response.data
-        ? response.data as Questionnaire
-        : {
-            id: 'default',
-            organization_id: organizationId,
-            location_id: locationId,
-            name: 'Customer Feedback',
-            description: 'Help us improve your dining experience',
-            is_active: true,
-            questions: getDefaultQuestions()
-          };
+      const questionnaire: Questionnaire =
+        response.data &&
+        typeof response.data === 'object' &&
+        'questions' in response.data
+          ? (response.data as Questionnaire)
+          : {
+              id: 'default',
+              organization_id: organizationId,
+              location_id: locationId,
+              name: 'Customer Feedback',
+              description: 'Help us improve your dining experience',
+              is_active: true,
+              questions: getDefaultQuestions(),
+            };
 
       update(state => {
         // Update cache
         state.cache.set(cacheKey, {
           data: questionnaire,
-          timestamp: Date.now()
+          timestamp: Date.now(),
         });
 
         return {
           ...state,
           questionnaire,
           loading: false,
-          error: null
+          error: null,
         };
       });
 
       return questionnaire;
     } catch (err) {
       const errorMessage = handleApiError(err);
-      
+
       // If API fails, use default questions
       const fallbackQuestionnaire: Questionnaire = {
         id: 'default',
@@ -116,23 +131,26 @@ function createQuestionnaireStore() {
         name: 'Customer Feedback',
         description: 'Help us improve your dining experience',
         is_active: true,
-        questions: getDefaultQuestions()
+        questions: getDefaultQuestions(),
       };
 
       update(state => ({
         ...state,
         questionnaire: fallbackQuestionnaire,
         loading: false,
-        error: errorMessage
+        error: errorMessage,
       }));
 
       return fallbackQuestionnaire;
     }
   }
 
-  async function fetchProductQuestions(organizationId: string, productId: string) {
+  async function fetchProductQuestions(
+    organizationId: string,
+    productId: string
+  ) {
     const cacheKey = `${organizationId}-product-${productId}`;
-    
+
     update(state => {
       // Check cache
       const cached = state.cache.get(cacheKey);
@@ -141,22 +159,26 @@ function createQuestionnaireStore() {
           ...state,
           questionnaire: cached.data,
           loading: false,
-          error: null
+          error: null,
         };
       }
-      
+
       return { ...state, loading: true, error: null };
     });
 
     try {
       const api = getApiClient();
-      
+
       // Fetch product questions from the public API
-      const response = await api.api.v1PublicOrganizationProductsQuestionsDetail(organizationId, productId);
-      
+      const response =
+        await api.api.v1PublicOrganizationProductsQuestionsDetail(
+          organizationId,
+          productId
+        );
+
       if (response.data && response.data.success && response.data.data) {
         const { product, questions } = response.data.data;
-        
+
         // Transform product questions into questionnaire format
         const questionnaire: Questionnaire = {
           id: `product-${productId}`,
@@ -174,22 +196,22 @@ function createQuestionnaireStore() {
             max_value: q.max_value,
             min_label: q.min_label,
             max_label: q.max_label,
-            order: q.display_order || index + 1
-          }))
+            order: q.display_order || index + 1,
+          })),
         };
 
         update(state => {
           // Update cache
           state.cache.set(cacheKey, {
             data: questionnaire,
-            timestamp: Date.now()
+            timestamp: Date.now(),
           });
 
           return {
             ...state,
             questionnaire,
             loading: false,
-            error: null
+            error: null,
           };
         });
 
@@ -199,7 +221,7 @@ function createQuestionnaireStore() {
       }
     } catch (err) {
       const errorMessage = handleApiError(err);
-      
+
       // If API fails, use default questions
       const fallbackQuestionnaire: Questionnaire = {
         id: 'default',
@@ -207,14 +229,14 @@ function createQuestionnaireStore() {
         name: 'Customer Feedback',
         description: 'Help us improve your dining experience',
         is_active: true,
-        questions: getDefaultQuestions()
+        questions: getDefaultQuestions(),
       };
 
       update(state => ({
         ...state,
         questionnaire: fallbackQuestionnaire,
         loading: false,
-        error: errorMessage
+        error: errorMessage,
       }));
 
       return fallbackQuestionnaire;
@@ -224,7 +246,7 @@ function createQuestionnaireStore() {
   function clearCache() {
     update(state => ({
       ...state,
-      cache: new Map()
+      cache: new Map(),
     }));
   }
 
@@ -233,7 +255,7 @@ function createQuestionnaireStore() {
       questionnaire: null,
       loading: false,
       error: null,
-      cache: new Map()
+      cache: new Map(),
     });
   }
 
@@ -242,7 +264,7 @@ function createQuestionnaireStore() {
     fetchQuestionnaire,
     fetchProductQuestions,
     clearCache,
-    reset
+    reset,
   };
 }
 
@@ -256,7 +278,7 @@ function getDefaultQuestions(): Question[] {
       required: true,
       min_value: 1,
       max_value: 5,
-      order: 1
+      order: 1,
     },
     {
       id: 'q2',
@@ -265,7 +287,7 @@ function getDefaultQuestions(): Question[] {
       required: true,
       min_value: 1,
       max_value: 5,
-      order: 2
+      order: 2,
     },
     {
       id: 'q3',
@@ -274,7 +296,7 @@ function getDefaultQuestions(): Question[] {
       required: true,
       min_value: 1,
       max_value: 5,
-      order: 3
+      order: 3,
     },
     {
       id: 'q4',
@@ -283,7 +305,7 @@ function getDefaultQuestions(): Question[] {
       required: true,
       min_value: 1,
       max_value: 5,
-      order: 4
+      order: 4,
     },
     {
       id: 'q5',
@@ -293,9 +315,9 @@ function getDefaultQuestions(): Question[] {
       options: [
         { id: 'opt1', text: 'Too cold' },
         { id: 'opt2', text: 'Just right' },
-        { id: 'opt3', text: 'Too hot' }
+        { id: 'opt3', text: 'Too hot' },
       ],
-      order: 5
+      order: 5,
     },
     {
       id: 'q6',
@@ -305,24 +327,24 @@ function getDefaultQuestions(): Question[] {
       options: [
         { id: 'opt4', text: 'Too long' },
         { id: 'opt5', text: 'Reasonable' },
-        { id: 'opt6', text: 'Very quick' }
+        { id: 'opt6', text: 'Very quick' },
       ],
-      order: 6
+      order: 6,
     },
     {
       id: 'q7',
       text: 'Would you recommend us to a friend?',
       type: 'yes_no',
       required: true,
-      order: 7
+      order: 7,
     },
     {
       id: 'q8',
       text: 'Any additional comments or suggestions?',
       type: 'text',
       required: false,
-      order: 8
-    }
+      order: 8,
+    },
   ];
 }
 

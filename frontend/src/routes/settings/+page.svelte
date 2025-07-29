@@ -1,7 +1,7 @@
 <script lang="ts">
-  import { auth } from "$lib/stores/auth";
-  import { Card } from "$lib/components/ui";
-  import { goto } from "$app/navigation";
+  import { auth } from '$lib/stores/auth';
+  import { Card } from '$lib/components/ui';
+  import { goto } from '$app/navigation';
 
   // Import icons from lucide-svelte
   import {
@@ -13,7 +13,7 @@
     Settings,
     CheckCircle,
     XCircle,
-  } from "lucide-svelte";
+  } from 'lucide-svelte';
 
   // Import settings components
   import {
@@ -23,25 +23,25 @@
     SubscriptionSettings,
     BillingHistory,
     PaymentMethods,
-  } from "$lib/components/settings";
-  import { ROLES } from "$lib/components/auth";
-  import type { subscription } from "$lib/stores/subscription";
-  import RoleGate from "$lib/components/auth/RoleGate.svelte";
-  import type { Role } from "$lib/utils/auth-guards";
+  } from '$lib/components/settings';
+  import { ROLES } from '$lib/components/auth';
+  import type { subscription } from '$lib/stores/subscription';
+  import RoleGate from '$lib/components/auth/RoleGate.svelte';
+  import type { Role } from '$lib/utils/auth-guards';
 
   let authState = $derived($auth);
   let user = $derived(authState.user);
 
   // Tab state
-  let activeTab = $state("general");
+  let activeTab = $state('general');
 
   // Message states
-  let successMessage = $state("");
-  let errorMessage = $state("");
+  let successMessage = $state('');
+  let errorMessage = $state('');
 
   function clearMessages() {
-    successMessage = "";
-    errorMessage = "";
+    successMessage = '';
+    errorMessage = '';
   }
 
   function showSuccess(message: string) {
@@ -58,16 +58,16 @@
 
   async function handleDeactivation() {
     showSuccess(
-      "Account deactivation scheduled. Your account will be deactivated in 15 days. You can cancel this anytime by logging in or from your account settings.",
+      'Account deactivation scheduled. Your account will be deactivated in 15 days. You can cancel this anytime by logging in or from your account settings.'
     );
 
     // Log the user out after scheduling deactivation
     setTimeout(async () => {
       await auth.logout();
       // Small delay to ensure auth state is propagated
-      await new Promise((resolve) => setTimeout(resolve, 100));
+      await new Promise(resolve => setTimeout(resolve, 100));
       // Redirect to login page
-      await goto("/login", { replaceState: true });
+      await goto('/login', { replaceState: true });
     }, 3000); // Give user time to read the message
   }
 
@@ -81,12 +81,12 @@
   } as const;
 
   const tabs = [
-    { id: "general", label: "General", icon: Settings },
-    { id: "account", label: "Account", icon: User },
-    { id: "team", label: "Team", icon: Users },
-    { id: "subscription", label: "Subscription", icon: DollarSign },
-    { id: "billing", label: "Billing History", icon: FileText },
-    { id: "payment", label: "Payment", icon: CreditCard },
+    { id: 'general', label: 'General', icon: Settings },
+    { id: 'account', label: 'Account', icon: User },
+    { id: 'team', label: 'Team', icon: Users },
+    { id: 'subscription', label: 'Subscription', icon: DollarSign },
+    { id: 'billing', label: 'Billing History', icon: FileText },
+    { id: 'payment', label: 'Payment', icon: CreditCard },
   ];
 
   const getAllowedRolesById = (id: string): Role[] => allowedRoles[id];
@@ -96,8 +96,7 @@
   <title>Settings - Kyooar</title>
   <meta
     name="description"
-    content="Manage your Kyooar account settings and preferences"
-  />
+    content="Manage your Kyooar account settings and preferences" />
 </svelte:head>
 
 <div class="min-h-screen p-4 sm:p-6 lg:p-8">
@@ -106,8 +105,7 @@
     <div class="mb-8">
       <div class="flex items-center space-x-4">
         <div
-          class="h-12 w-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg"
-        >
+          class="h-12 w-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
           <Settings class="h-6 w-6 text-white" />
         </div>
         <div>
@@ -143,8 +141,7 @@
       <nav class="lg:col-span-1">
         <Card variant="glass" class="p-4">
           <h3
-            class="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4"
-          >
+            class="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4">
             Menu
           </h3>
           <ul class="space-y-2">
@@ -157,8 +154,7 @@
                     tab.id
                       ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-lg'
                       : 'text-gray-700 hover:bg-gray-100'}"
-                    onclick={() => (activeTab = tab.id)}
-                  >
+                    onclick={() => (activeTab = tab.id)}>
                     <svelte:component this={tab.icon} class="h-5 w-5" />
                     <span>{tab.label}</span>
                   </button>
@@ -172,32 +168,30 @@
       <!-- Tab Content -->
       <div class="lg:col-span-3">
         <Card variant="glass" class="p-6">
-          {#if activeTab === "general"}
+          {#if activeTab === 'general'}
             <GeneralSettings onSuccess={showSuccess} onError={showError} />
-          {:else if activeTab === "account"}
+          {:else if activeTab === 'account'}
             <AccountSettings
               {user}
               onSuccess={showSuccess}
               onError={showError}
-              onDeactivate={handleDeactivation}
-            />
-          {:else if activeTab === "team"}
+              onDeactivate={handleDeactivation} />
+          {:else if activeTab === 'team'}
             <TeamSettings onSuccess={showSuccess} onError={showError} />
-          {:else if activeTab === "subscription"}
+          {:else if activeTab === 'subscription'}
             <SubscriptionSettings onError={showError} />
-          {:else if activeTab === "billing"}
+          {:else if activeTab === 'billing'}
             <BillingHistory
-              onDownload={(invoiceId) =>
-                showSuccess(`Downloading invoice ${invoiceId}...`)}
-            />
-          {:else if activeTab === "payment"}
+              onDownload={invoiceId =>
+                showSuccess(`Downloading invoice ${invoiceId}...`)} />
+          {:else if activeTab === 'payment'}
             <PaymentMethods
-              onEditPayment={(id) =>
+              onEditPayment={id =>
                 showSuccess(`Editing payment method ${id}...`)}
-              onAddPayment={(type) =>
+              onAddPayment={type =>
                 showSuccess(`Adding ${type} payment method...`)}
-              onUpdateAddress={() => showSuccess("Updating billing address...")}
-            />
+              onUpdateAddress={() =>
+                showSuccess('Updating billing address...')} />
           {/if}
         </Card>
       </div>

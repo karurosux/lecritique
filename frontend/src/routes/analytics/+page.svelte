@@ -1,17 +1,17 @@
 <script lang="ts">
-  import { getApiClient, handleApiError } from "$lib/api/client";
-  import { auth } from "$lib/stores/auth";
-  import { goto } from "$app/navigation";
+  import { getApiClient, handleApiError } from '$lib/api/client';
+  import { auth } from '$lib/stores/auth';
+  import { goto } from '$app/navigation';
   import {
     Card,
     Button,
     Select,
     Input,
     NoDataAvailable,
-  } from "$lib/components/ui";
-  import ChartDataWidgetGrouped from "$lib/components/analytics/ChartDataWidgetGrouped.svelte";
-  import QRCodeAnalytics from "$lib/components/analytics/QRCodeAnalytics.svelte";
-  import { FeatureGate, FEATURES } from "$lib/components/subscription";
+  } from '$lib/components/ui';
+  import ChartDataWidgetGrouped from '$lib/components/analytics/ChartDataWidgetGrouped.svelte';
+  import QRCodeAnalytics from '$lib/components/analytics/QRCodeAnalytics.svelte';
+  import { FeatureGate, FEATURES } from '$lib/components/subscription';
   import {
     BarChart3,
     Activity,
@@ -23,40 +23,40 @@
     RefreshCw,
     AlertTriangle,
     Building2,
-  } from "lucide-svelte";
+  } from 'lucide-svelte';
 
   const DaysFilters = {
-    WEEK: "7",
-    MONTH: "30",
-    QUEARTER: "90",
-    ALL_TIME: "all",
+    WEEK: '7',
+    MONTH: '30',
+    QUEARTER: '90',
+    ALL_TIME: 'all',
   } as const;
 
   type DaysFiltersType = (typeof DaysFilters)[keyof typeof DaysFilters];
 
   let loading = $state(true);
-  let error = $state("");
+  let error = $state('');
   let organizations = $state<any[]>([]);
-  let selectedOrganization = $state("");
+  let selectedOrganization = $state('');
   let chartData = $state<any>(null);
   let analyticsData = $state<any>(null);
   let hasInitialized = $state(false);
 
   let filters = $state<{ productId: string; days: DaysFiltersType }>({
     days: DaysFilters.WEEK, // 'all', '7', '30', '90'
-    productId: "",
+    productId: '',
   });
 
-  let searchQuery = $state("");
+  let searchQuery = $state('');
   let showOnlyWithData = $state(false);
-  let viewMode = $state<"grouped" | "all">("grouped");
+  let viewMode = $state<'grouped' | 'all'>('grouped');
 
   let authState = $derived($auth);
   let availableProducts = $state<any[]>([]);
 
   $effect(() => {
     if (!authState.isAuthenticated) {
-      goto("/login");
+      goto('/login');
       return;
     }
 
@@ -96,7 +96,7 @@
         availableProducts = response.data.data;
       }
     } catch (err) {
-      console.error("Error loading products:", err);
+      console.error('Error loading products:', err);
     }
   }
 
@@ -104,7 +104,7 @@
     if (!selectedOrganization) return;
 
     loading = true;
-    error = "";
+    error = '';
 
     try {
       const api = getApiClient();
@@ -114,9 +114,9 @@
       if (filters.days !== DaysFilters.ALL_TIME) {
         const today = new Date();
         const daysAgo = new Date(
-          today.getTime() - parseInt(filters.days) * 24 * 60 * 60 * 1000,
+          today.getTime() - parseInt(filters.days) * 24 * 60 * 60 * 1000
         );
-        chartParams.date_from = daysAgo.toISOString().split("T")[0];
+        chartParams.date_from = daysAgo.toISOString().split('T')[0];
       }
 
       if (filters.productId) {
@@ -151,14 +151,14 @@
         summary: {
           total_responses: 0,
           date_range: {
-            start: "",
-            end: ""
+            start: '',
+            end: '',
           },
-          filters_applied: {}
-        }
+          filters_applied: {},
+        },
       };
     } catch (err) {
-      console.error("Error loading analytics:", err);
+      console.error('Error loading analytics:', err);
       error = handleApiError(err);
     } finally {
       loading = false;
@@ -178,24 +178,25 @@
         // Strip out all the detailed chart data, keeping only metadata
         chartData = {
           ...response.data.data,
-          charts: response.data.data.charts?.map((chart: any) => ({
-            question_id: chart.question_id,
-            question_text: chart.question_text,
-            question_type: chart.question_type,
-            chart_type: chart.chart_type,
-            product_id: chart.product_id,
-            product_name: chart.product_name,
-            data: {
-              total: chart.data?.total || 0,
-              // Remove all other data fields for lazy loading
-            },
-          })) || [],
+          charts:
+            response.data.data.charts?.map((chart: any) => ({
+              question_id: chart.question_id,
+              question_text: chart.question_text,
+              question_type: chart.question_type,
+              chart_type: chart.chart_type,
+              product_id: chart.product_id,
+              product_name: chart.product_name,
+              data: {
+                total: chart.data?.total || 0,
+                // Remove all other data fields for lazy loading
+              },
+            })) || [],
         };
       } else {
         chartData = null;
       }
     } catch (err) {
-      console.error("Error loading product summary:", err);
+      console.error('Error loading product summary:', err);
       chartData = null;
     }
   }
@@ -205,7 +206,7 @@
       const api = getApiClient();
       const chartResponse = await api.api.v1AnalyticsOrganizationsChartsList(
         selectedOrganization,
-        chartParams,
+        chartParams
       );
 
       if (chartResponse.data?.data) {
@@ -214,7 +215,7 @@
         chartData = null;
       }
     } catch (err) {
-      console.error("Error loading full chart data:", err);
+      console.error('Error loading full chart data:', err);
     }
   }
 
@@ -226,7 +227,7 @@
 
   function resetFilters() {
     filters.days = DaysFilters.WEEK;
-    filters.productId = "";
+    filters.productId = '';
   }
 
   function applyFilters() {
@@ -242,19 +243,16 @@
   <!-- Analytics Header -->
   <div class="mb-8">
     <div
-      class="flex flex-col lg:flex-row lg:justify-between lg:items-center gap-6"
-    >
+      class="flex flex-col lg:flex-row lg:justify-between lg:items-center gap-6">
       <div class="space-y-3">
         <div class="flex items-center space-x-3">
           <div
-            class="h-12 w-12 bg-gradient-to-br from-purple-500 to-pink-600 rounded-2xl flex items-center justify-center shadow-lg shadow-purple-500/25"
-          >
+            class="h-12 w-12 bg-gradient-to-br from-purple-500 to-pink-600 rounded-2xl flex items-center justify-center shadow-lg shadow-purple-500/25">
             <Package class="h-6 w-6 text-white" />
           </div>
           <div>
             <h1
-              class="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent"
-            >
+              class="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
               Product Performance Analytics
             </h1>
             <p class="text-gray-600 font-medium">
@@ -269,8 +267,7 @@
           <Button
             variant="secondary"
             size="lg"
-            onclick={() => goto("/analytics/advanced")}
-          >
+            onclick={() => goto('/analytics/advanced')}>
             <BarChart3 class="h-5 w-5 mr-2" />
             Advanced Analytics
           </Button>
@@ -286,8 +283,7 @@
         <!-- Primary Controls Row -->
         <div class="p-4">
           <div
-            class="flex flex-col lg:flex-row items-start lg:items-center gap-4"
-          >
+            class="flex flex-col lg:flex-row items-start lg:items-center gap-4">
             <!-- Left Side: Organization & Time -->
             <div class="flex flex-wrap items-center gap-3 flex-1">
               {#if organizations.length > 0}
@@ -295,13 +291,12 @@
                   <Activity class="h-4 w-4 text-gray-500" />
                   <Select
                     bind:value={selectedOrganization}
-                    options={organizations.map((r) => ({
+                    options={organizations.map(r => ({
                       value: r.id,
                       label: r.name,
                     }))}
                     onchange={handleOrganizationChange}
-                    minWidth="min-w-48"
-                  />
+                    minWidth="min-w-48" />
                   {#if chartData?.summary?.total_responses}
                     <span class="text-sm text-gray-500 hidden sm:inline">
                       ({chartData.summary.total_responses} responses)
@@ -319,10 +314,9 @@
                       ? 'bg-white text-gray-900 shadow-sm'
                       : 'text-gray-600 hover:text-gray-900'}"
                     onclick={() => {
-                      filters.days = "7";
+                      filters.days = '7';
                       applyFilters();
-                    }}
-                  >
+                    }}>
                     Week
                   </button>
                   <button
@@ -331,10 +325,9 @@
                       ? 'bg-white text-gray-900 shadow-sm'
                       : 'text-gray-600 hover:text-gray-900'}"
                     onclick={() => {
-                      filters.days = "30";
+                      filters.days = '30';
                       applyFilters();
-                    }}
-                  >
+                    }}>
                     Month
                   </button>
                   <button
@@ -343,10 +336,9 @@
                       ? 'bg-white text-gray-900 shadow-sm'
                       : 'text-gray-600 hover:text-gray-900'}"
                     onclick={() => {
-                      filters.days = "90";
+                      filters.days = '90';
                       applyFilters();
-                    }}
-                  >
+                    }}>
                     Quarter
                   </button>
                   <button
@@ -355,10 +347,9 @@
                       ? 'bg-white text-gray-900 shadow-sm'
                       : 'text-gray-600 hover:text-gray-900'}"
                     onclick={() => {
-                      filters.days = "all";
+                      filters.days = 'all';
                       applyFilters();
-                    }}
-                  >
+                    }}>
                     All Time
                   </button>
                 </div>
@@ -371,13 +362,11 @@
               onclick={loadAnalytics}
               disabled={loading}
               class="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-all disabled:opacity-50 group"
-              title="Refresh data"
-            >
+              title="Refresh data">
               <RefreshCw
                 class="h-5 w-5 {loading
                   ? 'animate-spin'
-                  : 'group-hover:rotate-180 transition-transform duration-300'}"
-              />
+                  : 'group-hover:rotate-180 transition-transform duration-300'}" />
             </button>
           </div>
         </div>
@@ -385,20 +374,17 @@
         <!-- Secondary Controls Row -->
         <div class="p-4 bg-gray-50">
           <div
-            class="flex flex-col lg:flex-row items-start lg:items-center gap-4"
-          >
+            class="flex flex-col lg:flex-row items-start lg:items-center gap-4">
             <!-- Left Side: Search & Product Filter -->
             <div class="flex flex-wrap items-center gap-3 flex-1">
               <div class="relative">
                 <Search
-                  class="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400"
-                />
+                  class="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                 <Input
                   type="text"
                   bind:value={searchQuery}
                   placeholder="Search products or questions..."
-                  class="pl-9 w-64"
-                />
+                  class="pl-9 w-64" />
               </div>
 
               <div class="flex items-center gap-2">
@@ -406,40 +392,35 @@
                 <Select
                   bind:value={filters.productId}
                   options={[
-                    { value: "", label: "All Products" },
-                    ...availableProducts.map((d) => ({
+                    { value: '', label: 'All Products' },
+                    ...availableProducts.map(d => ({
                       value: d.id,
                       label: d.name,
                     })),
                   ]}
                   onchange={applyFilters}
-                  minWidth="min-w-40"
-                />
+                  minWidth="min-w-40" />
               </div>
 
               <label class="flex items-center gap-2 cursor-pointer">
                 <input
                   type="checkbox"
                   bind:checked={showOnlyWithData}
-                  class="w-4 h-4 text-purple-600 bg-gray-100 border-gray-300 rounded focus:ring-purple-500"
-                />
+                  class="w-4 h-4 text-purple-600 bg-gray-100 border-gray-300 rounded focus:ring-purple-500" />
                 <span class="text-sm font-medium text-gray-700"
-                  >With data only</span
-                >
+                  >With data only</span>
               </label>
             </div>
 
             <!-- Right Side: View Mode -->
             <div
-              class="flex items-center gap-1 bg-white border border-gray-300 rounded-lg p-1"
-            >
+              class="flex items-center gap-1 bg-white border border-gray-300 rounded-lg p-1">
               <button
                 class="px-3 py-1.5 text-sm font-medium rounded-md transition-all {viewMode ===
                 'grouped'
                   ? 'bg-gray-900 text-white'
                   : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'}"
-                onclick={() => (viewMode = "grouped")}
-              >
+                onclick={() => (viewMode = 'grouped')}>
                 <Layers class="h-4 w-4 inline mr-1.5" />
                 Grouped
               </button>
@@ -448,8 +429,7 @@
                 'all'
                   ? 'bg-gray-900 text-white'
                   : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'}"
-                onclick={() => (viewMode = "all")}
-              >
+                onclick={() => (viewMode = 'all')}>
                 <Grid class="h-4 w-4 inline mr-1.5" />
                 All
               </button>
@@ -496,15 +476,13 @@
     <NoDataAvailable
       title="Failed to load analytics"
       description={error}
-      icon={AlertTriangle}
-    />
+      icon={AlertTriangle} />
   {:else if organizations.length === 0}
     <!-- No Organizations State -->
     <NoDataAvailable
       title="No Organizations Yet"
       description="Create your first organization to start collecting feedback and viewing analytics."
-      icon={Building2}
-    />
+      icon={Building2} />
   {:else}
     <!-- Analytics Content -->
     <div class="space-y-8">
@@ -524,18 +502,22 @@
         filters={{
           days: filters.days,
           productId: filters.productId,
-          date_from: filters.days !== DaysFilters.ALL_TIME 
-            ? new Date(new Date().getTime() - parseInt(filters.days) * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
-            : undefined
-        }}
-      />
+          date_from:
+            filters.days !== DaysFilters.ALL_TIME
+              ? new Date(
+                  new Date().getTime() -
+                    parseInt(filters.days) * 24 * 60 * 60 * 1000
+                )
+                  .toISOString()
+                  .split('T')[0]
+              : undefined,
+        }} />
 
       {#if chartData?.feedbacks?.length > 0}
         <QRCodeAnalytics
           {analyticsData}
           feedbacks={chartData.feedbacks}
-          {loading}
-        />
+          {loading} />
       {/if}
     </div>
   {/if}

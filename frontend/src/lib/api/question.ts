@@ -1,9 +1,9 @@
 import { getApiClient, handleApiError, getAuthToken } from './client';
-import type { 
+import type {
   ModelsQuestion,
   ModelsCreateQuestionRequest,
   ModelsUpdateQuestionRequest,
-  ModelsQuestionType
+  ModelsQuestionType,
 } from './api';
 
 // Re-export types for easy access
@@ -14,12 +14,17 @@ export type QuestionType = ModelsQuestionType;
 
 // Simplified Question API for product-based questions
 export class QuestionApi {
-  
   // Get all questions for a product
-  static async getQuestionsByProduct(organizationId: string, productId: string): Promise<Question[]> {
+  static async getQuestionsByProduct(
+    organizationId: string,
+    productId: string
+  ): Promise<Question[]> {
     try {
       const api = getApiClient();
-      const response = await api.api.v1OrganizationsProductsQuestionsList(organizationId, productId);
+      const response = await api.api.v1OrganizationsProductsQuestionsList(
+        organizationId,
+        productId
+      );
       return response.data.data || [];
     } catch (error) {
       throw new Error(handleApiError(error));
@@ -27,10 +32,18 @@ export class QuestionApi {
   }
 
   // Create a new question for a product
-  static async createQuestion(organizationId: string, productId: string, data: CreateQuestionRequest): Promise<Question> {
+  static async createQuestion(
+    organizationId: string,
+    productId: string,
+    data: CreateQuestionRequest
+  ): Promise<Question> {
     try {
       const api = getApiClient();
-      const response = await api.api.v1OrganizationsProductsQuestionsCreate(organizationId, productId, data);
+      const response = await api.api.v1OrganizationsProductsQuestionsCreate(
+        organizationId,
+        productId,
+        data
+      );
       return response.data.data!;
     } catch (error) {
       throw new Error(handleApiError(error));
@@ -38,10 +51,18 @@ export class QuestionApi {
   }
 
   // Get a specific question
-  static async getQuestion(organizationId: string, productId: string, questionId: string): Promise<Question> {
+  static async getQuestion(
+    organizationId: string,
+    productId: string,
+    questionId: string
+  ): Promise<Question> {
     try {
       const api = getApiClient();
-      const response = await api.api.v1OrganizationsProductsQuestionsDetail(organizationId, productId, questionId);
+      const response = await api.api.v1OrganizationsProductsQuestionsDetail(
+        organizationId,
+        productId,
+        questionId
+      );
       return response.data.data!;
     } catch (error) {
       throw new Error(handleApiError(error));
@@ -49,10 +70,20 @@ export class QuestionApi {
   }
 
   // Update an existing question
-  static async updateQuestion(organizationId: string, productId: string, questionId: string, data: UpdateQuestionRequest): Promise<Question> {
+  static async updateQuestion(
+    organizationId: string,
+    productId: string,
+    questionId: string,
+    data: UpdateQuestionRequest
+  ): Promise<Question> {
     try {
       const api = getApiClient();
-      const response = await api.api.v1OrganizationsProductsQuestionsUpdate(organizationId, productId, questionId, data);
+      const response = await api.api.v1OrganizationsProductsQuestionsUpdate(
+        organizationId,
+        productId,
+        questionId,
+        data
+      );
       return response.data.data!;
     } catch (error) {
       throw new Error(handleApiError(error));
@@ -60,30 +91,52 @@ export class QuestionApi {
   }
 
   // Delete a question
-  static async deleteQuestion(organizationId: string, productId: string, questionId: string): Promise<void> {
+  static async deleteQuestion(
+    organizationId: string,
+    productId: string,
+    questionId: string
+  ): Promise<void> {
     try {
       const api = getApiClient();
-      await api.api.v1OrganizationsProductsQuestionsDelete(organizationId, productId, questionId);
+      await api.api.v1OrganizationsProductsQuestionsDelete(
+        organizationId,
+        productId,
+        questionId
+      );
     } catch (error) {
       throw new Error(handleApiError(error));
     }
   }
 
   // Reorder questions for a product
-  static async reorderQuestions(organizationId: string, productId: string, questionIds: string[]): Promise<void> {
+  static async reorderQuestions(
+    organizationId: string,
+    productId: string,
+    questionIds: string[]
+  ): Promise<void> {
     try {
       const api = getApiClient();
-      await api.api.v1OrganizationsProductsQuestionsReorderCreate(organizationId, productId, questionIds);
+      await api.api.v1OrganizationsProductsQuestionsReorderCreate(
+        organizationId,
+        productId,
+        questionIds
+      );
     } catch (error) {
       throw new Error(handleApiError(error));
     }
   }
 
   // Get questions for a product (public endpoint for customer feedback)
-  static async getPublicQuestions(organizationId: string, productId: string): Promise<{ product: any; questions: Question[] }> {
+  static async getPublicQuestions(
+    organizationId: string,
+    productId: string
+  ): Promise<{ product: any; questions: Question[] }> {
     try {
       const api = getApiClient();
-      const response = await api.organization.productsQuestionsList(organizationId, productId);
+      const response = await api.organization.productsQuestionsList(
+        organizationId,
+        productId
+      );
       return response.data;
     } catch (error) {
       throw new Error(handleApiError(error));
@@ -91,20 +144,26 @@ export class QuestionApi {
   }
 
   // Generate AI questions for a product (preview only)
-  static async generateQuestions(organizationId: string, productId: string): Promise<any[]> {
+  static async generateQuestions(
+    organizationId: string,
+    productId: string
+  ): Promise<any[]> {
     try {
       const token = getAuthToken();
       if (!token) {
         throw new Error('No authentication token available');
       }
 
-      const response = await fetch(`http://localhost:8080/api/v1/organizations/${organizationId}/products/${productId}/ai/generate-questions`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
+      const response = await fetch(
+        `http://localhost:8080/api/v1/organizations/${organizationId}/products/${productId}/ai/generate-questions`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
         }
-      });
+      );
 
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
@@ -118,10 +177,16 @@ export class QuestionApi {
   }
 
   // Generate and save complete questionnaire for a product
-  static async generateAndSaveQuestionnaire(productId: string, data: any): Promise<any> {
+  static async generateAndSaveQuestionnaire(
+    productId: string,
+    data: any
+  ): Promise<any> {
     try {
       const api = getApiClient();
-      const response = await api.api.v1AiGenerateQuestionnaireCreate(productId, data);
+      const response = await api.api.v1AiGenerateQuestionnaireCreate(
+        productId,
+        data
+      );
       return response.data.data!;
     } catch (error) {
       throw new Error(handleApiError(error));

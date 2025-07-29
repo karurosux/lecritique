@@ -1,7 +1,15 @@
 import { browser } from '$app/environment';
-import { Api, type HandlersLoginRequest, type HandlersRegisterRequest } from '$lib/api/api';
+import {
+  Api,
+  type HandlersLoginRequest,
+  type HandlersRegisterRequest,
+} from '$lib/api/api';
 import { APP_CONFIG } from '$lib/constants/config';
-import { decodeJwt, getSubscriptionFeaturesFromToken, type JwtPayload } from '$lib/utils/jwt';
+import {
+  decodeJwt,
+  getSubscriptionFeaturesFromToken,
+  type JwtPayload,
+} from '$lib/utils/jwt';
 import { writable } from 'svelte/store';
 
 type UserRole = 'OWNER' | 'ADMIN' | 'MANAGER' | 'VIEWER';
@@ -33,24 +41,29 @@ const getInitialState = (): AuthState => {
     subscriptionFeatures: null,
     isAuthenticated: false,
     isLoading: false,
-    error: null
+    error: null,
   };
 
   if (browser) {
-    const storedToken = localStorage.getItem(APP_CONFIG.localStorageKeys.authToken);
-    const storedUser = localStorage.getItem(APP_CONFIG.localStorageKeys.authUser);
+    const storedToken = localStorage.getItem(
+      APP_CONFIG.localStorageKeys.authToken
+    );
+    const storedUser = localStorage.getItem(
+      APP_CONFIG.localStorageKeys.authUser
+    );
 
     if (storedToken && storedUser) {
       try {
         const user = JSON.parse(storedUser);
-        const subscriptionFeatures = getSubscriptionFeaturesFromToken(storedToken);
-        
+        const subscriptionFeatures =
+          getSubscriptionFeaturesFromToken(storedToken);
+
         return {
           ...baseState,
           user,
           token: storedToken,
           subscriptionFeatures,
-          isAuthenticated: true
+          isAuthenticated: true,
         };
       } catch (error) {
         localStorage.removeItem(APP_CONFIG.localStorageKeys.authToken);
@@ -69,15 +82,15 @@ function createAuthStore() {
 
   const api = new Api({
     baseURL: 'http://localhost:8080',
-    securityWorker: (securityData) => {
+    securityWorker: securityData => {
       if (securityData) {
         return {
           headers: {
-            Authorization: `Bearer ${securityData}`
-          }
+            Authorization: `Bearer ${securityData}`,
+          },
         };
       }
-    }
+    },
   });
 
   if (initialState.token) {
@@ -102,7 +115,8 @@ function createAuthStore() {
               throw new Error('Invalid token received');
             }
 
-            const subscriptionFeatures = getSubscriptionFeaturesFromToken(token);
+            const subscriptionFeatures =
+              getSubscriptionFeaturesFromToken(token);
 
             const user: User = {
               id: payload.member_id || payload.account_id,
@@ -112,12 +126,18 @@ function createAuthStore() {
               email_verified: true, // If they can login, email is verified
               deactivation_requested_at: null,
               account_id: payload.account_id,
-              role: payload.role as UserRole
+              role: payload.role as UserRole,
             };
 
             if (browser) {
-              localStorage.setItem(APP_CONFIG.localStorageKeys.authToken, token);
-              localStorage.setItem(APP_CONFIG.localStorageKeys.authUser, JSON.stringify(user));
+              localStorage.setItem(
+                APP_CONFIG.localStorageKeys.authToken,
+                token
+              );
+              localStorage.setItem(
+                APP_CONFIG.localStorageKeys.authUser,
+                JSON.stringify(user)
+              );
             }
 
             api.setSecurityData(token);
@@ -129,7 +149,7 @@ function createAuthStore() {
               subscriptionFeatures,
               isAuthenticated: true,
               isLoading: false,
-              error: null
+              error: null,
             }));
 
             // Note: We no longer need to update subscription store separately
@@ -142,13 +162,16 @@ function createAuthStore() {
         throw new Error('Invalid response from server');
       } catch (error: any) {
         const errorCode = error.response?.data?.error?.code;
-        const errorMessage = error.response?.data?.error?.message || error.message || 'Login failed';
+        const errorMessage =
+          error.response?.data?.error?.message ||
+          error.message ||
+          'Login failed';
 
         if (errorCode === 'EMAIL_NOT_VERIFIED') {
           update(state => ({
             ...state,
             isLoading: false,
-            error: null // Don't show error since we're redirecting
+            error: null, // Don't show error since we're redirecting
           }));
 
           return { success: false, unverified: true, email: credentials.email };
@@ -157,7 +180,7 @@ function createAuthStore() {
         update(state => ({
           ...state,
           isLoading: false,
-          error: errorMessage
+          error: errorMessage,
         }));
 
         return { success: false, error: errorMessage };
@@ -174,7 +197,7 @@ function createAuthStore() {
           update(state => ({
             ...state,
             isLoading: false,
-            error: null
+            error: null,
           }));
 
           return { success: true };
@@ -182,12 +205,15 @@ function createAuthStore() {
 
         throw new Error('Registration failed');
       } catch (error: any) {
-        const errorMessage = error.response?.data?.error?.message || error.message || 'Registration failed';
+        const errorMessage =
+          error.response?.data?.error?.message ||
+          error.message ||
+          'Registration failed';
 
         update(state => ({
           ...state,
           isLoading: false,
-          error: errorMessage
+          error: errorMessage,
         }));
 
         return { success: false, error: errorMessage };
@@ -211,7 +237,7 @@ function createAuthStore() {
         subscriptionFeatures: null,
         isAuthenticated: false,
         isLoading: false,
-        error: null
+        error: null,
       });
 
       return Promise.resolve();
@@ -224,7 +250,8 @@ function createAuthStore() {
         if (response.data.success && response.data.data?.token) {
           const newToken = response.data.data.token;
 
-          const subscriptionFeatures = getSubscriptionFeaturesFromToken(newToken);
+          const subscriptionFeatures =
+            getSubscriptionFeaturesFromToken(newToken);
 
           if (browser) {
             localStorage.setItem('auth_token', newToken);
@@ -235,7 +262,7 @@ function createAuthStore() {
           update(state => ({
             ...state,
             token: newToken,
-            subscriptionFeatures
+            subscriptionFeatures,
           }));
 
           return { success: true };
@@ -265,11 +292,16 @@ function createAuthStore() {
         if (browser) {
           localStorage.setItem(APP_CONFIG.localStorageKeys.authToken, newToken);
 
-          const storedUser = localStorage.getItem(APP_CONFIG.localStorageKeys.authUser);
+          const storedUser = localStorage.getItem(
+            APP_CONFIG.localStorageKeys.authUser
+          );
           if (storedUser && payload.email) {
             const user = JSON.parse(storedUser);
             user.email = payload.email;
-            localStorage.setItem(APP_CONFIG.localStorageKeys.authUser, JSON.stringify(user));
+            localStorage.setItem(
+              APP_CONFIG.localStorageKeys.authUser,
+              JSON.stringify(user)
+            );
           }
         }
 
@@ -279,10 +311,12 @@ function createAuthStore() {
           ...state,
           token: newToken,
           subscriptionFeatures,
-          user: state.user ? {
-            ...state.user,
-            email: payload.email || state.user.email
-          } : null
+          user: state.user
+            ? {
+                ...state.user,
+                email: payload.email || state.user.email,
+              }
+            : null,
         }));
       } catch (error) {
         console.error('Failed to update token:', error);
@@ -292,17 +326,20 @@ function createAuthStore() {
     updateUser(updatedUser: User) {
       update(state => ({
         ...state,
-        user: updatedUser
+        user: updatedUser,
       }));
 
       if (browser) {
-        localStorage.setItem(APP_CONFIG.localStorageKeys.authUser, JSON.stringify(updatedUser));
+        localStorage.setItem(
+          APP_CONFIG.localStorageKeys.authUser,
+          JSON.stringify(updatedUser)
+        );
       }
     },
 
     getApi() {
       return api;
-    }
+    },
   };
 
   const originalRequest = api.request.bind(api);

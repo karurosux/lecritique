@@ -5,7 +5,6 @@ import type { ModelsSubscription, ModelsSubscriptionPlan } from '$lib/api/api';
 import { auth } from './auth';
 import { hasFeatureFromToken, getLimitFromToken } from '$lib/utils/jwt';
 
-
 interface SubscriptionState {
   subscription: ModelsSubscription | null;
   plans: ModelsSubscriptionPlan[];
@@ -30,7 +29,7 @@ function createSubscriptionStore() {
     plans: [],
     usage: null,
     isLoading: false,
-    error: null
+    error: null,
   });
 
   return {
@@ -47,7 +46,7 @@ function createSubscriptionStore() {
           update(state => ({
             ...state,
             subscription: response.data.data,
-            isLoading: false
+            isLoading: false,
           }));
         } else {
           throw new Error('Failed to fetch subscription');
@@ -56,7 +55,7 @@ function createSubscriptionStore() {
         update(state => ({
           ...state,
           isLoading: false,
-          error: error.message || 'Failed to fetch subscription'
+          error: error.message || 'Failed to fetch subscription',
         }));
       }
     },
@@ -72,7 +71,7 @@ function createSubscriptionStore() {
           update(state => ({
             ...state,
             plans: response.data.data,
-            isLoading: false
+            isLoading: false,
           }));
         } else {
           throw new Error('Failed to fetch plans');
@@ -81,7 +80,7 @@ function createSubscriptionStore() {
         update(state => ({
           ...state,
           isLoading: false,
-          error: error.message || 'Failed to fetch plans'
+          error: error.message || 'Failed to fetch plans',
         }));
       }
     },
@@ -97,7 +96,7 @@ function createSubscriptionStore() {
           update(state => ({
             ...state,
             usage: response.data.data,
-            isLoading: false
+            isLoading: false,
           }));
         } else {
           throw new Error('Failed to fetch usage');
@@ -106,11 +105,10 @@ function createSubscriptionStore() {
         update(state => ({
           ...state,
           isLoading: false,
-          error: error.message || 'Failed to fetch usage'
+          error: error.message || 'Failed to fetch usage',
         }));
       }
     },
-
 
     async createCheckoutSession(planId: string) {
       // TODO: Replace with actual API call when endpoints are available
@@ -119,7 +117,7 @@ function createSubscriptionStore() {
       // Mock response for development
       return {
         session_id: 'mock_session_123',
-        checkout_url: 'https://checkout.stripe.com/mock'
+        checkout_url: 'https://checkout.stripe.com/mock',
       };
     },
 
@@ -129,7 +127,7 @@ function createSubscriptionStore() {
 
       // Mock response for development
       return {
-        portal_url: 'https://billing.stripe.com/mock'
+        portal_url: 'https://billing.stripe.com/mock',
       };
     },
 
@@ -159,7 +157,7 @@ function createSubscriptionStore() {
         plans: [],
         usage: null,
         isLoading: false,
-        error: null
+        error: null,
       });
     },
 
@@ -168,9 +166,9 @@ function createSubscriptionStore() {
         ...state,
         subscription: subscriptionData,
         isLoading: false,
-        error: null
+        error: null,
       }));
-    }
+    },
   };
 }
 
@@ -182,46 +180,33 @@ export const currentPlan = derived(
   $auth => $auth.subscriptionFeatures || null
 );
 
-export const isSubscribed = derived(
-  auth,
-  $auth => {
-    // User has subscription if JWT contains subscription features
-    return $auth.subscriptionFeatures !== null;
-  }
-);
+export const isSubscribed = derived(auth, $auth => {
+  // User has subscription if JWT contains subscription features
+  return $auth.subscriptionFeatures !== null;
+});
 
 export const planLimits = derived(
   auth,
   $auth => $auth.subscriptionFeatures || null
 );
 
-
 // Helper to check if a feature flag is enabled
-export const hasFeature = derived(
-  auth,
-  $auth => (feature: string): boolean => {
-    if (!$auth.token) return false;
-    return hasFeatureFromToken($auth.token, feature);
-  }
-);
+export const hasFeature = derived(auth, $auth => (feature: string): boolean => {
+  if (!$auth.token) return false;
+  return hasFeatureFromToken($auth.token, feature);
+});
 
 // Helper to get a limit value
-export const getLimit = derived(
-  auth,
-  $auth => (limit: string): number => {
-    if (!$auth.token) return 0;
-    return getLimitFromToken($auth.token, limit);
-  }
-);
+export const getLimit = derived(auth, $auth => (limit: string): number => {
+  if (!$auth.token) return 0;
+  return getLimitFromToken($auth.token, limit);
+});
 
 // Helper to check if limit is unlimited (-1)
-export const isUnlimited = derived(
-  auth,
-  $auth => (limit: string): boolean => {
-    if (!$auth.token) return false;
-    return getLimitFromToken($auth.token, limit) === -1;
-  }
-);
+export const isUnlimited = derived(auth, $auth => (limit: string): boolean => {
+  if (!$auth.token) return false;
+  return getLimitFromToken($auth.token, limit) === -1;
+});
 
 // Common feature flag constants
 export const FEATURES = {
@@ -229,7 +214,7 @@ export const FEATURES = {
   ADVANCED_ANALYTICS: 'advanced_analytics',
   FEEDBACK_EXPLORER: 'feedback_explorer',
   CUSTOM_BRANDING: 'custom_branding',
-  PRIORITY_SUPPORT: 'priority_support'
+  PRIORITY_SUPPORT: 'priority_support',
 } as const;
 
 // Common limit constants
@@ -237,5 +222,5 @@ export const LIMITS = {
   RESTAURANTS: 'max_organizations',
   QR_CODES: 'max_qr_codes',
   FEEDBACKS_PER_MONTH: 'max_feedbacks_per_month',
-  TEAM_MEMBERS: 'max_team_members'
+  TEAM_MEMBERS: 'max_team_members',
 } as const;

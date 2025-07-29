@@ -4,7 +4,7 @@
   import { getContext } from 'svelte';
   import type { analyticsStore as AnalyticsStoreType } from '$lib/stores/analytics';
   import { ANALYTICS_CONTEXT_KEY } from '$lib/stores/analytics';
-  
+
   interface QuestionMetric {
     question_id?: string;
     question_text: string;
@@ -18,23 +18,25 @@
     option_distribution?: Record<string, number>;
     text_responses?: string[];
   }
-  
+
   interface ProductInsights {
     question_metrics: QuestionMetric[];
   }
-  
+
   let {
     productInsights = null,
-    loading = false
+    loading = false,
   }: {
     productInsights?: ProductInsights | null;
     loading?: boolean;
   } = $props();
-  
+
   // Get analytics store from context
-  const analytics = getContext<typeof AnalyticsStoreType>(ANALYTICS_CONTEXT_KEY);
+  const analytics = getContext<typeof AnalyticsStoreType>(
+    ANALYTICS_CONTEXT_KEY
+  );
   const { selection } = analytics;
-  
+
   // Track highlighted question
   let highlightedQuestionId = $derived($selection.highlightedQuestionId);
 
@@ -46,12 +48,17 @@
   }
 
   function getResponseStats(metric: QuestionMetric): string {
-    if (metric.question_type === 'numeric' && metric.average_score !== undefined && metric.average_score !== null) {
+    if (
+      metric.question_type === 'numeric' &&
+      metric.average_score !== undefined &&
+      metric.average_score !== null
+    ) {
       return `${metric.average_score.toFixed(1)}/5.0`;
     }
     if (metric.question_type === 'choice' && metric.option_distribution) {
-      const topOption = Object.entries(metric.option_distribution)
-        .sort(([,a], [,b]) => b - a)[0];
+      const topOption = Object.entries(metric.option_distribution).sort(
+        ([, a], [, b]) => b - a
+      )[0];
       return topOption ? `${topOption[0]} (${topOption[1]})` : 'No responses';
     }
     if (metric.question_type === 'text' && metric.text_responses) {
@@ -69,10 +76,13 @@
 
 <Card variant="default" class="question-scores">
   <div class="mb-6">
-    <h3 class="text-lg font-semibold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
+    <h3
+      class="text-lg font-semibold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
       Question Scores
     </h3>
-    <p class="text-sm text-gray-600 mt-1">Average ratings and response counts per question</p>
+    <p class="text-sm text-gray-600 mt-1">
+      Average ratings and response counts per question
+    </p>
   </div>
 
   {#if loading}
@@ -96,21 +106,29 @@
   {:else if productInsights?.question_metrics?.length}
     <div class="space-y-4">
       {#each productInsights.question_metrics as metric}
-        <Card 
+        <Card
           variant="minimal"
           padding={false}
           hover={highlightedQuestionId !== metric.question_id}
           interactive
-          class="w-full text-left p-4 cursor-pointer {highlightedQuestionId === metric.question_id ? 'border-blue-500 shadow-lg ring-2 ring-blue-200' : ''}"
-          onclick={() => analytics.setHighlightedQuestion(metric.question_id === highlightedQuestionId ? null : metric.question_id)}
-        >
+          class="w-full text-left p-4 cursor-pointer {highlightedQuestionId ===
+          metric.question_id
+            ? 'border-blue-500 shadow-lg ring-2 ring-blue-200'
+            : ''}"
+          onclick={() =>
+            analytics.setHighlightedQuestion(
+              metric.question_id === highlightedQuestionId
+                ? null
+                : metric.question_id
+            )}>
           <div class="flex items-start justify-between mb-3">
             <div class="flex-1">
               <h4 class="font-medium text-gray-900 text-sm leading-relaxed">
                 {metric.question_text}
               </h4>
               <div class="flex items-center gap-3 mt-2">
-                <span class="text-xs text-gray-500 px-2 py-1 bg-gray-100 rounded">
+                <span
+                  class="text-xs text-gray-500 px-2 py-1 bg-gray-100 rounded">
                   {metric.question_type}
                 </span>
                 <span class="text-xs text-gray-600">
@@ -125,7 +143,8 @@
               {#if metric.average_score !== undefined}
                 <div class="flex items-center gap-1 mt-1">
                   <StarIcon class="w-3 h-3 fill-yellow-400 text-yellow-400" />
-                  <span class="text-xs {getScoreTrend(metric.average_score).color}">
+                  <span
+                    class="text-xs {getScoreTrend(metric.average_score).color}">
                     {getScoreTrend(metric.average_score).label}
                   </span>
                 </div>
@@ -136,10 +155,10 @@
           <!-- Progress bar for numeric questions -->
           {#if metric.question_type === 'numeric' && metric.average_score !== undefined && metric.average_score !== null}
             <div class="w-full bg-gray-200 rounded-full h-2 mb-2">
-              <div 
+              <div
                 class="bg-gradient-to-r from-blue-500 to-purple-600 h-2 rounded-full transition-all duration-300"
-                style="width: {(metric.average_score / 5) * 100}%"
-              ></div>
+                style="width: {(metric.average_score / 5) * 100}%">
+              </div>
             </div>
             <div class="flex justify-between text-xs text-gray-500">
               <span>Min: {metric.min_score?.toFixed(1) || 'N/A'}</span>
@@ -150,8 +169,14 @@
           <!-- Sentiment indicators -->
           {#if metric.positive_rate !== undefined && metric.negative_rate !== undefined}
             <div class="flex gap-2 mt-2">
-              <span class="text-xs px-2 py-1 rounded-full {getSentimentColor(metric.positive_rate, metric.negative_rate)}">
-                {metric.positive_rate.toFixed(0)}% positive, {metric.negative_rate.toFixed(0)}% negative
+              <span
+                class="text-xs px-2 py-1 rounded-full {getSentimentColor(
+                  metric.positive_rate,
+                  metric.negative_rate
+                )}">
+                {metric.positive_rate.toFixed(0)}% positive, {metric.negative_rate.toFixed(
+                  0
+                )}% negative
               </span>
             </div>
           {/if}
@@ -159,7 +184,9 @@
           <!-- Option distribution for choice questions -->
           {#if metric.question_type === 'choice' && metric.option_distribution}
             <div class="mt-3 space-y-1">
-              {#each Object.entries(metric.option_distribution).sort(([,a], [,b]) => b - a).slice(0, 3) as [option, count]}
+              {#each Object.entries(metric.option_distribution)
+                .sort(([, a], [, b]) => b - a)
+                .slice(0, 3) as [option, count]}
                 <div class="flex items-center justify-between text-xs">
                   <span class="text-gray-600 truncate">{option}</span>
                   <span class="text-gray-500 font-medium">{count}</span>
@@ -173,7 +200,8 @@
   {:else}
     <div class="text-center py-8">
       <div class="text-gray-500 text-sm">
-        No question data available. Select a product to view question-level analytics.
+        No question data available. Select a product to view question-level
+        analytics.
       </div>
     </div>
   {/if}

@@ -4,7 +4,7 @@
   import { getContext } from 'svelte';
   import type { analyticsStore as AnalyticsStoreType } from '$lib/stores/analytics';
   import { ANALYTICS_CONTEXT_KEY } from '$lib/stores/analytics';
-  
+
   interface QuestionMetric {
     question_id?: string;
     question_text: string;
@@ -14,16 +14,16 @@
     positive_rate?: number;
     negative_rate?: number;
   }
-  
+
   interface ProductInsights {
     question_metrics: QuestionMetric[];
     best_aspects?: string[];
     areas_needing_attention?: string[];
   }
-  
+
   let {
     productInsights = null,
-    loading = false
+    loading = false,
   }: {
     productInsights?: ProductInsights | null;
     loading?: boolean;
@@ -31,32 +31,38 @@
 
   let hoveredBar: number | null = null;
   let animationProgress = $state(0);
-  
+
   // Get analytics store from context
-  const analytics = getContext<typeof AnalyticsStoreType>(ANALYTICS_CONTEXT_KEY);
+  const analytics = getContext<typeof AnalyticsStoreType>(
+    ANALYTICS_CONTEXT_KEY
+  );
   const { selection } = analytics;
-  
+
   // Track highlighted question
   let highlightedQuestionId = $derived($selection.highlightedQuestionId);
 
   const chartData = $derived(() => {
     if (!productInsights?.question_metrics) return null;
-    
+
     const scoredQuestions = productInsights.question_metrics
       .filter(q => q.average_score !== undefined && q.average_score !== null)
       .sort((a, b) => (b.average_score || 0) - (a.average_score || 0));
-    
+
     if (scoredQuestions.length === 0) return null;
-    
+
     const maxScore = 5;
-    const avgScore = scoredQuestions.reduce((sum, q) => sum + (q.average_score || 0), 0) / scoredQuestions.length;
-    
+    const avgScore =
+      scoredQuestions.reduce((sum, q) => sum + (q.average_score || 0), 0) /
+      scoredQuestions.length;
+
     return {
       questions: scoredQuestions,
       maxScore,
       avgScore,
-      bestPerformers: scoredQuestions.filter(q => (q.average_score || 0) >= 4.5),
-      needsImprovement: scoredQuestions.filter(q => (q.average_score || 0) < 3)
+      bestPerformers: scoredQuestions.filter(
+        q => (q.average_score || 0) >= 4.5
+      ),
+      needsImprovement: scoredQuestions.filter(q => (q.average_score || 0) < 3),
     };
   });
 
@@ -87,11 +93,14 @@
 
 <Card variant="default" class="question-comparison-chart">
   <div class="mb-6">
-    <h3 class="text-lg font-semibold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent flex items-center gap-2">
+    <h3
+      class="text-lg font-semibold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent flex items-center gap-2">
       <BarChart3Icon class="w-5 h-5" />
       Question Performance Comparison
     </h3>
-    <p class="text-sm text-gray-600 mt-1">Side-by-side comparison of all question scores</p>
+    <p class="text-sm text-gray-600 mt-1">
+      Side-by-side comparison of all question scores
+    </p>
   </div>
 
   {#if loading}
@@ -110,17 +119,23 @@
     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
       <div class="bg-blue-50 border border-blue-200 rounded-lg p-3">
         <div class="text-sm font-medium text-blue-900">Average Score</div>
-        <div class="text-xl font-bold text-blue-600">{chartData.avgScore.toFixed(2)}/5.0</div>
+        <div class="text-xl font-bold text-blue-600">
+          {chartData.avgScore.toFixed(2)}/5.0
+        </div>
       </div>
-      
+
       <div class="bg-green-50 border border-green-200 rounded-lg p-3">
         <div class="text-sm font-medium text-green-900">Strong Points</div>
-        <div class="text-xl font-bold text-green-600">{chartData.bestPerformers.length} questions</div>
+        <div class="text-xl font-bold text-green-600">
+          {chartData.bestPerformers.length} questions
+        </div>
       </div>
-      
+
       <div class="bg-amber-50 border border-amber-200 rounded-lg p-3">
         <div class="text-sm font-medium text-amber-900">Need Attention</div>
-        <div class="text-xl font-bold text-amber-600">{chartData.needsImprovement.length} questions</div>
+        <div class="text-xl font-bold text-amber-600">
+          {chartData.needsImprovement.length} questions
+        </div>
       </div>
     </div>
 
@@ -128,15 +143,23 @@
     <div class="space-y-3">
       {#each chartData.questions as question, index}
         {@const score = question.average_score || 0}
-        {@const barWidth = (score / chartData.maxScore) * 100 * animationProgress}
+        {@const barWidth =
+          (score / chartData.maxScore) * 100 * animationProgress}
         {@const isHovered = hoveredBar === index}
-        
+
         <button
-          class="w-full group text-left {highlightedQuestionId === question.question_id ? 'scale-105 z-10 relative' : ''}"
-          onmouseenter={() => hoveredBar = index}
-          onmouseleave={() => hoveredBar = null}
-          onclick={() => analytics.setHighlightedQuestion(question.question_id === highlightedQuestionId ? null : question.question_id)}
-        >
+          class="w-full group text-left {highlightedQuestionId ===
+          question.question_id
+            ? 'scale-105 z-10 relative'
+            : ''}"
+          onmouseenter={() => (hoveredBar = index)}
+          onmouseleave={() => (hoveredBar = null)}
+          onclick={() =>
+            analytics.setHighlightedQuestion(
+              question.question_id === highlightedQuestionId
+                ? null
+                : question.question_id
+            )}>
           <!-- Question Text -->
           <div class="flex items-center justify-between mb-1">
             <div class="flex items-center gap-2 flex-1">
@@ -149,48 +172,56 @@
                 <ArrowDownIcon class="w-3 h-3 text-red-600" />
               {/if}
             </div>
-            <span class="text-sm font-bold ml-2" style="color: {getBarColor(score, chartData.avgScore)}">
+            <span
+              class="text-sm font-bold ml-2"
+              style="color: {getBarColor(score, chartData.avgScore)}">
               {score.toFixed(1)}
             </span>
           </div>
-          
+
           <!-- Bar -->
           <div class="relative">
             <div class="w-full bg-gray-100 rounded-full h-6 overflow-hidden">
-              <div 
+              <div
                 class="h-full rounded-full transition-all duration-500 ease-out relative"
-                style="width: {barWidth}%; background-color: {getBarColor(score, chartData.avgScore)}"
-              >
+                style="width: {barWidth}%; background-color: {getBarColor(
+                  score,
+                  chartData.avgScore
+                )}">
                 <!-- Animated shine effect on hover -->
                 {#if isHovered}
-                  <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white to-transparent opacity-30 animate-shine"></div>
+                  <div
+                    class="absolute inset-0 bg-gradient-to-r from-transparent via-white to-transparent opacity-30 animate-shine">
+                  </div>
                 {/if}
               </div>
             </div>
-            
+
             <!-- Average line -->
-            <div 
+            <div
               class="absolute top-0 h-full w-0.5 bg-gray-600 opacity-50"
               style="left: {(chartData.avgScore / chartData.maxScore) * 100}%"
-              title="Average: {chartData.avgScore.toFixed(2)}"
-            >
+              title="Average: {chartData.avgScore.toFixed(2)}">
               {#if index === 0}
-                <span class="absolute -top-5 left-1/2 -translate-x-1/2 text-xs text-gray-600 whitespace-nowrap">
+                <span
+                  class="absolute -top-5 left-1/2 -translate-x-1/2 text-xs text-gray-600 whitespace-nowrap">
                   Avg: {chartData.avgScore.toFixed(1)}
                 </span>
               {/if}
             </div>
           </div>
-          
+
           <!-- Additional Info on Hover -->
           {#if isHovered}
             <div class="mt-1 text-xs text-gray-600 flex items-center gap-3">
               <span>{question.response_count} responses</span>
               {#if question.positive_rate !== undefined}
-                <span class="text-green-600">{question.positive_rate.toFixed(0)}% positive</span>
+                <span class="text-green-600"
+                  >{question.positive_rate.toFixed(0)}% positive</span>
               {/if}
               {#if question.negative_rate !== undefined}
-                <span class="text-red-600">{question.negative_rate.toFixed(0)}% negative</span>
+                <span class="text-red-600"
+                  >{question.negative_rate.toFixed(0)}% negative</span>
               {/if}
             </div>
           {/if}
@@ -217,7 +248,7 @@
             </ul>
           </div>
         {/if}
-        
+
         {#if productInsights.areas_needing_attention?.length}
           <div class="bg-amber-50 border border-amber-200 rounded-lg p-4">
             <h4 class="font-medium text-amber-900 mb-2 flex items-center gap-2">
@@ -255,7 +286,7 @@
       transform: translateX(100%);
     }
   }
-  
+
   .animate-shine {
     animation: shine 1s ease-in-out;
   }

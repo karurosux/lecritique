@@ -40,7 +40,7 @@ func main() {
 		Code string `gorm:"column:code"`
 		Name string `gorm:"column:name"`
 	}
-	err = db.Table("subscription_plans").Select("id, code, name").Where("is_active = true").Find(&subscriptionPlans).Error
+	err = db.Table("subscription_plans").Select("id, code, name").Where("is_active = true AND code != 'free'").Find(&subscriptionPlans).Error
 	if err != nil {
 		log.Fatal("Failed to get subscription plans:", err)
 	}

@@ -5,11 +5,13 @@ This seeder creates a default test user and sample data for development and test
 ## Usage
 
 ### Create default user (first time)
+
 ```bash
 make seed
 ```
 
 ### Force recreate user (if already exists)
+
 ```bash
 make seed-force
 ```
@@ -17,6 +19,7 @@ make seed-force
 ## What gets created:
 
 ### 👤 Test User Account
+
 - **Email:** `admin@kyooar.com`
 - **Password:** `admin123`
 - **Company:** `Kyooar Demo Organization`
@@ -24,6 +27,7 @@ make seed-force
 - **Subscription:** Starter Plan (if available)
 
 ### 🏢 Sample Organization
+
 - **Name:** Demo Organization
 - **Description:** A sample organization for testing Kyooar
 - **Email:** admin@kyooar.com
@@ -31,18 +35,21 @@ make seed-force
 - **Website:** https://demo.kyooar.com
 
 ### 📍 Sample Location
+
 - **Name:** Main Location
 - **Address:** 123 Organization St, Food City, CA 12345, USA
 
 ### 🔳 Sample QR Code
+
 - **Code:** `DEMO001`
 - **Label:** Table 1
 - **Type:** table
 - **Valid for:** 1 year
 
 ### 🍽️ Sample Products
+
 1. **Classic Burger** - $12.99 (Mains)
-2. **Caesar Salad** - $8.99 (Salads)  
+2. **Caesar Salad** - $8.99 (Salads)
 3. **Chocolate Cake** - $6.99 (Desserts)
 
 ## Notes

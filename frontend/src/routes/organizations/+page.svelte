@@ -1,15 +1,15 @@
 <script lang="ts">
-  import { onMount } from "svelte";
-  import { getApiClient, handleApiError } from "$lib/api/client";
-  import { auth } from "$lib/stores/auth";
-  import { subscription } from "$lib/stores/subscription";
-  import { goto } from "$app/navigation";
-  import OrganizationHeader from "$lib/components/organizations/OrganizationHeader.svelte";
-  import SearchAndFilters from "$lib/components/organizations/SearchAndFilters.svelte";
-  import OrganizationList from "$lib/components/organizations/OrganizationList.svelte";
-  import CreateOrganizationModal from "$lib/components/organizations/CreateOrganizationModal.svelte";
-  import EditOrganizationModal from "$lib/components/organizations/EditOrganizationModal.svelte";
-  import { ConfirmDialog, Card, Button } from "$lib/components/ui";
+  import { onMount } from 'svelte';
+  import { getApiClient, handleApiError } from '$lib/api/client';
+  import { auth } from '$lib/stores/auth';
+  import { subscription } from '$lib/stores/subscription';
+  import { goto } from '$app/navigation';
+  import OrganizationHeader from '$lib/components/organizations/OrganizationHeader.svelte';
+  import SearchAndFilters from '$lib/components/organizations/SearchAndFilters.svelte';
+  import OrganizationList from '$lib/components/organizations/OrganizationList.svelte';
+  import CreateOrganizationModal from '$lib/components/organizations/CreateOrganizationModal.svelte';
+  import EditOrganizationModal from '$lib/components/organizations/EditOrganizationModal.svelte';
+  import { ConfirmDialog, Card, Button } from '$lib/components/ui';
 
   interface Organization {
     id: string;
@@ -20,18 +20,18 @@
     email?: string;
     website?: string;
     cuisine_type?: string;
-    status: "active" | "inactive";
+    status: 'active' | 'inactive';
     created_at: string;
     updated_at: string;
   }
 
   let loading = $state(true);
-  let error = $state("");
+  let error = $state('');
   let organizations = $state<Organization[]>([]);
-  let searchQuery = $state("");
-  let statusFilter = $state("all"); // 'all', 'active', 'inactive'
-  let sortBy = $state("name"); // 'name', 'created_at', 'status'
-  let viewMode = $state<"grid" | "list">("grid");
+  let searchQuery = $state('');
+  let statusFilter = $state('all'); // 'all', 'active', 'inactive'
+  let sortBy = $state('name'); // 'name', 'created_at', 'status'
+  let viewMode = $state<'grid' | 'list'>('grid');
   let showCreateModal = $state(false);
   let showEditModal = $state(false);
   let editingOrganization = $state<Organization | null>(null);
@@ -39,31 +39,34 @@
   let deletingOrganization = $state<Organization | null>(null);
   let canCreateOrganization = $state(false);
   let checkingPermissions = $state(true);
-  let permissionReason = $state("");
+  let permissionReason = $state('');
   let clickOrigin = $state<{ x: number; y: number } | null>(null);
 
   let filteredOrganizations = $derived(
     organizations
-      .filter((organization) => {
+      .filter(organization => {
         if (!organization) return false;
         const matchesSearch =
-          organization.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          organization.name
+            ?.toLowerCase()
+            .includes(searchQuery.toLowerCase()) ||
           organization.description
             ?.toLowerCase()
             .includes(searchQuery.toLowerCase()) ||
           organization.email?.toLowerCase().includes(searchQuery.toLowerCase());
         const matchesStatus =
-          statusFilter === "all" || organization.status === statusFilter;
+          statusFilter === 'all' || organization.status === statusFilter;
         return matchesSearch && matchesStatus;
       })
       .sort((a, b) => {
         if (!a || !b) return 0;
         switch (sortBy) {
-          case "created_at":
+          case 'created_at':
             return (
-              new Date(b.created_at || '').getTime() - new Date(a.created_at || '').getTime()
+              new Date(b.created_at || '').getTime() -
+              new Date(a.created_at || '').getTime()
             );
-          case "status":
+          case 'status':
             return (a.status || '').localeCompare(b.status || '');
           default:
             return (a.name || '').localeCompare(b.name || '');
@@ -73,15 +76,17 @@
 
   let authState = $derived($auth);
   let subscriptionState = $derived($subscription);
-  let teamMembers = $derived(subscriptionState.subscription?.team_members || []);
+  let teamMembers = $derived(
+    subscriptionState.subscription?.team_members || []
+  );
   let hasInitialized = $state(false);
 
   $effect(() => {
     if (!authState.isAuthenticated) {
-      goto("/login");
+      goto('/login');
       return;
     }
-    
+
     if (authState.isAuthenticated && !hasInitialized) {
       hasInitialized = true;
       loadOrganizations();
@@ -96,7 +101,7 @@
 
   async function loadOrganizations() {
     loading = true;
-    error = "";
+    error = '';
 
     try {
       const api = getApiClient();
@@ -105,18 +110,18 @@
       const response = await api.api.v1OrganizationsList();
 
       if (response.data.success && response.data.data) {
-        organizations = response.data.data.map((organization) => ({
-          id: organization.id || "",
-          name: organization.name || "",
-          description: organization.description || "",
-          address: organization.address || "",
-          phone: organization.phone || "",
-          email: organization.email || "",
-          website: organization.website || "",
-          cuisine_type: "", // Note: cuisine_type not in API model
-          status: organization.is_active ? "active" : "inactive",
-          created_at: organization.created_at || "",
-          updated_at: organization.updated_at || "",
+        organizations = response.data.data.map(organization => ({
+          id: organization.id || '',
+          name: organization.name || '',
+          description: organization.description || '',
+          address: organization.address || '',
+          phone: organization.phone || '',
+          email: organization.email || '',
+          website: organization.website || '',
+          cuisine_type: '', // Note: cuisine_type not in API model
+          status: organization.is_active ? 'active' : 'inactive',
+          created_at: organization.created_at || '',
+          updated_at: organization.updated_at || '',
         }));
       } else {
         organizations = [];
@@ -132,32 +137,35 @@
     try {
       checkingPermissions = true;
       const api = getApiClient();
-      
+
       const response = await api.api.v1UserCanCreateOrganizationList();
-      
+
       if (response.data.success) {
         const data = response.data.data;
         canCreateOrganization = data.can_create || false;
-        
+
         if (!canCreateOrganization) {
-          permissionReason = data.reason || "Cannot create more organizations";
+          permissionReason = data.reason || 'Cannot create more organizations';
         }
       } else {
         canCreateOrganization = false;
-        permissionReason = "Unable to verify permissions";
+        permissionReason = 'Unable to verify permissions';
       }
-      
     } catch (err) {
-      console.error("Error checking create permission:", err);
+      console.error('Error checking create permission:', err);
       canCreateOrganization = false;
-      permissionReason = "Unable to verify permissions";
+      permissionReason = 'Unable to verify permissions';
     } finally {
       checkingPermissions = false;
     }
   }
 
   function handleFiltersChanged(event: CustomEvent) {
-    const { searchQuery: newSearchQuery, statusFilter: newStatusFilter, sortBy: newSortBy } = event.detail;
+    const {
+      searchQuery: newSearchQuery,
+      statusFilter: newStatusFilter,
+      sortBy: newSortBy,
+    } = event.detail;
     searchQuery = newSearchQuery;
     statusFilter = newStatusFilter;
     sortBy = newSortBy;
@@ -243,18 +251,19 @@
   async function toggleOrganizationStatus(organization: Organization) {
     try {
       const api = getApiClient();
-      const newStatus = organization.status === "active" ? "inactive" : "active";
+      const newStatus =
+        organization.status === 'active' ? 'inactive' : 'active';
 
       // Update organization status via API
       await api.api.v1OrganizationsUpdate(organization.id, {
-        is_active: newStatus === "active",
+        is_active: newStatus === 'active',
       });
 
       // Update local state
-      organizations = organizations.map((r) =>
+      organizations = organizations.map(r =>
         r.id === organization.id
           ? { ...r, status: newStatus, updated_at: new Date().toISOString() }
-          : r,
+          : r
       );
     } catch (err) {
       error = handleApiError(err);
@@ -269,7 +278,7 @@
       await api.api.v1OrganizationsDelete(organization.id);
 
       // Update local state
-      organizations = organizations.filter((r) => r.id !== organization.id);
+      organizations = organizations.filter(r => r.id !== organization.id);
     } catch (err) {
       error = handleApiError(err);
     }
@@ -290,8 +299,7 @@
     {checkingPermissions}
     {permissionReason}
     bind:viewMode
-    onaddorganization={handleAddOrganization}
-  />
+    onaddorganization={handleAddOrganization} />
 
   <!-- Search and Filters -->
   <SearchAndFilters
@@ -300,8 +308,7 @@
     bind:sortBy
     totalOrganizations={organizations.length}
     filteredCount={filteredOrganizations.length}
-    onfilterschanged={handleFiltersChanged}
-  />
+    onfilterschanged={handleFiltersChanged} />
 
   {#if error}
     <!-- Error State -->
@@ -311,14 +318,12 @@
           class="h-12 w-12 text-red-500 mx-auto mb-4"
           fill="none"
           stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
+          viewBox="0 0 24 24">
           <path
             stroke-linecap="round"
             stroke-linejoin="round"
             stroke-width="2"
-            d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 3 1.732 3z"
-          />
+            d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 3 1.732 3z" />
         </svg>
         <h3 class="text-lg font-medium text-gray-900 mb-2">
           Failed to load organizations
@@ -338,8 +343,7 @@
       on:organizationToggleStatus={handleOrganizationToggleStatus}
       on:organizationDelete={handleOrganizationDelete}
       on:addOrganization={handleAddOrganization}
-      on:clearFilters={handleClearFilters}
-    />
+      on:clearFilters={handleClearFilters} />
   {/if}
 </div>
 
@@ -347,8 +351,7 @@
 <CreateOrganizationModal
   bind:isOpen={showCreateModal}
   onclose={handleCloseModal}
-  onorganizationcreated={handleOrganizationCreated}
-/>
+  onorganizationcreated={handleOrganizationCreated} />
 
 <!-- Edit Organization Modal -->
 {#if showEditModal && editingOrganization}
@@ -356,8 +359,7 @@
     organization={editingOrganization}
     {clickOrigin}
     onclose={handleCloseEditModal}
-    onupdated={handleOrganizationUpdated}
-  />
+    onupdated={handleOrganizationUpdated} />
 {/if}
 
 <!-- Delete Confirmation Dialog -->
@@ -370,6 +372,4 @@
   variant="danger"
   {clickOrigin}
   onConfirm={handleDeleteConfirm}
-  onCancel={handleDeleteCancel}
-/>
-
+  onCancel={handleDeleteCancel} />

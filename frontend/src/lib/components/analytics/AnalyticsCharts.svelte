@@ -14,7 +14,7 @@
 
   let {
     analyticsData = null,
-    loading = false
+    loading = false,
   }: {
     analyticsData?: AnalyticsData | null;
     loading?: boolean;
@@ -62,34 +62,49 @@
     {/each}
   {:else if analyticsData}
     <!-- Rating Distribution -->
-    <Card variant="default" hover interactive class="group transform transition-all duration-300 animate-fade-in-up" style="animation-delay: 100ms">
+    <Card
+      variant="default"
+      hover
+      interactive
+      class="group transform transition-all duration-300 animate-fade-in-up"
+      style="animation-delay: 100ms">
       <div class="mb-6">
-        <h3 class="text-lg font-semibold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
+        <h3
+          class="text-lg font-semibold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
           Rating Distribution
         </h3>
         <p class="text-sm text-gray-600 mt-1">Breakdown of customer ratings</p>
       </div>
-      
+
       <div class="space-y-4">
         {#each [5, 4, 3, 2, 1] as rating}
-          {@const count = analyticsData.rating_distribution?.[rating.toString()] || 0}
-          {@const percentage = getPercentage(count, analyticsData.total_feedback || 0)}
+          {@const count =
+            analyticsData.rating_distribution?.[rating.toString()] || 0}
+          {@const percentage = getPercentage(
+            count,
+            analyticsData.total_feedback || 0
+          )}
           <div class="group">
             <div class="flex items-center gap-3">
-              <div class="w-14 text-sm font-medium text-gray-600 group-hover:text-gray-900 transition-colors">
+              <div
+                class="w-14 text-sm font-medium text-gray-600 group-hover:text-gray-900 transition-colors">
                 {rating} ★
               </div>
               <div class="flex-1">
                 <div class="bg-gray-100 rounded-full h-2.5 overflow-hidden">
                   <div
-                    class="h-full bg-gradient-to-r {getRatingBarColor(rating)} transition-all duration-500 ease-out rounded-full"
-                    style="width: {percentage}%"
-                  ></div>
+                    class="h-full bg-gradient-to-r {getRatingBarColor(
+                      rating
+                    )} transition-all duration-500 ease-out rounded-full"
+                    style="width: {percentage}%">
+                  </div>
                 </div>
               </div>
-              <div class="w-20 text-sm text-gray-600 text-right group-hover:text-gray-900 transition-colors">
+              <div
+                class="w-20 text-sm text-gray-600 text-right group-hover:text-gray-900 transition-colors">
                 <span class="font-medium">{count}</span>
-                <span class="text-gray-400 ml-1">({percentage.toFixed(1)}%)</span>
+                <span class="text-gray-400 ml-1"
+                  >({percentage.toFixed(1)}%)</span>
               </div>
             </div>
           </div>
@@ -98,44 +113,69 @@
     </Card>
 
     <!-- Top Performing Products -->
-    <Card variant="default" hover interactive class="group transform transition-all duration-300 animate-fade-in-up" style="animation-delay: 200ms">
+    <Card
+      variant="default"
+      hover
+      interactive
+      class="group transform transition-all duration-300 animate-fade-in-up"
+      style="animation-delay: 200ms">
       <div class="mb-6">
-        <h3 class="text-lg font-semibold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
+        <h3
+          class="text-lg font-semibold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
           Top Performing Products
         </h3>
-        <p class="text-sm text-gray-600 mt-1">Highest rated products with feedback</p>
+        <p class="text-sm text-gray-600 mt-1">
+          Highest rated products with feedback
+        </p>
       </div>
-      
+
       <div class="space-y-4">
         {#each (analyticsData.top_products || []).slice(0, 5) as product, index}
-          <div class="group flex items-center justify-between p-3 rounded-xl hover:bg-gray-50 transition-all duration-200">
+          <div
+            class="group flex items-center justify-between p-3 rounded-xl hover:bg-gray-50 transition-all duration-200">
             <div class="flex items-center space-x-3">
-              <div class="flex items-center justify-center w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-600 rounded-xl text-sm font-semibold text-white shadow-lg shadow-purple-500/25 group-hover:scale-110 transition-transform duration-200">
+              <div
+                class="flex items-center justify-center w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-600 rounded-xl text-sm font-semibold text-white shadow-lg shadow-purple-500/25 group-hover:scale-110 transition-transform duration-200">
                 {index + 1}
               </div>
               <div>
-                <div class="font-medium text-gray-900 group-hover:text-purple-700 transition-colors">
+                <div
+                  class="font-medium text-gray-900 group-hover:text-purple-700 transition-colors">
                   {product.name}
                 </div>
                 <div class="text-sm text-gray-500">
-                  {product.feedback_count} {product.feedback_count === 1 ? 'review' : 'reviews'}
+                  {product.feedback_count}
+                  {product.feedback_count === 1 ? 'review' : 'reviews'}
                 </div>
               </div>
             </div>
             <div class="text-right">
-              <div class="font-semibold {getRatingColor(product.average_rating || 0)} text-lg">
+              <div
+                class="font-semibold {getRatingColor(
+                  product.average_rating || 0
+                )} text-lg">
                 {product.average_rating?.toFixed(1) || '0.0'}
               </div>
-              <div class="text-xs {getRatingColor(product.average_rating || 0)}">
+              <div
+                class="text-xs {getRatingColor(product.average_rating || 0)}">
                 {renderStars(product.average_rating || 0)}
               </div>
             </div>
           </div>
         {:else}
           <div class="text-center py-12">
-            <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <svg class="h-8 w-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+            <div
+              class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <svg
+                class="h-8 w-8 text-gray-400"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24">
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
               </svg>
             </div>
             <p class="text-gray-500">No product data available</p>

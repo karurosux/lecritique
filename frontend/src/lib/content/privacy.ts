@@ -6,7 +6,7 @@ export const privacyContent = {
   sections: [
     {
       title: 'Privacy Policy',
-      content: `At Kyooar, we are committed to protecting your privacy and ensuring the security of your personal information. This Privacy Policy explains how we collect, use, and safeguard your data when you use our organization feedback management platform.`
+      content: `At Kyooar, we are committed to protecting your privacy and ensuring the security of your personal information. This Privacy Policy explains how we collect, use, and safeguard your data when you use our organization feedback management platform.`,
     },
     {
       title: '1. Information We Collect',
@@ -15,7 +15,7 @@ export const privacyContent = {
 • Organization and menu details
 • Payment information (processed securely through Stripe)
 • Feedback and questionnaire responses from your customers
-• Usage data and analytics about how you interact with our platform`
+• Usage data and analytics about how you interact with our platform`,
     },
     {
       title: '2. How We Use Your Information',
@@ -25,7 +25,7 @@ export const privacyContent = {
 • Send you technical notices and support messages
 • Communicate with you about products, services, and promotional offers
 • Monitor and analyze trends, usage, and activities
-• Detect, investigate, and prevent fraudulent or illegal activities`
+• Detect, investigate, and prevent fraudulent or illegal activities`,
     },
     {
       title: '3. Customer Feedback Data',
@@ -34,7 +34,7 @@ export const privacyContent = {
 • Never sell or share customer feedback with third parties
 • Only access feedback data for technical support when authorized by you
 • Provide you tools to export and manage all collected feedback
-• Ensure feedback remains anonymous unless customers voluntarily provide contact information`
+• Ensure feedback remains anonymous unless customers voluntarily provide contact information`,
     },
     {
       title: '4. Data Security',
@@ -43,7 +43,7 @@ export const privacyContent = {
 • Regular security assessments and updates
 • Access controls and authentication mechanisms
 • Secure data centers with physical security measures
-• Regular backups and disaster recovery procedures`
+• Regular backups and disaster recovery procedures`,
     },
     {
       title: '5. Third-Party Services',
@@ -53,7 +53,7 @@ export const privacyContent = {
 • Analytics services to improve our platform
 • AI services (Anthropic, OpenAI, Google) for generating questionnaires
 
-These services have their own privacy policies and we recommend reviewing them.`
+These services have their own privacy policies and we recommend reviewing them.`,
     },
     {
       title: '6. Data Retention',
@@ -63,7 +63,7 @@ These services have their own privacy policies and we recommend reviewing them.`
 • Resolve disputes and enforce agreements
 • Improve our services
 
-You may request deletion of your account and associated data at any time.`
+You may request deletion of your account and associated data at any time.`,
     },
     {
       title: '7. Your Rights',
@@ -75,7 +75,7 @@ You may request deletion of your account and associated data at any time.`
 • Opt-out of marketing communications
 • Update your communication preferences
 
-Contact us at ${APP_CONFIG.emails.privacy} to exercise these rights.`
+Contact us at ${APP_CONFIG.emails.privacy} to exercise these rights.`,
     },
     {
       title: '8. Cookies and Tracking',
@@ -85,21 +85,21 @@ Contact us at ${APP_CONFIG.emails.privacy} to exercise these rights.`
 • Analyze platform usage
 • Improve user experience
 
-You can control cookie settings through your browser preferences.`
+You can control cookie settings through your browser preferences.`,
     },
     {
       title: '9. International Data Transfers',
-      content: `Your information may be transferred to and processed in countries other than your own. We ensure appropriate safeguards are in place to protect your information in accordance with this Privacy Policy.`
+      content: `Your information may be transferred to and processed in countries other than your own. We ensure appropriate safeguards are in place to protect your information in accordance with this Privacy Policy.`,
     },
     {
-      title: '10. Children\'s Privacy',
-      content: `Kyooar is not intended for children under 13 years of age. We do not knowingly collect personal information from children under 13. If we learn we have collected information from a child under 13, we will delete it.`
+      title: "10. Children's Privacy",
+      content: `Kyooar is not intended for children under 13 years of age. We do not knowingly collect personal information from children under 13. If we learn we have collected information from a child under 13, we will delete it.`,
     },
     {
       title: '11. Changes to This Policy',
       content: `We may update this Privacy Policy from time to time. We will notify you of any changes by posting the new Privacy Policy on this page and updating the "Last Updated" date.
 
-This privacy policy may change at the discretion of Kyooar. We encourage you to review this policy periodically for any updates.`
+This privacy policy may change at the discretion of Kyooar. We encourage you to review this policy periodically for any updates.`,
     },
     {
       title: '12. Contact Us',
@@ -108,7 +108,7 @@ This privacy policy may change at the discretion of Kyooar. We encourage you to 
 Email: ${APP_CONFIG.emails.privacy}
 Address: [Your Company Address]
 
-For general support: ${APP_CONFIG.emails.support}`
-    }
-  ]
+For general support: ${APP_CONFIG.emails.support}`,
+    },
+  ],
 };

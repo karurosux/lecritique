@@ -58,15 +58,15 @@ INSERT INTO subscription_plans (
 // Handler for admin to create custom plan
 func (h *AdminHandler) CreateCustomPlan(c echo.Context) error {
     // Verify admin permissions
-    
+
     var plan models.SubscriptionPlan
     if err := c.Bind(&plan); err != nil {
         return err
     }
-    
+
     plan.IsVisible = false  // Always hidden
     plan.Code = fmt.Sprintf("custom_%s_%d", customerSlug, time.Now().Unix())
-    
+
     return h.planService.CreatePlan(ctx, &plan)
 }
 ```
@@ -87,7 +87,7 @@ func (h *AdminHandler) CreateCustomPlan(c echo.Context) error {
 
 ```sql
 -- Find the user's current subscription
-UPDATE subscriptions 
+UPDATE subscriptions
 SET plan_id = (SELECT id FROM subscription_plans WHERE code = 'custom_bigcorp_2024')
 WHERE account_id = '123e4567-e89b-12d3-a456-426614174000';
 ```
@@ -109,39 +109,47 @@ WHERE account_id = '123e4567-e89b-12d3-a456-426614174000';
 ## Use Cases
 
 ### 1. Volume Discounts
+
 Create hidden plans with special pricing for large customers:
+
 ```sql
 -- 50% off for customers with 10+ organizations
-INSERT INTO subscription_plans (code, name, price, is_visible) 
+INSERT INTO subscription_plans (code, name, price, is_visible)
 VALUES ('enterprise_volume_50', 'Enterprise Volume 50% Off', 99.50, false);
 ```
 
 ### 2. Legacy Plans
+
 Keep old customers on discontinued plans:
+
 ```sql
 -- Mark old plans as hidden instead of deleting
-UPDATE subscription_plans 
-SET is_visible = false 
+UPDATE subscription_plans
+SET is_visible = false
 WHERE code IN ('legacy_pro', 'legacy_starter');
 ```
 
 ### 3. Beta Features
+
 Test new features with select customers:
+
 ```sql
 -- Hidden plan with experimental features
 INSERT INTO subscription_plans (code, name, features, is_visible)
-VALUES ('beta_ai_features', 'Beta AI Features', 
-    '{"flags": {"ai_menu_suggestions": true, "ai_review_analysis": true}}', 
+VALUES ('beta_ai_features', 'Beta AI Features',
+    '{"flags": {"ai_menu_suggestions": true, "ai_review_analysis": true}}',
     false);
 ```
 
 ### 4. Partner Plans
+
 Special plans for business partners:
+
 ```sql
 -- Partner plan with revenue sharing
 INSERT INTO subscription_plans (code, name, price, features, is_visible)
-VALUES ('partner_reseller', 'Partner Reseller Plan', 0, 
-    '{"custom": {"revenue_share_percentage": 30}}', 
+VALUES ('partner_reseller', 'Partner Reseller Plan', 0,
+    '{"custom": {"revenue_share_percentage": 30}}',
     false);
 ```
 
@@ -164,8 +172,8 @@ VALUES ('partner_reseller', 'Partner Reseller Plan', 0,
 
 ```bash
 # 1. Create custom plan for ACME Corp
-psql -c "INSERT INTO subscription_plans (code, name, price, is_visible, features) 
-         VALUES ('custom_acme_2024', 'ACME Corp Special', 299, false, 
+psql -c "INSERT INTO subscription_plans (code, name, price, is_visible, features)
+         VALUES ('custom_acme_2024', 'ACME Corp Special', 299, false,
                 '{\"limits\": {\"max_organizations\": 50}}')"
 
 # 2. Assign to ACME's account

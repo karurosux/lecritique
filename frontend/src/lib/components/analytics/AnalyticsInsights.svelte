@@ -12,7 +12,7 @@
 
   let {
     analyticsData = null,
-    loading = false
+    loading = false,
   }: {
     analyticsData?: AnalyticsData | null;
     loading?: boolean;
@@ -24,21 +24,22 @@
 
   const insights = $derived(() => {
     if (!analyticsData) return [];
-    
+
     const ratingDist = analyticsData.rating_distribution || {};
     const highRatings = (ratingDist['4'] || 0) + (ratingDist['5'] || 0);
     const totalFeedback = analyticsData.total_feedback || 0;
     const highRatingPercentage = getPercentage(highRatings, totalFeedback);
     const avgRating = analyticsData.average_rating || 0;
-    
+
     // Calculate product-specific insights
-    const topProducts = analyticsData.top_rated_products || analyticsData.top_products || [];
+    const topProducts =
+      analyticsData.top_rated_products || analyticsData.top_products || [];
     const bestProduct = topProducts[0];
     const worstRatings = (ratingDist['1'] || 0) + (ratingDist['2'] || 0);
     const worstRatingPercentage = getPercentage(worstRatings, totalFeedback);
-    
+
     const insights = [];
-    
+
     // Best performing product
     if (bestProduct) {
       insights.push({
@@ -50,10 +51,10 @@
         borderClass: 'border-green-200',
         iconClass: 'text-green-500',
         textClass: 'text-green-800',
-        subtitleClass: 'text-green-600'
+        subtitleClass: 'text-green-600',
       });
     }
-    
+
     // Customer satisfaction
     insights.push({
       id: 'satisfaction',
@@ -64,9 +65,9 @@
       borderClass: 'border-pink-200',
       iconClass: 'text-pink-500',
       textClass: 'text-pink-800',
-      subtitleClass: 'text-pink-600'
+      subtitleClass: 'text-pink-600',
     });
-    
+
     // Areas of concern
     if (worstRatingPercentage > 10) {
       insights.push({
@@ -78,10 +79,10 @@
         borderClass: 'border-amber-200',
         iconClass: 'text-amber-500',
         textClass: 'text-amber-800',
-        subtitleClass: 'text-amber-600'
+        subtitleClass: 'text-amber-600',
       });
     }
-    
+
     return insights;
   });
 </script>
@@ -104,14 +105,20 @@
       {/each}
     {:else if analyticsData}
       {#each insights() as insight}
-        <div class="group {insight.bgClass} border {insight.borderClass} rounded-xl p-4 hover:shadow-md transition-all duration-300">
+        <div
+          class="group {insight.bgClass} border {insight.borderClass} rounded-xl p-4 hover:shadow-md transition-all duration-300">
           <div class="flex items-center">
-            <div class="p-2 bg-white rounded-lg shadow-sm group-hover:scale-110 transition-transform duration-200">
-              <svelte:component this={insight.icon} class="h-5 w-5 {insight.iconClass}" />
+            <div
+              class="p-2 bg-white rounded-lg shadow-sm group-hover:scale-110 transition-transform duration-200">
+              <svelte:component
+                this={insight.icon}
+                class="h-5 w-5 {insight.iconClass}" />
             </div>
             <div class="ml-3">
               <div class="font-medium {insight.textClass}">{insight.title}</div>
-              <div class="text-sm {insight.subtitleClass}">{insight.subtitle}</div>
+              <div class="text-sm {insight.subtitleClass}">
+                {insight.subtitle}
+              </div>
             </div>
           </div>
         </div>

@@ -17,13 +17,13 @@
   let {
     analyticsData = null,
     feedbacks = [],
-    loading = false
+    loading = false,
   }: {
     analyticsData?: AnalyticsData | null;
     feedbacks?: Feedback[];
     loading?: boolean;
   } = $props();
-  
+
   // Use analytics data if available, otherwise use feedbacks prop
   let displayFeedbacks = $derived(() => {
     if (analyticsData?.recent_feedback) {
@@ -54,7 +54,7 @@
       const now = new Date();
       const diffTime = Math.abs(now.getTime() - date.getTime());
       const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-      
+
       if (diffDays === 0) {
         const diffHours = Math.floor(diffTime / (1000 * 60 * 60));
         if (diffHours === 0) {
@@ -77,14 +77,19 @@
 
 <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
   <!-- Recent Feedback Activity -->
-  <Card variant="glass" class="lg:col-span-2 hover:shadow-lg transition-all duration-300">
+  <Card
+    variant="glass"
+    class="lg:col-span-2 hover:shadow-lg transition-all duration-300">
     <div class="mb-6">
-      <h3 class="text-lg font-semibold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
+      <h3
+        class="text-lg font-semibold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
         Recent Feedback Activity
       </h3>
-      <p class="text-sm text-gray-600 mt-1">Latest customer feedback and comments</p>
+      <p class="text-sm text-gray-600 mt-1">
+        Latest customer feedback and comments
+      </p>
     </div>
-    
+
     <div class="space-y-4 max-h-96 overflow-y-auto pr-2 custom-scrollbar">
       {#if loading}
         {#each Array(5) as _}
@@ -104,33 +109,47 @@
       {:else if displayFeedbacks() && displayFeedbacks().length > 0}
         {#each displayFeedbacks().slice(0, 10) as feedback}
           {@const rating = feedback.rating || feedback.overall_rating || 0}
-          <div class="group border-l-4 {getBorderColor(rating)} pl-4 py-3 hover:bg-gray-50 rounded-r-lg transition-all duration-200">
+          <div
+            class="group border-l-4 {getBorderColor(
+              rating
+            )} pl-4 py-3 hover:bg-gray-50 rounded-r-lg transition-all duration-200">
             <div class="flex items-start justify-between">
               <div class="flex-1">
                 <div class="flex items-center gap-3 mb-1">
                   <span class="text-sm font-medium {getRatingColor(rating)}">
                     {renderStars(rating)}
                   </span>
-                  <span class="text-xs text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full">
+                  <span
+                    class="text-xs text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full">
                     {rating}/5
                   </span>
                   {#if feedback.product_name}
                     <span class="text-xs text-gray-400">•</span>
-                    <span class="text-xs font-medium text-gray-700 bg-purple-50 px-2 py-0.5 rounded-full">
+                    <span
+                      class="text-xs font-medium text-gray-700 bg-purple-50 px-2 py-0.5 rounded-full">
                       {feedback.product_name}
                     </span>
                   {/if}
                 </div>
-                
+
                 {#if feedback.comment}
-                  <p class="text-gray-700 text-sm mb-2 line-clamp-2 group-hover:line-clamp-none transition-all duration-200">
+                  <p
+                    class="text-gray-700 text-sm mb-2 line-clamp-2 group-hover:line-clamp-none transition-all duration-200">
                     "{feedback.comment}"
                   </p>
                 {/if}
-                
+
                 <p class="text-xs text-gray-500">
-                  <svg class="inline-block h-3 w-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  <svg
+                    class="inline-block h-3 w-3 mr-1"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24">
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
                   {formatDate(feedback.created_at)}
                 </p>
@@ -140,9 +159,18 @@
         {/each}
       {:else}
         <div class="text-center py-12">
-          <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <svg class="h-8 w-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-4l-4 4z" />
+          <div
+            class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <svg
+              class="h-8 w-8 text-gray-400"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24">
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-4l-4 4z" />
             </svg>
           </div>
           <p class="text-gray-500">No recent feedback available</p>
@@ -156,28 +184,28 @@
   .custom-scrollbar::-webkit-scrollbar {
     width: 6px;
   }
-  
+
   .custom-scrollbar::-webkit-scrollbar-track {
     background: #f1f1f1;
     border-radius: 3px;
   }
-  
+
   .custom-scrollbar::-webkit-scrollbar-thumb {
     background: #888;
     border-radius: 3px;
   }
-  
+
   .custom-scrollbar::-webkit-scrollbar-thumb:hover {
     background: #555;
   }
-  
+
   .line-clamp-2 {
     display: -webkit-box;
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
   }
-  
+
   .line-clamp-none {
     display: block;
     -webkit-line-clamp: unset;

@@ -1,6 +1,14 @@
 <script lang="ts">
   import ComparisonChart from './ComparisonChart.svelte';
-  import { Activity, Star, BarChart2, CheckCircle, MessageCircle, List, TrendingUp } from 'lucide-svelte';
+  import {
+    Activity,
+    Star,
+    BarChart2,
+    CheckCircle,
+    MessageCircle,
+    List,
+    TrendingUp,
+  } from 'lucide-svelte';
 
   interface Props {
     data: any;
@@ -11,12 +19,12 @@
   // Group comparisons by question type for separate visualization
   let groupedComparisons = $derived(() => {
     if (!data?.comparisons) return {};
-    
+
     const groups: Record<string, any[]> = {};
-    
+
     data.comparisons.forEach((comparison: any) => {
       let questionType = 'general';
-      
+
       // Determine question type
       if (comparison.metric_type.startsWith('question_')) {
         // Try to get question type from metadata
@@ -36,58 +44,82 @@
       } else {
         // Infer from metric_type
         if (comparison.metric_type.includes('rating')) questionType = 'rating';
-        else if (comparison.metric_type.includes('scale')) questionType = 'scale';
-        else if (comparison.metric_type.includes('yes_no')) questionType = 'yes_no';
+        else if (comparison.metric_type.includes('scale'))
+          questionType = 'scale';
+        else if (comparison.metric_type.includes('yes_no'))
+          questionType = 'yes_no';
         else if (comparison.metric_type.includes('text')) questionType = 'text';
-        else if (comparison.metric_type.includes('choice')) questionType = 'choice';
-        else if (comparison.metric_type.includes('survey_responses')) questionType = 'general';
+        else if (comparison.metric_type.includes('choice'))
+          questionType = 'choice';
+        else if (comparison.metric_type.includes('survey_responses'))
+          questionType = 'general';
       }
-      
+
       if (!groups[questionType]) {
         groups[questionType] = [];
       }
       groups[questionType].push(comparison);
     });
-    
+
     return groups;
   });
 
   function getGroupIcon(questionType: string) {
     switch (questionType) {
-      case 'rating': return Star;
-      case 'scale': return BarChart2;
-      case 'yes_no': return CheckCircle;
-      case 'text': return MessageCircle;
-      case 'choice': return List;
-      case 'general': return TrendingUp;
-      default: return Activity;
+      case 'rating':
+        return Star;
+      case 'scale':
+        return BarChart2;
+      case 'yes_no':
+        return CheckCircle;
+      case 'text':
+        return MessageCircle;
+      case 'choice':
+        return List;
+      case 'general':
+        return TrendingUp;
+      default:
+        return Activity;
     }
   }
 
   function getGroupTitle(questionType: string): string {
     switch (questionType) {
-      case 'rating': return 'Rating Comparisons (1-5 Stars)';
-      case 'scale': return 'Scale Comparisons (1-10)';
-      case 'yes_no': return 'Yes/No Comparisons (%)';
-      case 'text': return 'Text Sentiment Comparisons';
-      case 'choice': return 'Choice Response Comparisons';
-      case 'general': return 'General Metric Comparisons';
-      default: return `${questionType} Comparisons`;
+      case 'rating':
+        return 'Rating Comparisons (1-5 Stars)';
+      case 'scale':
+        return 'Scale Comparisons (1-10)';
+      case 'yes_no':
+        return 'Yes/No Comparisons (%)';
+      case 'text':
+        return 'Text Sentiment Comparisons';
+      case 'choice':
+        return 'Choice Response Comparisons';
+      case 'general':
+        return 'General Metric Comparisons';
+      default:
+        return `${questionType} Comparisons`;
     }
   }
 
   function getGroupDescription(questionType: string): string {
     switch (questionType) {
-      case 'rating': return 'Compare average star ratings between periods';
-      case 'scale': return 'Compare average scale responses between periods';
-      case 'yes_no': return 'Compare percentage of "Yes" responses between periods';
-      case 'text': return 'Compare sentiment scores between periods';
-      case 'choice': return 'Compare response counts for choice questions between periods';
-      case 'general': return 'Compare general survey metrics between periods';
-      default: return `Compare ${questionType} metrics between periods`;
+      case 'rating':
+        return 'Compare average star ratings between periods';
+      case 'scale':
+        return 'Compare average scale responses between periods';
+      case 'yes_no':
+        return 'Compare percentage of "Yes" responses between periods';
+      case 'text':
+        return 'Compare sentiment scores between periods';
+      case 'choice':
+        return 'Compare response counts for choice questions between periods';
+      case 'general':
+        return 'Compare general survey metrics between periods';
+      default:
+        return `Compare ${questionType} metrics between periods`;
     }
   }
-
 </script>
 
 <div class="smart-comparison-chart">
@@ -119,14 +151,13 @@
             </div>
           </div>
         </div>
-        
+
         <div class="p-6">
-          <ComparisonChart 
+          <ComparisonChart
             data={{
               ...data,
-              comparisons: comparisonGroup
-            }} 
-          />
+              comparisons: comparisonGroup,
+            }} />
         </div>
       </div>
     {/each}
@@ -135,6 +166,8 @@
 
 <style>
   .question-group {
-    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+    box-shadow:
+      0 1px 3px 0 rgba(0, 0, 0, 0.1),
+      0 1px 2px 0 rgba(0, 0, 0, 0.06);
   }
 </style>

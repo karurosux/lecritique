@@ -1,6 +1,7 @@
 # Kyooar API Endpoints Reference
 
 ## Base Configuration
+
 - **Base URL**: `http://localhost:8080/api/v1`
 - **Authentication**: JWT Bearer Token (for protected endpoints)
 - **Rate Limiting**: 100 requests/minute per IP
@@ -8,21 +9,24 @@
 ## Public Endpoints (No Auth Required)
 
 ### System Health
-| Method | Endpoint | Purpose |
-|--------|----------|---------|
-| GET | `/api/health` | Service health check |
+
+| Method | Endpoint      | Purpose              |
+| ------ | ------------- | -------------------- |
+| GET    | `/api/health` | Service health check |
 
 ### Customer-Facing Endpoints
-| Method | Endpoint | Purpose |
-|--------|----------|---------|
-| GET | `/public/qr/:code` | Validate QR code and get organization info |
-| GET | `/public/organization/:id/menu` | Get available products for a organization |
-| GET | `/public/questionnaire/:organizationId/:productId` | Get feedback questions for a product |
-| POST | `/public/feedback` | Submit customer feedback |
+
+| Method | Endpoint                                           | Purpose                                    |
+| ------ | -------------------------------------------------- | ------------------------------------------ |
+| GET    | `/public/qr/:code`                                 | Validate QR code and get organization info |
+| GET    | `/public/organization/:id/menu`                    | Get available products for a organization  |
+| GET    | `/public/questionnaire/:organizationId/:productId` | Get feedback questions for a product       |
+| POST   | `/public/feedback`                                 | Submit customer feedback                   |
 
 #### Request/Response Examples:
 
 **GET /public/qr/:code**
+
 ```json
 // Response
 {
@@ -44,6 +48,7 @@
 ```
 
 **POST /public/feedback**
+
 ```json
 // Request
 {
@@ -64,19 +69,20 @@
 
 ## Authentication Endpoints
 
-| Method | Endpoint | Purpose |
-|--------|----------|---------|
-| POST | `/auth/register` | Create new account |
-| POST | `/auth/login` | Login and get JWT token |
-| POST | `/auth/refresh` | Refresh JWT token |
-| POST | `/auth/send-verification` | Send email verification (requires auth) |
-| GET | `/auth/verify-email` | Verify email address with token |
-| POST | `/auth/forgot-password` | Send password reset email |
-| POST | `/auth/reset-password` | Reset password with token |
+| Method | Endpoint                  | Purpose                                 |
+| ------ | ------------------------- | --------------------------------------- |
+| POST   | `/auth/register`          | Create new account                      |
+| POST   | `/auth/login`             | Login and get JWT token                 |
+| POST   | `/auth/refresh`           | Refresh JWT token                       |
+| POST   | `/auth/send-verification` | Send email verification (requires auth) |
+| GET    | `/auth/verify-email`      | Verify email address with token         |
+| POST   | `/auth/forgot-password`   | Send password reset email               |
+| POST   | `/auth/reset-password`    | Reset password with token               |
 
 ### Request/Response Examples:
 
 **POST /auth/register**
+
 ```json
 // Request
 {
@@ -100,6 +106,7 @@
 ```
 
 **POST /auth/login**
+
 ```json
 // Request
 {
@@ -122,6 +129,7 @@
 ```
 
 **POST /auth/send-verification**
+
 ```json
 // Request (Requires Authorization header)
 {}
@@ -136,6 +144,7 @@
 ```
 
 **GET /auth/verify-email?token=verification_token_here**
+
 ```json
 // Response (Success)
 {
@@ -156,6 +165,7 @@
 ```
 
 **POST /auth/forgot-password**
+
 ```json
 // Request
 {
@@ -172,6 +182,7 @@
 ```
 
 **POST /auth/reset-password**
+
 ```json
 // Request
 {
@@ -201,27 +212,28 @@
 
 ### Organization Management
 
-| Method | Endpoint | Purpose |
-|--------|----------|---------|
-| POST | `/organizations` | Create new organization |
-| GET | `/organizations` | List all organizations for account |
-| GET | `/organizations/:id` | Get specific organization details |
-| PUT | `/organizations/:id` | Update organization information |
-| DELETE | `/organizations/:id` | Delete organization |
+| Method | Endpoint             | Purpose                            |
+| ------ | -------------------- | ---------------------------------- |
+| POST   | `/organizations`     | Create new organization            |
+| GET    | `/organizations`     | List all organizations for account |
+| GET    | `/organizations/:id` | Get specific organization details  |
+| PUT    | `/organizations/:id` | Update organization information    |
+| DELETE | `/organizations/:id` | Delete organization                |
 
 ### Product Management
 
-| Method | Endpoint | Purpose |
-|--------|----------|---------|
-| POST | `/products` | Create new product |
-| GET | `/organizations/:organizationId/products` | List products for a organization |
-| GET | `/products/:id` | Get specific product details |
-| PUT | `/products/:id` | Update product information |
-| DELETE | `/products/:id` | Delete product |
+| Method | Endpoint                                  | Purpose                          |
+| ------ | ----------------------------------------- | -------------------------------- |
+| POST   | `/products`                               | Create new product               |
+| GET    | `/organizations/:organizationId/products` | List products for a organization |
+| GET    | `/products/:id`                           | Get specific product details     |
+| PUT    | `/products/:id`                           | Update product information       |
+| DELETE | `/products/:id`                           | Delete product                   |
 
 ### Request/Response Examples:
 
 **POST /organizations**
+
 ```json
 // Request
 {
@@ -247,6 +259,7 @@
 ```
 
 **POST /products**
+
 ```json
 // Request
 {
@@ -274,15 +287,16 @@
 
 ## QR Code Management (Protected)
 
-| Method | Endpoint | Purpose |
-|--------|----------|---------|
-| POST | `/organizations/:organizationId/qr-codes` | Generate QR codes |
-| GET | `/organizations/:organizationId/qr-codes` | List QR codes for organization |
-| DELETE | `/qr-codes/:id` | Delete QR code |
+| Method | Endpoint                                  | Purpose                        |
+| ------ | ----------------------------------------- | ------------------------------ |
+| POST   | `/organizations/:organizationId/qr-codes` | Generate QR codes              |
+| GET    | `/organizations/:organizationId/qr-codes` | List QR codes for organization |
+| DELETE | `/qr-codes/:id`                           | Delete QR code                 |
 
 ### Request/Response Examples:
 
 **POST /organizations/:organizationId/qr-codes**
+
 ```json
 // Request
 {
@@ -308,14 +322,15 @@
 
 ## Feedback Management (Protected)
 
-| Method | Endpoint | Purpose |
-|--------|----------|---------|
-| GET | `/organizations/:organizationId/feedback` | List feedback with pagination |
-| GET | `/organizations/:organizationId/analytics` | Get basic feedback statistics |
+| Method | Endpoint                                   | Purpose                       |
+| ------ | ------------------------------------------ | ----------------------------- |
+| GET    | `/organizations/:organizationId/feedback`  | List feedback with pagination |
+| GET    | `/organizations/:organizationId/analytics` | Get basic feedback statistics |
 
 ### Request/Response Examples:
 
 **GET /organizations/:organizationId/feedback?page=1&limit=20**
+
 ```json
 // Response
 {
@@ -341,14 +356,15 @@
 
 ## Analytics (Protected)
 
-| Method | Endpoint | Purpose |
-|--------|----------|---------|
-| GET | `/analytics/organizations/:organizationId` | Get comprehensive organization analytics |
-| GET | `/analytics/products/:productId` | Get product-specific analytics |
+| Method | Endpoint                                   | Purpose                                  |
+| ------ | ------------------------------------------ | ---------------------------------------- |
+| GET    | `/analytics/organizations/:organizationId` | Get comprehensive organization analytics |
+| GET    | `/analytics/products/:productId`           | Get product-specific analytics           |
 
 ### Request/Response Examples:
 
 **GET /analytics/organizations/:organizationId**
+
 ```json
 // Response
 {
@@ -370,20 +386,23 @@
 ## Future Endpoints (Planned)
 
 ### Subscription Management
-| Method | Endpoint | Purpose |
-|--------|----------|---------|
-| GET | `/subscriptions/current` | Get current subscription |
-| GET | `/subscriptions/plans` | List available plans |
-| POST | `/subscriptions/subscribe` | Subscribe to a plan |
+
+| Method | Endpoint                   | Purpose                  |
+| ------ | -------------------------- | ------------------------ |
+| GET    | `/subscriptions/current`   | Get current subscription |
+| GET    | `/subscriptions/plans`     | List available plans     |
+| POST   | `/subscriptions/subscribe` | Subscribe to a plan      |
 
 ### Team Management
-| Method | Endpoint | Purpose |
-|--------|----------|---------|
-| GET | `/team/members` | List team members |
-| POST | `/team/invite` | Invite team member |
+
+| Method | Endpoint            | Purpose            |
+| ------ | ------------------- | ------------------ |
+| GET    | `/team/members`     | List team members  |
+| POST   | `/team/invite`      | Invite team member |
 | DELETE | `/team/members/:id` | Remove team member |
 
 ## Error Response Format
+
 ```json
 {
   "success": false,
@@ -400,6 +419,7 @@
 ```
 
 ## Common Error Codes
+
 - `BAD_REQUEST` - Invalid request data
 - `UNAUTHORIZED` - Missing or invalid authentication
 - `FORBIDDEN` - Authenticated but not authorized
@@ -412,13 +432,16 @@
 - `RATE_LIMIT` - Too many requests
 
 ## Headers
+
 ### Required for Protected Endpoints
+
 ```
 Authorization: Bearer <jwt_token>
 Content-Type: application/json
 ```
 
 ### Response Headers
+
 ```
 X-Request-ID: <unique_request_id>
 Content-Type: application/json
@@ -427,6 +450,7 @@ Content-Type: application/json
 ## Implementation Status
 
 ### ✅ Implemented
+
 - Health check endpoint
 - Authentication (register, login, refresh)
 - Email verification endpoints
@@ -441,6 +465,7 @@ Content-Type: application/json
 - Basic analytics and statistics
 
 ### 📋 TODO
+
 - Subscription management endpoints
 - Team management endpoints
 - Advanced analytics endpoints
@@ -466,6 +491,7 @@ Content-Type: application/json
 ## Service Layer Architecture
 
 ### Available Services
+
 - **AuthService** - Authentication and JWT management
 - **OrganizationService** - Organization business logic
 - **ProductService** - Product management
@@ -473,6 +499,7 @@ Content-Type: application/json
 - **FeedbackService** - Feedback submission and analytics
 
 ### Available Repositories
+
 - **AccountRepository**
 - **TokenRepository**
 - **OrganizationRepository**
@@ -483,6 +510,7 @@ Content-Type: application/json
 - **QuestionnaireRepository**
 
 ## Middleware Stack
+
 1. Request logging
 2. Error recovery
 3. CORS handling
@@ -496,6 +524,7 @@ Content-Type: application/json
 ## Development Notes
 
 ### Adding New Endpoints
+
 1. Define handler method in appropriate handler file
 2. Add route in `internal/server/routes/routes.go`
 3. Implement service method if needed
@@ -503,6 +532,7 @@ Content-Type: application/json
 5. Update this documentation
 
 ### Testing Endpoints
+
 ```bash
 # Health check
 curl http://localhost:8080/api/health

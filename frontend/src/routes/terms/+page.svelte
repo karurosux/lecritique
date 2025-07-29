@@ -5,7 +5,7 @@
   import { onMount } from 'svelte';
 
   let scrollY = $state(0);
-  
+
   onMount(() => {
     const handleScroll = () => {
       scrollY = window.scrollY;
@@ -17,16 +17,21 @@
 
 <svelte:head>
   <title>Terms of Service - Kyooar</title>
-  <meta name="description" content="Kyooar Terms of Service - Read our terms and conditions for using our organization feedback management platform" />
+  <meta
+    name="description"
+    content="Kyooar Terms of Service - Read our terms and conditions for using our organization feedback management platform" />
 </svelte:head>
 
 <div class="min-h-screen bg-gradient-to-b from-white to-gray-50/50">
   <!-- Floating Header -->
-  <div class="terms-header fixed top-0 left-0 right-0 z-40 bg-white/80 backdrop-blur-xl border-b border-gray-100 transition-all duration-300" class:shadow-lg={scrollY > 50}>
+  <div
+    class="terms-header fixed top-0 left-0 right-0 z-40 bg-white/80 backdrop-blur-xl border-b border-gray-100 transition-all duration-300"
+    class:shadow-lg={scrollY > 50}>
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
       <div class="flex items-center justify-between">
         <a href="/register" class="flex items-center gap-3 group">
-          <ArrowLeft class="w-5 h-5 text-gray-400 group-hover:text-gray-600 transition-colors" />
+          <ArrowLeft
+            class="w-5 h-5 text-gray-400 group-hover:text-gray-600 transition-colors" />
           <Logo size="md" />
         </a>
         <div class="flex items-center gap-6 text-sm">
@@ -47,11 +52,13 @@
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <!-- Hero Section -->
       <div class="text-center mb-16">
-        <h1 class="text-5xl sm:text-6xl font-bold bg-gradient-to-r from-gray-900 via-blue-800 to-purple-800 bg-clip-text text-transparent mb-6">
+        <h1
+          class="text-5xl sm:text-6xl font-bold bg-gradient-to-r from-gray-900 via-blue-800 to-purple-800 bg-clip-text text-transparent mb-6">
           Terms of Service
         </h1>
         <p class="text-xl text-gray-600 max-w-2xl mx-auto">
-          Everything you need to know about using Kyooar's organization feedback platform
+          Everything you need to know about using Kyooar's organization feedback
+          platform
         </p>
       </div>
 
@@ -60,7 +67,8 @@
         <div class="prose prose-lg max-w-none">
           {#each termsContent.sections as section, index}
             <section id="section-{index}" class="mb-12 scroll-mt-32">
-              <h2 class="text-2xl sm:text-3xl font-bold text-gray-900 mb-4 leading-tight">
+              <h2
+                class="text-2xl sm:text-3xl font-bold text-gray-900 mb-4 leading-tight">
                 {section.title}
               </h2>
               <div class="text-gray-600 leading-relaxed whitespace-pre-line">
@@ -72,21 +80,21 @@
 
         <!-- Footer -->
         <div class="mt-16 pt-12 border-t border-gray-200">
-          <div class="bg-gradient-to-br from-blue-50 to-purple-50 rounded-xl p-8">
+          <div
+            class="bg-gradient-to-br from-blue-50 to-purple-50 rounded-xl p-8">
             <p class="text-center text-gray-700 mb-6">
-              By using Kyooar, you acknowledge that you have read, understood, and agree to be bound by these Terms of Service.
+              By using Kyooar, you acknowledge that you have read, understood,
+              and agree to be bound by these Terms of Service.
             </p>
             <div class="flex flex-col sm:flex-row gap-4 justify-center">
-              <a 
-                href="/register" 
-                class="inline-flex items-center justify-center px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg font-medium hover:shadow-lg transition-all duration-300 hover:scale-105"
-              >
+              <a
+                href="/register"
+                class="inline-flex items-center justify-center px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg font-medium hover:shadow-lg transition-all duration-300 hover:scale-105">
                 Create Your Account
               </a>
-              <a 
-                href="/login" 
-                class="inline-flex items-center justify-center px-6 py-3 bg-white text-gray-700 rounded-lg font-medium border border-gray-300 hover:bg-gray-50 transition-all duration-200"
-              >
+              <a
+                href="/login"
+                class="inline-flex items-center justify-center px-6 py-3 bg-white text-gray-700 rounded-lg font-medium border border-gray-300 hover:bg-gray-50 transition-all duration-200">
                 Sign In
               </a>
             </div>
@@ -101,11 +109,11 @@
   .terms-header {
     transform: translateY(0);
   }
-  
+
   .prose h2 {
     @apply text-2xl sm:text-3xl font-bold text-gray-900 mb-4 leading-tight;
   }
-  
+
   .prose div {
     @apply text-gray-600 leading-relaxed;
   }

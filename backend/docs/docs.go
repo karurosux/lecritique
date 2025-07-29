@@ -5416,6 +5416,9 @@ const docTemplate = `{
                 "name"
             ],
             "properties": {
+                "address": {
+                    "type": "string"
+                },
                 "description": {
                     "type": "string"
                 },
@@ -6177,53 +6180,6 @@ const docTemplate = `{
                 }
             }
         },
-        "models.Location": {
-            "type": "object",
-            "properties": {
-                "address": {
-                    "type": "string"
-                },
-                "city": {
-                    "type": "string"
-                },
-                "country": {
-                    "type": "string"
-                },
-                "created_at": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "string"
-                },
-                "is_active": {
-                    "type": "boolean"
-                },
-                "latitude": {
-                    "type": "number"
-                },
-                "longitude": {
-                    "type": "number"
-                },
-                "name": {
-                    "type": "string"
-                },
-                "organization": {
-                    "$ref": "#/definitions/models.Organization"
-                },
-                "organization_id": {
-                    "type": "string"
-                },
-                "postal_code": {
-                    "type": "string"
-                },
-                "state": {
-                    "type": "string"
-                },
-                "updated_at": {
-                    "type": "string"
-                }
-            }
-        },
         "models.MemberRole": {
             "type": "string",
             "enum": [
@@ -6245,6 +6201,9 @@ const docTemplate = `{
                 "account_id": {
                     "type": "string"
                 },
+                "address": {
+                    "type": "string"
+                },
                 "created_at": {
                     "type": "string"
                 },
@@ -6259,12 +6218,6 @@ const docTemplate = `{
                 },
                 "is_active": {
                     "type": "boolean"
-                },
-                "locations": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/models.Location"
-                    }
                 },
                 "logo": {
                     "type": "string"

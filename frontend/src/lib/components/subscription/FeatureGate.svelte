@@ -1,6 +1,6 @@
 <script lang="ts">
-  import { hasFeature, subscription } from "$lib/stores/subscription";
-  import type { Snippet } from "svelte";
+  import { hasFeature, subscription } from '$lib/stores/subscription';
+  import type { Snippet } from 'svelte';
 
   interface Props {
     feature: string;

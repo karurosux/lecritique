@@ -3,8 +3,8 @@
     getLimit,
     isUnlimited,
     subscription,
-  } from "$lib/stores/subscription";
-  import type { Snippet } from "svelte";
+  } from '$lib/stores/subscription';
+  import type { Snippet } from 'svelte';
 
   interface Props {
     limit: string;
@@ -41,10 +41,9 @@
   <div class="p-4 border border-yellow-200 bg-yellow-50 rounded-lg">
     <p class="text-sm text-yellow-800">
       You've reached your plan limit of {limitValue}
-      {limit.replace(/_/g, " ")}.
+      {limit.replace(/_/g, ' ')}.
       <a href="/subscription" class="font-medium underline"
-        >Upgrade to add more</a
-      >
+        >Upgrade to add more</a>
     </p>
   </div>
 {/if}

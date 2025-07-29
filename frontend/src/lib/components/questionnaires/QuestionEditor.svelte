@@ -1,8 +1,26 @@
 <script lang="ts">
   import { createEventDispatcher } from 'svelte';
   import type { Question } from '$lib/api/question';
-  import { Button, Input, Card, Select, Modal, Textarea, Checkbox } from '$lib/components/ui';
-  import { Plus, Trash2, X, Star, BarChart3, CheckSquare, Circle, MessageSquare, ToggleLeft } from 'lucide-svelte';
+  import {
+    Button,
+    Input,
+    Card,
+    Select,
+    Modal,
+    Textarea,
+    Checkbox,
+  } from '$lib/components/ui';
+  import {
+    Plus,
+    Trash2,
+    X,
+    Star,
+    BarChart3,
+    CheckSquare,
+    Circle,
+    MessageSquare,
+    ToggleLeft,
+  } from 'lucide-svelte';
 
   export let question: Question;
   export let isOpen = true;
@@ -21,7 +39,7 @@
     { value: 'multi_choice', label: 'Multiple Choice' },
     { value: 'single_choice', label: 'Single Choice' },
     { value: 'text', label: 'Text Input' },
-    { value: 'yes_no', label: 'Yes/No' }
+    { value: 'yes_no', label: 'Yes/No' },
   ];
 
   function addOption() {
@@ -40,21 +58,23 @@
   function updateQuestion() {
     localQuestion = {
       ...localQuestion,
-      options: ['multi_choice', 'single_choice'].includes(localQuestion.type) ? options : undefined
+      options: ['multi_choice', 'single_choice'].includes(localQuestion.type)
+        ? options
+        : undefined,
     };
   }
 
   function handleTypeChange(event: Event | { target: { value: string } }) {
     const newType = 'target' in event ? (event.target as any).value : event;
     localQuestion.type = newType as Question['type'];
-    
+
     // Reset type-specific fields
     localQuestion.options = undefined;
     localQuestion.min_value = undefined;
     localQuestion.max_value = undefined;
     localQuestion.min_label = undefined;
     localQuestion.max_label = undefined;
-    
+
     // Set defaults for specific types
     if (newType === 'scale') {
       localQuestion.min_value = 1;
@@ -65,7 +85,7 @@
       options = options.length > 0 ? options : ['Option 1', 'Option 2'];
       localQuestion.options = [...options];
     }
-    
+
     updateQuestion();
   }
 
@@ -77,7 +97,7 @@
     // Final validation and cleanup
     const finalQuestion: Question = {
       ...localQuestion,
-      text: localQuestion.text.trim()
+      text: localQuestion.text.trim(),
     };
 
     // Ensure options are set for choice types
@@ -102,109 +122,119 @@
   bind:isOpen
   title="{question.text ? 'Edit' : 'Add'} Question"
   size="lg"
-  onclose={cancel}
->
+  onclose={cancel}>
   <div class="p-6">
+    <div class="space-y-6">
+      <!-- Question Text -->
+      <div>
+        <label
+          for="question-text"
+          class="block text-sm font-medium text-gray-700 mb-2">
+          Question Text <span class="text-red-500">*</span>
+        </label>
+        <Textarea
+          id="question-text"
+          bind:value={localQuestion.text}
+          placeholder="What would you like to ask your customers?"
+          rows={3}
+          required />
+      </div>
 
-      <div class="space-y-6">
-        <!-- Question Text -->
-        <div>
-          <label for="question-text" class="block text-sm font-medium text-gray-700 mb-2">
-            Question Text <span class="text-red-500">*</span>
-          </label>
-          <Textarea
-            id="question-text"
-            bind:value={localQuestion.text}
-            placeholder="What would you like to ask your customers?"
-            rows={3}
-            required
-          />
-        </div>
+      <!-- Question Type -->
+      <div>
+        <label
+          for="question-type"
+          class="block text-sm font-medium text-gray-700 mb-2">
+          Question Type <span class="text-red-500">*</span>
+        </label>
+        <Select
+          id="question-type"
+          value={localQuestion.type}
+          options={questionTypes}
+          onchange={value => {
+            localQuestion.type = value;
+            handleTypeChange({ target: { value } });
+          }}
+          placeholder="Select question type" />
+      </div>
 
-        <!-- Question Type -->
-        <div>
-          <label for="question-type" class="block text-sm font-medium text-gray-700 mb-2">
-            Question Type <span class="text-red-500">*</span>
-          </label>
-          <Select
-            id="question-type"
-            value={localQuestion.type}
-            options={questionTypes}
-            onchange={(value) => {
-              localQuestion.type = value;
-              handleTypeChange({ target: { value } });
-            }}
-            placeholder="Select question type"
-          />
-        </div>
+      <!-- Required Toggle -->
+      <div class="flex items-center space-x-2">
+        <Checkbox id="required" bind:checked={localQuestion.is_required} />
+        <label for="required" class="text-sm font-medium text-gray-700"
+          >Required question</label>
+      </div>
 
-        <!-- Required Toggle -->
-        <div class="flex items-center space-x-2">
-          <Checkbox
-            id="required"
-            bind:checked={localQuestion.is_required}
-          />
-          <label for="required" class="text-sm font-medium text-gray-700">Required question</label>
-        </div>
+      <!-- Type-specific configuration -->
+      {#if localQuestion.type === 'scale'}
+        <Card variant="minimal">
+          <div class="p-4 space-y-4">
+            <h4 class="text-sm font-medium text-gray-900">
+              Scale Configuration
+            </h4>
 
-        <!-- Type-specific configuration -->
-        {#if localQuestion.type === 'scale'}
-          <Card variant="minimal">
-            <div class="p-4 space-y-4">
-              <h4 class="text-sm font-medium text-gray-900">Scale Configuration</h4>
-            
             <div class="grid grid-cols-2 gap-4">
               <div>
-                <label for="min-value" class="block text-sm font-medium text-gray-700 mb-1">Minimum Value</label>
+                <label
+                  for="min-value"
+                  class="block text-sm font-medium text-gray-700 mb-1"
+                  >Minimum Value</label>
                 <Input
                   id="min-value"
                   type="number"
                   bind:value={localQuestion.min_value}
                   min="1"
-                  max="10"
-                />
+                  max="10" />
               </div>
               <div>
-                <label for="max-value" class="block text-sm font-medium text-gray-700 mb-1">Maximum Value</label>
+                <label
+                  for="max-value"
+                  class="block text-sm font-medium text-gray-700 mb-1"
+                  >Maximum Value</label>
                 <Input
                   id="max-value"
                   type="number"
                   bind:value={localQuestion.max_value}
                   min="2"
-                  max="10"
-                />
+                  max="10" />
               </div>
             </div>
 
             <div class="grid grid-cols-2 gap-4">
               <div>
-                <label for="min-label" class="block text-sm font-medium text-gray-700 mb-1">Minimum Label</label>
+                <label
+                  for="min-label"
+                  class="block text-sm font-medium text-gray-700 mb-1"
+                  >Minimum Label</label>
                 <Input
                   id="min-label"
                   bind:value={localQuestion.min_label}
-                  placeholder="e.g., Poor, Terrible"
-                />
+                  placeholder="e.g., Poor, Terrible" />
               </div>
               <div>
-                <label for="max-label" class="block text-sm font-medium text-gray-700 mb-1">Maximum Label</label>
+                <label
+                  for="max-label"
+                  class="block text-sm font-medium text-gray-700 mb-1"
+                  >Maximum Label</label>
                 <Input
                   id="max-label"
                   bind:value={localQuestion.max_label}
-                  placeholder="e.g., Excellent, Amazing"
-                />
+                  placeholder="e.g., Excellent, Amazing" />
               </div>
             </div>
-            </div>
-          </Card>
-        {/if}
+          </div>
+        </Card>
+      {/if}
 
-        {#if ['multi_choice', 'single_choice'].includes(localQuestion.type)}
-          <Card variant="minimal">
-            <div class="p-4 space-y-4">
-              <h4 class="text-sm font-medium text-gray-900">
-              {localQuestion.type === 'multi_choice' ? 'Multiple Choice' : 'Single Choice'} Options
+      {#if ['multi_choice', 'single_choice'].includes(localQuestion.type)}
+        <Card variant="minimal">
+          <div class="p-4 space-y-4">
+            <h4 class="text-sm font-medium text-gray-900">
+              {localQuestion.type === 'multi_choice'
+                ? 'Multiple Choice'
+                : 'Single Choice'} Options
             </h4>
-            
+
             <!-- Existing options -->
             <div class="space-y-2">
               {#each options as option, index}
@@ -212,13 +242,11 @@
                   <Input
                     bind:value={options[index]}
                     on:input={updateQuestion}
-                    placeholder="Option text"
-                  />
+                    placeholder="Option text" />
                   <Button
                     onclick={() => removeOption(index)}
                     variant="outline"
-                    class="p-2"
-                  >
+                    class="p-2">
                     <Trash2 class="h-4 w-4 text-red-600" />
                   </Button>
                 </div>
@@ -230,9 +258,12 @@
               <Input
                 bind:value={newOption}
                 placeholder="Add new option..."
-                on:keydown={(e) => e.key === 'Enter' && addOption()}
-              />
-              <Button onclick={addOption} disabled={!newOption.trim()} variant="gradient" class="px-3">
+                on:keydown={e => e.key === 'Enter' && addOption()} />
+              <Button
+                onclick={addOption}
+                disabled={!newOption.trim()}
+                variant="gradient"
+                class="px-3">
                 <Plus class="h-4 w-4" />
               </Button>
             </div>
@@ -242,14 +273,14 @@
                 Add at least two options for this question type.
               </p>
             {/if}
-            </div>
-          </Card>
-        {/if}
+          </div>
+        </Card>
+      {/if}
 
-        <!-- Preview -->
-        <Card>
-          <div class="p-4 space-y-2">
-            <h4 class="text-sm font-medium text-gray-900">Preview</h4>
+      <!-- Preview -->
+      <Card>
+        <div class="p-4 space-y-2">
+          <h4 class="text-sm font-medium text-gray-900">Preview</h4>
           <div class="space-y-2">
             <p class="font-medium">
               {localQuestion.text || 'Question text will appear here...'}
@@ -257,7 +288,7 @@
                 <span class="text-red-500">*</span>
               {/if}
             </p>
-            
+
             {#if localQuestion.type === 'rating'}
               <div class="flex gap-1">
                 {#each Array(5) as _, i}
@@ -276,7 +307,7 @@
               </div>
             {:else if localQuestion.type === 'multi_choice'}
               <div class="space-y-1">
-                {#each (options.length > 0 ? options : ['Option 1', 'Option 2']) as option}
+                {#each options.length > 0 ? options : ['Option 1', 'Option 2'] as option}
                   <label class="flex items-center gap-2">
                     <input type="checkbox" class="rounded" />
                     <span class="text-sm">{option}</span>
@@ -285,7 +316,7 @@
               </div>
             {:else if localQuestion.type === 'single_choice'}
               <div class="space-y-1">
-                {#each (options.length > 0 ? options : ['Option 1', 'Option 2']) as option}
+                {#each options.length > 0 ? options : ['Option 1', 'Option 2'] as option}
                   <label class="flex items-center gap-2">
                     <input type="radio" name="preview" class="rounded-full" />
                     <span class="text-sm">{option}</span>
@@ -293,7 +324,10 @@
                 {/each}
               </div>
             {:else if localQuestion.type === 'text'}
-              <Textarea rows={3} placeholder="Customer's response will appear here..." disabled />
+              <Textarea
+                rows={3}
+                placeholder="Customer's response will appear here..."
+                disabled />
             {:else if localQuestion.type === 'yes_no'}
               <div class="flex gap-4">
                 <label class="flex items-center gap-2">
@@ -307,24 +341,23 @@
               </div>
             {/if}
           </div>
-          </div>
-        </Card>
-      </div>
+        </div>
+      </Card>
+    </div>
 
-      <!-- Actions -->
-      <div class="flex items-center justify-end space-x-4 pt-6 border-t border-gray-200">
-        <Button onclick={cancel} variant="outline">
-          Cancel
-        </Button>
-        <Button
-          onclick={save}
-          disabled={!localQuestion.text.trim() || 
-                   (['multi_choice', 'single_choice'].includes(localQuestion.type) && options.filter(o => o.trim()).length < 2)}
-          variant="gradient"
-          class="min-w-32 shadow-lg"
-        >
-          {question.text ? 'Update' : 'Add'} Question
-        </Button>
-      </div>
+    <!-- Actions -->
+    <div
+      class="flex items-center justify-end space-x-4 pt-6 border-t border-gray-200">
+      <Button onclick={cancel} variant="outline">Cancel</Button>
+      <Button
+        onclick={save}
+        disabled={!localQuestion.text.trim() ||
+          (['multi_choice', 'single_choice'].includes(localQuestion.type) &&
+            options.filter(o => o.trim()).length < 2)}
+        variant="gradient"
+        class="min-w-32 shadow-lg">
+        {question.text ? 'Update' : 'Add'} Question
+      </Button>
+    </div>
   </div>
 </Modal>

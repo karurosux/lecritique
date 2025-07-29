@@ -1,10 +1,10 @@
 <script lang="ts">
-  import type { ModelsTeamMember } from "$lib/api/api";
-  import { RoleGate, ROLES } from "$lib/components/auth";
-  import { Button, Input, Modal } from "$lib/components/ui";
-  import { auth } from "$lib/stores/auth";
-  import type { Role } from "$lib/utils/auth-guards";
-  import { formatDate } from "$lib/utils/date-utils";
+  import type { ModelsTeamMember } from '$lib/api/api';
+  import { RoleGate, ROLES } from '$lib/components/auth';
+  import { Button, Input, Modal } from '$lib/components/ui';
+  import { auth } from '$lib/stores/auth';
+  import type { Role } from '$lib/utils/auth-guards';
+  import { formatDate } from '$lib/utils/date-utils';
   import {
     Eye,
     Loader2,
@@ -14,7 +14,7 @@
     Trash2,
     UserPlus,
     Users,
-  } from "lucide-svelte";
+  } from 'lucide-svelte';
 
   interface Props {
     onSuccess?: (message: string) => void;
@@ -27,8 +27,8 @@
   let loading = $state(false);
   let teamMembers = $state<ModelsTeamMember[]>([]);
   let showInviteModal = $state(false);
-  let inviteEmail = $state("");
-  let inviteRole = $state<string>("VIEWER");
+  let inviteEmail = $state('');
+  let inviteRole = $state<string>('VIEWER');
   let inviting = $state(false);
   let removingMemberId = $state<string | null>(null);
   let resendingInvitationId = $state<string | null>(null);
@@ -51,11 +51,11 @@
       if (response.data.success && response.data.data) {
         teamMembers = response.data.data as ModelsTeamMember[];
       } else {
-        throw new Error("Failed to load team members");
+        throw new Error('Failed to load team members');
       }
     } catch (error) {
-      console.error("Error loading team members:", error);
-      onError?.("Failed to load team members");
+      console.error('Error loading team members:', error);
+      onError?.('Failed to load team members');
     } finally {
       loading = false;
     }
@@ -77,17 +77,17 @@
       if (response.data.success) {
         onSuccess?.(`Invitation sent to ${inviteEmail}`);
         showInviteModal = false;
-        inviteEmail = "";
-        inviteRole = "VIEWER";
+        inviteEmail = '';
+        inviteRole = 'VIEWER';
 
         // Reload team members
         await loadTeamMembers();
       } else {
-        throw new Error("Failed to send invitation");
+        throw new Error('Failed to send invitation');
       }
     } catch (error: any) {
       const errorMessage =
-        error.response?.data?.error?.message || "Failed to send invitation";
+        error.response?.data?.error?.message || 'Failed to send invitation';
       onError?.(errorMessage);
     } finally {
       inviting = false;
@@ -106,13 +106,13 @@
         await api.api.v1TeamMembersResendInvitationCreate(invitationId);
 
       if (response.data.success) {
-        onSuccess?.("Invitation resent successfully");
+        onSuccess?.('Invitation resent successfully');
       } else {
-        throw new Error("Failed to resend invitation");
+        throw new Error('Failed to resend invitation');
       }
     } catch (error: any) {
       const errorMessage =
-        error.response?.data?.error?.message || "Failed to resend invitation";
+        error.response?.data?.error?.message || 'Failed to resend invitation';
       onError?.(errorMessage);
     } finally {
       resendingInvitationId = null;
@@ -130,16 +130,16 @@
       const response = await api.api.v1TeamMembersDelete(memberId);
 
       if (response.data.success) {
-        onSuccess?.("Team member removed successfully");
+        onSuccess?.('Team member removed successfully');
 
         // Reload team members
         await loadTeamMembers();
       } else {
-        throw new Error("Failed to remove team member");
+        throw new Error('Failed to remove team member');
       }
     } catch (error: any) {
       const errorMessage =
-        error.response?.data?.error?.message || "Failed to remove team member";
+        error.response?.data?.error?.message || 'Failed to remove team member';
       onError?.(errorMessage);
     } finally {
       removingMemberId = null;
@@ -156,16 +156,16 @@
       } as any);
 
       if (response.data.success) {
-        onSuccess?.("Role updated successfully");
+        onSuccess?.('Role updated successfully');
 
         // Reload team members
         await loadTeamMembers();
       } else {
-        throw new Error("Failed to update role");
+        throw new Error('Failed to update role');
       }
     } catch (error: any) {
       const errorMessage =
-        error.response?.data?.error?.message || "Failed to update role";
+        error.response?.data?.error?.message || 'Failed to update role';
       onError?.(errorMessage);
     }
   }
@@ -174,15 +174,15 @@
   function getRoleBadgeClass(role: string) {
     switch (role) {
       case ROLES.owner:
-        return "bg-purple-100 text-purple-800";
+        return 'bg-purple-100 text-purple-800';
       case ROLES.admin:
-        return "bg-blue-100 text-blue-800";
+        return 'bg-blue-100 text-blue-800';
       case ROLES.manager:
-        return "bg-green-100 text-green-800";
+        return 'bg-green-100 text-green-800';
       case ROLES.viewer:
-        return "bg-gray-100 text-gray-800";
+        return 'bg-gray-100 text-gray-800';
       default:
-        return "bg-gray-100 text-gray-800";
+        return 'bg-gray-100 text-gray-800';
     }
   }
 
@@ -211,12 +211,12 @@
       }
       // For other roles, check email match
       return m.member?.email === $auth.user?.email;
-    })?.role || ROLES.viewer,
+    })?.role || ROLES.viewer
   );
 
   // Check if user can manage team
   let canManageTeam = $derived(
-    currentUserRole === ROLES.owner || currentUserRole === ROLES.admin,
+    currentUserRole === ROLES.owner || currentUserRole === ROLES.admin
   );
 </script>
 
@@ -233,8 +233,7 @@
         <Button
           variant="gradient"
           size="sm"
-          onclick={() => (showInviteModal = true)}
-        >
+          onclick={() => (showInviteModal = true)}>
           <UserPlus class="h-4 w-4 mr-2" />
           Invite Member
         </Button>
@@ -249,16 +248,15 @@
   {:else}
     <div class="space-y-4">
       {#each teamMembers as member}
-        {@const RoleIcon = getRoleIcon(member.role || "")}
+        {@const RoleIcon = getRoleIcon(member.role || '')}
         <div class="bg-white border border-gray-200 rounded-lg p-4">
           <div class="flex items-center justify-between">
             <div class="flex items-center space-x-4">
               <div
-                class="h-10 w-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-semibold"
-              >
+                class="h-10 w-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-semibold">
                 {member.member?.first_name
                   ? member.member.first_name[0]
-                  : member.member?.email?.[0]?.toUpperCase() || "?"}
+                  : member.member?.email?.[0]?.toUpperCase() || '?'}
               </div>
               <div>
                 <div class="flex items-center gap-2">
@@ -267,24 +265,23 @@
                       {member.member.first_name && member.member.last_name
                         ? `${member.member.first_name} ${member.member.last_name}`
                         : member.member.name || member.member.email}
-                    {:else if member.role === "OWNER"}
-                      {$auth.user?.name || $auth.user?.email || "Owner"}
+                    {:else if member.role === 'OWNER'}
+                      {$auth.user?.name || $auth.user?.email || 'Owner'}
                     {:else}
                       Unknown
                     {/if}
                   </p>
                   <span
-                    class={`inline-flex items-center gap-1 px-2 py-1 text-xs font-medium rounded-full ${getRoleBadgeClass(member.role || "")}`}
-                  >
+                    class={`inline-flex items-center gap-1 px-2 py-1 text-xs font-medium rounded-full ${getRoleBadgeClass(member.role || '')}`}>
                     <RoleIcon class="h-3 w-3" />
-                    {member.role?.replace("Role", "") || "Unknown"}
+                    {member.role?.replace('Role', '') || 'Unknown'}
                   </span>
                 </div>
                 <p class="text-sm text-gray-500">
                   {#if member.member?.email}
                     {member.member.email}
-                  {:else if member.role === "OWNER"}
-                    {$auth.user?.email || ""}
+                  {:else if member.role === 'OWNER'}
+                    {$auth.user?.email || ''}
                   {/if}
                 </p>
               </div>
@@ -293,10 +290,10 @@
             <div class="flex items-center gap-4">
               <div class="text-right">
                 <p class="text-xs text-gray-500">
-                  {member.accepted_at ? "Joined" : "Invited"}
+                  {member.accepted_at ? 'Joined' : 'Invited'}
                 </p>
                 <p class="text-xs font-medium text-gray-700">
-                  {formatDate(member.accepted_at || member.invited_at || "")}
+                  {formatDate(member.accepted_at || member.invited_at || '')}
                 </p>
               </div>
 
@@ -306,12 +303,11 @@
                     <select
                       class="text-sm border-gray-300 rounded-md"
                       value={member.role}
-                      onchange={(e) =>
+                      onchange={e =>
                         updateRole(
-                          member.id || "",
-                          e?.currentTarget?.value as Role,
-                        )}
-                    >
+                          member.id || '',
+                          e?.currentTarget?.value as Role
+                        )}>
                       <option value={ROLES.admin}>Admin</option>
                       <option value={ROLES.manager}>Manager</option>
                       <option value={ROLES.viewer}>Viewer</option>
@@ -322,9 +318,8 @@
                     <Button
                       variant="ghost"
                       size="sm"
-                      onclick={() => removeMember(member.id || "")}
-                      disabled={removingMemberId === member.id}
-                    >
+                      onclick={() => removeMember(member.id || '')}
+                      disabled={removingMemberId === member.id}>
                       {#if removingMemberId === member.id}
                         <Loader2 class="h-4 w-4 animate-spin" />
                       {:else}
@@ -339,8 +334,7 @@
 
           {#if !member.accepted_at}
             <div
-              class="mt-3 flex items-center justify-between text-sm text-amber-600 bg-amber-50 px-3 py-2 rounded-md"
-            >
+              class="mt-3 flex items-center justify-between text-sm text-amber-600 bg-amber-50 px-3 py-2 rounded-md">
               <div class="flex items-center gap-2">
                 <Mail class="h-4 w-4" />
                 Invitation pending
@@ -349,9 +343,8 @@
                 <Button
                   variant="ghost"
                   size="sm"
-                  onclick={() => resendInvitation(member.id || "")}
-                  disabled={resendingInvitationId === member.id}
-                >
+                  onclick={() => resendInvitation(member.id || '')}
+                  disabled={resendingInvitationId === member.id}>
                   {#if resendingInvitationId === member.id}
                     <Loader2 class="h-3 w-3 animate-spin" />
                   {:else}
@@ -409,17 +402,15 @@
   <!-- Invite Modal -->
   <Modal bind:open={showInviteModal} title="Invite Team Member">
     <form
-      onsubmit={(e) => {
+      onsubmit={e => {
         e.preventDefault();
         inviteMember();
       }}
-      class="space-y-4"
-    >
+      class="space-y-4">
       <div>
         <label
           for="invite-email"
-          class="block text-sm font-medium text-gray-700 mb-1"
-        >
+          class="block text-sm font-medium text-gray-700 mb-1">
           Email Address
         </label>
         <Input
@@ -427,22 +418,19 @@
           type="email"
           bind:value={inviteEmail}
           placeholder="colleague@example.com"
-          required
-        />
+          required />
       </div>
 
       <div>
         <label
           for="invite-role"
-          class="block text-sm font-medium text-gray-700 mb-1"
-        >
+          class="block text-sm font-medium text-gray-700 mb-1">
           Role
         </label>
         <select
           id="invite-role"
           bind:value={inviteRole}
-          class="w-full border-gray-300 rounded-md"
-        >
+          class="w-full border-gray-300 rounded-md">
           <option value="ADMIN">Admin</option>
           <option value="MANAGER">Manager</option>
           <option value="VIEWER">Viewer</option>
@@ -454,15 +442,13 @@
           type="button"
           variant="outline"
           onclick={() => (showInviteModal = false)}
-          disabled={inviting}
-        >
+          disabled={inviting}>
           Cancel
         </Button>
         <Button
           type="submit"
           variant="gradient"
-          disabled={inviting || !inviteEmail}
-        >
+          disabled={inviting || !inviteEmail}>
           {#if inviting}
             <Loader2 class="h-4 w-4 mr-2 animate-spin" />
             Sending...

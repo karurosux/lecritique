@@ -11,34 +11,34 @@
  */
 
 export enum ModelsSubscriptionStatus {
-  SubscriptionActive = "SubscriptionActive",
-  SubscriptionPending = "SubscriptionPending",
-  SubscriptionCanceled = "SubscriptionCanceled",
-  SubscriptionExpired = "SubscriptionExpired",
+  SubscriptionActive = 'SubscriptionActive',
+  SubscriptionPending = 'SubscriptionPending',
+  SubscriptionCanceled = 'SubscriptionCanceled',
+  SubscriptionExpired = 'SubscriptionExpired',
 }
 
 export enum ModelsQuestionType {
-  QuestionTypeRating = "QuestionTypeRating",
-  QuestionTypeScale = "QuestionTypeScale",
-  QuestionTypeMultiChoice = "QuestionTypeMultiChoice",
-  QuestionTypeSingleChoice = "QuestionTypeSingleChoice",
-  QuestionTypeText = "QuestionTypeText",
-  QuestionTypeYesNo = "QuestionTypeYesNo",
+  QuestionTypeRating = 'QuestionTypeRating',
+  QuestionTypeScale = 'QuestionTypeScale',
+  QuestionTypeMultiChoice = 'QuestionTypeMultiChoice',
+  QuestionTypeSingleChoice = 'QuestionTypeSingleChoice',
+  QuestionTypeText = 'QuestionTypeText',
+  QuestionTypeYesNo = 'QuestionTypeYesNo',
 }
 
 export enum ModelsQRCodeType {
-  QRCodeTypeTable = "QRCodeTypeTable",
-  QRCodeTypeLocation = "QRCodeTypeLocation",
-  QRCodeTypeTakeaway = "QRCodeTypeTakeaway",
-  QRCodeTypeDelivery = "QRCodeTypeDelivery",
-  QRCodeTypeGeneral = "QRCodeTypeGeneral",
+  QRCodeTypeTable = 'QRCodeTypeTable',
+  QRCodeTypeLocation = 'QRCodeTypeLocation',
+  QRCodeTypeTakeaway = 'QRCodeTypeTakeaway',
+  QRCodeTypeDelivery = 'QRCodeTypeDelivery',
+  QRCodeTypeGeneral = 'QRCodeTypeGeneral',
 }
 
 export enum ModelsMemberRole {
-  RoleOwner = "RoleOwner",
-  RoleAdmin = "RoleAdmin",
-  RoleManager = "RoleManager",
-  RoleViewer = "RoleViewer",
+  RoleOwner = 'RoleOwner',
+  RoleAdmin = 'RoleAdmin',
+  RoleManager = 'RoleManager',
+  RoleViewer = 'RoleViewer',
 }
 
 export interface HandlersAcceptInviteRequest {
@@ -109,7 +109,7 @@ export interface HandlersGenerateQRCodeRequest {
   /** @maxLength 200 */
   location?: string;
   organization_id: string;
-  type: "table" | "location" | "takeaway" | "delivery" | "general";
+  type: 'table' | 'location' | 'takeaway' | 'delivery' | 'general';
 }
 
 export interface HandlersGenerateQRCodeResponse {
@@ -119,7 +119,7 @@ export interface HandlersGenerateQRCodeResponse {
 
 export interface HandlersInviteMemberRequest {
   email: string;
-  role: "ADMIN" | "MANAGER" | "VIEWER";
+  role: 'ADMIN' | 'MANAGER' | 'VIEWER';
 }
 
 export interface HandlersInvoiceResponse {
@@ -208,7 +208,7 @@ export interface HandlersUpdateQRCodeResponse {
 }
 
 export interface HandlersUpdateRoleRequest {
-  role: "ADMIN" | "MANAGER" | "VIEWER";
+  role: 'ADMIN' | 'MANAGER' | 'VIEWER';
 }
 
 export interface KyooarInternalMenuModelsProduct {
@@ -646,13 +646,13 @@ import type {
   AxiosResponse,
   HeadersDefaults,
   ResponseType,
-} from "axios";
-import axios from "axios";
+} from 'axios';
+import axios from 'axios';
 
 export type QueryParamsType = Record<string | number, any>;
 
 export interface FullRequestParams
-  extends Omit<AxiosRequestConfig, "data" | "params" | "url" | "responseType"> {
+  extends Omit<AxiosRequestConfig, 'data' | 'params' | 'url' | 'responseType'> {
   /** set parameter to `true` for call `securityWorker` for this request */
   secure?: boolean;
   /** request path */
@@ -669,30 +669,30 @@ export interface FullRequestParams
 
 export type RequestParams = Omit<
   FullRequestParams,
-  "body" | "method" | "query" | "path"
+  'body' | 'method' | 'query' | 'path'
 >;
 
 export interface ApiConfig<SecurityDataType = unknown>
-  extends Omit<AxiosRequestConfig, "data" | "cancelToken"> {
+  extends Omit<AxiosRequestConfig, 'data' | 'cancelToken'> {
   securityWorker?: (
-    securityData: SecurityDataType | null,
+    securityData: SecurityDataType | null
   ) => Promise<AxiosRequestConfig | void> | AxiosRequestConfig | void;
   secure?: boolean;
   format?: ResponseType;
 }
 
 export enum ContentType {
-  Json = "application/json",
-  JsonApi = "application/vnd.api+json",
-  FormData = "multipart/form-data",
-  UrlEncoded = "application/x-www-form-urlencoded",
-  Text = "text/plain",
+  Json = 'application/json',
+  JsonApi = 'application/vnd.api+json',
+  FormData = 'multipart/form-data',
+  UrlEncoded = 'application/x-www-form-urlencoded',
+  Text = 'text/plain',
 }
 
 export class HttpClient<SecurityDataType = unknown> {
   public instance: AxiosInstance;
   private securityData: SecurityDataType | null = null;
-  private securityWorker?: ApiConfig<SecurityDataType>["securityWorker"];
+  private securityWorker?: ApiConfig<SecurityDataType>['securityWorker'];
   private secure?: boolean;
   private format?: ResponseType;
 
@@ -704,7 +704,7 @@ export class HttpClient<SecurityDataType = unknown> {
   }: ApiConfig<SecurityDataType> = {}) {
     this.instance = axios.create({
       ...axiosConfig,
-      baseURL: axiosConfig.baseURL || "//localhost:8080",
+      baseURL: axiosConfig.baseURL || '//localhost:8080',
     });
     this.secure = secure;
     this.format = format;
@@ -717,7 +717,7 @@ export class HttpClient<SecurityDataType = unknown> {
 
   protected mergeRequestParams(
     params1: AxiosRequestConfig,
-    params2?: AxiosRequestConfig,
+    params2?: AxiosRequestConfig
   ): AxiosRequestConfig {
     const method = params1.method || (params2 && params2.method);
 
@@ -738,7 +738,7 @@ export class HttpClient<SecurityDataType = unknown> {
   }
 
   protected stringifyFormItem(formItem: unknown) {
-    if (typeof formItem === "object" && formItem !== null) {
+    if (typeof formItem === 'object' && formItem !== null) {
       return JSON.stringify(formItem);
     } else {
       return `${formItem}`;
@@ -758,7 +758,7 @@ export class HttpClient<SecurityDataType = unknown> {
         const isFileType = formItem instanceof Blob || formItem instanceof File;
         formData.append(
           key,
-          isFileType ? formItem : this.stringifyFormItem(formItem),
+          isFileType ? formItem : this.stringifyFormItem(formItem)
         );
       }
 
@@ -776,7 +776,7 @@ export class HttpClient<SecurityDataType = unknown> {
     ...params
   }: FullRequestParams): Promise<AxiosResponse<T>> => {
     const secureParams =
-      ((typeof secure === "boolean" ? secure : this.secure) &&
+      ((typeof secure === 'boolean' ? secure : this.secure) &&
         this.securityWorker &&
         (await this.securityWorker(this.securityData))) ||
       {};
@@ -787,7 +787,7 @@ export class HttpClient<SecurityDataType = unknown> {
       type === ContentType.FormData &&
       body &&
       body !== null &&
-      typeof body === "object"
+      typeof body === 'object'
     ) {
       body = this.createFormData(body as Record<string, unknown>);
     }
@@ -796,7 +796,7 @@ export class HttpClient<SecurityDataType = unknown> {
       type === ContentType.Text &&
       body &&
       body !== null &&
-      typeof body !== "string"
+      typeof body !== 'string'
     ) {
       body = JSON.stringify(body);
     }
@@ -805,7 +805,7 @@ export class HttpClient<SecurityDataType = unknown> {
       ...requestParams,
       headers: {
         ...(requestParams.headers || {}),
-        ...(type ? { "Content-Type": type } : {}),
+        ...(type ? { 'Content-Type': type } : {}),
       },
       params: query,
       responseType: responseFormat,
@@ -840,7 +840,7 @@ export class Api<
     v1AiGenerateQuestionnaireCreate: (
       productId: string,
       questionnaire: ModelsGenerateQuestionnaireRequest,
-      params: RequestParams = {},
+      params: RequestParams = {}
     ) =>
       this.request<
         ResponseResponse & {
@@ -849,11 +849,11 @@ export class Api<
         ResponseResponse
       >({
         path: `/api/v1/ai/generate-questionnaire/${productId}`,
-        method: "POST",
+        method: 'POST',
         body: questionnaire,
         secure: true,
         type: ContentType.Json,
-        format: "json",
+        format: 'json',
         ...params,
       }),
 
@@ -868,7 +868,7 @@ export class Api<
      */
     v1AiGenerateQuestionsCreate: (
       productId: string,
-      params: RequestParams = {},
+      params: RequestParams = {}
     ) =>
       this.request<
         ResponseResponse & {
@@ -877,10 +877,10 @@ export class Api<
         ResponseResponse
       >({
         path: `/api/v1/ai/generate-questions/${productId}`,
-        method: "POST",
+        method: 'POST',
         secure: true,
         type: ContentType.Json,
-        format: "json",
+        format: 'json',
         ...params,
       }),
 
@@ -895,14 +895,14 @@ export class Api<
      */
     v1AnalyticsDashboardDetail: (
       organizationId: string,
-      params: RequestParams = {},
+      params: RequestParams = {}
     ) =>
       this.request<Record<string, any>, ResponseResponse>({
         path: `/api/v1/analytics/dashboard/${organizationId}`,
-        method: "GET",
+        method: 'GET',
         secure: true,
         type: ContentType.Json,
-        format: "json",
+        format: 'json',
         ...params,
       }),
 
@@ -917,14 +917,14 @@ export class Api<
      */
     v1AnalyticsOrganizationsDetail: (
       organizationId: string,
-      params: RequestParams = {},
+      params: RequestParams = {}
     ) =>
       this.request<Record<string, any>, ResponseResponse>({
         path: `/api/v1/analytics/organizations/${organizationId}`,
-        method: "GET",
+        method: 'GET',
         secure: true,
         type: ContentType.Json,
-        format: "json",
+        format: 'json',
         ...params,
       }),
 
@@ -947,15 +947,15 @@ export class Api<
         /** Filter by specific product ID */
         product_id?: string;
       },
-      params: RequestParams = {},
+      params: RequestParams = {}
     ) =>
       this.request<Record<string, any>, ResponseResponse>({
         path: `/api/v1/analytics/organizations/${organizationId}/charts`,
-        method: "GET",
+        method: 'GET',
         query: query,
         secure: true,
         type: ContentType.Json,
-        format: "json",
+        format: 'json',
         ...params,
       }),
 
@@ -970,14 +970,14 @@ export class Api<
      */
     v1AnalyticsOrganizationsCollectMetricsCreate: (
       organizationId: string,
-      params: RequestParams = {},
+      params: RequestParams = {}
     ) =>
       this.request<ResponseResponse, ResponseResponse>({
         path: `/api/v1/analytics/organizations/${organizationId}/collect-metrics`,
-        method: "POST",
+        method: 'POST',
         secure: true,
         type: ContentType.Json,
-        format: "json",
+        format: 'json',
         ...params,
       }),
 
@@ -993,15 +993,15 @@ export class Api<
     v1AnalyticsOrganizationsCompareCreate: (
       organizationId: string,
       body: ModelsComparisonRequest,
-      params: RequestParams = {},
+      params: RequestParams = {}
     ) =>
       this.request<ModelsComparisonResponse, ResponseResponse>({
         path: `/api/v1/analytics/organizations/${organizationId}/compare`,
-        method: "POST",
+        method: 'POST',
         body: body,
         secure: true,
         type: ContentType.Json,
-        format: "json",
+        format: 'json',
         ...params,
       }),
 
@@ -1030,15 +1030,15 @@ export class Api<
         /** Filter by question ID */
         question_id?: string;
       },
-      params: RequestParams = {},
+      params: RequestParams = {}
     ) =>
       this.request<ModelsTimeSeriesResponse, ResponseResponse>({
         path: `/api/v1/analytics/organizations/${organizationId}/time-series`,
-        method: "GET",
+        method: 'GET',
         query: query,
         secure: true,
         type: ContentType.Json,
-        format: "json",
+        format: 'json',
         ...params,
       }),
 
@@ -1053,14 +1053,14 @@ export class Api<
      */
     v1AnalyticsProductsDetail: (
       productId: string,
-      params: RequestParams = {},
+      params: RequestParams = {}
     ) =>
       this.request<Record<string, any>, ResponseResponse>({
         path: `/api/v1/analytics/products/${productId}`,
-        method: "GET",
+        method: 'GET',
         secure: true,
         type: ContentType.Json,
-        format: "json",
+        format: 'json',
         ...params,
       }),
 
@@ -1075,14 +1075,14 @@ export class Api<
      */
     v1AnalyticsProductsInsightsList: (
       productId: string,
-      params: RequestParams = {},
+      params: RequestParams = {}
     ) =>
       this.request<Record<string, any>, ResponseResponse>({
         path: `/api/v1/analytics/products/${productId}/insights`,
-        method: "GET",
+        method: 'GET',
         secure: true,
         type: ContentType.Json,
-        format: "json",
+        format: 'json',
         ...params,
       }),
 
@@ -1103,10 +1103,10 @@ export class Api<
         ResponseResponse
       >({
         path: `/api/v1/auth/cancel-deactivation`,
-        method: "POST",
+        method: 'POST',
         secure: true,
         type: ContentType.Json,
-        format: "json",
+        format: 'json',
         ...params,
       }),
 
@@ -1121,7 +1121,7 @@ export class Api<
      */
     v1AuthChangeEmailCreate: (
       request: HandlersChangeEmailRequest,
-      params: RequestParams = {},
+      params: RequestParams = {}
     ) =>
       this.request<
         ResponseResponse & {
@@ -1130,11 +1130,11 @@ export class Api<
         ResponseResponse
       >({
         path: `/api/v1/auth/change-email`,
-        method: "POST",
+        method: 'POST',
         body: request,
         secure: true,
         type: ContentType.Json,
-        format: "json",
+        format: 'json',
         ...params,
       }),
 
@@ -1148,7 +1148,7 @@ export class Api<
      */
     v1AuthConfirmEmailChangeCreate: (
       request: HandlersConfirmEmailChangeRequest,
-      params: RequestParams = {},
+      params: RequestParams = {}
     ) =>
       this.request<
         ResponseResponse & {
@@ -1157,10 +1157,10 @@ export class Api<
         ResponseResponse
       >({
         path: `/api/v1/auth/confirm-email-change`,
-        method: "POST",
+        method: 'POST',
         body: request,
         type: ContentType.Json,
-        format: "json",
+        format: 'json',
         ...params,
       }),
 
@@ -1181,10 +1181,10 @@ export class Api<
         ResponseResponse
       >({
         path: `/api/v1/auth/deactivate`,
-        method: "POST",
+        method: 'POST',
         secure: true,
         type: ContentType.Json,
-        format: "json",
+        format: 'json',
         ...params,
       }),
 
@@ -1198,7 +1198,7 @@ export class Api<
      */
     v1AuthForgotPasswordCreate: (
       request: HandlersPasswordResetRequest,
-      params: RequestParams = {},
+      params: RequestParams = {}
     ) =>
       this.request<
         ResponseResponse & {
@@ -1207,10 +1207,10 @@ export class Api<
         ResponseResponse
       >({
         path: `/api/v1/auth/forgot-password`,
-        method: "POST",
+        method: 'POST',
         body: request,
         type: ContentType.Json,
-        format: "json",
+        format: 'json',
         ...params,
       }),
 
@@ -1224,7 +1224,7 @@ export class Api<
      */
     v1AuthLoginCreate: (
       request: HandlersLoginRequest,
-      params: RequestParams = {},
+      params: RequestParams = {}
     ) =>
       this.request<
         ResponseResponse & {
@@ -1233,10 +1233,10 @@ export class Api<
         ResponseResponse
       >({
         path: `/api/v1/auth/login`,
-        method: "POST",
+        method: 'POST',
         body: request,
         type: ContentType.Json,
-        format: "json",
+        format: 'json',
         ...params,
       }),
 
@@ -1251,7 +1251,7 @@ export class Api<
      */
     v1AuthProfileUpdate: (
       request: HandlersUpdateProfileRequest,
-      params: RequestParams = {},
+      params: RequestParams = {}
     ) =>
       this.request<
         ResponseResponse & {
@@ -1260,11 +1260,11 @@ export class Api<
         ResponseResponse
       >({
         path: `/api/v1/auth/profile`,
-        method: "PUT",
+        method: 'PUT',
         body: request,
         secure: true,
         type: ContentType.Json,
-        format: "json",
+        format: 'json',
         ...params,
       }),
 
@@ -1285,10 +1285,10 @@ export class Api<
         ResponseResponse
       >({
         path: `/api/v1/auth/refresh`,
-        method: "POST",
+        method: 'POST',
         secure: true,
         type: ContentType.Json,
-        format: "json",
+        format: 'json',
         ...params,
       }),
 
@@ -1302,7 +1302,7 @@ export class Api<
      */
     v1AuthRegisterCreate: (
       request: HandlersRegisterRequest,
-      params: RequestParams = {},
+      params: RequestParams = {}
     ) =>
       this.request<
         ResponseResponse & {
@@ -1311,10 +1311,10 @@ export class Api<
         ResponseResponse
       >({
         path: `/api/v1/auth/register`,
-        method: "POST",
+        method: 'POST',
         body: request,
         type: ContentType.Json,
-        format: "json",
+        format: 'json',
         ...params,
       }),
 
@@ -1328,7 +1328,7 @@ export class Api<
      */
     v1AuthResendVerificationCreate: (
       request: HandlersResendVerificationRequest,
-      params: RequestParams = {},
+      params: RequestParams = {}
     ) =>
       this.request<
         ResponseResponse & {
@@ -1337,10 +1337,10 @@ export class Api<
         ResponseResponse
       >({
         path: `/api/v1/auth/resend-verification`,
-        method: "POST",
+        method: 'POST',
         body: request,
         type: ContentType.Json,
-        format: "json",
+        format: 'json',
         ...params,
       }),
 
@@ -1354,7 +1354,7 @@ export class Api<
      */
     v1AuthResetPasswordCreate: (
       request: HandlersResetPasswordRequest,
-      params: RequestParams = {},
+      params: RequestParams = {}
     ) =>
       this.request<
         ResponseResponse & {
@@ -1363,10 +1363,10 @@ export class Api<
         ResponseResponse
       >({
         path: `/api/v1/auth/reset-password`,
-        method: "POST",
+        method: 'POST',
         body: request,
         type: ContentType.Json,
-        format: "json",
+        format: 'json',
         ...params,
       }),
 
@@ -1387,10 +1387,10 @@ export class Api<
         ResponseResponse
       >({
         path: `/api/v1/auth/send-verification`,
-        method: "POST",
+        method: 'POST',
         secure: true,
         type: ContentType.Json,
-        format: "json",
+        format: 'json',
         ...params,
       }),
 
@@ -1407,7 +1407,7 @@ export class Api<
         /** Verification token */
         token: string;
       },
-      params: RequestParams = {},
+      params: RequestParams = {}
     ) =>
       this.request<
         ResponseResponse & {
@@ -1416,10 +1416,10 @@ export class Api<
         ResponseResponse
       >({
         path: `/api/v1/auth/verify-email`,
-        method: "GET",
+        method: 'GET',
         query: query,
         type: ContentType.Json,
-        format: "json",
+        format: 'json',
         ...params,
       }),
 
@@ -1440,9 +1440,9 @@ export class Api<
         ResponseResponse
       >({
         path: `/api/v1/organizations`,
-        method: "GET",
+        method: 'GET',
         secure: true,
-        format: "json",
+        format: 'json',
         ...params,
       }),
 
@@ -1457,7 +1457,7 @@ export class Api<
      */
     v1OrganizationsCreate: (
       request: HandlersCreateOrganizationRequest,
-      params: RequestParams = {},
+      params: RequestParams = {}
     ) =>
       this.request<
         ResponseResponse & {
@@ -1466,11 +1466,11 @@ export class Api<
         ResponseResponse
       >({
         path: `/api/v1/organizations`,
-        method: "POST",
+        method: 'POST',
         body: request,
         secure: true,
         type: ContentType.Json,
-        format: "json",
+        format: 'json',
         ...params,
       }),
 
@@ -1491,10 +1491,10 @@ export class Api<
         ResponseResponse
       >({
         path: `/api/v1/organizations/${id}`,
-        method: "GET",
+        method: 'GET',
         secure: true,
         type: ContentType.Json,
-        format: "json",
+        format: 'json',
         ...params,
       }),
 
@@ -1510,7 +1510,7 @@ export class Api<
     v1OrganizationsUpdate: (
       id: string,
       updates: Record<string, any>,
-      params: RequestParams = {},
+      params: RequestParams = {}
     ) =>
       this.request<
         ResponseResponse & {
@@ -1519,11 +1519,11 @@ export class Api<
         ResponseResponse
       >({
         path: `/api/v1/organizations/${id}`,
-        method: "PUT",
+        method: 'PUT',
         body: updates,
         secure: true,
         type: ContentType.Json,
-        format: "json",
+        format: 'json',
         ...params,
       }),
 
@@ -1544,10 +1544,10 @@ export class Api<
         ResponseResponse
       >({
         path: `/api/v1/organizations/${id}`,
-        method: "DELETE",
+        method: 'DELETE',
         secure: true,
         type: ContentType.Json,
-        format: "json",
+        format: 'json',
         ...params,
       }),
 
@@ -1562,14 +1562,14 @@ export class Api<
      */
     v1OrganizationsAnalyticsList: (
       organizationId: string,
-      params: RequestParams = {},
+      params: RequestParams = {}
     ) =>
       this.request<Record<string, any>, ResponseResponse>({
         path: `/api/v1/organizations/${organizationId}/analytics`,
-        method: "GET",
+        method: 'GET',
         secure: true,
         type: ContentType.Json,
-        format: "json",
+        format: 'json',
         ...params,
       }),
 
@@ -1604,15 +1604,15 @@ export class Api<
         /** Filter by completion status */
         is_complete?: boolean;
       },
-      params: RequestParams = {},
+      params: RequestParams = {}
     ) =>
       this.request<Record<string, any>, ResponseResponse>({
         path: `/api/v1/organizations/${organizationId}/feedback`,
-        method: "GET",
+        method: 'GET',
         query: query,
         secure: true,
         type: ContentType.Json,
-        format: "json",
+        format: 'json',
         ...params,
       }),
 
@@ -1627,7 +1627,7 @@ export class Api<
      */
     v1OrganizationsProductsList: (
       organizationId: string,
-      params: RequestParams = {},
+      params: RequestParams = {}
     ) =>
       this.request<
         ResponseResponse & {
@@ -1636,10 +1636,10 @@ export class Api<
         ResponseResponse
       >({
         path: `/api/v1/organizations/${organizationId}/products`,
-        method: "GET",
+        method: 'GET',
         secure: true,
         type: ContentType.Json,
-        format: "json",
+        format: 'json',
         ...params,
       }),
 
@@ -1655,7 +1655,7 @@ export class Api<
     v1OrganizationsProductsCreate: (
       organizationId: string,
       product: HandlersCreateProductRequest,
-      params: RequestParams = {},
+      params: RequestParams = {}
     ) =>
       this.request<
         ResponseResponse & {
@@ -1664,11 +1664,11 @@ export class Api<
         ResponseResponse
       >({
         path: `/api/v1/organizations/${organizationId}/products`,
-        method: "POST",
+        method: 'POST',
         body: product,
         secure: true,
         type: ContentType.Json,
-        format: "json",
+        format: 'json',
         ...params,
       }),
 
@@ -1684,13 +1684,13 @@ export class Api<
     v1OrganizationsProductsQuestionsList: (
       organizationId: string,
       productId: string,
-      params: RequestParams = {},
+      params: RequestParams = {}
     ) =>
       this.request<Record<string, any>, Record<string, any>>({
         path: `/api/v1/organizations/${organizationId}/products/${productId}/questions`,
-        method: "GET",
+        method: 'GET',
         secure: true,
-        format: "json",
+        format: 'json',
         ...params,
       }),
 
@@ -1707,15 +1707,15 @@ export class Api<
       organizationId: string,
       productId: string,
       question: ModelsCreateQuestionRequest,
-      params: RequestParams = {},
+      params: RequestParams = {}
     ) =>
       this.request<Record<string, any>, Record<string, any>>({
         path: `/api/v1/organizations/${organizationId}/products/${productId}/questions`,
-        method: "POST",
+        method: 'POST',
         body: question,
         secure: true,
         type: ContentType.Json,
-        format: "json",
+        format: 'json',
         ...params,
       }),
 
@@ -1732,15 +1732,15 @@ export class Api<
       organizationId: string,
       productId: string,
       order: string[],
-      params: RequestParams = {},
+      params: RequestParams = {}
     ) =>
       this.request<Record<string, any>, Record<string, any>>({
         path: `/api/v1/organizations/${organizationId}/products/${productId}/questions/reorder`,
-        method: "POST",
+        method: 'POST',
         body: order,
         secure: true,
         type: ContentType.Json,
-        format: "json",
+        format: 'json',
         ...params,
       }),
 
@@ -1757,13 +1757,13 @@ export class Api<
       organizationId: string,
       productId: string,
       questionId: string,
-      params: RequestParams = {},
+      params: RequestParams = {}
     ) =>
       this.request<Record<string, any>, Record<string, any>>({
         path: `/api/v1/organizations/${organizationId}/products/${productId}/questions/${questionId}`,
-        method: "GET",
+        method: 'GET',
         secure: true,
-        format: "json",
+        format: 'json',
         ...params,
       }),
 
@@ -1781,15 +1781,15 @@ export class Api<
       productId: string,
       questionId: string,
       question: ModelsUpdateQuestionRequest,
-      params: RequestParams = {},
+      params: RequestParams = {}
     ) =>
       this.request<Record<string, any>, Record<string, any>>({
         path: `/api/v1/organizations/${organizationId}/products/${productId}/questions/${questionId}`,
-        method: "PUT",
+        method: 'PUT',
         body: question,
         secure: true,
         type: ContentType.Json,
-        format: "json",
+        format: 'json',
         ...params,
       }),
 
@@ -1806,13 +1806,13 @@ export class Api<
       organizationId: string,
       productId: string,
       questionId: string,
-      params: RequestParams = {},
+      params: RequestParams = {}
     ) =>
       this.request<Record<string, any>, Record<string, any>>({
         path: `/api/v1/organizations/${organizationId}/products/${productId}/questions/${questionId}`,
-        method: "DELETE",
+        method: 'DELETE',
         secure: true,
-        format: "json",
+        format: 'json',
         ...params,
       }),
 
@@ -1827,14 +1827,14 @@ export class Api<
      */
     v1OrganizationsQrCodesList: (
       organizationId: string,
-      params: RequestParams = {},
+      params: RequestParams = {}
     ) =>
       this.request<HandlersQRCodeListResponse, ResponseResponse>({
         path: `/api/v1/organizations/${organizationId}/qr-codes`,
-        method: "GET",
+        method: 'GET',
         secure: true,
         type: ContentType.Json,
-        format: "json",
+        format: 'json',
         ...params,
       }),
 
@@ -1850,15 +1850,15 @@ export class Api<
     v1OrganizationsQrCodesCreate: (
       organizationId: string,
       qr_code: HandlersGenerateQRCodeRequest,
-      params: RequestParams = {},
+      params: RequestParams = {}
     ) =>
       this.request<HandlersGenerateQRCodeResponse, ResponseResponse>({
         path: `/api/v1/organizations/${organizationId}/qr-codes`,
-        method: "POST",
+        method: 'POST',
         body: qr_code,
         secure: true,
         type: ContentType.Json,
-        format: "json",
+        format: 'json',
         ...params,
       }),
 
@@ -1873,7 +1873,7 @@ export class Api<
      */
     v1OrganizationsQuestionnairesList: (
       organizationId: string,
-      params: RequestParams = {},
+      params: RequestParams = {}
     ) =>
       this.request<
         ResponseResponse & {
@@ -1882,10 +1882,10 @@ export class Api<
         ResponseResponse
       >({
         path: `/api/v1/organizations/${organizationId}/questionnaires`,
-        method: "GET",
+        method: 'GET',
         secure: true,
         type: ContentType.Json,
-        format: "json",
+        format: 'json',
         ...params,
       }),
 
@@ -1901,7 +1901,7 @@ export class Api<
     v1OrganizationsQuestionnairesCreate: (
       organizationId: string,
       questionnaire: ModelsCreateQuestionnaireRequest,
-      params: RequestParams = {},
+      params: RequestParams = {}
     ) =>
       this.request<
         ResponseResponse & {
@@ -1910,11 +1910,11 @@ export class Api<
         ResponseResponse
       >({
         path: `/api/v1/organizations/${organizationId}/questionnaires`,
-        method: "POST",
+        method: 'POST',
         body: questionnaire,
         secure: true,
         type: ContentType.Json,
-        format: "json",
+        format: 'json',
         ...params,
       }),
 
@@ -1930,7 +1930,7 @@ export class Api<
     v1OrganizationsQuestionnairesDetail: (
       organizationId: string,
       id: string,
-      params: RequestParams = {},
+      params: RequestParams = {}
     ) =>
       this.request<
         ResponseResponse & {
@@ -1939,10 +1939,10 @@ export class Api<
         ResponseResponse
       >({
         path: `/api/v1/organizations/${organizationId}/questionnaires/${id}`,
-        method: "GET",
+        method: 'GET',
         secure: true,
         type: ContentType.Json,
-        format: "json",
+        format: 'json',
         ...params,
       }),
 
@@ -1959,7 +1959,7 @@ export class Api<
       organizationId: string,
       id: string,
       questionnaire: ModelsQuestionnaire,
-      params: RequestParams = {},
+      params: RequestParams = {}
     ) =>
       this.request<
         ResponseResponse & {
@@ -1968,11 +1968,11 @@ export class Api<
         ResponseResponse
       >({
         path: `/api/v1/organizations/${organizationId}/questionnaires/${id}`,
-        method: "PUT",
+        method: 'PUT',
         body: questionnaire,
         secure: true,
         type: ContentType.Json,
-        format: "json",
+        format: 'json',
         ...params,
       }),
 
@@ -1988,14 +1988,14 @@ export class Api<
     v1OrganizationsQuestionnairesDelete: (
       organizationId: string,
       id: string,
-      params: RequestParams = {},
+      params: RequestParams = {}
     ) =>
       this.request<ResponseResponse, ResponseResponse>({
         path: `/api/v1/organizations/${organizationId}/questionnaires/${id}`,
-        method: "DELETE",
+        method: 'DELETE',
         secure: true,
         type: ContentType.Json,
-        format: "json",
+        format: 'json',
         ...params,
       }),
 
@@ -2011,15 +2011,15 @@ export class Api<
     v1OrganizationsQuestionsBatchCreate: (
       organizationId: string,
       request: ModelsBatchQuestionsRequest,
-      params: RequestParams = {},
+      params: RequestParams = {}
     ) =>
       this.request<Record<string, any>, Record<string, any>>({
         path: `/api/v1/organizations/${organizationId}/questions/batch`,
-        method: "POST",
+        method: 'POST',
         body: request,
         secure: true,
         type: ContentType.Json,
-        format: "json",
+        format: 'json',
         ...params,
       }),
 
@@ -2034,13 +2034,13 @@ export class Api<
      */
     v1OrganizationsQuestionsProductsWithQuestionsList: (
       organizationId: string,
-      params: RequestParams = {},
+      params: RequestParams = {}
     ) =>
       this.request<Record<string, any>, Record<string, any>>({
         path: `/api/v1/organizations/${organizationId}/questions/products-with-questions`,
-        method: "GET",
+        method: 'GET',
         secure: true,
-        format: "json",
+        format: 'json',
         ...params,
       }),
 
@@ -2055,7 +2055,7 @@ export class Api<
      */
     v1PaymentCheckoutCreate: (
       request: HandlersCreateCheckoutRequest,
-      params: RequestParams = {},
+      params: RequestParams = {}
     ) =>
       this.request<
         ResponseResponse & {
@@ -2064,11 +2064,11 @@ export class Api<
         ResponseResponse
       >({
         path: `/api/v1/payment/checkout`,
-        method: "POST",
+        method: 'POST',
         body: request,
         secure: true,
         type: ContentType.Json,
-        format: "json",
+        format: 'json',
         ...params,
       }),
 
@@ -2082,14 +2082,14 @@ export class Api<
      */
     v1PaymentCheckoutCompleteCreate: (
       request: HandlersCompleteCheckoutRequest,
-      params: RequestParams = {},
+      params: RequestParams = {}
     ) =>
       this.request<ResponseResponse, ResponseResponse>({
         path: `/api/v1/payment/checkout/complete`,
-        method: "POST",
+        method: 'POST',
         body: request,
         type: ContentType.Json,
-        format: "json",
+        format: 'json',
         ...params,
       }),
 
@@ -2110,7 +2110,7 @@ export class Api<
          */
         limit?: number;
       },
-      params: RequestParams = {},
+      params: RequestParams = {}
     ) =>
       this.request<
         ResponseResponse & {
@@ -2119,10 +2119,10 @@ export class Api<
         ResponseResponse
       >({
         path: `/api/v1/payment/invoices`,
-        method: "GET",
+        method: 'GET',
         query: query,
         secure: true,
-        format: "json",
+        format: 'json',
         ...params,
       }),
 
@@ -2143,9 +2143,9 @@ export class Api<
         ResponseResponse
       >({
         path: `/api/v1/payment/methods`,
-        method: "GET",
+        method: 'GET',
         secure: true,
-        format: "json",
+        format: 'json',
         ...params,
       }),
 
@@ -2160,15 +2160,15 @@ export class Api<
      */
     v1PaymentMethodsDefaultCreate: (
       request: HandlersSetDefaultPaymentRequest,
-      params: RequestParams = {},
+      params: RequestParams = {}
     ) =>
       this.request<ResponseResponse, ResponseResponse>({
         path: `/api/v1/payment/methods/default`,
-        method: "POST",
+        method: 'POST',
         body: request,
         secure: true,
         type: ContentType.Json,
-        format: "json",
+        format: 'json',
         ...params,
       }),
 
@@ -2189,9 +2189,9 @@ export class Api<
         ResponseResponse
       >({
         path: `/api/v1/payment/portal`,
-        method: "POST",
+        method: 'POST',
         secure: true,
-        format: "json",
+        format: 'json',
         ...params,
       }),
 
@@ -2206,9 +2206,9 @@ export class Api<
     v1PaymentWebhookCreate: (params: RequestParams = {}) =>
       this.request<ResponseResponse, ResponseResponse>({
         path: `/api/v1/payment/webhook`,
-        method: "POST",
+        method: 'POST',
         type: ContentType.Json,
-        format: "json",
+        format: 'json',
         ...params,
       }),
 
@@ -2228,9 +2228,9 @@ export class Api<
         ResponseResponse
       >({
         path: `/api/v1/plans`,
-        method: "GET",
+        method: 'GET',
         type: ContentType.Json,
-        format: "json",
+        format: 'json',
         ...params,
       }),
 
@@ -2251,10 +2251,10 @@ export class Api<
         ResponseResponse
       >({
         path: `/api/v1/products/${id}`,
-        method: "GET",
+        method: 'GET',
         secure: true,
         type: ContentType.Json,
-        format: "json",
+        format: 'json',
         ...params,
       }),
 
@@ -2270,7 +2270,7 @@ export class Api<
     v1ProductsUpdate: (
       id: string,
       updates: Record<string, any>,
-      params: RequestParams = {},
+      params: RequestParams = {}
     ) =>
       this.request<
         ResponseResponse & {
@@ -2279,11 +2279,11 @@ export class Api<
         ResponseResponse
       >({
         path: `/api/v1/products/${id}`,
-        method: "PUT",
+        method: 'PUT',
         body: updates,
         secure: true,
         type: ContentType.Json,
-        format: "json",
+        format: 'json',
         ...params,
       }),
 
@@ -2304,10 +2304,10 @@ export class Api<
         ResponseResponse
       >({
         path: `/api/v1/products/${id}`,
-        method: "DELETE",
+        method: 'DELETE',
         secure: true,
         type: ContentType.Json,
-        format: "json",
+        format: 'json',
         ...params,
       }),
 
@@ -2321,14 +2321,14 @@ export class Api<
      */
     v1PublicFeedbackCreate: (
       feedback: ModelsFeedback,
-      params: RequestParams = {},
+      params: RequestParams = {}
     ) =>
       this.request<Record<string, any>, ResponseResponse>({
         path: `/api/v1/public/feedback`,
-        method: "POST",
+        method: 'POST',
         body: feedback,
         type: ContentType.Json,
-        format: "json",
+        format: 'json',
         ...params,
       }),
 
@@ -2343,9 +2343,9 @@ export class Api<
     v1PublicOrganizationMenuList: (id: string, params: RequestParams = {}) =>
       this.request<Record<string, any>, ResponseResponse>({
         path: `/api/v1/public/organization/${id}/menu`,
-        method: "GET",
+        method: 'GET',
         type: ContentType.Json,
-        format: "json",
+        format: 'json',
         ...params,
       }),
 
@@ -2360,12 +2360,12 @@ export class Api<
     v1PublicOrganizationProductsQuestionsList: (
       organizationId: string,
       productId: string,
-      params: RequestParams = {},
+      params: RequestParams = {}
     ) =>
       this.request<Record<string, any>, ResponseResponse>({
         path: `/api/v1/public/organization/${organizationId}/products/${productId}/questions`,
-        method: "GET",
-        format: "json",
+        method: 'GET',
+        format: 'json',
         ...params,
       }),
 
@@ -2379,12 +2379,12 @@ export class Api<
      */
     v1PublicOrganizationQuestionsProductsWithQuestionsList: (
       organizationId: string,
-      params: RequestParams = {},
+      params: RequestParams = {}
     ) =>
       this.request<Record<string, any>, ResponseResponse>({
         path: `/api/v1/public/organization/${organizationId}/questions/products-with-questions`,
-        method: "GET",
-        format: "json",
+        method: 'GET',
+        format: 'json',
         ...params,
       }),
 
@@ -2399,9 +2399,9 @@ export class Api<
     v1PublicQrDetail: (code: string, params: RequestParams = {}) =>
       this.request<Record<string, any>, ResponseResponse>({
         path: `/api/v1/public/qr/${code}`,
-        method: "GET",
+        method: 'GET',
         type: ContentType.Json,
-        format: "json",
+        format: 'json',
         ...params,
       }),
 
@@ -2416,13 +2416,13 @@ export class Api<
     v1PublicQuestionnaireDetail: (
       organizationId: string,
       productId: string,
-      params: RequestParams = {},
+      params: RequestParams = {}
     ) =>
       this.request<Record<string, any>, ResponseResponse>({
         path: `/api/v1/public/questionnaire/${organizationId}/${productId}`,
-        method: "GET",
+        method: 'GET',
         type: ContentType.Json,
-        format: "json",
+        format: 'json',
         ...params,
       }),
 
@@ -2438,10 +2438,10 @@ export class Api<
     v1QrCodesDelete: (id: string, params: RequestParams = {}) =>
       this.request<Record<string, any>, ResponseResponse>({
         path: `/api/v1/qr-codes/${id}`,
-        method: "DELETE",
+        method: 'DELETE',
         secure: true,
         type: ContentType.Json,
-        format: "json",
+        format: 'json',
         ...params,
       }),
 
@@ -2457,15 +2457,15 @@ export class Api<
     v1QrCodesPartialUpdate: (
       id: string,
       qr_code: HandlersUpdateQRCodeRequest,
-      params: RequestParams = {},
+      params: RequestParams = {}
     ) =>
       this.request<HandlersUpdateQRCodeResponse, ResponseResponse>({
         path: `/api/v1/qr-codes/${id}`,
-        method: "PATCH",
+        method: 'PATCH',
         body: qr_code,
         secure: true,
         type: ContentType.Json,
-        format: "json",
+        format: 'json',
         ...params,
       }),
 
@@ -2479,7 +2479,7 @@ export class Api<
      */
     v1TeamAcceptInviteCreate: (
       request: HandlersAcceptInviteRequest,
-      params: RequestParams = {},
+      params: RequestParams = {}
     ) =>
       this.request<
         ResponseResponse & {
@@ -2488,10 +2488,10 @@ export class Api<
         ResponseResponse
       >({
         path: `/api/v1/team/accept-invite`,
-        method: "POST",
+        method: 'POST',
         body: request,
         type: ContentType.Json,
-        format: "json",
+        format: 'json',
         ...params,
       }),
 
@@ -2512,10 +2512,10 @@ export class Api<
         ResponseResponse
       >({
         path: `/api/v1/team/members`,
-        method: "GET",
+        method: 'GET',
         secure: true,
         type: ContentType.Json,
-        format: "json",
+        format: 'json',
         ...params,
       }),
 
@@ -2530,7 +2530,7 @@ export class Api<
      */
     v1TeamMembersInviteCreate: (
       request: HandlersInviteMemberRequest,
-      params: RequestParams = {},
+      params: RequestParams = {}
     ) =>
       this.request<
         ResponseResponse & {
@@ -2539,11 +2539,11 @@ export class Api<
         ResponseResponse
       >({
         path: `/api/v1/team/members/invite`,
-        method: "POST",
+        method: 'POST',
         body: request,
         secure: true,
         type: ContentType.Json,
-        format: "json",
+        format: 'json',
         ...params,
       }),
 
@@ -2564,10 +2564,10 @@ export class Api<
         ResponseResponse
       >({
         path: `/api/v1/team/members/${id}`,
-        method: "DELETE",
+        method: 'DELETE',
         secure: true,
         type: ContentType.Json,
-        format: "json",
+        format: 'json',
         ...params,
       }),
 
@@ -2582,7 +2582,7 @@ export class Api<
      */
     v1TeamMembersResendInvitationCreate: (
       id: string,
-      params: RequestParams = {},
+      params: RequestParams = {}
     ) =>
       this.request<
         ResponseResponse & {
@@ -2591,10 +2591,10 @@ export class Api<
         ResponseResponse
       >({
         path: `/api/v1/team/members/${id}/resend-invitation`,
-        method: "POST",
+        method: 'POST',
         secure: true,
         type: ContentType.Json,
-        format: "json",
+        format: 'json',
         ...params,
       }),
 
@@ -2610,7 +2610,7 @@ export class Api<
     v1TeamMembersRoleUpdate: (
       id: string,
       request: HandlersUpdateRoleRequest,
-      params: RequestParams = {},
+      params: RequestParams = {}
     ) =>
       this.request<
         ResponseResponse & {
@@ -2619,11 +2619,11 @@ export class Api<
         ResponseResponse
       >({
         path: `/api/v1/team/members/${id}/role`,
-        method: "PUT",
+        method: 'PUT',
         body: request,
         secure: true,
         type: ContentType.Json,
-        format: "json",
+        format: 'json',
         ...params,
       }),
 
@@ -2644,10 +2644,10 @@ export class Api<
         ResponseResponse
       >({
         path: `/api/v1/user/can-create-organization`,
-        method: "GET",
+        method: 'GET',
         secure: true,
         type: ContentType.Json,
-        format: "json",
+        format: 'json',
         ...params,
       }),
 
@@ -2668,10 +2668,10 @@ export class Api<
         ResponseResponse
       >({
         path: `/api/v1/user/subscription`,
-        method: "GET",
+        method: 'GET',
         secure: true,
         type: ContentType.Json,
-        format: "json",
+        format: 'json',
         ...params,
       }),
 
@@ -2686,7 +2686,7 @@ export class Api<
      */
     v1UserSubscriptionCreate: (
       request: HandlersCreateSubscriptionRequest,
-      params: RequestParams = {},
+      params: RequestParams = {}
     ) =>
       this.request<
         ResponseResponse & {
@@ -2695,11 +2695,11 @@ export class Api<
         ResponseResponse
       >({
         path: `/api/v1/user/subscription`,
-        method: "POST",
+        method: 'POST',
         body: request,
         secure: true,
         type: ContentType.Json,
-        format: "json",
+        format: 'json',
         ...params,
       }),
 
@@ -2715,10 +2715,10 @@ export class Api<
     v1UserSubscriptionDelete: (params: RequestParams = {}) =>
       this.request<ResponseResponse, ResponseResponse>({
         path: `/api/v1/user/subscription`,
-        method: "DELETE",
+        method: 'DELETE',
         secure: true,
         type: ContentType.Json,
-        format: "json",
+        format: 'json',
         ...params,
       }),
 
@@ -2739,10 +2739,10 @@ export class Api<
         ResponseResponse
       >({
         path: `/api/v1/user/subscription/usage`,
-        method: "GET",
+        method: 'GET',
         secure: true,
         type: ContentType.Json,
-        format: "json",
+        format: 'json',
         ...params,
       }),
   };
@@ -2760,15 +2760,15 @@ export class Api<
       id: string,
       organizationId: string,
       question: ModelsQuestion,
-      params: RequestParams = {},
+      params: RequestParams = {}
     ) =>
       this.request<Record<string, any>, Record<string, any>>({
         path: `/organizations/${organizationId}/questionnaires/${id}/questions`,
-        method: "POST",
+        method: 'POST',
         body: question,
         secure: true,
         type: ContentType.Json,
-        format: "json",
+        format: 'json',
         ...params,
       }),
 
@@ -2786,15 +2786,15 @@ export class Api<
       questionId: string,
       organizationId: string,
       question: ModelsQuestion,
-      params: RequestParams = {},
+      params: RequestParams = {}
     ) =>
       this.request<Record<string, any>, Record<string, any>>({
         path: `/organizations/${organizationId}/questionnaires/${id}/questions/${questionId}`,
-        method: "PUT",
+        method: 'PUT',
         body: question,
         secure: true,
         type: ContentType.Json,
-        format: "json",
+        format: 'json',
         ...params,
       }),
 
@@ -2811,14 +2811,14 @@ export class Api<
       id: string,
       questionId: string,
       organizationId: string,
-      params: RequestParams = {},
+      params: RequestParams = {}
     ) =>
       this.request<Record<string, any>, Record<string, any>>({
         path: `/organizations/${organizationId}/questionnaires/${id}/questions/${questionId}`,
-        method: "DELETE",
+        method: 'DELETE',
         secure: true,
         type: ContentType.Json,
-        format: "json",
+        format: 'json',
         ...params,
       }),
 
@@ -2835,15 +2835,15 @@ export class Api<
       id: string,
       organizationId: string,
       order: string[],
-      params: RequestParams = {},
+      params: RequestParams = {}
     ) =>
       this.request<Record<string, any>, Record<string, any>>({
         path: `/organizations/${organizationId}/questionnaires/${id}/reorder`,
-        method: "POST",
+        method: 'POST',
         body: order,
         secure: true,
         type: ContentType.Json,
-        format: "json",
+        format: 'json',
         ...params,
       }),
   };

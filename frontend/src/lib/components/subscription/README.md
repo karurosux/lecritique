@@ -10,7 +10,7 @@ analyticsGroup := v1.Group("/analytics")
 analyticsGroup.Use(subscriptionMiddleware.RequireFeature(models.FlagAdvancedAnalytics))
 
 // For resource limits
-organizationGroup.POST("/organizations", 
+organizationGroup.POST("/organizations",
     subscriptionMiddleware.CheckResourceLimit("organization"),
     organizationHandler.Create,
 )
@@ -28,7 +28,7 @@ subscription, err := middleware.GetSubscriptionFromContext(c)
 import { subscription } from '$lib/stores/subscription';
 
 onMount(async () => {
-    await subscription.fetchPlanFeatures();
+  await subscription.fetchPlanFeatures();
 });
 ```
 
@@ -36,20 +36,20 @@ onMount(async () => {
 
 ```svelte
 <script>
-import { FeatureGate, FEATURES } from '$lib/components/subscription';
+  import { FeatureGate, FEATURES } from '$lib/components/subscription';
 </script>
 
 <FeatureGate feature={FEATURES.ADVANCED_ANALYTICS}>
-    <!-- This content only shows if user has advanced analytics -->
-    <AdvancedAnalyticsDashboard />
+  <!-- This content only shows if user has advanced analytics -->
+  <AdvancedAnalyticsDashboard />
 </FeatureGate>
 
 <!-- With custom fallback -->
 <FeatureGate feature={FEATURES.CUSTOM_BRANDING} showUpgradePrompt={false}>
-    <CustomBrandingSettings />
-    {#snippet fallback()}
-        <p>Upgrade to Professional plan to customize branding</p>
-    {/snippet}
+  <CustomBrandingSettings />
+  {#snippet fallback()}
+    <p>Upgrade to Professional plan to customize branding</p>
+  {/snippet}
 </FeatureGate>
 ```
 
@@ -57,12 +57,12 @@ import { FeatureGate, FEATURES } from '$lib/components/subscription';
 
 ```svelte
 <script>
-import { LimitGate, LIMITS } from '$lib/components/subscription';
-let organizationCount = 5; // Get this from your data
+  import { LimitGate, LIMITS } from '$lib/components/subscription';
+  let organizationCount = 5; // Get this from your data
 </script>
 
 <LimitGate limit={LIMITS.RESTAURANTS} currentCount={organizationCount}>
-    <button class="btn btn-primary">Add Organization</button>
+  <button class="btn btn-primary">Add Organization</button>
 </LimitGate>
 ```
 
@@ -70,12 +70,12 @@ let organizationCount = 5; // Get this from your data
 
 ```svelte
 <script>
-import { PlanBadge } from '$lib/components/subscription';
+  import { PlanBadge } from '$lib/components/subscription';
 </script>
 
 <div class="flex items-center gap-2">
-    <span>Current Plan:</span>
-    <PlanBadge />
+  <span>Current Plan:</span>
+  <PlanBadge />
 </div>
 ```
 
@@ -83,14 +83,19 @@ import { PlanBadge } from '$lib/components/subscription';
 
 ```svelte
 <script>
-import { hasFeature, getLimit, FEATURES, LIMITS } from '$lib/stores/subscription';
+  import {
+    hasFeature,
+    getLimit,
+    FEATURES,
+    LIMITS,
+  } from '$lib/stores/subscription';
 
-let showAnalytics = $derived($hasFeature(FEATURES.ADVANCED_ANALYTICS));
-let maxOrganizations = $derived($getLimit(LIMITS.RESTAURANTS));
+  let showAnalytics = $derived($hasFeature(FEATURES.ADVANCED_ANALYTICS));
+  let maxOrganizations = $derived($getLimit(LIMITS.RESTAURANTS));
 </script>
 
 {#if showAnalytics}
-    <AnalyticsSection />
+  <AnalyticsSection />
 {/if}
 
 <p>You can have up to {maxOrganizations} organizations</p>
@@ -107,11 +112,11 @@ import { redirect } from '@sveltejs/kit';
 import { get } from 'svelte/store';
 
 export async function load() {
-    const hasFeature = get(hasFeature);
-    
-    if (!hasFeature(FEATURES.ADVANCED_ANALYTICS)) {
-        throw redirect(303, '/subscription?upgrade=true');
-    }
+  const hasFeature = get(hasFeature);
+
+  if (!hasFeature(FEATURES.ADVANCED_ANALYTICS)) {
+    throw redirect(303, '/subscription?upgrade=true');
+  }
 }
 ```
 
@@ -119,14 +124,14 @@ export async function load() {
 
 ```svelte
 <nav>
-    <a href="/dashboard">Dashboard</a>
-    
-    <FeatureGate feature={FEATURES.ADVANCED_ANALYTICS} showUpgradePrompt={false}>
-        <a href="/analytics">Analytics</a>
-    </FeatureGate>
-    
-    <FeatureGate feature={FEATURES.API_ACCESS} showUpgradePrompt={false}>
-        <a href="/api">API Settings</a>
-    </FeatureGate>
+  <a href="/dashboard">Dashboard</a>
+
+  <FeatureGate feature={FEATURES.ADVANCED_ANALYTICS} showUpgradePrompt={false}>
+    <a href="/analytics">Analytics</a>
+  </FeatureGate>
+
+  <FeatureGate feature={FEATURES.API_ACCESS} showUpgradePrompt={false}>
+    <a href="/api">API Settings</a>
+  </FeatureGate>
 </nav>
 ```

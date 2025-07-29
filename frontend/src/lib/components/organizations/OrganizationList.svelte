@@ -27,7 +27,10 @@
     dispatch('organizationClick', organization);
   }
 
-  function handleOrganizationEdit(organization: Organization, event?: MouseEvent) {
+  function handleOrganizationEdit(
+    organization: Organization,
+    event?: MouseEvent
+  ) {
     dispatch('organizationEdit', { organization, event });
   }
 
@@ -35,14 +38,20 @@
     dispatch('organizationToggleStatus', organization);
   }
 
-  function handleOrganizationDelete(organization: Organization, event?: MouseEvent) {
+  function handleOrganizationDelete(
+    organization: Organization,
+    event?: MouseEvent
+  ) {
     dispatch('organizationDelete', { organization, event });
   }
 </script>
 
 {#if loading}
   <!-- Loading State -->
-  <div class="grid {viewMode === 'grid' ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3' : 'grid-cols-1'} gap-6">
+  <div
+    class="grid {viewMode === 'grid'
+      ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'
+      : 'grid-cols-1'} gap-6">
     {#each Array(6) as _, i}
       <div class="bg-white rounded-xl border border-gray-200 p-6 animate-pulse">
         <div class="flex items-start justify-between mb-4">
@@ -71,27 +80,28 @@
     title="No organizations found"
     description="You haven't added any organizations yet, or no organizations match your current filters."
     primaryAction={{
-      label: "Add Your First Organization",
-      onClick: () => dispatch('addOrganization')
+      label: 'Add Your First Organization',
+      onClick: () => dispatch('addOrganization'),
     }}
     secondaryAction={{
-      label: "Clear Filters", 
-      onClick: () => dispatch('clearFilters')
-    }}
-  />
+      label: 'Clear Filters',
+      onClick: () => dispatch('clearFilters'),
+    }} />
 {:else}
   <!-- Organization Cards -->
-  <div class="grid {viewMode === 'grid' ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3' : 'grid-cols-1'} gap-6">
+  <div
+    class="grid {viewMode === 'grid'
+      ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'
+      : 'grid-cols-1'} gap-6">
     {#each organizations as organization, index}
-      <OrganizationCard 
-        {organization} 
+      <OrganizationCard
+        {organization}
         {viewMode}
         {index}
         onclick={handleOrganizationClick}
         onedit={handleOrganizationEdit}
         ontogglestatus={handleOrganizationToggleStatus}
-        ondelete={handleOrganizationDelete}
-      />
+        ondelete={handleOrganizationDelete} />
     {/each}
   </div>
 {/if}

@@ -27,7 +27,7 @@
     phone: '',
     email: '',
     website: '',
-    cuisine_type: ''
+    cuisine_type: '',
   };
 
   $: authState = $auth;
@@ -60,7 +60,7 @@
     'Vegan',
     'Farm to Table',
     'Fusion',
-    'Other'
+    'Other',
   ];
 
   onMount(async () => {
@@ -78,10 +78,10 @@
 
     try {
       const api = getApiClient();
-      
+
       // Get organization details via API
       const response = await api.api.v1OrganizationsDetail(organizationId);
-      
+
       if (response.data.success && response.data.data) {
         const organization = response.data.data;
         formData = {
@@ -91,12 +91,11 @@
           phone: organization.phone || '',
           email: organization.email || '',
           website: organization.website || '',
-          cuisine_type: organization.cuisine_type || ''
+          cuisine_type: organization.cuisine_type || '',
         };
       } else {
         error = 'Organization not found';
       }
-
     } catch (err) {
       error = handleApiError(err);
     } finally {
@@ -154,7 +153,7 @@
 
     try {
       const api = getApiClient();
-      
+
       // Update organization via API
       const response = await api.api.v1OrganizationsUpdate(organizationId, {
         name: formData.name,
@@ -162,16 +161,15 @@
         address: formData.address || undefined,
         email: formData.email || undefined,
         phone: formData.phone || undefined,
-        website: formData.website || undefined
+        website: formData.website || undefined,
       });
-      
+
       if (response.data.success) {
         // Redirect to organizations list on success
         goto('/organizations');
       } else {
         error = 'Failed to update organization';
       }
-      
     } catch (err) {
       error = handleApiError(err);
     } finally {
@@ -199,8 +197,16 @@
           <p class="text-gray-600">Update organization information</p>
         </div>
         <Button variant="outline" on:click={handleCancel}>
-          <svg class="h-4 w-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          <svg
+            class="h-4 w-4 mr-2"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24">
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M6 18L18 6M6 6l12 12" />
           </svg>
           Cancel
         </Button>
@@ -231,15 +237,24 @@
           <div class="h-10 bg-gray-200 rounded w-1/4 ml-auto"></div>
         </div>
       </Card>
-
     {:else if error && !formData.name}
       <!-- Error State -->
       <Card>
         <div class="text-center py-12">
-          <svg class="h-12 w-12 text-red-500 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 3 1.732 3z" />
+          <svg
+            class="h-12 w-12 text-red-500 mx-auto mb-4"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24">
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 3 1.732 3z" />
           </svg>
-          <h3 class="text-lg font-medium text-gray-900 mb-2">Failed to load organization</h3>
+          <h3 class="text-lg font-medium text-gray-900 mb-2">
+            Failed to load organization
+          </h3>
           <p class="text-gray-600 mb-4">{error}</p>
           <div class="flex justify-center space-x-3">
             <Button on:click={loadOrganization}>Try Again</Button>
@@ -247,7 +262,6 @@
           </div>
         </div>
       </Card>
-
     {:else}
       <!-- Edit Form -->
       <form on:submit|preventDefault={handleSubmit}>
@@ -255,12 +269,16 @@
           <div class="space-y-6">
             <!-- Basic Information -->
             <div>
-              <h3 class="text-lg font-medium text-gray-900 mb-4">Basic Information</h3>
-              
+              <h3 class="text-lg font-medium text-gray-900 mb-4">
+                Basic Information
+              </h3>
+
               <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <!-- Organization Name -->
                 <div class="md:col-span-2">
-                  <label for="name" class="block text-sm font-medium text-gray-700 mb-2">
+                  <label
+                    for="name"
+                    class="block text-sm font-medium text-gray-700 mb-2">
                     Organization Name *
                   </label>
                   <Input
@@ -268,13 +286,14 @@
                     type="text"
                     placeholder="Enter organization name"
                     bind:value={formData.name}
-                    required
-                  />
+                    required />
                 </div>
 
                 <!-- Description -->
                 <div class="md:col-span-2">
-                  <label for="description" class="block text-sm font-medium text-gray-700 mb-2">
+                  <label
+                    for="description"
+                    class="block text-sm font-medium text-gray-700 mb-2">
                     Description
                   </label>
                   <textarea
@@ -282,20 +301,20 @@
                     rows="3"
                     class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     placeholder="Brief description of your organization"
-                    bind:value={formData.description}
-                  ></textarea>
+                    bind:value={formData.description}></textarea>
                 </div>
 
                 <!-- Cuisine Type -->
                 <div>
-                  <label for="cuisine_type" class="block text-sm font-medium text-gray-700 mb-2">
+                  <label
+                    for="cuisine_type"
+                    class="block text-sm font-medium text-gray-700 mb-2">
                     Cuisine Type
                   </label>
                   <select
                     id="cuisine_type"
                     class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    bind:value={formData.cuisine_type}
-                  >
+                    bind:value={formData.cuisine_type}>
                     <option value="">Select cuisine type</option>
                     {#each cuisineTypes as cuisine}
                       <option value={cuisine}>{cuisine}</option>
@@ -307,12 +326,16 @@
 
             <!-- Contact Information -->
             <div>
-              <h3 class="text-lg font-medium text-gray-900 mb-4">Contact Information</h3>
-              
+              <h3 class="text-lg font-medium text-gray-900 mb-4">
+                Contact Information
+              </h3>
+
               <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <!-- Address -->
                 <div class="md:col-span-2">
-                  <label for="address" class="block text-sm font-medium text-gray-700 mb-2">
+                  <label
+                    for="address"
+                    class="block text-sm font-medium text-gray-700 mb-2">
                     Address *
                   </label>
                   <Input
@@ -320,47 +343,49 @@
                     type="text"
                     placeholder="Enter full address"
                     bind:value={formData.address}
-                    required
-                  />
+                    required />
                 </div>
 
                 <!-- Phone -->
                 <div>
-                  <label for="phone" class="block text-sm font-medium text-gray-700 mb-2">
+                  <label
+                    for="phone"
+                    class="block text-sm font-medium text-gray-700 mb-2">
                     Phone Number
                   </label>
                   <Input
                     id="phone"
                     type="tel"
                     placeholder="+1 (555) 123-4567"
-                    bind:value={formData.phone}
-                  />
+                    bind:value={formData.phone} />
                 </div>
 
                 <!-- Email -->
                 <div>
-                  <label for="email" class="block text-sm font-medium text-gray-700 mb-2">
+                  <label
+                    for="email"
+                    class="block text-sm font-medium text-gray-700 mb-2">
                     Email Address
                   </label>
                   <Input
                     id="email"
                     type="email"
                     placeholder="organization@example.com"
-                    bind:value={formData.email}
-                  />
+                    bind:value={formData.email} />
                 </div>
 
                 <!-- Website -->
                 <div class="md:col-span-2">
-                  <label for="website" class="block text-sm font-medium text-gray-700 mb-2">
+                  <label
+                    for="website"
+                    class="block text-sm font-medium text-gray-700 mb-2">
                     Website
                   </label>
                   <Input
                     id="website"
                     type="url"
                     placeholder="https://yourorganization.com"
-                    bind:value={formData.website}
-                  />
+                    bind:value={formData.website} />
                 </div>
               </div>
             </div>
@@ -370,8 +395,14 @@
               <div class="bg-red-50 border border-red-200 rounded-md p-4">
                 <div class="flex">
                   <div class="flex-shrink-0">
-                    <svg class="h-5 w-5 text-red-400" fill="currentColor" viewBox="0 0 20 20">
-                      <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+                    <svg
+                      class="h-5 w-5 text-red-400"
+                      fill="currentColor"
+                      viewBox="0 0 20 20">
+                      <path
+                        fill-rule="evenodd"
+                        d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                        clip-rule="evenodd" />
                     </svg>
                   </div>
                   <div class="ml-3">
@@ -382,15 +413,29 @@
             {/if}
 
             <!-- Form Actions -->
-            <div class="flex justify-end space-x-3 pt-6 border-t border-gray-200">
+            <div
+              class="flex justify-end space-x-3 pt-6 border-t border-gray-200">
               <Button variant="outline" type="button" on:click={handleCancel}>
                 Cancel
               </Button>
               <Button type="submit" disabled={saving}>
                 {#if saving}
-                  <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white inline" fill="none" viewBox="0 0 24 24">
-                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  <svg
+                    class="animate-spin -ml-1 mr-3 h-5 w-5 text-white inline"
+                    fill="none"
+                    viewBox="0 0 24 24">
+                    <circle
+                      class="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      stroke-width="4"></circle>
+                    <path
+                      class="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                    ></path>
                   </svg>
                   Saving...
                 {:else}

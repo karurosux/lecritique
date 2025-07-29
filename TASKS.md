@@ -3,15 +3,18 @@
 ## 🚧 Active Development
 
 ### Questionnaire Builder
+
 **Status**: 80% complete
 
 **Remaining**:
+
 - [ ] Drag-and-drop question ordering
 - [ ] Question preview
 - [ ] Question templates
 - [ ] Bulk operations
 
 ## 🐛 Known Issues
+
 - Question ordering doesn't persist
 - Settings page incomplete
 - Email templates need work
@@ -20,6 +23,7 @@
 ## 📋 Next Priority Tasks
 
 ### Essential Features
+
 1. **Customer feedback submission flow**
    - Feedback form page with dynamic questionnaire loading
    - Question types: rating, scale, single choice, yes/no, text
@@ -51,6 +55,7 @@
    - Export functionality
 
 ## 💡 Backlog Ideas
+
 - AI response analysis
 - WhatsApp integration
 - Multi-language support
@@ -59,6 +64,7 @@
 - Advanced analytics (sentiment analysis, word clouds)
 
 ## 🔧 Technical Debt
+
 - [ ] Add comprehensive error boundaries
 - [ ] Implement proper logging
 - [ ] Add unit tests for components
@@ -67,6 +73,7 @@
 - [ ] Implement proper caching strategy
 
 ## 📝 Development Notes
+
 - **Test User**: admin@kyooar.com / admin123
 - **Commands**: `make seed` or `make seed-force`
 - **Remember**: Questionnaires are product-specific (core feature!)
@@ -74,4 +81,5 @@
 - **UI**: Use Svelte 5 runes ($state, $derived, $effect)
 
 ## Last Updated
+
 2025-07-17

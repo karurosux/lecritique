@@ -23,13 +23,13 @@ func main() {
 
 	fmt.Println("Creating subscription plans...")
 
-	// Free Plan
+	// Starter Plan (Basic tier)
 	err = db.Exec(`
 		INSERT INTO subscription_plans (code, name, description, price, currency, 
 			max_organizations, max_qr_codes, max_feedbacks_per_month, max_team_members,
 			has_basic_analytics, has_advanced_analytics, has_feedback_explorer, 
-			has_custom_branding, has_priority_support, is_active, is_visible, trial_days)
-		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, true, true, ?)
+			has_custom_branding, has_priority_support, is_active, is_visible, is_popular, trial_days)
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, true, true, false, ?)
 		ON CONFLICT (code) DO UPDATE SET
 			name = EXCLUDED.name,
 			description = EXCLUDED.description,
@@ -46,17 +46,18 @@ func main() {
 			has_priority_support = EXCLUDED.has_priority_support,
 			is_active = EXCLUDED.is_active,
 			is_visible = EXCLUDED.is_visible,
+			is_popular = EXCLUDED.is_popular,
 			trial_days = EXCLUDED.trial_days
-	`, "free", "Free", "Perfect for trying out Kyooar", 0.00, "USD",
-	1, 3, 25, 1, true, false, false, false, false, 0).Error
+	`, "starter", "Starter", "Perfect for small businesses just getting started", 29.99, "USD",
+	1, 10, 500, 2, true, false, true, false, false, 14).Error
 
 	if err != nil {
-		log.Printf("⚠️  Warning: Failed to create Free plan: %v\n", err)
+		log.Printf("⚠️  Warning: Failed to create Starter plan: %v\n", err)
 	} else {
-		fmt.Println("✅ Created Free plan")
+		fmt.Println("✅ Created Starter plan")
 	}
 
-	// Starter Plan
+	// Professional Plan (Most popular - middle tier)
 	err = db.Exec(`
 		INSERT INTO subscription_plans (code, name, description, price, currency, 
 			max_organizations, max_qr_codes, max_feedbacks_per_month, max_team_members,
@@ -81,42 +82,8 @@ func main() {
 			is_visible = EXCLUDED.is_visible,
 			is_popular = EXCLUDED.is_popular,
 			trial_days = EXCLUDED.trial_days
-	`, "starter", "Starter", "Perfect for small organizations just getting started", 29.99, "USD",
-	3, 15, 200, 3, true, true, true, false, false, 14).Error
-
-	if err != nil {
-		log.Printf("⚠️  Warning: Failed to create Starter plan: %v\n", err)
-	} else {
-		fmt.Println("✅ Created Starter plan")
-	}
-
-	// Professional Plan  
-	err = db.Exec(`
-		INSERT INTO subscription_plans (code, name, description, price, currency, 
-			max_organizations, max_qr_codes, max_feedbacks_per_month, max_team_members,
-			has_basic_analytics, has_advanced_analytics, has_feedback_explorer, 
-			has_custom_branding, has_priority_support, is_active, is_visible, is_popular, trial_days)
-		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, true, true, false, ?)
-		ON CONFLICT (code) DO UPDATE SET
-			name = EXCLUDED.name,
-			description = EXCLUDED.description,
-			price = EXCLUDED.price,
-			currency = EXCLUDED.currency,
-			max_organizations = EXCLUDED.max_organizations,
-			max_qr_codes = EXCLUDED.max_qr_codes,
-			max_feedbacks_per_month = EXCLUDED.max_feedbacks_per_month,
-			max_team_members = EXCLUDED.max_team_members,
-			has_basic_analytics = EXCLUDED.has_basic_analytics,
-			has_advanced_analytics = EXCLUDED.has_advanced_analytics,
-			has_feedback_explorer = EXCLUDED.has_feedback_explorer,
-			has_custom_branding = EXCLUDED.has_custom_branding,
-			has_priority_support = EXCLUDED.has_priority_support,
-			is_active = EXCLUDED.is_active,
-			is_visible = EXCLUDED.is_visible,
-			is_popular = EXCLUDED.is_popular,
-			trial_days = EXCLUDED.trial_days
-	`, "professional", "Professional", "For growing organization chains and franchises", 79.99, "USD",
-	10, 50, 1000, 10, true, true, true, true, true, 14).Error
+	`, "professional", "Professional", "For growing businesses and multiple locations", 79.99, "USD",
+	3, 50, 2000, 5, true, false, true, false, false, 14).Error
 
 	if err != nil {
 		log.Printf("⚠️  Warning: Failed to create Professional plan: %v\n", err)
@@ -124,7 +91,7 @@ func main() {
 		fmt.Println("✅ Created Professional plan")
 	}
 
-	// Premium Plan
+	// Premium Plan (Enterprise tier with advanced analytics)
 	err = db.Exec(`
 		INSERT INTO subscription_plans (code, name, description, price, currency, 
 			max_organizations, max_qr_codes, max_feedbacks_per_month, max_team_members,
@@ -149,8 +116,8 @@ func main() {
 			is_visible = EXCLUDED.is_visible,
 			is_popular = EXCLUDED.is_popular,
 			trial_days = EXCLUDED.trial_days
-	`, "premium", "Premium", "Enterprise scale with premium support and features", 199.99, "USD",
-	50, 500, 5000, 50, true, true, true, true, true, 30).Error
+	`, "premium", "Premium", "Enterprise solution with advanced features and priority support", 199.99, "USD",
+	10, 200, 5000, 20, true, true, true, false, true, 30).Error
 
 	if err != nil {
 		log.Printf("⚠️  Warning: Failed to create Premium plan: %v\n", err)
@@ -160,8 +127,7 @@ func main() {
 
 	fmt.Println("\n🎉 Subscription plans created successfully!")
 	fmt.Println("📊 Plans available:")
-	fmt.Println("   • Free: $0.00/month - 1 organization, 3 QR codes, 25 feedbacks/month")
-	fmt.Println("   • Starter: $29.99/month - 3 organizations, 15 QR codes, 200 feedbacks/month")
-	fmt.Println("   • Professional: $79.99/month - 10 organizations, 50 QR codes, 1000 feedbacks/month") 
-	fmt.Println("   • Premium: $199.99/month - 50 organizations, 500 QR codes, 5000 feedbacks/month")
+	fmt.Println("   • Starter: $29.99/month - 1 organization, 10 QR codes, 500 feedbacks/month, 2 team members")
+	fmt.Println("   • Professional: $79.99/month - 3 organizations, 50 QR codes, 2000 feedbacks/month, 5 team members") 
+	fmt.Println("   • Premium: $199.99/month - 10 organizations, 200 QR codes, 5000 feedbacks/month, 20 team members + Advanced Analytics")
 }

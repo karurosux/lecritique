@@ -1,16 +1,16 @@
 <script lang="ts">
-  import { onMount } from "svelte";
-  import { Button, Card } from "$lib/components/ui";
-  import { Loader2, CreditCard, ExternalLink } from "lucide-svelte";
+  import { onMount } from 'svelte';
+  import { Button, Card } from '$lib/components/ui';
+  import { Loader2, CreditCard, ExternalLink } from 'lucide-svelte';
   import {
     subscription,
     currentPlan,
     planLimits,
-  } from "$lib/stores/subscription";
-  import { APP_CONFIG } from "$lib/constants/config";
-  import { PlanSelector } from "$lib/components/subscription";
-  import type { ModelsSubscriptionPlan } from "$lib/api/api";
-  import { LIMITS } from "$lib/subscription/feature-registry";
+  } from '$lib/stores/subscription';
+  import { APP_CONFIG } from '$lib/constants/config';
+  import { PlanSelector } from '$lib/components/subscription';
+  import type { ModelsSubscriptionPlan } from '$lib/api/api';
+  import { LIMITS } from '$lib/subscription/feature-registry';
 
   interface Props {
     onError?: (message: string) => void;
@@ -35,7 +35,7 @@
         subscription.fetchUsage(),
       ]);
     } catch (error) {
-      onError?.("Failed to load subscription data");
+      onError?.('Failed to load subscription data');
     } finally {
       isLoading = false;
     }
@@ -49,7 +49,7 @@
         window.location.href = session.checkout_url;
       }
     } catch (error) {
-      onError?.("Failed to create checkout session");
+      onError?.('Failed to create checkout session');
     } finally {
       isCreatingSession = false;
     }
@@ -60,10 +60,10 @@
     try {
       const session = await subscription.createPortalSession();
       if (session.portal_url) {
-        window.open(session.portal_url, "_blank");
+        window.open(session.portal_url, '_blank');
       }
     } catch (error) {
-      onError?.("Failed to open billing portal");
+      onError?.('Failed to open billing portal');
     } finally {
       isCreatingSession = false;
     }
@@ -71,19 +71,19 @@
 
   // Format price display
   function formatPrice(price: number) {
-    return new Intl.NumberFormat("en-US", {
-      style: "currency",
-      currency: "USD",
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
       minimumFractionDigits: 0,
     }).format(price);
   }
 
   // Format date
   function formatDate(dateString: string) {
-    return new Date(dateString).toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
     });
   }
 
@@ -93,20 +93,19 @@
   let plans = $derived(subscriptionData.plans || []);
   let usage = $derived(subscriptionData.usage);
 
-
   // Use subscription data from API instead of JWT for plan details
   let currentSubscription = $derived(subscriptionData.subscription);
   let actualCurrentPlan = $derived(
     currentSubscription && plans.length > 0
-      ? plans.find((p) => p.id === currentSubscription.plan_id)
-      : null,
+      ? plans.find(p => p.id === currentSubscription.plan_id)
+      : null
   );
 
   // Check if current plan is custom (not in visible plans list)
   let isCustomPlan = $derived(
     currentSubscription &&
       plans.length > 0 &&
-      !plans.find((p) => p.id === currentSubscription.plan_id),
+      !plans.find(p => p.id === currentSubscription.plan_id)
   );
 </script>
 
@@ -131,13 +130,11 @@
             <svg
               class="h-5 w-5 text-amber-400"
               viewBox="0 0 20 20"
-              fill="currentColor"
-            >
+              fill="currentColor">
               <path
                 fill-rule="evenodd"
                 d="M10 18a8 8 0 100-16 8 8 0 000 16zm0-2a6 6 0 100-12 6 6 0 000 12zm0-10a1 1 0 011 1v4a1 1 0 11-2 0V7a1 1 0 011-1zm0 8a1 1 0 100-2 1 1 0 000 2z"
-                clip-rule="evenodd"
-              />
+                clip-rule="evenodd" />
             </svg>
           </div>
           <div class="ml-3">
@@ -159,8 +156,7 @@
     <!-- Current Plan -->
     <div class="mb-8">
       <div
-        class="bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl p-6 text-white"
-      >
+        class="bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl p-6 text-white">
         <div class="flex items-start justify-between">
           <div>
             <h3 class="text-sm font-medium text-blue-100">Current Plan</h3>
@@ -168,20 +164,19 @@
               <p class="text-2xl font-bold">
                 {actualCurrentPlan?.name ||
                   currentSubscription?.plan_name ||
-                  "Unknown"}
+                  'Unknown'}
               </p>
               {#if isCustomPlan}
                 <span
-                  class="bg-amber-400 text-amber-900 text-xs font-semibold px-2 py-1 rounded-full"
-                >
+                  class="bg-amber-400 text-amber-900 text-xs font-semibold px-2 py-1 rounded-full">
                   CUSTOM
                 </span>
               {/if}
             </div>
             <p class="mt-2 text-sm text-blue-100">
               {formatPrice(
-                actualCurrentPlan?.price || 0,
-              )}/{actualCurrentPlan?.interval || "month"}
+                actualCurrentPlan?.price || 0
+              )}/{actualCurrentPlan?.interval || 'month'}
             </p>
           </div>
           <div class="text-right">
@@ -192,15 +187,13 @@
           </div>
         </div>
 
-
         <div class="mt-6">
           <Button
             variant="glass"
             size="sm"
             onclick={handleManageBilling}
             disabled={isCreatingSession}
-            class="text-white border-white/20 hover:bg-white/10"
-          >
+            class="text-white border-white/20 hover:bg-white/10">
             <CreditCard class="h-4 w-4 mr-2" />
             Manage Billing
             <ExternalLink class="h-3 w-3 ml-2" />
@@ -219,8 +212,7 @@
           currentPlanId={currentSubscription?.plan_id}
           isLoading={isCreatingSession}
           onSelectPlan={handleUpgrade}
-          actionLabel={(plan) => `Upgrade to ${plan.name}`}
-        />
+          actionLabel={plan => `Upgrade to ${plan.name}`} />
       </div>
     {/if}
   {:else}
@@ -229,20 +221,16 @@
       <h3 class="text-lg font-semibold text-gray-900 mb-2">
         No Active Subscription
       </h3>
-      <p class="text-gray-600 mb-6">
-        Choose a plan to get started with Kyooar
-      </p>
+      <p class="text-gray-600 mb-6">Choose a plan to get started with Kyooar</p>
 
       <div class="mt-8">
         <PlanSelector
           {plans}
           isLoading={isCreatingSession}
           onSelectPlan={handleUpgrade}
-          actionLabel={() => "Get Started"}
-          showCurrentBadge={false}
-        />
+          actionLabel={() => 'Get Started'}
+          showCurrentBadge={false} />
       </div>
     </Card>
   {/if}
 </div>
-

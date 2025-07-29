@@ -9,7 +9,7 @@
 
   let organizationId = $page.params.id;
   let productId = $page.params.productId;
-  
+
   let productName = $state('');
   let loading = $state(true);
   let error = $state('');
@@ -21,8 +21,9 @@
   async function fetchProductName() {
     try {
       const api = getApiClient();
-      const response = await api.api.v1OrganizationsProductsList(organizationId);
-      
+      const response =
+        await api.api.v1OrganizationsProductsList(organizationId);
+
       if (response.data.success && response.data.data) {
         const product = response.data.data.find((d: any) => d.id === productId);
         if (product) {
@@ -42,30 +43,35 @@
   function goBack() {
     goto(`/organizations/${organizationId}/products`);
   }
-
 </script>
 
 <div class="space-y-6">
   <!-- Header -->
   <div class="flex items-center gap-4">
-    <Button 
+    <Button
       onclick={goBack}
-      variant="ghost" 
+      variant="ghost"
       size="sm"
-      class="flex items-center gap-2"
-    >
+      class="flex items-center gap-2">
       <ArrowLeft class="h-4 w-4" />
       Back to Products
     </Button>
     <div class="flex items-center gap-3">
-      <div class="h-10 w-10 bg-gradient-to-br from-purple-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg shadow-purple-500/25">
+      <div
+        class="h-10 w-10 bg-gradient-to-br from-purple-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg shadow-purple-500/25">
         <ClipboardList class="h-5 w-5 text-white" />
       </div>
       <div>
         <h1 class="text-xl font-bold text-gray-900">
-          {loading ? 'Loading...' : productName ? `${productName} Questionnaire` : 'Create Questionnaire'}
+          {loading
+            ? 'Loading...'
+            : productName
+              ? `${productName} Questionnaire`
+              : 'Create Questionnaire'}
         </h1>
-        <p class="text-sm text-gray-600">Design targeted feedback questions for this product</p>
+        <p class="text-sm text-gray-600">
+          Design targeted feedback questions for this product
+        </p>
       </div>
     </div>
   </div>
@@ -73,10 +79,7 @@
   <!-- Content -->
   <div class="space-y-6">
     {#if !loading}
-      <QuestionnaireBuilder
-        {organizationId}
-        {productId}
-      />
+      <QuestionnaireBuilder {organizationId} {productId} />
     {/if}
   </div>
 </div>

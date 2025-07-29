@@ -19,7 +19,7 @@ export const LIMITS = {
   RESTAURANTS: 'max_organizations',
   QR_CODES: 'max_qr_codes',
   FEEDBACKS_PER_MONTH: 'max_feedbacks_per_month',
-  TEAM_MEMBERS: 'max_team_members'
+  TEAM_MEMBERS: 'max_team_members',
 } as const;
 
 export const FLAGS = {
@@ -27,7 +27,7 @@ export const FLAGS = {
   ADVANCED_ANALYTICS: 'advanced_analytics',
   FEEDBACK_EXPLORER: 'feedback_explorer',
   CUSTOM_BRANDING: 'custom_branding',
-  PRIORITY_SUPPORT: 'priority_support'
+  PRIORITY_SUPPORT: 'priority_support',
 } as const;
 
 // Feature registry with all feature definitions
@@ -43,7 +43,7 @@ export const featureRegistry: Record<string, FeatureDefinition> = {
     format: '{value} organization(s)',
     icon: 'store',
     category: 'core',
-    sortOrder: 1
+    sortOrder: 1,
   },
   [LIMITS.QR_CODES]: {
     key: LIMITS.QR_CODES,
@@ -55,7 +55,7 @@ export const featureRegistry: Record<string, FeatureDefinition> = {
     format: '{value} QR codes',
     icon: 'qr-code',
     category: 'core',
-    sortOrder: 2
+    sortOrder: 2,
   },
   [LIMITS.FEEDBACKS_PER_MONTH]: {
     key: LIMITS.FEEDBACKS_PER_MONTH,
@@ -67,7 +67,7 @@ export const featureRegistry: Record<string, FeatureDefinition> = {
     format: '{value} feedbacks/month',
     icon: 'message-square',
     category: 'core',
-    sortOrder: 3
+    sortOrder: 3,
   },
   [LIMITS.TEAM_MEMBERS]: {
     key: LIMITS.TEAM_MEMBERS,
@@ -79,7 +79,7 @@ export const featureRegistry: Record<string, FeatureDefinition> = {
     format: '{value} team member(s)',
     icon: 'users',
     category: 'collaboration',
-    sortOrder: 4
+    sortOrder: 4,
   },
 
   // Flags
@@ -90,7 +90,7 @@ export const featureRegistry: Record<string, FeatureDefinition> = {
     description: 'View feedback analytics and insights',
     icon: 'bar-chart-2',
     category: 'analytics',
-    sortOrder: 20
+    sortOrder: 20,
   },
   [FLAGS.ADVANCED_ANALYTICS]: {
     key: FLAGS.ADVANCED_ANALYTICS,
@@ -99,7 +99,7 @@ export const featureRegistry: Record<string, FeatureDefinition> = {
     description: 'Detailed insights and reporting',
     icon: 'bar-chart',
     category: 'analytics',
-    sortOrder: 21
+    sortOrder: 21,
   },
   [FLAGS.FEEDBACK_EXPLORER]: {
     key: FLAGS.FEEDBACK_EXPLORER,
@@ -108,7 +108,7 @@ export const featureRegistry: Record<string, FeatureDefinition> = {
     description: 'Browse and search all feedback',
     icon: 'search',
     category: 'analytics',
-    sortOrder: 22
+    sortOrder: 22,
   },
   [FLAGS.CUSTOM_BRANDING]: {
     key: FLAGS.CUSTOM_BRANDING,
@@ -117,7 +117,7 @@ export const featureRegistry: Record<string, FeatureDefinition> = {
     description: 'Customize with your brand',
     icon: 'palette',
     category: 'customization',
-    sortOrder: 23
+    sortOrder: 23,
   },
   [FLAGS.PRIORITY_SUPPORT]: {
     key: FLAGS.PRIORITY_SUPPORT,
@@ -126,12 +126,14 @@ export const featureRegistry: Record<string, FeatureDefinition> = {
     description: '24/7 priority customer support',
     icon: 'headphones',
     category: 'support',
-    sortOrder: 24
-  }
+    sortOrder: 24,
+  },
 };
 
 // Helper functions
-export function getFeatureDefinition(key: string): FeatureDefinition | undefined {
+export function getFeatureDefinition(
+  key: string
+): FeatureDefinition | undefined {
   return featureRegistry[key];
 }
 
@@ -141,7 +143,10 @@ export function getFeaturesByCategory(category: string): FeatureDefinition[] {
     .sort((a, b) => a.sortOrder - b.sortOrder);
 }
 
-export function formatFeatureValue(key: string, value: number | boolean): string {
+export function formatFeatureValue(
+  key: string,
+  value: number | boolean
+): string {
   const def = featureRegistry[key];
   if (!def) return '';
 
@@ -150,7 +155,7 @@ export function formatFeatureValue(key: string, value: number | boolean): string
     if (limitValue === -1) {
       return def.unlimitedText || 'Unlimited';
     }
-    
+
     let result = def.format || '{value} {unit}';
     result = result.replace('{value}', limitValue.toLocaleString());
     result = result.replace('{unit}', def.unit || '');
@@ -167,18 +172,18 @@ export function formatFeatureValue(key: string, value: number | boolean): string
 // Get all features from a plan in display order
 export function getPlanFeatures(plan: any): string[] {
   const features: string[] = [];
-  
+
   // Add base features available for all plans
   features.push('Analytics Dashboard');
   features.push('Feedback Explorer');
-  
+
   // Process limits
   if (plan.features?.limits) {
     Object.entries(plan.features.limits)
       .map(([key, value]) => ({
         key,
         value,
-        def: featureRegistry[key]
+        def: featureRegistry[key],
       }))
       .filter(item => item.def)
       .sort((a, b) => a.def.sortOrder - b.def.sortOrder)
@@ -187,14 +192,14 @@ export function getPlanFeatures(plan: any): string[] {
         if (formatted) features.push(formatted);
       });
   }
-  
+
   // Process flags
   if (plan.features?.flags) {
     Object.entries(plan.features.flags)
       .map(([key, value]) => ({
         key,
         value,
-        def: featureRegistry[key]
+        def: featureRegistry[key],
       }))
       .filter(item => item.def && item.value === true)
       .sort((a, b) => a.def.sortOrder - b.def.sortOrder)
@@ -202,6 +207,6 @@ export function getPlanFeatures(plan: any): string[] {
         features.push(item.def.displayName);
       });
   }
-  
+
   return features;
 }

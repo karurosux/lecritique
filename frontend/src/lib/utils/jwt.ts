@@ -64,7 +64,9 @@ export function isTokenExpired(token: string): boolean {
 /**
  * Extract subscription features from JWT token
  */
-export function getSubscriptionFeaturesFromToken(token: string): JwtPayload['subscription_features'] | null {
+export function getSubscriptionFeaturesFromToken(
+  token: string
+): JwtPayload['subscription_features'] | null {
   const payload = decodeJwt(token);
   return payload?.subscription_features || null;
 }

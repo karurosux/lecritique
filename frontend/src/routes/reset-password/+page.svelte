@@ -1,25 +1,25 @@
 <script lang="ts">
-  import { goto } from "$app/navigation";
-  import { page } from "$app/stores";
-  import { Api } from "$lib/api/api";
-  import { Button, Card, Input, Logo } from "$lib/components/ui";
-  import { Check, Lock } from "lucide-svelte";
+  import { goto } from '$app/navigation';
+  import { page } from '$app/stores';
+  import { Api } from '$lib/api/api';
+  import { Button, Card, Input, Logo } from '$lib/components/ui';
+  import { Check, Lock } from 'lucide-svelte';
 
   const api = new Api({
-    baseURL: import.meta.env.VITE_API_URL || "http://localhost:8080",
+    baseURL: import.meta.env.VITE_API_URL || 'http://localhost:8080',
   });
 
-  let newPassword = $state("");
-  let confirmPassword = $state("");
+  let newPassword = $state('');
+  let confirmPassword = $state('');
   let loading = $state(false);
-  let error = $state("");
+  let error = $state('');
   let success = $state(false);
 
-  const token = $derived($page.url.searchParams.get("token") || "");
+  const token = $derived($page.url.searchParams.get('token') || '');
 
   $effect(() => {
     if (!token) {
-      goto("/forgot-password");
+      goto('/forgot-password');
     }
   });
 
@@ -27,17 +27,17 @@
     e.preventDefault();
 
     if (newPassword !== confirmPassword) {
-      error = "Passwords do not match";
+      error = 'Passwords do not match';
       return;
     }
 
     if (newPassword.length < 8) {
-      error = "Password must be at least 8 characters long";
+      error = 'Password must be at least 8 characters long';
       return;
     }
 
     loading = true;
-    error = "";
+    error = '';
 
     try {
       await api.api.v1AuthResetPasswordCreate({
@@ -46,12 +46,12 @@
       });
       success = true;
       setTimeout(() => {
-        goto("/login");
+        goto('/login');
       }, 3000);
     } catch (err: any) {
       error =
         err.response?.data?.message ||
-        "Failed to reset password. The link may have expired.";
+        'Failed to reset password. The link may have expired.';
     } finally {
       loading = false;
     }
@@ -62,8 +62,7 @@
   <title>Reset Password - Kyooar</title>
   <meta
     name="description"
-    content="Create a new password for your Kyooar account"
-  />
+    content="Create a new password for your Kyooar account" />
 </svelte:head>
 
 <div class="min-h-screen flex flex-col justify-center py-12 sm:px-6 lg:px-8">
@@ -74,8 +73,7 @@
 
     <div class="text-center space-y-3">
       <h2
-        class="text-4xl font-bold bg-gradient-to-r from-gray-900 via-blue-800 to-purple-800 bg-clip-text text-transparent"
-      >
+        class="text-4xl font-bold bg-gradient-to-r from-gray-900 via-blue-800 to-purple-800 bg-clip-text text-transparent">
         Set New Password
       </h2>
       <p class="text-gray-600 text-lg">
@@ -89,8 +87,7 @@
       <Card>
         <div class="text-center space-y-6">
           <div
-            class="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-gradient-to-r from-green-400 to-green-600 shadow-lg"
-          >
+            class="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-gradient-to-r from-green-400 to-green-600 shadow-lg">
             <Check class="h-8 w-8 text-white" />
           </div>
           <div class="space-y-2">
@@ -104,14 +101,12 @@
             href="/login"
             variant="gradient"
             size="lg"
-            class="w-full shadow-lg hover:shadow-xl transition-all duration-300"
-          >
+            class="w-full shadow-lg hover:shadow-xl transition-all duration-300">
             <svg
               class="w-5 h-5 mr-2"
               fill="none"
               stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
+              viewBox="0 0 24 24">
               <path
                 stroke-linecap="round"
                 stroke-linejoin="round"
@@ -135,8 +130,7 @@
             placeholder="Enter new password"
             autocomplete="new-password"
             disabled={loading}
-            minlength={8}
-          />
+            minlength={8} />
 
           <Input
             type="password"
@@ -147,8 +141,7 @@
             placeholder="Confirm new password"
             autocomplete="new-password"
             disabled={loading}
-            minlength={8}
-          />
+            minlength={8} />
 
           <p class="text-xs text-gray-500">
             Password must be at least 8 characters long
@@ -161,13 +154,11 @@
                   <svg
                     class="h-5 w-5 text-red-400"
                     fill="currentColor"
-                    viewBox="0 0 20 20"
-                  >
+                    viewBox="0 0 20 20">
                     <path
                       fill-rule="evenodd"
                       d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
-                      clip-rule="evenodd"
-                    />
+                      clip-rule="evenodd" />
                   </svg>
                 </div>
                 <div class="ml-3">
@@ -182,22 +173,19 @@
             variant="gradient"
             size="lg"
             disabled={loading || !newPassword || !confirmPassword}
-            class="w-full shadow-lg hover:shadow-xl transition-all duration-300"
-          >
+            class="w-full shadow-lg hover:shadow-xl transition-all duration-300">
             {#if loading}
               <svg
                 class="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
                 fill="none"
-                viewBox="0 0 24 24"
-              >
+                viewBox="0 0 24 24">
                 <circle
                   class="opacity-25"
                   cx="12"
                   cy="12"
                   r="10"
                   stroke="currentColor"
-                  stroke-width="4"
-                ></circle>
+                  stroke-width="4"></circle>
                 <path
                   class="opacity-75"
                   fill="currentColor"
@@ -210,8 +198,7 @@
                 class="w-5 h-5 mr-2"
                 fill="none"
                 stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
+                viewBox="0 0 24 24">
                 <path
                   stroke-linecap="round"
                   stroke-linejoin="round"
@@ -227,4 +214,3 @@
     {/if}
   </div>
 </div>
-

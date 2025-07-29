@@ -45,6 +45,7 @@ See [API_DOCS.md](./API_DOCS.md) for detailed endpoint documentation.
 ### Development
 
 For hot reload during development:
+
 ```bash
 # Install air
 go install github.com/cosmtrek/air@latest
