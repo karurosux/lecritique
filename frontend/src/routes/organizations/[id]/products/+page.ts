@@ -1,8 +1,12 @@
 import { requireActiveSubscription } from '$lib/subscription/route-guard';
+import { requireAuth } from '$lib/utils/auth-guard';
+import { browser } from '$app/environment';
 
 export async function load() {
-	// Require active subscription to manage products
-	requireActiveSubscription();
+	if (browser) {
+		requireAuth();
+		requireActiveSubscription();
+	}
 	
 	return {};
 }

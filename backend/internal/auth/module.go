@@ -30,8 +30,8 @@ func (m *Module) RegisterRoutes(v1 *echo.Group) {
 	auth.POST("/refresh", authHandler.RefreshToken)
 	auth.GET("/verify-email", authHandler.VerifyEmail)
 	auth.POST("/resend-verification", authHandler.ResendVerificationEmail)
-	auth.POST("/password-reset", authHandler.SendPasswordReset)
-	auth.POST("/password-reset/confirm", authHandler.ResetPassword)
+	auth.POST("/forgot-password", authHandler.SendPasswordReset)
+	auth.POST("/reset-password", authHandler.ResetPassword)
 	
 	// Protected auth routes
 	authProtected := v1.Group("/auth")

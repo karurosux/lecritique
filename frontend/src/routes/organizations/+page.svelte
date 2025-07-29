@@ -109,7 +109,7 @@
           id: organization.id || "",
           name: organization.name || "",
           description: organization.description || "",
-          address: "", // Note: address would come from locations array
+          address: organization.address || "",
           phone: organization.phone || "",
           email: organization.email || "",
           website: organization.website || "",

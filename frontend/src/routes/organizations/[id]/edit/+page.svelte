@@ -87,11 +87,11 @@
         formData = {
           name: organization.name || '',
           description: organization.description || '',
-          address: '', // Note: address would come from locations array
+          address: organization.address || '',
           phone: organization.phone || '',
           email: organization.email || '',
           website: organization.website || '',
-          cuisine_type: '' // Note: cuisine_type not in API model
+          cuisine_type: organization.cuisine_type || ''
         };
       } else {
         error = 'Organization not found';
@@ -159,6 +159,7 @@
       const response = await api.api.v1OrganizationsUpdate(organizationId, {
         name: formData.name,
         description: formData.description || undefined,
+        address: formData.address || undefined,
         email: formData.email || undefined,
         phone: formData.phone || undefined,
         website: formData.website || undefined

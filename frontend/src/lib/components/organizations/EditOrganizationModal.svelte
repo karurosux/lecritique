@@ -1,159 +1,113 @@
 <script lang="ts">
-  import { Modal, Button, Input } from '$lib/components/ui';
+  import { Modal, Button, Input, Card } from '$lib/components/ui';
   import { getApiClient, handleApiError } from '$lib/api/client';
-  import { Loader2 } from 'lucide-svelte';
   import { toast } from 'svelte-sonner';
 
-  interface OrganizationForm {
-    name: string;
-    description: string;
-    address: string;
-    phone: string;
-    email: string;
-    website: string;
-    cuisine_type: string;
-  }
-
   let {
+    isOpen = $bindable(true),
     organization,
     clickOrigin = null,
-    onclose,
-    onupdated
+    onclose = () => {},
+    onupdated = () => {}
   }: {
+    isOpen?: boolean;
     organization: any;
     clickOrigin?: { x: number; y: number } | null;
-    onclose: () => void;
-    onupdated: () => void;
+    onclose?: () => void;
+    onupdated?: () => void;
   } = $props();
 
-  let saving = false;
-  let error = '';
-  let formData: OrganizationForm = {
+  let formData = $state({
     name: organization?.name || '',
     description: organization?.description || '',
-    address: '', // Note: address would come from locations array
+    address: organization?.address || '',
     phone: organization?.phone || '',
     email: organization?.email || '',
-    website: organization?.website || '',
-    cuisine_type: '' // Note: cuisine_type not in API model
-  };
+    website: organization?.website || ''
+  });
 
-  const cuisineTypes = [
-    'American',
-    'Italian',
-    'Mexican',
-    'Chinese',
-    'Japanese',
-    'Thai',
-    'Indian',
-    'French',
-    'Mediterranean',
-    'Greek',
-    'Spanish',
-    'Korean',
-    'Vietnamese',
-    'Middle Eastern',
-    'Brazilian',
-    'Seafood',
-    'Steakhouse',
-    'BBQ',
-    'Pizza',
-    'Fast Food',
-    'Cafe',
-    'Bakery',
-    'Vegetarian',
-    'Vegan',
-    'Farm to Table',
-    'Fusion',
-    'Other'
-  ];
+  let loading = $state(false);
+  let error = $state('');
 
-  function validateForm(): boolean {
-    error = '';
-
-    if (!formData.name.trim()) {
-      error = 'Organization name is required';
-      return false;
-    }
-
-    if (formData.email && !isValidEmail(formData.email)) {
-      error = 'Please enter a valid email address';
-      return false;
-    }
-
-    if (formData.website && !isValidUrl(formData.website)) {
-      error = 'Please enter a valid website URL';
-      return false;
-    }
-
-    return true;
-  }
-
-  function isValidEmail(email: string): boolean {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email);
-  }
-
-  function isValidUrl(url: string): boolean {
-    try {
-      new URL(url);
-      return true;
-    } catch {
-      return false;
+  function handleClose() {
+    if (!loading) {
+      isOpen = false;
+      onclose();
     }
   }
 
-  async function handleSubmit() {
-    if (!validateForm()) {
+  async function handleSubmit(event: Event) {
+    event.preventDefault();
+    if (!formData.name.trim() || !formData.address.trim()) {
+      error = 'Organization name and address are required.';
       return;
     }
 
-    saving = true;
+    loading = true;
     error = '';
 
     try {
       const api = getApiClient();
       
-      // Update organization via API
-      const response = await api.api.v1OrganizationsUpdate(organization.id, {
-        name: formData.name,
-        description: formData.description || undefined,
-        email: formData.email || undefined,
-        phone: formData.phone || undefined,
-        website: formData.website || undefined
-      });
+      const organizationData = {
+        name: formData.name.trim(),
+        description: formData.description.trim() || undefined,
+        address: formData.address.trim(),
+        phone: formData.phone.trim() || undefined,
+        email: formData.email.trim() || undefined,
+        website: formData.website.trim() || undefined
+      };
+
+      const response = await api.api.v1OrganizationsUpdate(organization.id, organizationData);
       
-      if (response.data.success) {
-        toast.success('Organization updated successfully');
-        onupdated();
-      } else {
-        error = 'Failed to update organization';
-      }
-      
+      toast.success('Organization updated successfully');
+      onupdated();
+      isOpen = false;
+      onclose();
     } catch (err) {
       error = handleApiError(err);
     } finally {
-      saving = false;
+      loading = false;
     }
   }
 
-  function handleClose() {
-    onclose();
+  function handleKeyDown(event: KeyboardEvent) {
+    if (event.key === 'Enter' && (event.metaKey || event.ctrlKey)) {
+      handleSubmit(event);
+    }
   }
+
+  import { onMount, onDestroy } from 'svelte';
+  import { browser } from '$app/environment';
+  
+  onMount(() => {
+    if (browser) {
+      window.addEventListener('keydown', handleKeyDown);
+    }
+  });
+  
+  onDestroy(() => {
+    if (browser) {
+      window.removeEventListener('keydown', handleKeyDown);
+    }
+  });
 </script>
 
-<Modal 
-  isOpen={true}
-  title="Edit Organization"
-  {clickOrigin}
-  size="lg"
-  onclose={handleClose}
->
-  <form on:submit|preventDefault={handleSubmit} class="space-y-6">
-    <!-- Basic Information -->
-    <div>
-      <h3 class="text-lg font-medium text-gray-900 mb-4">Basic Information</h3>
-      
+<Modal bind:isOpen title="Edit Organization" {clickOrigin} size="lg" onclose={handleClose}>
+  <div class="space-y-6">
+    <!-- Error Message -->
+    {#if error}
+      <Card variant="minimal" class="border-red-200 bg-red-50">
+        <div class="flex items-center space-x-2">
+          <svg class="h-5 w-5 text-red-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 3 1.732 3z" />
+          </svg>
+          <p class="text-red-700 text-sm">{error}</p>
+        </div>
+      </Card>
+    {/if}
+
+    <form onsubmit={handleSubmit}>
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         <!-- Organization Name -->
         <div class="md:col-span-2">
@@ -162,10 +116,11 @@
           </label>
           <Input
             id="name"
-            type="text"
-            placeholder="Enter organization name"
             bind:value={formData.name}
+            placeholder="Enter organization name"
+            disabled={loading}
             required
+            class="w-full"
           />
         </div>
 
@@ -176,107 +131,96 @@
           </label>
           <textarea
             id="description"
-            rows="3"
-            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            placeholder="Brief description of your organization"
             bind:value={formData.description}
+            placeholder="Brief description of the organization"
+            rows="3"
+            disabled={loading}
+            class="w-full px-4 py-3 border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 resize-none scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100"
           ></textarea>
         </div>
 
-        <!-- Cuisine Type -->
-        <div>
-          <label for="cuisine_type" class="block text-sm font-medium text-gray-700 mb-2">
-            Cuisine Type
+        <!-- Address -->
+        <div class="md:col-span-2">
+          <label for="address" class="block text-sm font-medium text-gray-700 mb-2">
+            Address <span class="text-red-500">*</span>
           </label>
-          <select
-            id="cuisine_type"
-            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            bind:value={formData.cuisine_type}
-          >
-            <option value="">Select cuisine type</option>
-            {#each cuisineTypes as cuisine}
-              <option value={cuisine}>{cuisine}</option>
-            {/each}
-          </select>
+          <Input
+            id="address"
+            bind:value={formData.address}
+            placeholder="Organization address"
+            disabled={loading}
+            required
+            class="w-full"
+          />
         </div>
-      </div>
-    </div>
 
-    <!-- Contact Information -->
-    <div>
-      <h3 class="text-lg font-medium text-gray-900 mb-4">Contact Information</h3>
-      
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         <!-- Phone -->
         <div>
           <label for="phone" class="block text-sm font-medium text-gray-700 mb-2">
-            Phone Number
+            Phone
           </label>
           <Input
             id="phone"
-            type="tel"
-            placeholder="+1 (555) 123-4567"
             bind:value={formData.phone}
+            placeholder="Phone number"
+            disabled={loading}
+            class="w-full"
           />
         </div>
 
         <!-- Email -->
         <div>
           <label for="email" class="block text-sm font-medium text-gray-700 mb-2">
-            Email Address
+            Email
           </label>
           <Input
             id="email"
             type="email"
-            placeholder="organization@example.com"
             bind:value={formData.email}
+            placeholder="contact@organization.com"
+            disabled={loading}
+            class="w-full"
           />
         </div>
 
         <!-- Website -->
-        <div class="md:col-span-2">
+        <div>
           <label for="website" class="block text-sm font-medium text-gray-700 mb-2">
             Website
           </label>
           <Input
             id="website"
             type="url"
-            placeholder="https://yourorganization.com"
             bind:value={formData.website}
+            placeholder="https://organization.com"
+            disabled={loading}
+            class="w-full"
           />
         </div>
-      </div>
-    </div>
 
-    <!-- Error Display -->
-    {#if error}
-      <div class="bg-red-50 border border-red-200 rounded-md p-4">
-        <div class="flex">
-          <div class="flex-shrink-0">
-            <svg class="h-5 w-5 text-red-400" fill="currentColor" viewBox="0 0 20 20">
-              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
-            </svg>
-          </div>
-          <div class="ml-3">
-            <p class="text-sm text-red-800">{error}</p>
-          </div>
-        </div>
       </div>
-    {/if}
 
-    <!-- Form Actions -->
-    <div class="mt-6 pt-6 border-t border-gray-200 flex justify-end space-x-3">
-      <Button onclick={handleClose} variant="outline">
-        Cancel
-      </Button>
-      <Button type="submit" disabled={saving} variant="gradient">
-        {#if saving}
-          <Loader2 class="w-4 h-4 mr-2 animate-spin" />
-          Saving...
-        {:else}
-          Save Changes
-        {/if}
-      </Button>
-    </div>
-  </form>
+      <!-- Form Actions -->
+      <div class="flex items-center justify-end space-x-3 mt-8 pt-6 border-t border-gray-200">
+        <Button
+          type="button"
+          variant="outline"
+          onclick={handleClose}
+          disabled={loading}
+        >
+          Cancel
+        </Button>
+        <Button
+          type="submit"
+          variant="gradient"
+          {loading}
+          disabled={loading || !formData.name.trim() || !formData.address.trim()}
+          class="min-w-24"
+        >
+          {loading ? 'Updating...' : 'Update Organization'}
+        </Button>
+      </div>
+    </form>
+  </div>
 </Modal>
+

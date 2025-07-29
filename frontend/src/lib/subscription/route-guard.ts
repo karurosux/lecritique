@@ -1,6 +1,7 @@
 import { redirect } from '@sveltejs/kit';
 import { get } from 'svelte/store';
 import { subscription, hasFeature, getLimit, isSubscribed, FEATURES, LIMITS } from '$lib/stores/subscription';
+import { auth } from '$lib/stores/auth';
 
 export type FeatureFlag = typeof FEATURES[keyof typeof FEATURES];
 export type UsageLimit = typeof LIMITS[keyof typeof LIMITS];
@@ -78,9 +79,22 @@ export function requireSubscription(redirectTo?: string) {
 }
 
 export function requireActiveSubscription(redirectTo?: string) {
+	const authState = get(auth);
+	
+	if (!authState.isAuthenticated) {
+		throw redirect(303, '/login');
+	}
+	
 	const subscribed = get(isSubscribed);
 	if (!subscribed) {
 		throw redirect(303, redirectTo || '/pricing');
+	}
+}
+
+export function requireNoSubscription(redirectTo?: string) {
+	const subscribed = get(isSubscribed);
+	if (subscribed) {
+		throw redirect(303, redirectTo || '/dashboard');
 	}
 }
 

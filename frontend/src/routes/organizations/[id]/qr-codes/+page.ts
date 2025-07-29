@@ -2,10 +2,13 @@ import type { PageLoad } from './$types';
 import { getApiClient } from '$lib/api';
 import { browser } from '$app/environment';
 import { requireActiveSubscription } from '$lib/subscription/route-guard';
+import { requireAuth } from '$lib/utils/auth-guard';
 
 export const load: PageLoad = async ({ params, parent }) => {
-	// Require active subscription to manage QR codes
-	requireActiveSubscription();
+	if (browser) {
+		requireAuth();
+		requireActiveSubscription();
+	}
 	
 	const { organization } = await parent();
 

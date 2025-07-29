@@ -29,6 +29,7 @@ func NewOrganizationHandler(i *do.Injector) (*OrganizationHandler, error) {
 type CreateOrganizationRequest struct {
 	Name        string `json:"name" validate:"required"`
 	Description string `json:"description"`
+	Address     string `json:"address"`
 	Phone       string `json:"phone"`
 	Email       string `json:"email" validate:"omitempty,email"`
 	Website     string `json:"website"`
@@ -62,6 +63,7 @@ func (h *OrganizationHandler) Create(c echo.Context) error {
 	organization := &models.Organization{
 		Name:        req.Name,
 		Description: req.Description,
+		Address:     req.Address,
 		Phone:       req.Phone,
 		Email:       req.Email,
 		Website:     req.Website,

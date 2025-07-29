@@ -8,6 +8,8 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/grassmudhorses/vader-go/lexicon"
+	"github.com/grassmudhorses/vader-go/sentitext"
 	analyticsModels "kyooar/internal/analytics/models"
 	analyticsRepos "kyooar/internal/analytics/repositories"
 	feedbackModels "kyooar/internal/feedback/models"
@@ -1238,60 +1240,83 @@ func (s *analyticsService) aggregateYesNoResponses(responses []feedbackModels.Re
 	}
 }
 
+// analyzeSentiment uses the same sentiment analysis as advanced analytics
+func (s *analyticsService) analyzeSentiment(text string) float64 {
+	if strings.TrimSpace(text) == "" {
+		return 0.0
+	}
+
+	analyzer := sentitext.Parse(text, lexicon.DefaultLexicon)
+	sentiment := sentitext.PolarityScore(analyzer)
+
+	return sentiment.Compound
+}
+
 func (s *analyticsService) aggregateTextResponses(responses []feedbackModels.Response) map[string]interface{} {
 	var positive, neutral, negative int64
 	var samples []string
-	keywords := make(map[string]int)
+	var totalSentiment float64
+	validCount := 0
 	
-	positiveWords := []string{"excellent", "great", "amazing", "love", "perfect", "fantastic", "wonderful"}
-	negativeWords := []string{"terrible", "awful", "bad", "hate", "horrible", "disgusting", "worst"}
+	// Extract keywords using simple frequency analysis
+	wordFreq := make(map[string]int)
 	
 	for _, response := range responses {
-		if text, ok := response.Answer.(string); ok && text != "" {
-			lower := strings.ToLower(text)
+		if text, ok := response.Answer.(string); ok && strings.TrimSpace(text) != "" {
+			// Use exact same sentiment analysis as advanced analytics
+			sentiment := s.analyzeSentiment(text)
+			totalSentiment += sentiment
+			validCount++
 			
-			hasPositive := false
-			hasNegative := false
-			
-			for _, word := range positiveWords {
-				if strings.Contains(lower, word) {
-					hasPositive = true
-					keywords[word]++
-					break
-				}
-			}
-			
-			for _, word := range negativeWords {
-				if strings.Contains(lower, word) {
-					hasNegative = true
-					keywords[word]++
-					break
-				}
-			}
-			
-			if hasPositive && !hasNegative {
+			// Categorize based on sentiment compound score (-1 to 1)
+			// Positive: > 0.05, Negative: < -0.05, Neutral: -0.05 to 0.05
+			if sentiment > 0.05 {
 				positive++
-			} else if hasNegative && !hasPositive {
+			} else if sentiment < -0.05 {
 				negative++
 			} else {
 				neutral++
 			}
 			
+			// Collect samples
 			if len(samples) < 5 {
 				samples = append(samples, text)
+			}
+			
+			// Extract keywords (simple word frequency)
+			words := strings.Fields(strings.ToLower(text))
+			for _, word := range words {
+				// Skip common words and short words
+				if len(word) > 3 && !isCommonWord(word) {
+					wordFreq[word]++
+				}
 			}
 		}
 	}
 	
+	// Get top keywords
+	type wordCount struct {
+		word  string
+		count int
+	}
+	var sortedWords []wordCount
+	for word, count := range wordFreq {
+		sortedWords = append(sortedWords, wordCount{word, count})
+	}
+	sort.Slice(sortedWords, func(i, j int) bool {
+		return sortedWords[i].count > sortedWords[j].count
+	})
+	
 	var topKeywords []string
-	for word := range keywords {
-		topKeywords = append(topKeywords, word)
-		if len(topKeywords) >= 5 {
-			break
-		}
+	for i := 0; i < len(sortedWords) && i < 5; i++ {
+		topKeywords = append(topKeywords, sortedWords[i].word)
 	}
 	
 	total := positive + neutral + negative
+	averageSentiment := float64(0)
+	if validCount > 0 {
+		averageSentiment = totalSentiment / float64(validCount)
+	}
 	
 	return map[string]interface{}{
 		"positive":  positive,
@@ -1300,5 +1325,19 @@ func (s *analyticsService) aggregateTextResponses(responses []feedbackModels.Res
 		"total":     total,
 		"samples":   samples,
 		"keywords":  topKeywords,
+		"average_sentiment": averageSentiment,
 	}
+}
+
+func isCommonWord(word string) bool {
+	commonWords := map[string]bool{
+		"the": true, "and": true, "is": true, "it": true, "to": true,
+		"of": true, "in": true, "for": true, "on": true, "with": true,
+		"as": true, "was": true, "that": true, "are": true, "been": true,
+		"have": true, "had": true, "were": true, "said": true, "each": true,
+		"which": true, "she": true, "will": true, "their": true, "what": true,
+		"there": true, "would": true, "this": true, "from": true, "they": true,
+		"more": true, "when": true, "other": true, "into": true,
+	}
+	return commonWords[word]
 }

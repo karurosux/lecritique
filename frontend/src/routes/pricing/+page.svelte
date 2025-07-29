@@ -14,13 +14,6 @@
 
 	onMount(async () => {
 		try {
-			// Check if user already has subscription from login data
-			if ($isSubscribed) {
-				goto('/settings');
-				return;
-			}
-
-			// If not subscribed, fetch available plans
 			await subscription.fetchPlans();
 			const sub = $subscription;
 			plans = sub.plans || [];

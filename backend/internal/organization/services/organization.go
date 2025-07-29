@@ -93,6 +93,10 @@ func (s *organizationService) Update(ctx context.Context, accountID uuid.UUID, o
 			if v, ok := value.(string); ok {
 				organization.Description = v
 			}
+		case "address":
+			if v, ok := value.(string); ok {
+				organization.Address = v
+			}
 		case "phone":
 			if v, ok := value.(string); ok {
 				organization.Phone = v

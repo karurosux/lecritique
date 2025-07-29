@@ -15,13 +15,13 @@ type Organization struct {
 	// Account     Account        `json:"account,omitempty"` // TODO: Add when cross-domain refs are ready
 	Name        string         `gorm:"not null" json:"name"`
 	Description string         `json:"description"`
+	Address     string         `json:"address"`
 	Logo        string         `json:"logo"`
 	Website     string         `json:"website"`
 	Phone       string         `json:"phone"`
 	Email       string         `json:"email"`
 	IsActive    bool           `gorm:"default:true" json:"is_active"`
 	Settings    Settings       `gorm:"type:jsonb" json:"settings"`
-	Locations   []Location     `json:"locations,omitempty"`
 	// Products      []Product         `json:"products,omitempty"`     // TODO: Add when menu domain is ready
 	// QRCodes     []QRCode       `json:"qr_codes,omitempty"`  // TODO: Add when qrcode domain is ready
 }
@@ -49,21 +49,6 @@ func (s *Settings) Scan(value interface{}) error {
 	return json.Unmarshal(bytes, s)
 }
 
-type Location struct {
-	models.BaseModel
-	OrganizationID uuid.UUID  `gorm:"not null" json:"organization_id"`
-	Organization   Organization `json:"organization,omitempty"`
-	Name         string     `gorm:"not null" json:"name"`
-	Address      string     `json:"address"`
-	City         string     `json:"city"`
-	State        string     `json:"state"`
-	Country      string     `json:"country"`
-	PostalCode   string     `json:"postal_code"`
-	Latitude     float64    `json:"latitude"`
-	Longitude    float64    `json:"longitude"`
-	IsActive     bool       `gorm:"default:true" json:"is_active"`
-	// QRCodes      []QRCode   `json:"qr_codes,omitempty"` // TODO: Add when qrcode domain is ready
-}
 
 type Product struct {
 	models.BaseModel

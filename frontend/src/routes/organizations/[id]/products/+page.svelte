@@ -1,8 +1,9 @@
 <script lang="ts">
 	import type { PageData } from './$types';
-	import { Button, Card, Input, Select, ConfirmDialog, NoDataAvailable } from '$lib/components/ui';
+	import { Button, Card, ConfirmDialog, NoDataAvailable } from '$lib/components/ui';
 	import { Plus } from 'lucide-svelte';
 	import ProductCard from '$lib/components/products/ProductCard.svelte';
+	import ProductSearchAndFilters from '$lib/components/products/ProductSearchAndFilters.svelte';
 	import AddProductModal from '$lib/components/products/AddProductModal.svelte';
 	import { RoleGate } from '$lib/components/auth';
 	import { getApiClient, getAuthToken } from '$lib/api';
@@ -204,52 +205,15 @@
 			</div>
 		{:else}
 	<!-- Search and Filters -->
-	<Card variant="glass">
-		<div class="flex flex-wrap gap-4 items-end">
-			<div class="flex-1 min-w-64">
-				<Input
-					type="text"
-					placeholder="Search products..."
-					bind:value={searchQuery}
-					variant="default"
-				/>
-			</div>
-			
-			<Select
-				bind:value={categoryFilter}
-				options={[
-					{ value: 'all', label: 'All Categories' },
-					...categories.map(cat => ({ value: cat, label: cat }))
-				]}
-			/>
-
-			<Select
-				bind:value={availabilityFilter}
-				options={[
-					{ value: 'all', label: 'All Status' },
-					{ value: 'available', label: 'Available' },
-					{ value: 'unavailable', label: 'Unavailable' }
-				]}
-			/>
-
-			<Select
-				bind:value={sortBy}
-				options={[
-					{ value: 'name', label: 'Sort by Name' },
-					{ value: 'price', label: 'Sort by Price' },
-					{ value: 'category', label: 'Sort by Category' },
-					{ value: 'created_at', label: 'Sort by Date' }
-				]}
-			/>
-
-			<RoleGate roles={['OWNER', 'ADMIN', 'MANAGER']}>
-				<Button onclick={handleAddProduct} variant="gradient" size="lg" class="gap-2">
-					<Plus class="h-4 w-4" />
-					Add Product
-				</Button>
-			</RoleGate>
-		</div>
-	</Card>
+	<ProductSearchAndFilters
+		bind:searchQuery
+		bind:categoryFilter
+		bind:availabilityFilter
+		bind:sortBy
+		{categories}
+		totalProducts={products.length}
+		filteredCount={filteredProducts.length}
+	/>
 
 	<!-- Products Grid -->
 	{#if filteredProducts.length === 0}
@@ -280,9 +244,10 @@
 		{/if}
 	{:else}
 		<div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-			{#each filteredProducts as product (product.id)}
+			{#each filteredProducts as product, index (product.id)}
 				<ProductCard
 					{product}
+					{index}
 					onedit={handleEditProduct}
 					ondelete={handleDeleteProduct}
 					ontoggleavailability={() => handleToggleAvailability(product)}
@@ -348,4 +313,3 @@
 	onConfirm={confirmDeleteProduct}
 	onCancel={cancelDeleteProduct}
 />
-
