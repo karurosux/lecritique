@@ -2,7 +2,7 @@
   import { onMount } from 'svelte';
   import { page } from '$app/stores';
   import { Card, Button, Input, Select } from '$lib/components/ui';
-  import { MessageCircle, Download, Calendar, User, QrCode, Hash, MoreHorizontal, AlertTriangle, X, CheckCircle, Search, HelpCircle } from 'lucide-svelte';
+  import { MessageCircle, Download, Calendar, User, QrCode, Hash, MoreHorizontal, AlertTriangle, X, CheckCircle, Search, HelpCircle, Star, Book, Building2, ChevronDown, MessageSquare } from 'lucide-svelte';
   import { getApiClient, handleApiError } from '$lib/api/client';
   import { auth } from '$lib/stores/auth';
   import { goto } from '$app/navigation';
@@ -773,27 +773,16 @@
                         <div class="flex text-lg">
                           {#each Array(5) as _, i}
                             {#if i < fb.rating}
-                              <svg
+                              <Star
                                 class="w-5 h-5 {fb.rating >= 4
                                   ? 'text-green-500'
                                   : fb.rating >= 3
                                     ? 'text-yellow-500'
                                     : 'text-red-500'}"
-                                fill="currentColor"
-                                viewBox="0 0 20 20">
-                                <path
-                                  d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                              </svg>
+                                fill="currentColor" />
                             {:else}
-                              <svg
-                                class="w-5 h-5 text-gray-300"
-                                fill="none"
-                                stroke="currentColor"
-                                stroke-width="1.5"
-                                viewBox="0 0 20 20">
-                                <path
-                                  d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                              </svg>
+                              <Star
+                                class="w-5 h-5 text-gray-300" />
                             {/if}
                           {/each}
                         </div>
@@ -809,17 +798,7 @@
                     {#if fb.product_name}
                       <div
                         class="flex items-center gap-2 px-3 py-1.5 bg-purple-50 border border-purple-200 rounded-lg">
-                        <svg
-                          class="w-4 h-4 text-purple-600"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24">
-                          <path
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            stroke-width="2"
-                            d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-                        </svg>
+                        <Book class="w-4 h-4 text-purple-600" />
                         <span class="text-sm font-medium text-purple-700"
                           >{fb.product_name}</span>
                       </div>
@@ -828,17 +807,7 @@
                     {#if fb.organization_name}
                       <div
                         class="flex items-center gap-2 px-3 py-1.5 bg-blue-50 border border-blue-200 rounded-lg">
-                        <svg
-                          class="w-4 h-4 text-blue-600"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24">
-                          <path
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            stroke-width="2"
-                            d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                        </svg>
+                        <Building2 class="w-4 h-4 text-blue-600" />
                         <span class="text-sm font-medium text-blue-700"
                           >{fb.organization_name}</span>
                       </div>
@@ -930,21 +899,12 @@
                       class="flex items-center gap-2 px-3 py-2 text-sm font-medium text-purple-600 group-hover/header:text-purple-700 group-hover/header:bg-purple-50 rounded-lg transition-all duration-200 border border-purple-200/50 group-hover/header:border-purple-300">
                       <span class="hidden sm:block"
                         >{isCollapsed(fb.id) ? 'Show' : 'Hide'} Details</span>
-                      <svg
+                      <ChevronDown
                         class="w-5 h-5 transform transition-transform duration-200 {isCollapsed(
                           fb.id
                         )
                           ? 'rotate-0'
-                          : 'rotate-180'}"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24">
-                        <path
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                          stroke-width="2"
-                          d="M19 9l-7 7-7-7" />
-                      </svg>
+                          : 'rotate-180'}" />
                     </div>
                   </button>
 
@@ -991,48 +951,15 @@
                                 <!-- Answer Type Icon -->
                                 <div class="mt-0.5">
                                   {#if typeof response.answer === 'boolean'}
-                                    <svg
-                                      class="w-4 h-4 {response.answer
-                                        ? 'text-green-500'
-                                        : 'text-red-500'}"
-                                      fill="currentColor"
-                                      viewBox="0 0 20 20">
-                                      {#if response.answer}
-                                        <path
-                                          fill-rule="evenodd"
-                                          d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                                          clip-rule="evenodd" />
-                                      {:else}
-                                        <path
-                                          fill-rule="evenodd"
-                                          d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
-                                          clip-rule="evenodd" />
-                                      {/if}
-                                    </svg>
+                                    {#if response.answer}
+                                      <CheckCircle class="w-4 h-4 text-green-500" />
+                                    {:else}
+                                      <X class="w-4 h-4 text-red-500" />
+                                    {/if}
                                   {:else if typeof response.answer === 'number'}
-                                    <svg
-                                      class="w-4 h-4 text-blue-500"
-                                      fill="none"
-                                      stroke="currentColor"
-                                      viewBox="0 0 24 24">
-                                      <path
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        stroke-width="2"
-                                        d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14" />
-                                    </svg>
+                                    <Hash class="w-4 h-4 text-blue-500" />
                                   {:else}
-                                    <svg
-                                      class="w-4 h-4 text-purple-500"
-                                      fill="none"
-                                      stroke="currentColor"
-                                      viewBox="0 0 24 24">
-                                      <path
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        stroke-width="2"
-                                        d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                                    </svg>
+                                    <MessageSquare class="w-4 h-4 text-purple-500" />
                                   {/if}
                                 </div>
 
@@ -1052,16 +979,12 @@
                                       <div class="flex items-center gap-2">
                                         <div class="flex">
                                           {#each Array(5) as _, i}
-                                            <svg
+                                            <Star
                                               class="w-4 h-4 {i <
                                               response.answer
                                                 ? 'text-yellow-400'
                                                 : 'text-gray-300'}"
-                                              fill="currentColor"
-                                              viewBox="0 0 20 20">
-                                              <path
-                                                d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                                            </svg>
+                                              fill="currentColor" />
                                           {/each}
                                         </div>
                                         <span

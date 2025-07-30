@@ -22,6 +22,10 @@
     Circle,
     CheckSquare,
     MessageSquare,
+    Grid3x3,
+    Table,
+    ArrowUpDown,
+    ChevronRight,
   } from 'lucide-svelte';
   import { NoDataAvailable } from '$lib/components/ui';
 
@@ -1189,17 +1193,7 @@
                   : 'text-gray-600 hover:text-gray-900 hover:bg-white/50'}"
                 onclick={() => (viewMode = 'cards')}>
                 <div class="flex items-center gap-2">
-                  <svg
-                    class="w-4 h-4"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24">
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
-                  </svg>
+                  <Grid3x3 class="w-4 h-4" />
                   Cards
                 </div>
               </button>
@@ -1221,17 +1215,7 @@
                   : 'text-gray-600 hover:text-gray-900 hover:bg-white/50'}"
                 onclick={() => (viewMode = 'table')}>
                 <div class="flex items-center gap-2">
-                  <svg
-                    class="w-4 h-4"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24">
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                  </svg>
+                  <Table class="w-4 h-4" />
                   Table
                 </div>
               </button>
@@ -1252,19 +1236,10 @@
               class="p-1 text-gray-600 hover:text-blue-600 rounded transition-colors"
               onclick={() => (sortOrder = sortOrder === 'asc' ? 'desc' : 'asc')}
               title="Toggle sort order">
-              <svg
+              <ArrowUpDown
                 class="w-4 h-4 {sortOrder === 'desc'
                   ? 'rotate-180'
-                  : ''} transition-transform"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24">
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"></path>
-              </svg>
+                  : ''} transition-transform" />
             </button>
           </div>
         </div>
@@ -1723,17 +1698,7 @@
                     class="bg-gradient-to-r from-white/50 to-white/30 rounded-xl p-4 backdrop-blur-sm border border-white/50">
                     <div class="flex items-center justify-between">
                       <div class="flex items-center gap-2">
-                        <svg
-                          class="w-4 h-4 text-gray-600"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24">
-                          <path
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            stroke-width="2"
-                            d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
-                        </svg>
+                        <ArrowUpDown class="w-4 h-4 text-gray-600" />
                         <span class="text-sm font-medium text-gray-700"
                           >Net Change</span>
                       </div>
@@ -2014,17 +1979,7 @@
                     {#if insight.recommendation}
                       <div class="mt-3 p-3 bg-white/70 rounded-lg">
                         <div class="flex items-start gap-2">
-                          <svg
-                            class="w-4 h-4 text-gray-600 mt-0.5 flex-shrink-0"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24">
-                            <path
-                              stroke-linecap="round"
-                              stroke-linejoin="round"
-                              stroke-width="2"
-                              d="M9 5l7 7-7 7" />
-                          </svg>
+                          <ChevronRight class="w-4 h-4 text-gray-600 mt-0.5 flex-shrink-0" />
                           <div class="text-sm text-gray-700">
                             <span class="font-medium">Action:</span>
                             {insight.recommendation}

@@ -4,7 +4,7 @@
   import { getApiClient, handleApiError } from '$lib/api/client';
   import { auth } from '$lib/stores/auth';
   import { goto } from '$app/navigation';
-  import { CheckCircle, Clock, Smartphone, QrCode, AlertTriangle, MessageCircle, TrendingUp, Star } from 'lucide-svelte';
+  import { CheckCircle, Clock, Smartphone, QrCode, AlertTriangle, MessageCircle, TrendingUp, TrendingDown, Minus, Star } from 'lucide-svelte';
 
   interface DashboardStats {
     totalFeedback: number;
@@ -433,31 +433,13 @@
               </p>
               <div
                 class="h-8 w-8 bg-gradient-to-br from-yellow-500 to-orange-600 rounded-lg flex items-center justify-center">
-                <svg
-                  class="h-4 w-4 text-white"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24">
-                  {#if dashboardMetrics.satisfaction_trend === 'up'}
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-                  {:else if dashboardMetrics.satisfaction_trend === 'down'}
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6" />
-                  {:else}
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M5 12h14" />
-                  {/if}
-                </svg>
+                {#if dashboardMetrics.satisfaction_trend === 'up'}
+                  <TrendingUp class="h-4 w-4 text-white" />
+                {:else if dashboardMetrics.satisfaction_trend === 'down'}
+                  <TrendingDown class="h-4 w-4 text-white" />
+                {:else}
+                  <Minus class="h-4 w-4 text-white" />
+                {/if}
               </div>
             </div>
             <p
