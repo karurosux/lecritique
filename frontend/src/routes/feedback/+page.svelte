@@ -4,7 +4,7 @@
   import { goto } from '$app/navigation';
   import { Card, Button, Input, Rating } from '$lib/components/ui';
   import { getApiClient, handleApiError } from '$lib/api/client';
-  import { Loader2 } from 'lucide-svelte';
+  import { Loader2, AlertTriangle, MessageCircle } from 'lucide-svelte';
   import {
     questionnaireStore,
     currentQuestionnaire,
@@ -157,17 +157,7 @@
     {:else if !organizationId}
       <Card>
         <div class="text-center py-12">
-          <svg
-            class="h-12 w-12 text-red-500 mx-auto mb-4"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24">
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 3 1.732 3z" />
-          </svg>
+          <AlertTriangle class="h-12 w-12 text-red-500 mx-auto mb-4" />
           <h2 class="text-xl font-semibold text-gray-900 mb-2">
             Missing Information
           </h2>
@@ -181,17 +171,7 @@
           <div class="text-center space-y-4">
             <div
               class="h-16 w-16 bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto shadow-lg shadow-blue-500/25">
-              <svg
-                class="h-8 w-8 text-white"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24">
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-              </svg>
+              <MessageCircle class="h-8 w-8 text-white" />
             </div>
             <div>
               <h1

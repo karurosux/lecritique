@@ -1,5 +1,6 @@
 <script lang="ts">
   import { Modal, Button, Input, Card } from '$lib/components/ui';
+  import { AlertTriangle } from 'lucide-svelte';
   import { getApiClient, handleApiError } from '$lib/api/client';
   import { toast } from 'svelte-sonner';
 
@@ -107,17 +108,7 @@
     {#if error}
       <Card variant="minimal" class="border-red-200 bg-red-50">
         <div class="flex items-center space-x-2">
-          <svg
-            class="h-5 w-5 text-red-500 flex-shrink-0"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24">
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 3 1.732 3z" />
-          </svg>
+          <AlertTriangle class="h-5 w-5 text-red-500 flex-shrink-0" />
           <p class="text-red-700 text-sm">{error}</p>
         </div>
       </Card>

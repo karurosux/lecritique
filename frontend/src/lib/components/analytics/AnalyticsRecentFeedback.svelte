@@ -1,5 +1,6 @@
 <script lang="ts">
   import { Card } from '$lib/components/ui';
+  import { Clock, MessageSquare } from 'lucide-svelte';
 
   interface Feedback {
     id?: string;
@@ -140,17 +141,7 @@
                 {/if}
 
                 <p class="text-xs text-gray-500">
-                  <svg
-                    class="inline-block h-3 w-3 mr-1"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24">
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
+                  <Clock class="inline-block h-3 w-3 mr-1" />
                   {formatDate(feedback.created_at)}
                 </p>
               </div>
@@ -161,17 +152,7 @@
         <div class="text-center py-12">
           <div
             class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <svg
-              class="h-8 w-8 text-gray-400"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24">
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-4l-4 4z" />
-            </svg>
+            <MessageSquare class="h-8 w-8 text-gray-400" />
           </div>
           <p class="text-gray-500">No recent feedback available</p>
         </div>

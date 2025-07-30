@@ -1,5 +1,6 @@
 <script lang="ts">
   import { Card, Button, Input } from '$lib/components/ui';
+  import { X, AlertTriangle, Loader2, XCircle } from 'lucide-svelte';
   import { getApiClient, handleApiError } from '$lib/api/client';
   import { auth } from '$lib/stores/auth';
   import { goto } from '$app/navigation';
@@ -197,17 +198,7 @@
           <p class="text-gray-600">Update organization information</p>
         </div>
         <Button variant="outline" on:click={handleCancel}>
-          <svg
-            class="h-4 w-4 mr-2"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24">
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M6 18L18 6M6 6l12 12" />
-          </svg>
+          <X class="h-4 w-4 mr-2" />
           Cancel
         </Button>
       </div>
@@ -241,17 +232,7 @@
       <!-- Error State -->
       <Card>
         <div class="text-center py-12">
-          <svg
-            class="h-12 w-12 text-red-500 mx-auto mb-4"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24">
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 3 1.732 3z" />
-          </svg>
+          <AlertTriangle class="h-12 w-12 text-red-500 mx-auto mb-4" />
           <h3 class="text-lg font-medium text-gray-900 mb-2">
             Failed to load organization
           </h3>
@@ -395,15 +376,7 @@
               <div class="bg-red-50 border border-red-200 rounded-md p-4">
                 <div class="flex">
                   <div class="flex-shrink-0">
-                    <svg
-                      class="h-5 w-5 text-red-400"
-                      fill="currentColor"
-                      viewBox="0 0 20 20">
-                      <path
-                        fill-rule="evenodd"
-                        d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
-                        clip-rule="evenodd" />
-                    </svg>
+                    <XCircle class="h-5 w-5 text-red-400" />
                   </div>
                   <div class="ml-3">
                     <p class="text-sm text-red-800">{error}</p>
@@ -420,23 +393,7 @@
               </Button>
               <Button type="submit" disabled={saving}>
                 {#if saving}
-                  <svg
-                    class="animate-spin -ml-1 mr-3 h-5 w-5 text-white inline"
-                    fill="none"
-                    viewBox="0 0 24 24">
-                    <circle
-                      class="opacity-25"
-                      cx="12"
-                      cy="12"
-                      r="10"
-                      stroke="currentColor"
-                      stroke-width="4"></circle>
-                    <path
-                      class="opacity-75"
-                      fill="currentColor"
-                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                    ></path>
-                  </svg>
+                  <Loader2 class="animate-spin -ml-1 mr-3 h-5 w-5 text-white inline" />
                   Saving...
                 {:else}
                   Save Changes

@@ -2,7 +2,7 @@
   import { goto } from '$app/navigation';
   import { Api } from '$lib/api/api';
   import { Button, Card, Input, Logo } from '$lib/components/ui';
-  import { Check, Mail } from 'lucide-svelte';
+  import { Check, Mail, XCircle, Loader2, ArrowLeft } from 'lucide-svelte';
 
   const api = new Api({
     baseURL: import.meta.env.VITE_API_URL || 'http://localhost:8080',
@@ -81,17 +81,7 @@
             variant="gradient"
             size="lg"
             class="w-full shadow-lg hover:shadow-xl transition-all duration-300">
-            <svg
-              class="w-5 h-5 mr-2"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24">
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
-            </svg>
+            <ArrowLeft class="w-5 h-5 mr-2" />
             Back to Sign In
           </Button>
         </div>
@@ -113,15 +103,7 @@
             <div class="bg-red-50 border border-red-200 rounded-md p-4">
               <div class="flex">
                 <div class="flex-shrink-0">
-                  <svg
-                    class="h-5 w-5 text-red-400"
-                    fill="currentColor"
-                    viewBox="0 0 20 20">
-                    <path
-                      fill-rule="evenodd"
-                      d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
-                      clip-rule="evenodd" />
-                  </svg>
+                  <XCircle class="h-5 w-5 text-red-400" />
                 </div>
                 <div class="ml-3">
                   <p class="text-sm text-red-800">{error}</p>
@@ -137,37 +119,10 @@
             disabled={loading || !email}
             class="w-full shadow-lg hover:shadow-xl transition-all duration-300">
             {#if loading}
-              <svg
-                class="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
-                fill="none"
-                viewBox="0 0 24 24">
-                <circle
-                  class="opacity-25"
-                  cx="12"
-                  cy="12"
-                  r="10"
-                  stroke="currentColor"
-                  stroke-width="4"></circle>
-                <path
-                  class="opacity-75"
-                  fill="currentColor"
-                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                ></path>
-              </svg>
+              <Loader2 class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" />
               Sending link...
             {:else}
-              <svg
-                class="w-5 h-5 mr-2"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24">
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
-                ></path>
-              </svg>
+              <Mail class="w-5 h-5 mr-2" />
               Send Reset Link
             {/if}
           </Button>

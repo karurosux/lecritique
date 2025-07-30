@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { Search } from 'lucide-svelte';
+  
   let {
     value = $bindable(''),
     placeholder = 'Search...',
@@ -46,17 +48,7 @@
     class="absolute inset-y-0 left-0 {iconPositionClasses[
       size
     ]} flex items-center pointer-events-none">
-    <svg
-      class="{iconSizeClasses[size]} text-gray-400"
-      fill="none"
-      stroke="currentColor"
-      viewBox="0 0 24 24">
-      <path
-        stroke-linecap="round"
-        stroke-linejoin="round"
-        stroke-width="2"
-        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-    </svg>
+    <Search class="{iconSizeClasses[size]} text-gray-400" />
   </div>
   <input
     type="text"

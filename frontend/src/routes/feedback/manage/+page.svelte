@@ -2,6 +2,7 @@
   import { onMount } from 'svelte';
   import { page } from '$app/stores';
   import { Card, Button, Input, Select } from '$lib/components/ui';
+  import { MessageCircle, Download, Calendar, User, QrCode, Hash, MoreHorizontal, AlertTriangle, X, CheckCircle, Search, HelpCircle } from 'lucide-svelte';
   import { getApiClient, handleApiError } from '$lib/api/client';
   import { auth } from '$lib/stores/auth';
   import { goto } from '$app/navigation';
@@ -512,17 +513,7 @@
         <div class="flex items-center space-x-3">
           <div
             class="h-12 w-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg shadow-blue-500/25">
-            <svg
-              class="h-6 w-6 text-white"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24">
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-            </svg>
+            <MessageCircle class="h-6 w-6 text-white" />
           </div>
           <div>
             <h1
@@ -563,17 +554,7 @@
             <div
               class="absolute inset-0 bg-gradient-to-r from-blue-600 to-purple-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
             </div>
-            <svg
-              class="h-5 w-5 mr-2 relative z-10 group-hover:scale-110 transition-transform duration-200"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24">
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-            </svg>
+            <Download class="h-5 w-5 mr-2 relative z-10 group-hover:scale-110 transition-transform duration-200" />
             <span class="relative z-10">Export CSV</span>
           </Button>
         </RoleGate>
@@ -682,17 +663,7 @@
         class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pt-4 border-t border-gray-100">
         <div class="flex items-center gap-4 text-sm">
           <div class="flex items-center gap-2">
-            <svg
-              class="h-4 w-4 text-gray-400"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24">
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-            </svg>
+            <Search class="h-4 w-4 text-gray-400" />
             <span class="text-gray-600 font-medium">
               {feedback.length}
               {feedback.length === 1 ? 'entry' : 'entries'}
@@ -706,17 +677,7 @@
           {/if}
         </div>
         <Button variant="outline" size="sm" onclick={clearFilters}>
-          <svg
-            class="h-4 w-4 mr-2"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24">
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M6 18L18 6M6 6l12 12" />
-          </svg>
+          <X class="h-4 w-4 mr-2" />
           Clear Filters
         </Button>
       </div>
@@ -745,17 +706,7 @@
     <!-- Error State -->
     <Card variant="default" hover interactive class="group">
       <div class="text-center py-12">
-        <svg
-          class="h-12 w-12 text-red-500 mx-auto mb-4"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24">
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="2"
-            d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 3 1.732 3z" />
-        </svg>
+        <AlertTriangle class="h-12 w-12 text-red-500 mx-auto mb-4" />
         <h3 class="text-lg font-medium text-gray-900 mb-2">
           Failed to load feedback
         </h3>
@@ -767,17 +718,7 @@
     <!-- Empty State -->
     <Card variant="default" hover interactive class="group">
       <div class="text-center py-12">
-        <svg
-          class="h-12 w-12 text-gray-400 mx-auto mb-4"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24">
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="2"
-            d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-        </svg>
+        <MessageCircle class="h-12 w-12 text-gray-400 mx-auto mb-4" />
         <h3 class="text-lg font-medium text-gray-900 mb-2">
           No feedback available
         </h3>
@@ -908,48 +849,18 @@
                   <div
                     class="flex flex-wrap items-center gap-4 text-sm text-gray-600">
                     <div class="flex items-center gap-1.5">
-                      <svg
-                        class="w-4 h-4 text-gray-400"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24">
-                        <path
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                          stroke-width="2"
-                          d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                      </svg>
+                      <Calendar class="w-4 h-4 text-gray-400" />
                       <span>{formatDate(fb.created_at)}</span>
                     </div>
 
                     <div class="flex items-center gap-1.5">
-                      <svg
-                        class="w-4 h-4 text-gray-400"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24">
-                        <path
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                          stroke-width="2"
-                          d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                      </svg>
+                      <User class="w-4 h-4 text-gray-400" />
                       <span>{fb.customer_email || 'Anonymous Guest'}</span>
                     </div>
 
                     {#if fb.qr_code}
                       <div class="flex items-center gap-1.5">
-                        <svg
-                          class="w-4 h-4 text-gray-400"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24">
-                          <path
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            stroke-width="2"
-                            d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" />
-                        </svg>
+                        <QrCode class="w-4 h-4 text-gray-400" />
                         <span
                           >{typeof fb.qr_code === 'object'
                             ? fb.qr_code?.location ||
@@ -966,17 +877,7 @@
                 <div class="flex items-center gap-2">
                   <button
                     class="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
-                    <svg
-                      class="w-5 h-5"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24">
-                      <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="2"
-                        d="M5 12h.01M12 12h.01M19 12h.01M6 12a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0z" />
-                    </svg>
+                    <MoreHorizontal class="w-5 h-5" />
                   </button>
                 </div>
               </div>
@@ -989,17 +890,7 @@
                   </div>
                   <div class="pl-6">
                     <div class="flex items-start gap-3">
-                      <svg
-                        class="w-5 h-5 text-gray-400 mt-0.5 flex-shrink-0"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24">
-                        <path
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                          stroke-width="2"
-                          d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                      </svg>
+                      <MessageCircle class="w-5 h-5 text-gray-400 mt-0.5 flex-shrink-0" />
                       <blockquote class="flex-1 text-gray-700 leading-relaxed">
                         <p class="text-base italic">"{fb.comment}"</p>
                       </blockquote>
@@ -1018,17 +909,7 @@
                     <div class="flex items-center gap-3">
                       <div
                         class="p-2 bg-gradient-to-br from-purple-500 to-blue-600 rounded-lg group-hover/header:shadow-lg transition-shadow duration-200">
-                        <svg
-                          class="w-5 h-5 text-white"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24">
-                          <path
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            stroke-width="2"
-                            d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
+                        <HelpCircle class="w-5 h-5 text-white" />
                       </div>
                       <div class="text-left">
                         <h4

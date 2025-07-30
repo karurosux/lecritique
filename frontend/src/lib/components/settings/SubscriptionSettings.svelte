@@ -1,7 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import { Button, Card } from '$lib/components/ui';
-  import { Loader2, CreditCard, ExternalLink } from 'lucide-svelte';
+  import { Loader2, CreditCard, ExternalLink, Info } from 'lucide-svelte';
   import {
     subscription,
     currentPlan,
@@ -127,15 +127,7 @@
       <div class="mb-6 bg-amber-50 border border-amber-200 rounded-lg p-4">
         <div class="flex">
           <div class="flex-shrink-0">
-            <svg
-              class="h-5 w-5 text-amber-400"
-              viewBox="0 0 20 20"
-              fill="currentColor">
-              <path
-                fill-rule="evenodd"
-                d="M10 18a8 8 0 100-16 8 8 0 000 16zm0-2a6 6 0 100-12 6 6 0 000 12zm0-10a1 1 0 011 1v4a1 1 0 11-2 0V7a1 1 0 011-1zm0 8a1 1 0 100-2 1 1 0 000 2z"
-                clip-rule="evenodd" />
-            </svg>
+            <Info class="h-5 w-5 text-amber-400" />
           </div>
           <div class="ml-3">
             <h3 class="text-sm font-medium text-amber-800">Custom Plan</h3>

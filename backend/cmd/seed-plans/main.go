@@ -21,6 +21,16 @@ func main() {
 		log.Fatal("Failed to connect to database:", err)
 	}
 
+	// Check if this seed has already been run
+	var seedRun struct {
+		ID string `gorm:"column:id"`
+	}
+	result := db.Table("seed_runs").Select("id").Where("seed_name = ?", "subscription-plans").First(&seedRun)
+	if result.Error == nil {
+		fmt.Println("✅ Subscription plans seed already executed, skipping...")
+		return
+	}
+
 	fmt.Println("Creating subscription plans...")
 
 	// Starter Plan (Basic tier)
@@ -130,4 +140,10 @@ func main() {
 	fmt.Println("   • Starter: $29.99/month - 1 organization, 10 QR codes, 500 feedbacks/month, 2 team members")
 	fmt.Println("   • Professional: $79.99/month - 3 organizations, 50 QR codes, 2000 feedbacks/month, 5 team members") 
 	fmt.Println("   • Premium: $199.99/month - 10 organizations, 200 QR codes, 5000 feedbacks/month, 20 team members + Advanced Analytics")
+
+	// Record that this seed has been run
+	err = db.Exec(`INSERT INTO seed_runs (seed_name, version) VALUES (?, ?)`, "subscription-plans", "1.0").Error
+	if err != nil {
+		log.Printf("⚠️  Warning: Failed to record seed run: %v\n", err)
+	}
 }

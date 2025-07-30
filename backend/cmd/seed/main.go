@@ -28,6 +28,16 @@ func main() {
 		log.Fatal("Failed to connect to database:", err)
 	}
 
+	// Check if this seed has already been run
+	var seedRun struct {
+		ID string `gorm:"column:id"`
+	}
+	result := db.Table("seed_runs").Select("id").Where("seed_name = ?", "main-seed").First(&seedRun)
+	if result.Error == nil {
+		fmt.Println("✅ Main seed already executed, skipping...")
+		return
+	}
+
 	// Disable GORM verbose logging during seeding
 	db = db.Session(&gorm.Session{Logger: logger.Default.LogMode(logger.Silent)})
 
@@ -376,6 +386,12 @@ func main() {
 	}
 	
 	fmt.Println("\n✨ Each plan has 2 organizations with products, QR codes, and ~920 feedback records")
+
+	// Record that this seed has been run
+	err = db.Exec(`INSERT INTO seed_runs (seed_name, version) VALUES (?, ?)`, "main-seed", "1.0").Error
+	if err != nil {
+		log.Printf("⚠️  Warning: Failed to record seed run: %v\n", err)
+	}
 }
 
 type Product struct {

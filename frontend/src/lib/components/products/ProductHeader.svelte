@@ -1,5 +1,6 @@
 <script lang="ts">
   import { Button } from '$lib/components/ui';
+  import { ArrowLeft, Plus } from 'lucide-svelte';
   import { goto } from '$app/navigation';
 
   interface Product {
@@ -41,17 +42,7 @@
           onclick={() => goto('/organizations')}
           class="p-2 mr-2"
           aria-label="Back to organizations">
-          <svg
-            class="h-5 w-5"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24">
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M15 19l-7-7 7-7" />
-          </svg>
+          <ArrowLeft class="h-5 w-5" />
         </Button>
 
         <div>
@@ -92,17 +83,7 @@
         <div
           class="absolute inset-0 bg-gradient-to-r from-blue-600 to-purple-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
         </div>
-        <svg
-          class="h-5 w-5 mr-2 relative z-10 group-hover:scale-110 transition-transform duration-200"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24">
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="2"
-            d="M12 4v16m8-8H4" />
-        </svg>
+        <Plus class="h-5 w-5 mr-2 relative z-10 group-hover:scale-110 transition-transform duration-200" />
         <span class="relative z-10">Add Product</span>
       </Button>
     </div>
