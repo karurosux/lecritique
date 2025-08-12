@@ -9,19 +9,16 @@ import (
 )
 
 func main() {
-	// Load configuration
 	cfg, err := config.Load()
 	if err != nil {
 		log.Fatal("Failed to load configuration:", err)
 	}
 
-	// Connect to database
 	db, err := database.Initialize(cfg)
 	if err != nil {
 		log.Fatal("Failed to connect to database:", err)
 	}
 
-	// Check if this seed has already been run
 	var seedRun struct {
 		ID string `gorm:"column:id"`
 	}
@@ -33,7 +30,6 @@ func main() {
 
 	fmt.Println("Creating subscription plans...")
 
-	// Starter Plan (Basic tier)
 	err = db.Exec(`
 		INSERT INTO subscription_plans (code, name, description, price, currency, 
 			max_organizations, max_qr_codes, max_feedbacks_per_month, max_team_members,
@@ -67,7 +63,6 @@ func main() {
 		fmt.Println("✅ Created Starter plan")
 	}
 
-	// Professional Plan (Most popular - middle tier)
 	err = db.Exec(`
 		INSERT INTO subscription_plans (code, name, description, price, currency, 
 			max_organizations, max_qr_codes, max_feedbacks_per_month, max_team_members,
@@ -101,7 +96,6 @@ func main() {
 		fmt.Println("✅ Created Professional plan")
 	}
 
-	// Premium Plan (Enterprise tier with advanced analytics)
 	err = db.Exec(`
 		INSERT INTO subscription_plans (code, name, description, price, currency, 
 			max_organizations, max_qr_codes, max_feedbacks_per_month, max_team_members,
@@ -141,7 +135,6 @@ func main() {
 	fmt.Println("   • Professional: $79.99/month - 3 organizations, 50 QR codes, 2000 feedbacks/month, 5 team members") 
 	fmt.Println("   • Premium: $199.99/month - 10 organizations, 200 QR codes, 5000 feedbacks/month, 20 team members + Advanced Analytics")
 
-	// Record that this seed has been run
 	err = db.Exec(`INSERT INTO seed_runs (seed_name, version) VALUES (?, ?)`, "subscription-plans", "1.0").Error
 	if err != nil {
 		log.Printf("⚠️  Warning: Failed to record seed run: %v\n", err)

@@ -35,7 +35,6 @@ type CreateProductRequest struct {
 	Currency     string    `json:"currency"`
 }
 
-// Create creates a new product
 // @Summary Create a new product
 // @Description Create a new product for a organization
 // @Tags products
@@ -84,7 +83,6 @@ func (h *ProductHandler) Create(c echo.Context) error {
 	return response.Success(c, product)
 }
 
-// GetByOrganization gets all products for a specific organization
 // @Summary Get products by organization
 // @Description Get all products for a specific organization
 // @Tags products
@@ -115,7 +113,6 @@ func (h *ProductHandler) GetByOrganization(c echo.Context) error {
 	return response.Success(c, products)
 }
 
-// GetByID gets a specific product by ID
 // @Summary Get product by ID
 // @Description Get a specific product by its ID
 // @Tags products
@@ -146,7 +143,6 @@ func (h *ProductHandler) GetByID(c echo.Context) error {
 	return response.Success(c, product)
 }
 
-// Update updates a product
 // @Summary Update a product
 // @Description Update a product's information
 // @Tags products
@@ -184,7 +180,6 @@ func (h *ProductHandler) Update(c echo.Context) error {
 	})
 }
 
-// Delete deletes a product
 // @Summary Delete a product
 // @Description Delete a product from the system
 // @Tags products

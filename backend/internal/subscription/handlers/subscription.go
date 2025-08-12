@@ -39,7 +39,6 @@ type CreateSubscriptionRequest struct {
 }
 
 
-// GetAvailablePlans godoc
 // @Summary Get available subscription plans
 // @Description Retrieve all available subscription plans with their features and pricing
 // @Tags subscription
@@ -59,7 +58,6 @@ func (h *SubscriptionHandler) GetAvailablePlans(c echo.Context) error {
 	return response.Success(c, plans)
 }
 
-// GetUserSubscription godoc
 // @Summary Get user's current subscription
 // @Description Retrieve the current subscription details for the authenticated user
 // @Tags subscription
@@ -88,7 +86,6 @@ func (h *SubscriptionHandler) GetUserSubscription(c echo.Context) error {
 	
 	log.Printf("Found %d external team memberships for account %s", len(externalMemberships), accountID)
 	
-	// If user is a team member of another organization, get that organization's subscription
 	if len(externalMemberships) > 0 {
 		orgAccountID := externalMemberships[0].AccountID
 		log.Printf("Team member detected, fetching subscription for organization: %s", orgAccountID)
@@ -118,7 +115,6 @@ func (h *SubscriptionHandler) GetUserSubscription(c echo.Context) error {
 	return response.Success(c, subscription)
 }
 
-// GetUserUsage godoc
 // @Summary Get user's current subscription usage
 // @Description Retrieve the current subscription usage details for the authenticated user
 // @Tags subscription
@@ -142,7 +138,6 @@ func (h *SubscriptionHandler) GetUserUsage(c echo.Context) error {
 	teamMember, err := h.teamMemberService.GetMemberByMemberID(ctx, accountID)
 	var targetAccountID uuid.UUID
 	
-	// If user is a team member of another organization, use that organization's account ID
 	if err == nil && teamMember != nil && teamMember.AccountID != accountID {
 		targetAccountID = teamMember.AccountID
 		log.Printf("Team member detected, fetching usage for organization: %s", targetAccountID)
@@ -151,7 +146,6 @@ func (h *SubscriptionHandler) GetUserUsage(c echo.Context) error {
 		log.Printf("Not a team member, fetching own usage for account: %s", accountID)
 	}
 
-	// Get the subscription first
 	subscription, err := h.subscriptionService.GetUserSubscription(ctx, targetAccountID)
 	if err != nil {
 		log.Printf("Failed to get subscription: %v", err)
@@ -161,7 +155,6 @@ func (h *SubscriptionHandler) GetUserUsage(c echo.Context) error {
 		return response.Error(c, err)
 	}
 
-	// Get usage data
 	usage, err := h.usageService.GetCurrentUsage(ctx, subscription.ID)
 	if err != nil {
 		log.Printf("Failed to get usage: %v", err)
@@ -172,7 +165,6 @@ func (h *SubscriptionHandler) GetUserUsage(c echo.Context) error {
 	return response.Success(c, usage)
 }
 
-// CanUserCreateOrganization godoc
 // @Summary Check if user can create more organizations
 // @Description Check if the authenticated user can create more organizations based on their subscription plan
 // @Tags subscription
@@ -192,7 +184,6 @@ func (h *SubscriptionHandler) CanUserCreateOrganization(c echo.Context) error {
 
 	teamMember, err := h.teamMemberService.GetMemberByMemberID(ctx, accountID)
 	
-	// If user is a team member, use the organization's account ID
 	if err == nil && teamMember != nil && teamMember.AccountID != accountID {
 		orgAccountID := teamMember.AccountID
 		permission, err := h.subscriptionService.CanUserCreateOrganization(ctx, orgAccountID)
@@ -202,7 +193,6 @@ func (h *SubscriptionHandler) CanUserCreateOrganization(c echo.Context) error {
 		return response.Success(c, permission)
 	}
 
-	// Otherwise, use the user's own account ID
 	permission, err := h.subscriptionService.CanUserCreateOrganization(ctx, accountID)
 	if err != nil {
 		return response.Error(c, err)
@@ -211,7 +201,6 @@ func (h *SubscriptionHandler) CanUserCreateOrganization(c echo.Context) error {
 	return response.Success(c, permission)
 }
 
-// CreateSubscription godoc
 // @Summary Create a new subscription
 // @Description Create a new subscription for the authenticated user
 // @Tags subscription
@@ -258,7 +247,6 @@ func (h *SubscriptionHandler) CreateSubscription(c echo.Context) error {
 	return response.Success(c, subscription)
 }
 
-// CancelSubscription godoc
 // @Summary Cancel user's subscription
 // @Description Cancel the current subscription for the authenticated user
 // @Tags subscription

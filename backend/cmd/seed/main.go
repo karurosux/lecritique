@@ -28,7 +28,6 @@ func main() {
 		log.Fatal("Failed to connect to database:", err)
 	}
 
-	// Check if this seed has already been run
 	var seedRun struct {
 		ID string `gorm:"column:id"`
 	}
@@ -38,13 +37,10 @@ func main() {
 		return
 	}
 
-	// Disable GORM verbose logging during seeding
 	db = db.Session(&gorm.Session{Logger: logger.Default.LogMode(logger.Silent)})
 
-	// Seed random number generator
 	rand.Seed(time.Now().UnixNano())
 
-	// Get all available subscription plans
 	var subscriptionPlans []struct {
 		ID   string `gorm:"column:id"`
 		Code string `gorm:"column:code"`
@@ -61,21 +57,17 @@ func main() {
 
 	fmt.Printf("✅ Found %d subscription plans\n", len(subscriptionPlans))
 
-	// Create accounts for each subscription plan
-	planAccounts := make(map[string][]string) // planCode -> [ownerAccountID, memberAccountID]
+	planAccounts := make(map[string][]string)
 	
 	for _, plan := range subscriptionPlans {
 		fmt.Printf("\n📋 Creating accounts for %s plan...\n", plan.Name)
 		
-		// Account emails based on plan
 		ownerEmail := fmt.Sprintf("admin_%s@kyooar.com", plan.Code)
 		memberEmail := fmt.Sprintf("viewer_%s@kyooar.com", plan.Code)
 		password := "Pass123!"
 
-		// Create owner account
 		var ownerAccountID string
 		{
-			// Check if owner account exists
 			var existingAccount struct {
 				ID string `gorm:"column:id"`
 			}
@@ -89,11 +81,10 @@ func main() {
 						log.Printf("Failed to delete existing owner user: %v\n", err)
 						continue
 					}
-					ownerAccountID = "" // Reset so we create new account
+					ownerAccountID = ""
 				}
 			}
 
-			// Create owner account only if needed
 			if ownerAccountID == "" {
 				hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 				if err != nil {
@@ -112,9 +103,7 @@ func main() {
 					log.Printf("Failed to create owner account: %v\n", err)
 					continue
 				}
-				// Owner account created
 
-				// Create owner team member record (owner of their own account)
 				err = db.Exec(`
 					INSERT INTO team_members (account_id, member_id, role, invited_by, invited_at, accepted_at, created_at, updated_at)
 					VALUES (?, ?, 'OWNER', ?, NOW(), NOW(), NOW(), NOW())
@@ -123,7 +112,6 @@ func main() {
 					log.Printf("Failed to create owner team member record: %v\n", err)
 				}
 
-				// Create subscription for owner
 				err = db.Exec(`
 					INSERT INTO subscriptions (account_id, plan_id, status, current_period_start, current_period_end)
 					VALUES (?, ?, 'active', NOW(), NOW() + INTERVAL '1 month')
@@ -134,10 +122,8 @@ func main() {
 			}
 		}
 
-		// Create member account
 		var memberAccountID string
 		{
-			// Check if member account exists
 			var existingAccount struct {
 				ID string `gorm:"column:id"`
 			}
@@ -151,11 +137,10 @@ func main() {
 						log.Printf("Failed to delete existing member user: %v\n", err)
 						continue
 					}
-					memberAccountID = "" // Reset so we create new account
+					memberAccountID = ""
 				}
 			}
 
-			// Create member account only if needed
 			if memberAccountID == "" {
 				hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 				if err != nil {
@@ -174,9 +159,7 @@ func main() {
 					log.Printf("Failed to create member account: %v\n", err)
 					continue
 				}
-				// Member account created
 
-				// Create member team member record (owner of their own account)
 				err = db.Exec(`
 					INSERT INTO team_members (account_id, member_id, role, invited_by, invited_at, accepted_at, created_at, updated_at)
 					VALUES (?, ?, 'OWNER', ?, NOW(), NOW(), NOW(), NOW())
@@ -192,7 +175,6 @@ func main() {
 		}
 	}
 
-	// Create organizations for each subscription plan
 	for _, plan := range subscriptionPlans {
 		accounts, exists := planAccounts[plan.Code]
 		if !exists || len(accounts) != 2 {
@@ -205,7 +187,6 @@ func main() {
 		
 		fmt.Printf("\n🏢 Creating organizations for %s plan...\n", plan.Name)
 		
-		// Define organizations for this plan
 		planOrganizations := []struct {
 			orgName       string
 			orgDesc       string
@@ -271,11 +252,9 @@ func main() {
 			},
 		}
 
-		// Create organizations for this plan
 		for _, org := range planOrganizations {
 			fmt.Printf("\n📋 Creating organization: %s\n", org.orgName)
 
-			// Create organization owned by plan owner
 			var organizationID string
 			err = db.Raw(`
 				INSERT INTO organizations (account_id, name, description, email, phone, website, is_active)
@@ -287,9 +266,7 @@ func main() {
 				log.Printf("Failed to create organization: %v\n", err)
 				continue
 			}
-			// Organization created
 
-			// Add plan viewer as team member to this organization (check for existing first)
 			var existingTeamMember string
 			checkResult := db.Raw("SELECT id FROM team_members WHERE account_id = ? AND member_id = ?", ownerAccountID, viewerAccountID).Scan(&existingTeamMember)
 			if checkResult.Error != nil || existingTeamMember == "" {
@@ -302,10 +279,8 @@ func main() {
 				}
 			}
 
-			// Location will be created by the organization directly if needed
 			locationName := org.location
 
-			// Create products
 			productIDs := make(map[string]string)
 			for _, product := range org.products {
 				var productID string
@@ -318,7 +293,6 @@ func main() {
 				if err != nil {
 					log.Printf("Failed to create product %s: %v\n", product.Name, err)
 				} else {
-					// Validate that we got a proper UUID
 					if _, err := uuid.Parse(productID); err != nil {
 						log.Printf("⚠️  Product %s returned invalid UUID: %s\n", product.Name, productID)
 					} else {
@@ -327,7 +301,6 @@ func main() {
 				}
 			}
 
-			// Create QR codes
 			qrCodeIDs := make(map[string]string)
 			for _, qr := range org.qrCodes {
 				var qrID string
@@ -340,18 +313,15 @@ func main() {
 				if err != nil {
 					log.Printf("Failed to create QR code %s: %v\n", qr.Code, err)
 				} else {
-					// Validate that we got a proper UUID
 					if _, err := uuid.Parse(qrID); err != nil {
 						log.Printf("⚠️  QR code %s returned invalid UUID: %s\n", qr.Code, qrID)
 					} else {
 						qrCodeIDs[qr.Code] = qrID
 						
-						// Add realistic scan data
-						scansCount := 50 + rand.Intn(200) // 50-250 scans
-						daysAgo := rand.Intn(7) + 1       // Last scan 1-7 days ago
+						scansCount := 50 + rand.Intn(200)
+						daysAgo := rand.Intn(7) + 1
 						lastScannedAt := time.Now().AddDate(0, 0, -daysAgo)
 						
-						// Update QR code with scan data
 						err = db.Exec(`
 							UPDATE qr_codes 
 							SET scans_count = ?, last_scanned_at = ? 
@@ -364,14 +334,12 @@ func main() {
 				}
 			}
 
-			// Create questionnaires
 			if org.isTourCompany {
 				createTourQuestionnaires(db, organizationID, productIDs)
 			} else {
 				createPrintQuestionnaires(db, organizationID, productIDs)
 			}
 
-			// Create feedback
 			if len(qrCodeIDs) > 0 && len(productIDs) > 0 {
 				createFeedback(db, organizationID, qrCodeIDs, productIDs, org.isTourCompany)
 			}
@@ -387,7 +355,6 @@ func main() {
 	
 	fmt.Println("\n✨ Each plan has 2 organizations with products, QR codes, and ~920 feedback records")
 
-	// Record that this seed has been run
 	err = db.Exec(`INSERT INTO seed_runs (seed_name, version) VALUES (?, ?)`, "main-seed", "1.0").Error
 	if err != nil {
 		log.Printf("⚠️  Warning: Failed to record seed run: %v\n", err)
@@ -409,10 +376,7 @@ type QRCode struct {
 
 func createTourQuestionnaires(db *gorm.DB, orgID string, productIDs map[string]string) []string {
 	var questionnaireIDs []string
-
-	// Create questionnaires and questions for each product
 	for productName, productID := range productIDs {
-		// Create product-specific questionnaire
 		var qID string
 		err := db.Raw(`
 			INSERT INTO questionnaires (organization_id, product_id, name, description, is_active)
@@ -423,7 +387,6 @@ func createTourQuestionnaires(db *gorm.DB, orgID string, productIDs map[string]s
 		if err == nil {
 			questionnaireIDs = append(questionnaireIDs, qID)
 			
-			// Add questions for this product
 			questions := []struct {
 				text     string
 				qtype    string
@@ -442,7 +405,6 @@ func createTourQuestionnaires(db *gorm.DB, orgID string, productIDs map[string]s
 			for i, q := range questions {
 				var optionsParam interface{}
 				if q.options != nil {
-					// Convert to PostgreSQL array format
 					optionsParam = fmt.Sprintf("{%s}", joinStringSlice(q.options, ","))
 				}
 				
@@ -463,10 +425,7 @@ func createTourQuestionnaires(db *gorm.DB, orgID string, productIDs map[string]s
 
 func createPrintQuestionnaires(db *gorm.DB, orgID string, productIDs map[string]string) []string {
 	var questionnaireIDs []string
-
-	// Create questionnaires and questions for each product
 	for productName, productID := range productIDs {
-		// Create product-specific questionnaire
 		var qID string
 		err := db.Raw(`
 			INSERT INTO questionnaires (organization_id, product_id, name, description, is_active)
@@ -477,7 +436,6 @@ func createPrintQuestionnaires(db *gorm.DB, orgID string, productIDs map[string]
 		if err == nil {
 			questionnaireIDs = append(questionnaireIDs, qID)
 			
-			// Add questions for this product
 			questions := []struct {
 				text     string
 				qtype    string
@@ -493,7 +451,6 @@ func createPrintQuestionnaires(db *gorm.DB, orgID string, productIDs map[string]
 				{"Any suggestions for improvement?", "text", false, nil},
 			}
 
-			// Add service-specific questions
 			if productName == "International Calls" || productName == "Fax Service" {
 				questions = append(questions, struct {
 					text     string
@@ -506,7 +463,6 @@ func createPrintQuestionnaires(db *gorm.DB, orgID string, productIDs map[string]
 			for i, q := range questions {
 				var optionsParam interface{}
 				if q.options != nil {
-					// Convert to PostgreSQL array format
 					optionsParam = fmt.Sprintf("{%s}", joinStringSlice(q.options, ","))
 				}
 				
@@ -526,43 +482,38 @@ func createPrintQuestionnaires(db *gorm.DB, orgID string, productIDs map[string]
 }
 
 func createFeedback(db *gorm.DB, orgID string, qrCodeIDs map[string]string, productIDs map[string]string, isTourCompany bool) {
-	// Generate feedback over the past 90 days for better testing
 	now := time.Now()
 	
-	// Create feedback counts based on actual QR codes created
 	feedbackCounts := make(map[string]int)
 	
-	// Different traffic patterns for different QR code types
 	for qrCode := range qrCodeIDs {
 		if isTourCompany {
-			// Tourist company has more weekend traffic - increased for testing
 			if strings.Contains(qrCode, "TOUR-DESK") {
-				feedbackCounts[qrCode] = 85  // Reception desk - high traffic
+				feedbackCounts[qrCode] = 85
 			} else if strings.Contains(qrCode, "TOUR-BUS-01") {
-				feedbackCounts[qrCode] = 120 // Main tour bus - highest traffic
+				feedbackCounts[qrCode] = 120
 			} else if strings.Contains(qrCode, "TOUR-BUS-02") {
-				feedbackCounts[qrCode] = 95  // Secondary bus
+				feedbackCounts[qrCode] = 95
 			} else if strings.Contains(qrCode, "TOUR-MEETING") {
-				feedbackCounts[qrCode] = 65  // Meeting point
+				feedbackCounts[qrCode] = 65
 			} else if strings.Contains(qrCode, "TOUR-OFFICE") {
-				feedbackCounts[qrCode] = 75  // Main office
+				feedbackCounts[qrCode] = 75
 			}
 		} else {
-			// Print shop has more weekday traffic - increased for testing
 			if strings.Contains(qrCode, "PRINT-DESK-01") {
-				feedbackCounts[qrCode] = 110 // Main service counter
+				feedbackCounts[qrCode] = 110
 			} else if strings.Contains(qrCode, "PRINT-DESK-02") {
-				feedbackCounts[qrCode] = 98  // Secondary counter
+				feedbackCounts[qrCode] = 98
 			} else if strings.Contains(qrCode, "PRINT-SELF-01") {
-				feedbackCounts[qrCode] = 70  // Self-service stations
+				feedbackCounts[qrCode] = 70
 			} else if strings.Contains(qrCode, "PRINT-SELF-02") {
 				feedbackCounts[qrCode] = 65
 			} else if strings.Contains(qrCode, "PRINT-CALL-01") {
-				feedbackCounts[qrCode] = 45  // Call booths
+				feedbackCounts[qrCode] = 45
 			} else if strings.Contains(qrCode, "PRINT-CALL-02") {
 				feedbackCounts[qrCode] = 38
 			} else if strings.Contains(qrCode, "PRINT-PICKUP") {
-				feedbackCounts[qrCode] = 55  // Pickup area
+				feedbackCounts[qrCode] = 55
 			}
 		}
 	}
@@ -587,10 +538,9 @@ func createFeedback(db *gorm.DB, orgID string, qrCodeIDs map[string]string, prod
 		"robert.t@business.org", "maria.r@service.com", "james.thomas@email.com", "patricia.lee@gmail.com",
 		"c.white@company.com", "linda.h@business.com", "daniel.martin@email.com", "barbara.t@work.org",
 		"joseph.clark@email.com", "elizabeth.lewis@gmail.com", "thomas.walker@company.com", "susan.hall@email.com",
-		"", "", "", "", "", "", // Some customers don't provide email (20% anonymous)
+		"", "", "", "", "", "",
 	}
 
-	// Convert productIDs map to slice for random selection
 	var productIDsList []string
 	for _, id := range productIDs {
 		productIDsList = append(productIDsList, id)
@@ -605,41 +555,34 @@ func createFeedback(db *gorm.DB, orgID string, qrCodeIDs map[string]string, prod
 			continue
 		}
 		
-		// Validate QR code UUID before using it
 		if _, err := uuid.Parse(qrID); err != nil {
 			fmt.Printf("⚠️  Skipping feedback for %s - invalid QR UUID: %s\n", qrCode, qrID)
 			continue
 		}
 
 		for i := 0; i < count; i++ {
-			// Spread feedback over past 90 days with realistic patterns
 			daysAgo := rand.Intn(90)
 			feedbackDate := now.AddDate(0, 0, -daysAgo)
 			
-			// More feedback during business hours
-			hour := 9 + rand.Intn(10) // 9 AM to 7 PM
+			hour := 9 + rand.Intn(10)
 			if isTourCompany && (feedbackDate.Weekday() == time.Saturday || feedbackDate.Weekday() == time.Sunday) {
-				hour = 8 + rand.Intn(12) // 8 AM to 8 PM on weekends
+				hour = 8 + rand.Intn(12)
 			}
 			feedbackDate = time.Date(feedbackDate.Year(), feedbackDate.Month(), feedbackDate.Day(), hour, rand.Intn(60), 0, 0, feedbackDate.Location())
 
-			// Select random product
 			productID := productIDsList[rand.Intn(len(productIDsList))]
 			
-			// Validate product UUID
 			if _, err := uuid.Parse(productID); err != nil {
 				fmt.Printf("⚠️  Skipping feedback - invalid product UUID: %s\n", productID)
 				continue
 			}
 
-			// Random customer info
 			customerName := customerNames[rand.Intn(len(customerNames))]
 			customerEmail := customerEmails[rand.Intn(len(customerEmails))]
 			if customerEmail == "" {
 				customerEmail = fmt.Sprintf("%s.%d@example.com", qrCode, i)
 			}
 
-			// Get questions for this product
 			var questions []struct {
 				ID      string  `gorm:"column:id"`
 				Text    string  `gorm:"column:text"`
@@ -649,42 +592,34 @@ func createFeedback(db *gorm.DB, orgID string, qrCodeIDs map[string]string, prod
 			db.Table("questions").Select("id, text, type, options").Where("product_id = ?", productID).Find(&questions)
 
 			if len(questions) == 0 {
-				continue // Skip if no questions for this product
+				continue
 			}
 
-			// Create responses JSONB array
 			responses := make([]map[string]interface{}, 0)
-			overallRating := 3 + rand.Intn(3) // 3-5 stars for overall rating
+			overallRating := 3 + rand.Intn(3)
 
 			for _, q := range questions {
 				var answer interface{}
 				switch q.Type {
 				case "rating":
-					// Mostly positive ratings with some variation
-					answer = 3 + rand.Intn(3) // 3-5 stars
+					answer = 3 + rand.Intn(3)
 				case "scale":
-					// Scale 1-10
-					answer = 6 + rand.Intn(5) // 6-10
+					answer = 6 + rand.Intn(5)
 				case "yes_no":
-					// 80% positive
 					if rand.Float32() < 0.8 {
 						answer = "yes"
 					} else {
 						answer = "no"
 					}
 				case "single_choice":
-					// Select one random option
 					if q.Options != nil && *q.Options != "" {
-						// Parse PostgreSQL array format: {option1,option2,option3}
 						optionsArray := parsePostgreSQLArray(*q.Options)
 						if len(optionsArray) > 0 {
 							answer = optionsArray[rand.Intn(len(optionsArray))]
 						}
 					}
 				case "multi_choice":
-					// Select 1-3 random options
 					if q.Options != nil && *q.Options != "" {
-						// Parse PostgreSQL array format: {option1,option2,option3}
 						optionsArray := parsePostgreSQLArray(*q.Options)
 						if len(optionsArray) > 0 {
 							selected := rand.Intn(min(3, len(optionsArray))) + 1
@@ -705,7 +640,6 @@ func createFeedback(db *gorm.DB, orgID string, qrCodeIDs map[string]string, prod
 						}
 					}
 				case "text":
-					// Random feedback comments
 					if isTourCompany {
 						comments := []string{
 							"Great tour! The guide was very knowledgeable.",
@@ -742,7 +676,6 @@ func createFeedback(db *gorm.DB, orgID string, qrCodeIDs map[string]string, prod
 				}
 			}
 
-			// Create feedback record with properly serialized JSON
 			responsesJSON, err := json.Marshal(responses)
 			if err != nil {
 				log.Printf("Failed to marshal responses: %v\n", err)
@@ -759,11 +692,9 @@ func createFeedback(db *gorm.DB, orgID string, qrCodeIDs map[string]string, prod
 				continue
 			}
 		}
-		// Feedback created successfully (silent)
 	}
 }
 
-// Helper function to get minimum of two integers
 func min(a, b int) int {
 	if a < b {
 		return a
@@ -771,7 +702,6 @@ func min(a, b int) int {
 	return b
 }
 
-// Helper function to join string slice
 func joinStringSlice(slice []string, separator string) string {
 	if len(slice) == 0 {
 		return ""
@@ -783,18 +713,15 @@ func joinStringSlice(slice []string, separator string) string {
 	return result
 }
 
-// Helper function to parse PostgreSQL array format: {option1,option2,option3}
 func parsePostgreSQLArray(pgArray string) []string {
 	if pgArray == "" || pgArray == "{}" {
 		return []string{}
 	}
 	
-	// Remove surrounding braces
 	if strings.HasPrefix(pgArray, "{") && strings.HasSuffix(pgArray, "}") {
 		pgArray = pgArray[1 : len(pgArray)-1]
 	}
 	
-	// Split by commas and clean up each element
 	parts := strings.Split(pgArray, ",")
 	result := make([]string, 0, len(parts))
 	

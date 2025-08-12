@@ -12,13 +12,10 @@ var log *logrus.Logger
 func init() {
 	log = logrus.New()
 	
-	// Set output to stdout
 	log.SetOutput(os.Stdout)
 	
-	// Set log level
 	log.SetLevel(logrus.InfoLevel)
 	
-	// Use text formatter for readable logs
 	log.SetFormatter(&logrus.TextFormatter{
 		FullTimestamp: true,
 		ForceColors:   true,
@@ -26,12 +23,10 @@ func init() {
 }
 
 
-// Get returns the configured logger instance
 func Get() *logrus.Logger {
 	return log
 }
 
-// Info logs an info message
 func Info(msg string, fields ...logrus.Fields) {
 	entry := log.WithFields(logrus.Fields{})
 	if len(fields) > 0 {
@@ -40,7 +35,6 @@ func Info(msg string, fields ...logrus.Fields) {
 	entry.Info(msg)
 }
 
-// Error logs an error message
 func Error(msg string, err error, fields ...logrus.Fields) {
 	entry := log.WithFields(logrus.Fields{"error": err.Error()})
 	if len(fields) > 0 {
@@ -51,7 +45,6 @@ func Error(msg string, err error, fields ...logrus.Fields) {
 	entry.Error(msg)
 }
 
-// Warn logs a warning message
 func Warn(msg string, fields ...logrus.Fields) {
 	entry := log.WithFields(logrus.Fields{})
 	if len(fields) > 0 {
@@ -60,7 +53,6 @@ func Warn(msg string, fields ...logrus.Fields) {
 	entry.Warn(msg)
 }
 
-// Debug logs a debug message
 func Debug(msg string, fields ...logrus.Fields) {
 	entry := log.WithFields(logrus.Fields{})
 	if len(fields) > 0 {
@@ -69,7 +61,6 @@ func Debug(msg string, fields ...logrus.Fields) {
 	entry.Debug(msg)
 }
 
-// LogJSON logs an object as formatted JSON for debugging
 func LogJSON(msg string, obj interface{}) {
 	jsonBytes, err := json.MarshalIndent(obj, "", "  ")
 	if err != nil {
@@ -79,7 +70,6 @@ func LogJSON(msg string, obj interface{}) {
 	log.WithField("json", string(jsonBytes)).Info(msg)
 }
 
-// SetLevel sets the log level
 func SetLevel(level string) {
 	switch level {
 	case "debug":

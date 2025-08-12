@@ -100,13 +100,11 @@ func (s *qrCodeService) GetByOrganizationID(ctx context.Context, accountID uuid.
 }
 
 func (s *qrCodeService) Update(ctx context.Context, accountID uuid.UUID, qrCodeID uuid.UUID, updateReq *UpdateQRCodeRequest) (*models.QRCode, error) {
-	// Get QR code
 	qrCode, err := s.qrCodeRepo.FindByID(ctx, qrCodeID)
 	if err != nil {
 		return nil, err
 	}
 
-	// Verify ownership
 	organization, err := s.organizationRepo.FindByID(ctx, qrCode.OrganizationID)
 	if err != nil {
 		return nil, err
@@ -116,7 +114,6 @@ func (s *qrCodeService) Update(ctx context.Context, accountID uuid.UUID, qrCodeI
 		return nil, sharedRepos.ErrRecordNotFound
 	}
 
-	// Update fields if provided
 	if updateReq.IsActive != nil {
 		qrCode.IsActive = *updateReq.IsActive
 	}
@@ -129,7 +126,6 @@ func (s *qrCodeService) Update(ctx context.Context, accountID uuid.UUID, qrCodeI
 
 	qrCode.UpdatedAt = time.Now()
 
-	// Save to repository
 	if err := s.qrCodeRepo.Update(ctx, qrCode); err != nil {
 		return nil, err
 	}
@@ -138,13 +134,11 @@ func (s *qrCodeService) Update(ctx context.Context, accountID uuid.UUID, qrCodeI
 }
 
 func (s *qrCodeService) Delete(ctx context.Context, accountID uuid.UUID, qrCodeID uuid.UUID) error {
-	// Get QR code
 	qrCode, err := s.qrCodeRepo.FindByID(ctx, qrCodeID)
 	if err != nil {
 		return err
 	}
 
-	// Verify ownership
 	organization, err := s.organizationRepo.FindByID(ctx, qrCode.OrganizationID)
 	if err != nil {
 		return err

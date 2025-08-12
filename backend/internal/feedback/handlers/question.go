@@ -21,7 +21,6 @@ func NewQuestionHandler(i *do.Injector) (*QuestionHandler, error) {
 	}, nil
 }
 
-// CreateQuestion creates a new question for a product
 // @Summary Add a question to a product
 // @Description Add a new feedback question to a specific product
 // @Tags questions
@@ -63,7 +62,6 @@ func (h *QuestionHandler) CreateQuestion(c echo.Context) error {
 	})
 }
 
-// GetQuestionsByProduct gets all questions for a specific product
 // @Summary Get questions for a product
 // @Description Get all feedback questions for a specific product
 // @Tags questions
@@ -97,7 +95,6 @@ func (h *QuestionHandler) GetQuestionsByProduct(c echo.Context) error {
 	})
 }
 
-// GetQuestionsByProducts gets questions for multiple products in batch (optimized)
 // @Summary Get questions for multiple products (optimized payload)
 // @Description Get essential question fields for multiple products in a single request - returns only ID, ProductID, Text, and Type
 // @Tags questions
@@ -137,7 +134,6 @@ func (h *QuestionHandler) GetQuestionsByProducts(c echo.Context) error {
 	})
 }
 
-// GetQuestion gets a specific question
 // @Summary Get a specific question
 // @Description Get details of a specific question
 // @Tags questions
@@ -172,7 +168,6 @@ func (h *QuestionHandler) GetQuestion(c echo.Context) error {
 	})
 }
 
-// UpdateQuestion updates an existing question
 // @Summary Update a question
 // @Description Update an existing question for a product
 // @Tags questions
@@ -215,7 +210,6 @@ func (h *QuestionHandler) UpdateQuestion(c echo.Context) error {
 	})
 }
 
-// DeleteQuestion deletes a question
 // @Summary Delete a question
 // @Description Delete a feedback question from a product
 // @Tags questions
@@ -249,7 +243,6 @@ func (h *QuestionHandler) DeleteQuestion(c echo.Context) error {
 	})
 }
 
-// ReorderQuestions reorders questions for a product
 // @Summary Reorder questions
 // @Description Reorder questions for a specific product
 // @Tags questions
@@ -289,7 +282,6 @@ func (h *QuestionHandler) ReorderQuestions(c echo.Context) error {
 	})
 }
 
-// GetProductsWithQuestions returns product IDs that have questions for a organization
 // @Summary Get products that have questions
 // @Description Get list of product IDs that have questions for a organization
 // @Tags questions

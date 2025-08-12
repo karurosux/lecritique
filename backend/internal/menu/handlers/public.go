@@ -15,7 +15,6 @@ func NewMenuPublicHandler(i *do.Injector) (*MenuPublicHandler, error) {
 	return &MenuPublicHandler{}, nil
 }
 
-// GetOrganizationMenu gets public organization menu
 // @Summary Get organization menu
 // @Description Get public menu for a organization
 // @Tags public
@@ -33,8 +32,6 @@ func (h *MenuPublicHandler) GetOrganizationMenu(c echo.Context) error {
 		return response.Error(c, errors.ErrInvalidUUID)
 	}
 
-	// Implementation would get organization menu
-	// For now, return placeholder
 	return response.Success(c, map[string]interface{}{
 		"organization_id": id,
 		"message":       "Menu endpoint - to be implemented",

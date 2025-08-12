@@ -27,7 +27,6 @@ func NewTimeSeriesHandler(i *do.Injector) (*TimeSeriesHandler, error) {
 	}, nil
 }
 
-// GetTimeSeries gets time series data for analytics
 // @Summary Get time series analytics data
 // @Description Get time series data for various metrics with customizable granularity and date range
 // @Tags analytics
@@ -56,10 +55,8 @@ func (h *TimeSeriesHandler) GetTimeSeries(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, "Invalid organization ID")
 	}
 
-	// Use resource account ID for team-aware access
 	resourceAccountID := middleware.GetResourceAccountID(c)
 
-	// Verify organization ownership
 	organization, err := h.organizationRepo.FindByID(ctx, organizationID)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusNotFound, "Organization not found")
@@ -68,7 +65,6 @@ func (h *TimeSeriesHandler) GetTimeSeries(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusForbidden, "Access denied")
 	}
 
-	// Parse query parameters
 	startDateStr := c.QueryParam("start_date")
 	endDateStr := c.QueryParam("end_date")
 	
@@ -91,7 +87,6 @@ func (h *TimeSeriesHandler) GetTimeSeries(c echo.Context) error {
 		granularity = models.GranularityDaily
 	}
 	
-	// Validate granularity
 	validGranularities := map[string]bool{
 		models.GranularityHourly:  true,
 		models.GranularityDaily:   true,
@@ -102,10 +97,8 @@ func (h *TimeSeriesHandler) GetTimeSeries(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, "Invalid granularity")
 	}
 	
-	// Parse metric types - handle both formats
 	metricTypes := c.QueryParams()["metric_types"]
 	
-	// If metric_types is empty, try metric_types[] (common from frontend frameworks)
 	if len(metricTypes) == 0 {
 		metricTypes = c.QueryParams()["metric_types[]"]
 	}
@@ -114,7 +107,6 @@ func (h *TimeSeriesHandler) GetTimeSeries(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, "At least one metric_type is required")
 	}
 	
-	// Build request
 	request := models.TimeSeriesRequest{
 		OrganizationID: organizationID,
 		MetricTypes:    metricTypes,
@@ -123,7 +115,6 @@ func (h *TimeSeriesHandler) GetTimeSeries(c echo.Context) error {
 		Granularity:    granularity,
 	}
 	
-	// Parse optional filters
 	if productIDStr := c.QueryParam("product_id"); productIDStr != "" {
 		productID, err := uuid.Parse(productIDStr)
 		if err != nil {
@@ -140,7 +131,6 @@ func (h *TimeSeriesHandler) GetTimeSeries(c echo.Context) error {
 		request.QuestionID = &questionID
 	}
 	
-	// Get time series data
 	response, err := h.timeSeriesService.GetTimeSeries(ctx, request)
 	if err != nil {
 		logger.Error("Failed to get time series data", err, logrus.Fields{
@@ -153,7 +143,6 @@ func (h *TimeSeriesHandler) GetTimeSeries(c echo.Context) error {
 	return c.JSON(http.StatusOK, response)
 }
 
-// CompareTimePeriods compares analytics between two time periods
 // @Summary Compare analytics between two time periods
 // @Description Compare metrics between two different time periods to identify trends and changes
 // @Tags analytics
@@ -177,10 +166,8 @@ func (h *TimeSeriesHandler) CompareTimePeriods(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, "Invalid organization ID")
 	}
 
-	// Use resource account ID for team-aware access
 	resourceAccountID := middleware.GetResourceAccountID(c)
 
-	// Verify organization ownership
 	organization, err := h.organizationRepo.FindByID(ctx, organizationID)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusNotFound, "Organization not found")
@@ -189,16 +176,13 @@ func (h *TimeSeriesHandler) CompareTimePeriods(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusForbidden, "Access denied")
 	}
 
-	// Parse request body
 	var request models.ComparisonRequest
 	if err := c.Bind(&request); err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, "Invalid request body")
 	}
 	
-	// Set organization ID from path
 	request.OrganizationID = organizationID
 	
-	// Validate request
 	if request.Period1Start.IsZero() || request.Period1End.IsZero() ||
 		request.Period2Start.IsZero() || request.Period2End.IsZero() {
 		return echo.NewHTTPError(http.StatusBadRequest, "All period dates are required")
@@ -212,7 +196,6 @@ func (h *TimeSeriesHandler) CompareTimePeriods(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, "At least one metric type is required")
 	}
 	
-	// Get comparison data
 	response, err := h.timeSeriesService.GetComparison(ctx, request)
 	if err != nil {
 		logger.Error("Failed to get comparison data", err, logrus.Fields{
@@ -224,7 +207,6 @@ func (h *TimeSeriesHandler) CompareTimePeriods(c echo.Context) error {
 	return c.JSON(http.StatusOK, response)
 }
 
-// CollectMetrics manually triggers metric collection for an organization
 // @Summary Collect metrics for an organization
 // @Description Manually trigger the collection of time series metrics for analytics
 // @Tags analytics
@@ -247,10 +229,8 @@ func (h *TimeSeriesHandler) CollectMetrics(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, "Invalid organization ID")
 	}
 
-	// Use resource account ID for team-aware access
 	resourceAccountID := middleware.GetResourceAccountID(c)
 
-	// Verify organization ownership
 	organization, err := h.organizationRepo.FindByID(ctx, organizationID)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusNotFound, "Organization not found")
@@ -259,7 +239,6 @@ func (h *TimeSeriesHandler) CollectMetrics(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusForbidden, "Access denied")
 	}
 
-	// Collect metrics
 	if err := h.timeSeriesService.CollectMetrics(ctx, organizationID); err != nil {
 		logger.Error("Failed to collect metrics", err, logrus.Fields{
 			"organization_id": organizationID,

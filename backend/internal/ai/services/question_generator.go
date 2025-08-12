@@ -72,11 +72,11 @@ Generate questions in the following JSON format:
   {
     "text": "Question text here",
     "type": "rating|scale|multi_choice|single_choice|text|yes_no",
-    "options": ["option1", "option2"], // only for choice types
-    "min_value": 1, // only for scale
-    "max_value": 10, // only for scale
-    "min_label": "label", // only for scale
-    "max_label": "label" // only for scale
+    "options": ["option1", "option2"],
+    "min_value": 1,
+    "max_value": 10,
+    "min_label": "label",
+    "max_label": "label"
   }
 ]
 

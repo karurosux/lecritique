@@ -114,7 +114,6 @@ func (s *authService) Register(ctx context.Context, data RegisterData) (*models.
 	}
 
 	if err := s.SendEmailVerification(ctx, account.ID); err != nil {
-		// Log error but don't fail registration
 		log.Printf("Failed to send verification email for new account %s: %v", account.ID, err)
 	}
 
@@ -139,11 +138,9 @@ func (s *authService) Login(ctx context.Context, email, password string) (string
 		return "", nil, errors.NewWithDetails("EMAIL_NOT_VERIFIED", "Please verify your email address before logging in", 401, nil)
 	}
 
-	// If account has pending deactivation, cancel it
 	if account.IsPendingDeactivation() {
 		account.DeactivationRequestedAt = nil
 		if err := s.accountRepo.Update(ctx, account); err != nil {
-			// Log error but don't fail login
 			log.Printf("Failed to cancel deactivation for account %s: %v", account.ID, err)
 		}
 	}
@@ -174,7 +171,6 @@ func (s *authService) generateToken(account *models.Account) (string, error) {
 
 	teamMember, err := s.teamService.GetMemberByMemberID(context.Background(), account.ID)
 	if err != nil {
-		// Log the error but don't fail token generation - user might be an owner
 		log.Printf("Could not get team member for account %s: %v", account.ID, err)
 	}
 
@@ -185,7 +181,6 @@ func (s *authService) generateToken(account *models.Account) (string, error) {
 
 	subscription, err := s.subscriptionService.GetUserSubscription(context.Background(), claims.AccountID)
 	if err != nil {
-		// Log the error but don't fail token generation - user might not have a subscription yet
 		log.Printf("Could not get subscription for account %s: %v", claims.AccountID, err)
 	}
 
@@ -268,7 +263,6 @@ func (s *authService) SendEmailVerification(ctx context.Context, accountID uuid.
 func (s *authService) ResendVerificationEmail(ctx context.Context, email string) error {
 	account, err := s.accountRepo.FindByEmail(ctx, email)
 	if err != nil {
-		// Don't reveal if email exists - just log and return nil
 		log.Printf("Resend verification requested for non-existent email: %s", email)
 		return nil
 	}
@@ -280,7 +274,6 @@ func (s *authService) ResendVerificationEmail(ctx context.Context, email string)
 
 	if err := s.tokenRepo.DeleteByAccountAndType(ctx, account.ID, models.TokenTypeEmailVerification); err != nil {
 		log.Printf("Failed to delete existing verification tokens: %v", err)
-		// Continue anyway
 	}
 
 	token, err := models.GenerateToken()
@@ -326,7 +319,6 @@ func (s *authService) VerifyEmail(ctx context.Context, token string) error {
 func (s *authService) SendPasswordReset(ctx context.Context, email string) error {
 	account, err := s.accountRepo.FindByEmail(ctx, email)
 	if err != nil {
-		// Don't reveal if email exists or not for security
 		return nil
 	}
 
@@ -394,7 +386,6 @@ func (s *authService) RequestEmailChange(ctx context.Context, accountID uuid.UUI
 		return "", errors.NewWithDetails("SAME_EMAIL", "New email must be different from current email", 400, nil)
 	}
 
-	// In development mode without SMTP, change email immediately
 	if s.config.IsDevMode() && !s.config.IsSMTPConfigured() {
 		oldEmail := account.Email
 
@@ -412,7 +403,6 @@ func (s *authService) RequestEmailChange(ctx context.Context, accountID uuid.UUI
 			return "", err
 		}
 
-		// Log the change
 		log.Printf("DEV MODE: Email changed directly from %s to %s for account %s", oldEmail, newEmail, accountID)
 
 		return newToken, nil
@@ -508,7 +498,6 @@ func (s *authService) RequestDeactivation(ctx context.Context, accountID uuid.UU
 	if deactivationDate != nil {
 		err = s.emailService.SendDeactivationRequest(ctx, account.Email, deactivationDate.Format("January 2, 2006"))
 		if err != nil {
-			// Log error but don't fail the deactivation request
 			log.Printf("Failed to send deactivation email for account %s: %v", account.ID, err)
 		}
 	}
@@ -534,7 +523,6 @@ func (s *authService) CancelDeactivation(ctx context.Context, accountID uuid.UUI
 
 	err = s.emailService.SendDeactivationCancelled(ctx, account.Email)
 	if err != nil {
-		// Log error but don't fail the cancellation
 		log.Printf("Failed to send deactivation cancellation email for account %s: %v", account.ID, err)
 	}
 

@@ -44,7 +44,6 @@ type DeviceInfo struct {
 	Browser   string `json:"browser"`
 }
 
-// GORM Scanner/Valuer interfaces for JSONB
 func (r Responses) Value() (driver.Value, error) { return json.Marshal(r) }
 func (r *Responses) Scan(value interface{}) error { 
 	if value == nil {

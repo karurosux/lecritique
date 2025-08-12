@@ -13,7 +13,6 @@ import (
 )
 
 func Initialize(cfg *config.Config) (*gorm.DB, error) {
-	// Configure logger
 	logLevel := logger.Silent
 	if cfg.App.Env == "development" {
 		logLevel = logger.Info
@@ -29,7 +28,6 @@ func Initialize(cfg *config.Config) (*gorm.DB, error) {
 		},
 	)
 
-	// Connect to database
 	connectionString := cfg.DSN()
 	db, err := gorm.Open(postgres.Open(connectionString), &gorm.Config{
 		Logger: newLogger,
@@ -38,13 +36,11 @@ func Initialize(cfg *config.Config) (*gorm.DB, error) {
 		return nil, fmt.Errorf("failed to connect to database: %w", err)
 	}
 
-	// Get underlying SQL database
 	sqlDB, err := db.DB()
 	if err != nil {
 		return nil, err
 	}
 
-	// Configure connection pool
 	sqlDB.SetMaxIdleConns(10)
 	sqlDB.SetMaxOpenConns(100)
 	sqlDB.SetConnMaxLifetime(time.Hour)

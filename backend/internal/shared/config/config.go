@@ -61,7 +61,7 @@ type SMTPConfig struct {
 }
 
 type AIConfig struct {
-	Provider string // "openai", "anthropic", or "gemini"
+	Provider string
 	APIKey   string
 	Model    string
 }
@@ -148,12 +148,10 @@ func (c *Config) DSN() string {
 		c.Database.Host, c.Database.Port, c.Database.User, c.Database.Password, c.Database.Name, c.Database.SSLMode)
 }
 
-// IsSMTPConfigured returns true if SMTP settings are configured
 func (c *Config) IsSMTPConfigured() bool {
 	return c.SMTP != nil && c.SMTP.Host != "" && c.SMTP.Port > 0
 }
 
-// IsDevMode returns true if the app is running in development mode
 func (c *Config) IsDevMode() bool {
 	return c.App.Env == "development"
 }

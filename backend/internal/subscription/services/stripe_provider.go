@@ -15,13 +15,11 @@ import (
 	"github.com/stripe/stripe-go/v76/webhook"
 )
 
-// StripeProvider implements PaymentProvider for Stripe
 type StripeProvider struct {
 	secretKey     string
 	webhookSecret string
 }
 
-// NewStripeProvider creates a new Stripe payment provider
 func NewStripeProvider() *StripeProvider {
 	return &StripeProvider{}
 }
@@ -239,15 +237,12 @@ func (p *StripeProvider) UpdateSubscription(ctx context.Context, subscriptionID 
 		params.Metadata = options.Metadata
 	}
 
-	// If changing price, update the subscription items
 	if options.PriceID != "" {
-		// First, get the subscription to find existing items
 		sub, err := subscription.Get(subscriptionID, nil)
 		if err != nil {
 			return nil, fmt.Errorf("failed to get subscription: %w", err)
 		}
 
-		// Cancel existing items and add new one
 		params.Items = []*stripe.SubscriptionItemsParams{}
 		for _, item := range sub.Items.Data {
 			params.Items = append(params.Items, &stripe.SubscriptionItemsParams{
@@ -379,8 +374,6 @@ func (p *StripeProvider) ConstructWebhookEvent(payload []byte, signature string)
 }
 
 func (p *StripeProvider) HandleWebhookEvent(ctx context.Context, event *WebhookEvent) error {
-	// This would be implemented to handle specific webhook events
-	// For now, we'll just return nil
 	return nil
 }
 
@@ -409,8 +402,6 @@ func (p *StripeProvider) ListInvoices(ctx context.Context, customerID string, li
 
 	return invoices, iter.Err()
 }
-
-// Helper functions
 
 func toTime(timestamp int64) time.Time {
 	return time.Unix(timestamp, 0)

@@ -15,21 +15,18 @@ import (
 )
 
 type TeamMemberServiceV2 interface {
-	// Member management
 	ListMembers(ctx context.Context, accountID uuid.UUID) ([]models.TeamMember, error)
 	GetMemberByID(ctx context.Context, accountID uuid.UUID, memberID uuid.UUID) (*models.TeamMember, error)
 	GetMemberByMemberID(ctx context.Context, memberId uuid.UUID) (*models.TeamMember, error)
 	UpdateRole(ctx context.Context, accountID uuid.UUID, memberID uuid.UUID, newRole models.MemberRole) error
 	RemoveMember(ctx context.Context, accountID uuid.UUID, memberID uuid.UUID) error
 
-	// Invitation management
 	InviteMember(ctx context.Context, accountID uuid.UUID, inviterID uuid.UUID, email string, role models.MemberRole) (*models.TeamInvitation, error)
 	ResendInvitation(ctx context.Context, accountID uuid.UUID, invitationID uuid.UUID) error
 	CancelInvitation(ctx context.Context, accountID uuid.UUID, invitationID uuid.UUID) error
 	ListPendingInvitations(ctx context.Context, accountID uuid.UUID) ([]*models.TeamInvitation, error)
 	GetInvitationByToken(ctx context.Context, token string) (*models.TeamInvitation, error)
 
-	// For registration flow
 	CheckPendingInvitations(ctx context.Context, email string) ([]*models.TeamInvitation, error)
 	AcceptInvitation(ctx context.Context, invitationToken string, memberAccountID uuid.UUID) error
 	UpdateInvitation(ctx context.Context, invitation *models.TeamInvitation) error
@@ -138,7 +135,7 @@ func (s *teamMemberServiceV2) InviteMember(ctx context.Context, accountID uuid.U
 		Role:      role,
 		InvitedBy: inviterID,
 		Token:     token,
-		ExpiresAt: time.Now().Add(7 * 24 * time.Hour), // 7 days
+		ExpiresAt: time.Now().Add(7 * 24 * time.Hour),
 	}
 
 	if err := s.invitationRepo.Create(ctx, invitation); err != nil {
@@ -271,19 +268,17 @@ func (s *teamMemberServiceV2) AcceptInvitation(ctx context.Context, invitationTo
 	existingMember, err := s.teamMemberRepo.FindByMemberAndAccount(ctx, memberAccountID, invitation.AccountID)
 	if err == nil && existingMember != nil {
 		fmt.Printf("User is already a member of this team\n")
-		// Already a member, just mark invitation as accepted
 		now := time.Now()
 		invitation.AcceptedAt = &now
 		return s.invitationRepo.Update(ctx, invitation)
 	}
 
-	// Create team membership
 	member := &models.TeamMember{
 		AccountID:  invitation.AccountID,
 		MemberID:   memberAccountID,
 		Role:       invitation.Role,
 		InvitedBy:  invitation.InvitedBy,
-		InvitedAt:  invitation.CreatedAt, // Use CreatedAt from BaseModel
+		InvitedAt:  invitation.CreatedAt,
 		AcceptedAt: func() *time.Time { t := time.Now(); return &t }(),
 	}
 

@@ -94,7 +94,6 @@ func (r *questionRepository) ReorderQuestions(ctx context.Context, productID uui
 		}
 	}()
 
-	// Update display order for each question
 	for i, questionID := range questionIDs {
 		if err := tx.Model(&models.Question{}).
 			Where("id = ? AND product_id = ?", questionID, productID).

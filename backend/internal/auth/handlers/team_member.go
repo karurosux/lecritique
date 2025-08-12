@@ -44,17 +44,6 @@ type AcceptInviteRequest struct {
 	Token string `json:"token" validate:"required"`
 }
 
-// ListMembers godoc
-// @Summary List team members
-// @Description Get all team members for the account
-// @Tags team
-// @Accept json
-// @Produce json
-// @Success 200 {object} response.Response{data=[]models.TeamMember}
-// @Failure 401 {object} response.Response
-// @Failure 500 {object} response.Response
-// @Router /api/v1/team/members [get]
-// @Security BearerAuth
 func (h *TeamMemberHandler) ListMembers(c echo.Context) error {
 	ctx := c.Request().Context()
 	accountID, err := middleware.GetAccountID(c)
@@ -70,21 +59,6 @@ func (h *TeamMemberHandler) ListMembers(c echo.Context) error {
 	return response.Success(c, members)
 }
 
-// InviteMember godoc
-// @Summary Invite team member
-// @Description Invite a new team member to the account
-// @Tags team
-// @Accept json
-// @Produce json
-// @Param request body InviteMemberRequest true "Invitation details"
-// @Success 201 {object} response.Response{data=models.TeamMember}
-// @Failure 400 {object} response.Response
-// @Failure 401 {object} response.Response
-// @Failure 403 {object} response.Response
-// @Failure 409 {object} response.Response
-// @Failure 500 {object} response.Response
-// @Router /api/v1/team/members/invite [post]
-// @Security BearerAuth
 func (h *TeamMemberHandler) InviteMember(c echo.Context) error {
 	ctx := c.Request().Context()
 	accountID, err := middleware.GetAccountID(c)
@@ -92,13 +66,11 @@ func (h *TeamMemberHandler) InviteMember(c echo.Context) error {
 		return response.Error(c, err)
 	}
 
-	// Get current user ID (inviter)
 	userID, err := middleware.GetUserID(c)
 	if err != nil {
 		return response.Error(c, err)
 	}
 
-	// Check user role - only owners and admins can invite
 	userRole, err := middleware.GetRole(c)
 	if err != nil {
 		return response.Error(c, err)
@@ -129,22 +101,6 @@ func (h *TeamMemberHandler) InviteMember(c echo.Context) error {
 	})
 }
 
-// UpdateRole godoc
-// @Summary Update team member role
-// @Description Update the role of a team member
-// @Tags team
-// @Accept json
-// @Produce json
-// @Param id path string true "Member ID"
-// @Param request body UpdateRoleRequest true "New role"
-// @Success 200 {object} response.Response{data=map[string]string}
-// @Failure 400 {object} response.Response
-// @Failure 401 {object} response.Response
-// @Failure 403 {object} response.Response
-// @Failure 404 {object} response.Response
-// @Failure 500 {object} response.Response
-// @Router /api/v1/team/members/{id}/role [put]
-// @Security BearerAuth
 func (h *TeamMemberHandler) UpdateRole(c echo.Context) error {
 	ctx := c.Request().Context()
 	accountID, err := middleware.GetAccountID(c)
@@ -152,7 +108,6 @@ func (h *TeamMemberHandler) UpdateRole(c echo.Context) error {
 		return response.Error(c, err)
 	}
 
-	// Check user role - only owners and admins can update roles
 	userRole, err := middleware.GetRole(c)
 	if err != nil {
 		return response.Error(c, err)
@@ -184,21 +139,6 @@ func (h *TeamMemberHandler) UpdateRole(c echo.Context) error {
 	})
 }
 
-// RemoveMember godoc
-// @Summary Remove team member
-// @Description Remove a team member from the account
-// @Tags team
-// @Accept json
-// @Produce json
-// @Param id path string true "Member ID"
-// @Success 200 {object} response.Response{data=map[string]string}
-// @Failure 400 {object} response.Response
-// @Failure 401 {object} response.Response
-// @Failure 403 {object} response.Response
-// @Failure 404 {object} response.Response
-// @Failure 500 {object} response.Response
-// @Router /api/v1/team/members/{id} [delete]
-// @Security BearerAuth
 func (h *TeamMemberHandler) RemoveMember(c echo.Context) error {
 	ctx := c.Request().Context()
 	accountID, err := middleware.GetAccountID(c)
@@ -206,7 +146,6 @@ func (h *TeamMemberHandler) RemoveMember(c echo.Context) error {
 		return response.Error(c, err)
 	}
 
-	// Check user role - only owners and admins can remove members
 	userRole, err := middleware.GetRole(c)
 	if err != nil {
 		return response.Error(c, err)
@@ -229,20 +168,6 @@ func (h *TeamMemberHandler) RemoveMember(c echo.Context) error {
 	})
 }
 
-// ResendInvitation godoc
-// @Summary Resend team invitation
-// @Description Resend an invitation email to a pending team member
-// @Tags team
-// @Accept json
-// @Produce json
-// @Param id path string true "Invitation ID"
-// @Success 200 {object} response.Response{data=map[string]string}
-// @Failure 401 {object} response.Response
-// @Failure 403 {object} response.Response
-// @Failure 404 {object} response.Response
-// @Failure 500 {object} response.Response
-// @Router /api/v1/team/members/{id}/resend-invitation [post]
-// @Security BearerAuth
 func (h *TeamMemberHandler) ResendInvitation(c echo.Context) error {
 	ctx := c.Request().Context()
 	accountID, err := middleware.GetAccountID(c)
@@ -250,7 +175,6 @@ func (h *TeamMemberHandler) ResendInvitation(c echo.Context) error {
 		return response.Error(c, err)
 	}
 
-	// Check user role - only owners and admins can resend invitations
 	userRole, err := middleware.GetRole(c)
 	if err != nil {
 		return response.Error(c, err)
@@ -273,18 +197,6 @@ func (h *TeamMemberHandler) ResendInvitation(c echo.Context) error {
 	})
 }
 
-// AcceptInvitation godoc
-// @Summary Accept team invitation
-// @Description Accept a team invitation using the invitation token
-// @Tags team
-// @Accept json
-// @Produce json
-// @Param request body AcceptInviteRequest true "Invitation token"
-// @Success 200 {object} response.Response{data=map[string]string}
-// @Failure 400 {object} response.Response
-// @Failure 404 {object} response.Response
-// @Failure 500 {object} response.Response
-// @Router /api/v1/team/accept-invite [post]
 func (h *TeamMemberHandler) AcceptInvitation(c echo.Context) error {
 	ctx := c.Request().Context()
 
@@ -297,17 +209,13 @@ func (h *TeamMemberHandler) AcceptInvitation(c echo.Context) error {
 		return response.Error(c, err)
 	}
 
-	// Get the invitation details
 	invitation, err := h.teamMemberService.GetInvitationByToken(ctx, req.Token)
 	if err != nil {
 		return response.Error(c, err)
 	}
 
-	// Get the account for the invitation email
 	account, err := h.authService.GetAccountByEmail(ctx, invitation.Email)
 	if err != nil {
-		// Account doesn't exist - mark invitation as email_accepted
-		// When they register with this email, they'll be auto-added to the team
 		now := time.Now()
 		invitation.EmailAcceptedAt = &now
 		if err := h.teamMemberService.UpdateInvitation(ctx, invitation); err != nil {
@@ -323,7 +231,6 @@ func (h *TeamMemberHandler) AcceptInvitation(c echo.Context) error {
 		})
 	}
 
-	// Account exists - accept the invitation
 	if err := h.teamMemberService.AcceptInvitation(ctx, req.Token, account.ID); err != nil {
 		return response.Error(c, err)
 	}

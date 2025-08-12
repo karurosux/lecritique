@@ -25,7 +25,6 @@ func NewPaymentHandler(i *do.Injector) (*PaymentHandler, error) {
 	}, nil
 }
 
-// CreateCheckoutSession godoc
 // @Summary Create a checkout session
 // @Description Create a payment checkout session for a subscription plan
 // @Tags payment
@@ -63,7 +62,6 @@ func (h *PaymentHandler) CreateCheckoutSession(c echo.Context) error {
 	})
 }
 
-// CompleteCheckout godoc
 // @Summary Complete a checkout session
 // @Description Complete a checkout session after payment
 // @Tags payment
@@ -91,7 +89,6 @@ func (h *PaymentHandler) CompleteCheckout(c echo.Context) error {
 	return response.Success(c, map[string]string{"message": "Checkout completed successfully"})
 }
 
-// CreatePortalSession godoc
 // @Summary Create customer portal session
 // @Description Create a customer portal session for self-service subscription management
 // @Tags payment
@@ -116,7 +113,6 @@ func (h *PaymentHandler) CreatePortalSession(c echo.Context) error {
 	})
 }
 
-// HandleWebhook godoc
 // @Summary Handle payment webhook
 // @Description Handle webhook events from payment provider
 // @Tags payment
@@ -126,19 +122,16 @@ func (h *PaymentHandler) CreatePortalSession(c echo.Context) error {
 // @Failure 400 {object} response.Response
 // @Router /api/v1/payment/webhook [post]
 func (h *PaymentHandler) HandleWebhook(c echo.Context) error {
-	// Read the request body
 	body, err := io.ReadAll(c.Request().Body)
 	if err != nil {
 		return response.Error(c, errors.New("BAD_REQUEST", "Failed to read request body", http.StatusBadRequest))
 	}
 
-	// Get the signature from headers (Stripe uses Stripe-Signature)
 	signature := c.Request().Header.Get("Stripe-Signature")
 	if signature == "" {
 		return response.Error(c, errors.New("BAD_REQUEST", "Missing signature", http.StatusBadRequest))
 	}
 
-	// Handle the webhook
 	err = h.paymentService.HandleWebhook(c.Request().Context(), body, signature)
 	if err != nil {
 		return response.Error(c, errors.New("BAD_REQUEST", err.Error(), http.StatusBadRequest))
@@ -147,7 +140,6 @@ func (h *PaymentHandler) HandleWebhook(c echo.Context) error {
 	return response.Success(c, map[string]string{"message": "Webhook processed"})
 }
 
-// GetPaymentMethods godoc
 // @Summary List payment methods
 // @Description Get list of user's payment methods
 // @Tags payment
@@ -188,7 +180,6 @@ func (h *PaymentHandler) GetPaymentMethods(c echo.Context) error {
 	return response.Success(c, resp)
 }
 
-// SetDefaultPaymentMethod godoc
 // @Summary Set default payment method
 // @Description Set a payment method as default
 // @Tags payment
@@ -223,7 +214,6 @@ func (h *PaymentHandler) SetDefaultPaymentMethod(c echo.Context) error {
 	return response.Success(c, map[string]string{"message": "Default payment method updated"})
 }
 
-// GetInvoices godoc
 // @Summary Get invoices
 // @Description Get user's invoice history
 // @Tags payment
@@ -270,7 +260,6 @@ func (h *PaymentHandler) GetInvoices(c echo.Context) error {
 	return response.Success(c, resp)
 }
 
-// Request/Response DTOs
 
 type CreateCheckoutRequest struct {
 	PlanID uuid.UUID `json:"plan_id" validate:"required"`

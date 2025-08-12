@@ -5,7 +5,6 @@ import (
 	"strings"
 )
 
-// FeatureType represents the type of feature
 type FeatureType string
 
 const (
@@ -14,24 +13,21 @@ const (
 	FeatureTypeCustom FeatureType = "custom"
 )
 
-// FeatureDefinition defines metadata for a feature
 type FeatureDefinition struct {
 	Key           string                 `json:"key"`
 	Type          FeatureType            `json:"type"`
 	DisplayName   string                 `json:"display_name"`
 	Description   string                 `json:"description"`
-	Unit          string                 `json:"unit,omitempty"`          // e.g., "GB", "per month"
-	UnlimitedText string                 `json:"unlimited_text,omitempty"` // e.g., "Unlimited storage"
-	Format        string                 `json:"format,omitempty"`         // e.g., "{value} {unit}"
-	Icon          string                 `json:"icon,omitempty"`           // Icon identifier
-	Category      string                 `json:"category,omitempty"`       // For grouping features
+	Unit          string                 `json:"unit,omitempty"`
+	UnlimitedText string                 `json:"unlimited_text,omitempty"`
+	Format        string                 `json:"format,omitempty"`
+	Icon          string                 `json:"icon,omitempty"`
+	Category      string                 `json:"category,omitempty"`
 	SortOrder     int                    `json:"sort_order"`
 	Metadata      map[string]interface{} `json:"metadata,omitempty"`
 }
 
-// FeatureRegistry holds all feature definitions
 var FeatureRegistry = map[string]FeatureDefinition{
-	// Limits
 	LimitOrganizations: {
 		Key:           LimitOrganizations,
 		Type:          FeatureTypeLimit,
@@ -81,7 +77,6 @@ var FeatureRegistry = map[string]FeatureDefinition{
 		SortOrder:     4,
 	},
 
-	// Flags
 	FlagBasicAnalytics: {
 		Key:         FlagBasicAnalytics,
 		Type:        FeatureTypeFlag,
@@ -129,13 +124,11 @@ var FeatureRegistry = map[string]FeatureDefinition{
 	},
 }
 
-// GetFeatureDefinition returns the definition for a feature key
 func GetFeatureDefinition(key string) (FeatureDefinition, bool) {
 	def, exists := FeatureRegistry[key]
 	return def, exists
 }
 
-// GetFeaturesByCategory returns all features in a category
 func GetFeaturesByCategory(category string) []FeatureDefinition {
 	var features []FeatureDefinition
 	for _, def := range FeatureRegistry {
@@ -146,7 +139,6 @@ func GetFeaturesByCategory(category string) []FeatureDefinition {
 	return features
 }
 
-// FormatFeatureValue formats a feature value for display
 func FormatFeatureValue(key string, value interface{}) string {
 	def, exists := FeatureRegistry[key]
 	if !exists {
@@ -168,7 +160,6 @@ func FormatFeatureValue(key string, value interface{}) string {
 			return def.UnlimitedText
 		}
 		
-		// Simple format replacement
 		result := def.Format
 		if result == "" {
 			result = "{value} {unit}"

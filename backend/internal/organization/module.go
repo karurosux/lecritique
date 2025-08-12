@@ -21,7 +21,6 @@ func NewModule(i *do.Injector) *Module {
 }
 
 func (m *Module) RegisterRoutes(v1 *echo.Group) {
-	// Get handlers and middleware from injector
 	organizationHandler := do.MustInvoke[*handlers.OrganizationHandler](m.injector)
 	productHandler := do.MustInvoke[*menuHandlers.ProductHandler](m.injector)
 	qrCodeHandler := do.MustInvoke[*qrcodeHandlers.QRCodeHandler](m.injector)
@@ -30,13 +29,9 @@ func (m *Module) RegisterRoutes(v1 *echo.Group) {
 	questionHandler := do.MustInvoke[*feedbackHandlers.QuestionHandler](m.injector)
 	middlewareProvider := do.MustInvoke[*sharedMiddleware.MiddlewareProvider](m.injector)
 	subscriptionMW := do.MustInvoke[*subscriptionMiddleware.SubscriptionMiddleware](m.injector)
-	
-	// Organization routes
 	organizations := v1.Group("/organizations")
 	organizations.Use(middlewareProvider.AuthMiddleware())
 	organizations.Use(middlewareProvider.TeamAwareMiddleware())
-	
-	// Apply usage tracking middleware only to organization creation
 	organizations.POST("", organizationHandler.Create,
 		subscriptionMW.CheckResourceLimit(subscriptionModels.ResourceTypeOrganization),
 		subscriptionMW.TrackUsageAfterSuccess(),
@@ -46,20 +41,12 @@ func (m *Module) RegisterRoutes(v1 *echo.Group) {
 	organizations.GET("/:id", organizationHandler.GetByID)
 	organizations.PUT("/:id", organizationHandler.Update)
 	organizations.DELETE("/:id", organizationHandler.Delete)
-	
-	// Product routes under organizations (moved from menu module)
 	organizations.GET("/:organizationId/products", productHandler.GetByOrganization)
 	organizations.POST("/:organizationId/products", productHandler.Create)
-	
-	// QR Code routes under organizations (moved from qrcode module)
 	organizations.POST("/:organizationId/qr-codes", qrCodeHandler.Generate)
 	organizations.GET("/:organizationId/qr-codes", qrCodeHandler.GetByOrganization)
-	
-	// Feedback routes under organizations (moved from feedback module)
 	organizations.GET("/:organizationId/feedback", feedbackHandler.GetByOrganization)
 	organizations.GET("/:organizationId/analytics", feedbackHandler.GetStats)
-	
-	// Questionnaire routes under organizations (moved from feedback module)
 	organizations.POST("/:organizationId/questionnaires", questionnaireHandler.CreateQuestionnaire)
 	organizations.GET("/:organizationId/questionnaires", questionnaireHandler.ListQuestionnaires)
 	organizations.GET("/:organizationId/questionnaires/:id", questionnaireHandler.GetQuestionnaire)
@@ -69,8 +56,6 @@ func (m *Module) RegisterRoutes(v1 *echo.Group) {
 	organizations.PUT("/:organizationId/questionnaires/:id/questions/:questionId", questionnaireHandler.UpdateQuestion)
 	organizations.DELETE("/:organizationId/questionnaires/:id/questions/:questionId", questionnaireHandler.DeleteQuestion)
 	organizations.POST("/:organizationId/questionnaires/:id/reorder", questionnaireHandler.ReorderQuestions)
-	
-	// Question routes under organizations (moved from feedback module)
 	organizations.POST("/:organizationId/products/:productId/questions", questionHandler.CreateQuestion)
 	organizations.GET("/:organizationId/products/:productId/questions", questionHandler.GetQuestionsByProduct)
 	organizations.GET("/:organizationId/products/:productId/questions/:questionId", questionHandler.GetQuestion)
@@ -79,8 +64,6 @@ func (m *Module) RegisterRoutes(v1 *echo.Group) {
 	organizations.POST("/:organizationId/products/:productId/questions/reorder", questionHandler.ReorderQuestions)
 	organizations.GET("/:organizationId/questions/products-with-questions", questionHandler.GetProductsWithQuestions)
 	organizations.POST("/:organizationId/questions/batch", questionHandler.GetQuestionsByProducts)
-	
-	// AI question generation routes under organizations (moved from feedback module)
 	organizations.POST("/:organizationId/products/:productId/ai/generate-questions", questionnaireHandler.GenerateQuestions)
 	organizations.POST("/:organizationId/products/:productId/ai/generate-questionnaire", questionnaireHandler.GenerateAndSaveQuestionnaire)
 }

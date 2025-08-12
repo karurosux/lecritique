@@ -44,10 +44,8 @@ func (r *timeSeriesRepository) CreateBatch(ctx context.Context, metrics []models
 		return nil
 	}
 	
-	// Temporarily silence database logs for bulk operations to reduce noise
 	dbWithSilentLogger := r.db.Session(&gorm.Session{Logger: gormLogger.Default.LogMode(gormLogger.Silent)})
 	
-	// Use larger batch size for better performance (500 instead of 100)
 	batchSize := 500
 	for i := 0; i < len(metrics); i += batchSize {
 		end := i + batchSize
@@ -55,7 +53,6 @@ func (r *timeSeriesRepository) CreateBatch(ctx context.Context, metrics []models
 			end = len(metrics)
 		}
 		
-		// Use CreateInBatches for more efficient bulk inserts
 		if err := dbWithSilentLogger.WithContext(ctx).CreateInBatches(metrics[i:end], batchSize).Error; err != nil {
 			logger.Error("Failed to create time series batch", err, logrus.Fields{
 				"batch_start": i,
@@ -72,7 +69,6 @@ func (r *timeSeriesRepository) CreateBatch(ctx context.Context, metrics []models
 func (r *timeSeriesRepository) GetTimeSeries(ctx context.Context, request models.TimeSeriesRequest) ([]models.TimeSeriesMetric, error) {
 	var metrics []models.TimeSeriesMetric
 	
-	// Determine the date truncation based on granularity
 	var dateTrunc string
 	switch request.Granularity {
 	case models.GranularityHourly:
@@ -87,7 +83,6 @@ func (r *timeSeriesRepository) GetTimeSeries(ctx context.Context, request models
 		dateTrunc = "day"
 	}
 	
-	// Build the aggregation query using DATE_TRUNC
 	selectClause := fmt.Sprintf(`
 		gen_random_uuid() as id,
 		account_id,
@@ -121,7 +116,7 @@ func (r *timeSeriesRepository) GetTimeSeries(ctx context.Context, request models
 		Table("time_series_metrics").
 		Where("organization_id = ?", request.OrganizationID).
 		Where("timestamp >= ? AND timestamp <= ?", request.StartDate, request.EndDate).
-		Where("granularity = ?", models.GranularityDaily). // Always query from daily data
+		Where("granularity = ?", models.GranularityDaily).
 		Group(groupClause)
 	
 	if request.ProductID != nil {
@@ -151,7 +146,6 @@ func (r *timeSeriesRepository) GetTimeSeries(ctx context.Context, request models
 }
 
 func (r *timeSeriesRepository) GetComparison(ctx context.Context, request models.ComparisonRequest) ([]models.TimeSeriesMetric, []models.TimeSeriesMetric, error) {
-	// Get metrics for period 1
 	period1Request := models.TimeSeriesRequest{
 		OrganizationID: request.OrganizationID,
 		ProductID:      request.ProductID,
@@ -159,7 +153,7 @@ func (r *timeSeriesRepository) GetComparison(ctx context.Context, request models
 		MetricTypes:    request.MetricTypes,
 		StartDate:      request.Period1Start,
 		EndDate:        request.Period1End,
-		Granularity:    "daily", // Default to daily for comparisons
+		Granularity:    "daily",
 	}
 	
 	period1Metrics, err := r.GetTimeSeries(ctx, period1Request)
@@ -167,7 +161,6 @@ func (r *timeSeriesRepository) GetComparison(ctx context.Context, request models
 		return nil, nil, fmt.Errorf("failed to get period 1 metrics: %w", err)
 	}
 	
-	// Get metrics for period 2
 	period2Request := models.TimeSeriesRequest{
 		OrganizationID: request.OrganizationID,
 		ProductID:      request.ProductID,

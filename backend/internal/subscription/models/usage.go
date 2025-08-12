@@ -8,7 +8,6 @@ import (
 	sharedModels "kyooar/internal/shared/models"
 )
 
-// SubscriptionUsage tracks usage metrics for a subscription billing period
 type SubscriptionUsage struct {
 	sharedModels.BaseModel
 	SubscriptionID      uuid.UUID    `gorm:"not null;index" json:"subscription_id"`
@@ -23,12 +22,10 @@ type SubscriptionUsage struct {
 	LastUpdatedAt       time.Time    `json:"last_updated_at"`
 }
 
-// TableName overrides the table name used by this model
 func (SubscriptionUsage) TableName() string {
 	return "subscription_usage"
 }
 
-// UsageEvent tracks individual usage events for auditing
 type UsageEvent struct {
 	sharedModels.BaseModel
 	SubscriptionID uuid.UUID  `gorm:"not null;index" json:"subscription_id"`
@@ -39,14 +36,12 @@ type UsageEvent struct {
 	CreatedAt      time.Time  `json:"created_at"`
 }
 
-// Event types
 const (
 	EventTypeCreate = "create"
 	EventTypeDelete = "delete"
 	EventTypeUpdate = "update"
 )
 
-// Resource types
 const (
 	ResourceTypeFeedback   = "feedback"
 	ResourceTypeOrganization = "organization"
@@ -55,10 +50,7 @@ const (
 	ResourceTypeTeamMember = "team_member"
 )
 
-// GetCurrentUsage returns the usage for the current billing period
 func (s *Subscription) GetCurrentUsage() *SubscriptionUsage {
-	// This would be implemented to fetch from database
-	// For now, returning a placeholder
 	return &SubscriptionUsage{
 		SubscriptionID:   s.ID,
 		PeriodStart:      s.CurrentPeriodStart,
@@ -71,7 +63,6 @@ func (s *Subscription) GetCurrentUsage() *SubscriptionUsage {
 	}
 }
 
-// CanAddResource checks if a resource can be added based on plan limits
 func (u *SubscriptionUsage) CanAddResource(resourceType string, plan *SubscriptionPlan) (bool, string) {
 	var limit int
 	var currentUsage int
@@ -84,7 +75,6 @@ func (u *SubscriptionUsage) CanAddResource(resourceType string, plan *Subscripti
 		limit = plan.MaxOrganizations
 		currentUsage = u.OrganizationsCount
 	case ResourceTypeLocation:
-		// Locations are no longer limited separately
 		return true, ""
 	case ResourceTypeQRCode:
 		limit = plan.MaxQRCodes

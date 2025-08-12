@@ -6,7 +6,6 @@ import (
 	"strings"
 )
 
-// DeviceInfo represents extracted device information
 type DeviceInfo struct {
 	UserAgent string `json:"user_agent"`
 	IP        string `json:"ip"`
@@ -14,7 +13,6 @@ type DeviceInfo struct {
 	Browser   string `json:"browser"`
 }
 
-// ExtractDeviceInfo extracts device information from an HTTP request
 func ExtractDeviceInfo(r *http.Request) *DeviceInfo {
 	userAgent := r.Header.Get("User-Agent")
 	ip := getClientIP(r)
@@ -29,23 +27,16 @@ func ExtractDeviceInfo(r *http.Request) *DeviceInfo {
 	}
 }
 
-// getClientIP extracts the real client IP from the request
 func getClientIP(r *http.Request) string {
-	// Check X-Forwarded-For header (from proxy/load balancer)
 	forwarded := r.Header.Get("X-Forwarded-For")
 	if forwarded != "" {
-		// Take the first IP if there are multiple
 		ips := strings.Split(forwarded, ",")
 		return strings.TrimSpace(ips[0])
 	}
-
-	// Check X-Real-IP header
 	realIP := r.Header.Get("X-Real-IP")
 	if realIP != "" {
 		return realIP
 	}
-
-	// Fall back to RemoteAddr
 	ip, _, err := net.SplitHostPort(r.RemoteAddr)
 	if err != nil {
 		return r.RemoteAddr
@@ -53,7 +44,6 @@ func getClientIP(r *http.Request) string {
 	return ip
 }
 
-// extractPlatform extracts the platform/OS from User-Agent
 func extractPlatform(userAgent string) string {
 	ua := strings.ToLower(userAgent)
 
@@ -76,11 +66,9 @@ func extractPlatform(userAgent string) string {
 	return "Unknown"
 }
 
-// extractBrowser extracts the browser from User-Agent
 func extractBrowser(userAgent string) string {
 	ua := strings.ToLower(userAgent)
 
-	// Order matters - check more specific first
 	if strings.Contains(ua, "edg/") {
 		return "Microsoft Edge"
 	}

@@ -75,14 +75,12 @@ func NewSubscriptionPlanRepository(i *do.Injector) (SubscriptionPlanRepository, 
 
 func (r *subscriptionPlanRepository) FindAll(ctx context.Context) ([]models.SubscriptionPlan, error) {
 	var plans []models.SubscriptionPlan
-	// Only return visible and active plans for public listing
 	err := r.DB.WithContext(ctx).Where("is_active = ? AND is_visible = ?", true, true).Order("price ASC").Find(&plans).Error
 	return plans, err
 }
 
 func (r *subscriptionPlanRepository) FindAllIncludingHidden(ctx context.Context) ([]models.SubscriptionPlan, error) {
 	var plans []models.SubscriptionPlan
-	// Return all active plans, including hidden ones (for admin use)
 	err := r.DB.WithContext(ctx).Where("is_active = ?", true).Order("is_visible DESC, price ASC").Find(&plans).Error
 	return plans, err
 }

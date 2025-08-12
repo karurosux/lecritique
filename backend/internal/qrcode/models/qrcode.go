@@ -12,9 +12,9 @@ type QRCode struct {
 	sharedModels.BaseModel
 	OrganizationID uuid.UUID   `gorm:"not null" json:"organization_id"`
 	Organization   organizationModels.Organization  `json:"organization,omitempty"`
-	Location     *string     `json:"location"` // Free text location description
+	Location     *string     `json:"location"`
 	Code         string      `gorm:"uniqueIndex;not null" json:"code"`
-	Label        string      `json:"label"` // e.g., "Table 1", "Entrance", etc.
+	Label        string      `json:"label"`
 	Type         QRCodeType  `gorm:"not null" json:"type"`
 	IsActive     bool        `gorm:"default:true" json:"is_active"`
 	ScansCount   int         `gorm:"default:0" json:"scans_count"`

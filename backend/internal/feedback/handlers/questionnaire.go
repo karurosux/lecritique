@@ -24,7 +24,6 @@ func NewQuestionnaireHandler(i *do.Injector) (*QuestionnaireHandler, error) {
 	}, nil
 }
 
-// CreateQuestionnaire creates a new questionnaire
 // @Summary Create questionnaire
 // @Description Create a new questionnaire for a organization
 // @Tags questionnaires
@@ -62,7 +61,6 @@ func (h *QuestionnaireHandler) CreateQuestionnaire(c echo.Context) error {
 	})
 }
 
-// GetQuestionnaire retrieves a questionnaire by ID
 // @Summary Get questionnaire
 // @Description Get a specific questionnaire by ID
 // @Tags questionnaires
@@ -95,7 +93,6 @@ func (h *QuestionnaireHandler) GetQuestionnaire(c echo.Context) error {
 	})
 }
 
-// ListQuestionnaires lists all questionnaires for a organization
 // @Summary List questionnaires
 // @Description Get all questionnaires for a organization
 // @Tags questionnaires
@@ -126,7 +123,6 @@ func (h *QuestionnaireHandler) ListQuestionnaires(c echo.Context) error {
 	})
 }
 
-// UpdateQuestionnaire updates a questionnaire
 // @Summary Update questionnaire
 // @Description Update an existing questionnaire
 // @Tags questionnaires
@@ -165,7 +161,6 @@ func (h *QuestionnaireHandler) UpdateQuestionnaire(c echo.Context) error {
 	})
 }
 
-// DeleteQuestionnaire deletes a questionnaire
 // @Summary Delete questionnaire
 // @Description Delete a questionnaire
 // @Tags questionnaires
@@ -196,7 +191,6 @@ func (h *QuestionnaireHandler) DeleteQuestionnaire(c echo.Context) error {
 	})
 }
 
-// AddQuestion adds a question to a questionnaire
 // @Summary Add a question to a questionnaire
 // @Description Add a new question to an existing questionnaire
 // @Tags questionnaires
@@ -234,7 +228,6 @@ func (h *QuestionnaireHandler) AddQuestion(c echo.Context) error {
 	})
 }
 
-// UpdateQuestion updates a question
 // @Summary Update a question
 // @Description Update an existing question in a questionnaire
 // @Tags questionnaires
@@ -273,7 +266,6 @@ func (h *QuestionnaireHandler) UpdateQuestion(c echo.Context) error {
 	})
 }
 
-// DeleteQuestion deletes a question
 // @Summary Delete a question
 // @Description Delete a question from a questionnaire
 // @Tags questionnaires
@@ -304,7 +296,6 @@ func (h *QuestionnaireHandler) DeleteQuestion(c echo.Context) error {
 	})
 }
 
-// ReorderQuestions reorders questions in a questionnaire
 // @Summary Reorder questions
 // @Description Reorder questions in a questionnaire
 // @Tags questionnaires
@@ -342,7 +333,6 @@ func (h *QuestionnaireHandler) ReorderQuestions(c echo.Context) error {
 	})
 }
 
-// GenerateQuestions generates AI-powered questions for a product
 // @Summary Generate AI questions
 // @Description Generate AI-powered questions for a specific product
 // @Tags questionnaires,ai
@@ -363,13 +353,11 @@ func (h *QuestionnaireHandler) GenerateQuestions(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, "Invalid product ID")
 	}
 
-	// Get the product details
 	product, err := h.productService.GetByID(c.Request().Context(), accountID, productID)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusNotFound, "Product not found")
 	}
 
-	// Generate questions using AI
 	questions, err := h.questionnaireService.GenerateQuestionsForProduct(c.Request().Context(), accountID, product)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, "Failed to generate questions")
@@ -382,7 +370,6 @@ func (h *QuestionnaireHandler) GenerateQuestions(c echo.Context) error {
 	})
 }
 
-// GenerateAndSaveQuestionnaire generates AI questions and creates a complete questionnaire for a product
 // @Summary Generate and save AI questionnaire
 // @Description Generate AI questions and create a complete questionnaire for a product
 // @Tags questionnaires,ai
@@ -413,13 +400,11 @@ func (h *QuestionnaireHandler) GenerateAndSaveQuestionnaire(c echo.Context) erro
 		return echo.NewHTTPError(http.StatusBadRequest, "Invalid request body")
 	}
 
-	// Get the product details
 	product, err := h.productService.GetByID(c.Request().Context(), accountID, productID)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusNotFound, "Product not found")
 	}
 
-	// Generate and save questionnaire with AI questions
 	questionnaire, err := h.questionnaireService.GenerateAndSaveQuestionnaireForProduct(c.Request().Context(), accountID, product, input.Name, input.Description, input.IsDefault)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, "Failed to generate and save questionnaire")

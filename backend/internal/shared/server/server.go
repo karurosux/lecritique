@@ -14,7 +14,6 @@ import (
 	"kyooar/internal/shared/cron"
 	"kyooar/internal/providers"
 	
-	// Domain modules
 	authModule "kyooar/internal/auth"
 	organizationModule "kyooar/internal/organization"
 	menuModule "kyooar/internal/menu"
@@ -23,7 +22,6 @@ import (
 	analyticsModule "kyooar/internal/analytics"
 	subscriptionModule "kyooar/internal/subscription"
 	
-	// Services needed for cron
 	authServices "kyooar/internal/auth/services"
 	
 	"github.com/samber/do"
@@ -150,15 +148,12 @@ func (s *Server) Shutdown(ctx context.Context) error {
 }
 
 func setupMiddleware(e *echo.Echo, cfg *config.Config) {
-	// Recovery middleware
 	e.Use(middleware.Recover())
 	
-	// Logger middleware
 	if cfg.App.Env == "development" {
 		e.Use(middleware.Logger())
 	}
 	
-	// CORS middleware
 	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
 		AllowOrigins:     []string{"*"},
 		AllowMethods:     []string{echo.GET, echo.POST, echo.PUT, echo.DELETE, echo.OPTIONS, echo.PATCH},

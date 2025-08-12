@@ -19,7 +19,6 @@ type QuestionnaireRepository interface {
 	Delete(ctx context.Context, id uuid.UUID) error
 	DeactivateDefaultQuestionnaires(ctx context.Context, organizationID uuid.UUID) error
 	
-	// Question methods
 	CreateQuestion(ctx context.Context, question *models.Question) error
 	FindQuestionByID(ctx context.Context, id uuid.UUID) (*models.Question, error)
 	UpdateQuestion(ctx context.Context, question *models.Question) error

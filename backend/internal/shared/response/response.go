@@ -36,7 +36,6 @@ type Pagination struct {
 	Pages int `json:"pages"`
 }
 
-// Helper function to send JSON response with pretty formatting in debug mode
 func sendJSON(c echo.Context, code int, data interface{}) error {
 	if c.Echo().Debug {
 		c.Response().Header().Set(echo.HeaderContentType, echo.MIMEApplicationJSONCharsetUTF8)

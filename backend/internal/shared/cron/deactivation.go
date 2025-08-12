@@ -8,11 +8,9 @@ import (
 	"github.com/robfig/cron/v3"
 )
 
-// SetupDeactivationCron sets up a daily cron job to process pending account deactivations
 func SetupDeactivationCron(authService services.AuthService) *cron.Cron {
 	c := cron.New()
 
-	// Run daily at 2 AM to process pending deactivations
 	_, err := c.AddFunc("0 2 * * *", func() {
 		ctx := context.Background()
 		log.Println("Running account deactivation job...")

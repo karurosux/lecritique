@@ -108,7 +108,6 @@ func (p *OpenAIProvider) GenerateQuestions(ctx context.Context, prompt string) (
 		return nil, fmt.Errorf("no choices in response")
 	}
 
-	// Extract the JSON from the response
 	var questions []GeneratedQuestion
 	if err := json.Unmarshal([]byte(openAIResp.Choices[0].Message.Content), &questions); err != nil {
 		return nil, fmt.Errorf("failed to parse generated questions: %w", err)

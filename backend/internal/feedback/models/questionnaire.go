@@ -39,13 +39,7 @@ type Question struct {
 type QuestionType string
 
 const (
-	QuestionTypeRating       QuestionType = "rating"       // 1-5 stars
-	QuestionTypeScale        QuestionType = "scale"        // 1-10 scale
-	QuestionTypeMultiChoice  QuestionType = "multi_choice" // Multiple choice
-	QuestionTypeSingleChoice QuestionType = "single_choice" // Single choice
-	QuestionTypeText         QuestionType = "text"         // Free text
-	QuestionTypeYesNo        QuestionType = "yes_no"       // Yes/No
-)
+	QuestionTypeRating       QuestionType = "rating"      	QuestionTypeScale        QuestionType = "scale"       	QuestionTypeMultiChoice  QuestionType = "multi_choice"	QuestionTypeSingleChoice QuestionType = "single_choice"	QuestionTypeText         QuestionType = "text"        	QuestionTypeYesNo        QuestionType = "yes_no"      )
 
 type QuestionTemplate struct {
 	sharedModels.BaseModel
@@ -63,7 +57,6 @@ type QuestionTemplate struct {
 	IsActive     bool          `gorm:"default:true" json:"is_active"`
 }
 
-// Request/Response models for API
 type CreateQuestionnaireRequest struct {
 	Name        string     `json:"name" binding:"required"`
 	Description string     `json:"description"`
@@ -94,7 +87,6 @@ type GeneratedQuestion struct {
 	MaxLabel string         `json:"max_label,omitempty"`
 }
 
-// Request/Response models for Questions
 type CreateQuestionRequest struct {
 	Text         string         `json:"text" binding:"required"`
 	Type         QuestionType   `json:"type" binding:"required"`
@@ -121,7 +113,6 @@ type BatchQuestionsRequest struct {
 	ProductIDs []uuid.UUID `json:"product_ids" binding:"required"`
 }
 
-// Optimized response model for batch questions - only essential fields
 type BatchQuestionResponse struct {
 	ID        uuid.UUID    `json:"id"`
 	ProductID uuid.UUID    `json:"product_id"`

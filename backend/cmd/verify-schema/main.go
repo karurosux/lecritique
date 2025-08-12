@@ -10,19 +10,16 @@ import (
 )
 
 func main() {
-	// Load configuration
 	cfg, err := config.Load()
 	if err != nil {
 		log.Fatal("Failed to load configuration:", err)
 	}
 
-	// Connect to database
 	db, err := database.Initialize(cfg)
 	if err != nil {
 		log.Fatal("Failed to connect to database:", err)
 	}
 
-	// Test query with new columns
 	var plan models.SubscriptionPlan
 	err = db.First(&plan).Error
 	if err != nil {

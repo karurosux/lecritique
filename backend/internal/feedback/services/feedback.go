@@ -121,7 +121,6 @@ func (s *feedbackService) GetStats(ctx context.Context, accountID uuid.UUID, org
 	}, nil
 }
 
-// calculateOverallRating computes an overall rating from individual question responses
 func (s *feedbackService) calculateOverallRating(responses models.Responses) int {
 	var totalScore float64
 	var count int
@@ -141,7 +140,7 @@ func (s *feedbackService) calculateOverallRating(responses models.Responses) int
 	}
 
 	if count == 0 {
-		return 0 // No numeric responses
+		return 0
 	}
 
 	average := totalScore / float64(count)
@@ -168,7 +167,6 @@ func (s *feedbackService) normalizeScore(score float64) float64 {
 		return ((score - 1) / 99 * 4) + 1
 	}
 
-	// Unknown scale, assume it's already correct but clamp to 5
 	return 5
 }
 

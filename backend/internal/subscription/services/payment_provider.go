@@ -5,54 +5,43 @@ import (
 	"time"
 )
 
-// PaymentProvider defines the interface for payment processing
 type PaymentProvider interface {
-	// Initialization
 	Initialize(config PaymentConfig) error
 	GetProviderName() string
 
-	// Checkout
 	CreateCheckoutSession(ctx context.Context, options CheckoutOptions) (*CheckoutSession, error)
 	GetCheckoutSession(ctx context.Context, sessionID string) (*CheckoutSession, error)
 
-	// Customer management
 	CreateCustomer(ctx context.Context, customer CustomerInfo) (*Customer, error)
 	UpdateCustomer(ctx context.Context, customerID string, updates CustomerInfo) (*Customer, error)
 	GetCustomer(ctx context.Context, customerID string) (*Customer, error)
 
-	// Subscription management
 	CreateSubscription(ctx context.Context, options SubscriptionOptions) (*PaymentSubscription, error)
 	UpdateSubscription(ctx context.Context, subscriptionID string, options UpdateSubscriptionOptions) (*PaymentSubscription, error)
 	CancelSubscription(ctx context.Context, subscriptionID string, immediately bool) error
 	GetSubscription(ctx context.Context, subscriptionID string) (*PaymentSubscription, error)
 
-	// Payment methods
 	AttachPaymentMethod(ctx context.Context, customerID string, paymentMethodID string) error
 	DetachPaymentMethod(ctx context.Context, paymentMethodID string) error
 	ListPaymentMethods(ctx context.Context, customerID string) ([]*PaymentMethod, error)
 	SetDefaultPaymentMethod(ctx context.Context, customerID string, paymentMethodID string) error
 
-	// Billing portal
 	CreatePortalSession(ctx context.Context, customerID string, returnURL string) (*PortalSession, error)
 
-	// Webhooks
 	ConstructWebhookEvent(payload []byte, signature string) (*WebhookEvent, error)
 	HandleWebhookEvent(ctx context.Context, event *WebhookEvent) error
 
-	// Invoices
 	GetInvoice(ctx context.Context, invoiceID string) (*Invoice, error)
 	ListInvoices(ctx context.Context, customerID string, limit int) ([]*Invoice, error)
 }
 
-// PaymentConfig holds provider-specific configuration
 type PaymentConfig struct {
 	SecretKey      string
 	PublishableKey string
 	WebhookSecret  string
-	Extra          map[string]interface{} // Provider-specific config
+	Extra          map[string]interface{}
 }
 
-// CheckoutOptions for creating a checkout session
 type CheckoutOptions struct {
 	CustomerID          string
 	PriceID             string
@@ -63,7 +52,6 @@ type CheckoutOptions struct {
 	Metadata            map[string]string
 }
 
-// CheckoutSession represents a payment checkout session
 type CheckoutSession struct {
 	ID                string
 	URL               string
@@ -77,7 +65,6 @@ type CheckoutSession struct {
 	Metadata          map[string]string
 }
 
-// CustomerInfo for creating/updating customers
 type CustomerInfo struct {
 	Email       string
 	Name        string
@@ -86,7 +73,6 @@ type CustomerInfo struct {
 	Metadata    map[string]string
 }
 
-// Customer represents a payment provider customer
 type Customer struct {
 	ID               string
 	Email            string
@@ -98,7 +84,6 @@ type Customer struct {
 	CreatedAt        time.Time
 }
 
-// SubscriptionOptions for creating subscriptions
 type SubscriptionOptions struct {
 	CustomerID        string
 	PriceID           string
@@ -107,16 +92,14 @@ type SubscriptionOptions struct {
 	Metadata          map[string]string
 }
 
-// UpdateSubscriptionOptions for updating subscriptions
 type UpdateSubscriptionOptions struct {
 	PriceID             string
-	ProrationBehavior   string // "create_prorations", "none", "always_invoice"
+	ProrationBehavior   string
 	CancelAtPeriodEnd   bool
 	DefaultPaymentID    string
 	Metadata            map[string]string
 }
 
-// PaymentSubscription represents a subscription in the payment provider
 type PaymentSubscription struct {
 	ID                   string
 	CustomerID           string
@@ -134,32 +117,28 @@ type PaymentSubscription struct {
 	Metadata             map[string]string
 }
 
-// SubscriptionItem represents a line item in a subscription
 type SubscriptionItem struct {
 	ID       string
 	PriceID  string
 	Quantity int64
 }
 
-// PaymentMethod represents a customer's payment method
 type PaymentMethod struct {
 	ID         string
-	Type       string // "card", "bank_account", etc
+	Type       string
 	IsDefault  bool
 	Card       *CardDetails
 	CreatedAt  time.Time
 }
 
-// CardDetails for card payment methods
 type CardDetails struct {
-	Brand    string // visa, mastercard, amex, etc
+	Brand    string
 	Last4    string
 	ExpMonth int
 	ExpYear  int
 	Country  string
 }
 
-// PortalSession for customer self-service
 type PortalSession struct {
 	ID        string
 	URL       string
@@ -167,7 +146,6 @@ type PortalSession struct {
 	CreatedAt time.Time
 }
 
-// WebhookEvent represents an incoming webhook event
 type WebhookEvent struct {
 	ID        string
 	Type      string
@@ -175,7 +153,6 @@ type WebhookEvent struct {
 	CreatedAt time.Time
 }
 
-// Common webhook event types
 const (
 	WebhookCheckoutCompleted        = "checkout.session.completed"
 	WebhookSubscriptionCreated      = "customer.subscription.created"
@@ -187,7 +164,6 @@ const (
 	WebhookPaymentMethodDetached    = "payment_method.detached"
 )
 
-// Invoice represents a billing invoice
 type Invoice struct {
 	ID                string
 	Number            string
@@ -205,7 +181,6 @@ type Invoice struct {
 	Lines             []InvoiceLine
 }
 
-// InvoiceLine represents a line item on an invoice
 type InvoiceLine struct {
 	Description string
 	Quantity    int64

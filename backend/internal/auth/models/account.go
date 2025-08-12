@@ -22,8 +22,7 @@ type Account struct {
 	EmailVerifiedAt         *time.Time    `json:"email_verified_at"`
 	DeactivationRequestedAt *time.Time    `json:"deactivation_requested_at"`
 	SubscriptionID          *uuid.UUID    `json:"subscription_id"`
-	Subscription            interface{}   `gorm:"-" json:"subscription,omitempty"` // Populated when needed
-	// Organizations      []Organization  `json:"organizations,omitempty"`  // TODO: Add when organization domain is ready
+	Subscription            interface{}   `gorm:"-" json:"subscription,omitempty"`
 	TeamMembers             []TeamMember  `json:"team_members,omitempty"`
 }
 
@@ -41,7 +40,6 @@ func (a *Account) CheckPassword(password string) bool {
 	return err == nil
 }
 
-// DisplayName returns the best available name for the account
 func (a *Account) DisplayName() string {
 	if a.FirstName != "" || a.LastName != "" {
 		return strings.TrimSpace(a.FirstName + " " + a.LastName)
@@ -52,12 +50,10 @@ func (a *Account) DisplayName() string {
 	return a.Email
 }
 
-// IsPendingDeactivation checks if the account has a pending deactivation request
 func (a *Account) IsPendingDeactivation() bool {
 	return a.DeactivationRequestedAt != nil
 }
 
-// GetDeactivationDate returns the date when the account will be deactivated (15 days after request)
 func (a *Account) GetDeactivationDate() *time.Time {
 	if a.DeactivationRequestedAt == nil {
 		return nil
@@ -66,7 +62,6 @@ func (a *Account) GetDeactivationDate() *time.Time {
 	return &deactivationDate
 }
 
-// ShouldBeDeactivated checks if the account should be deactivated (15 days have passed)
 func (a *Account) ShouldBeDeactivated() bool {
 	if a.DeactivationRequestedAt == nil {
 		return false
@@ -76,9 +71,9 @@ func (a *Account) ShouldBeDeactivated() bool {
 
 type TeamMember struct {
 	models.BaseModel
-	AccountID      uuid.UUID  `gorm:"not null" json:"account_id"`         // The organization account
+	AccountID      uuid.UUID  `gorm:"not null" json:"account_id"`
 	Account        Account    `json:"account,omitempty"`
-	MemberID       uuid.UUID  `gorm:"not null" json:"member_id"`          // The member's account ID
+	MemberID       uuid.UUID  `gorm:"not null" json:"member_id"`
 	MemberAccount  Account    `gorm:"foreignKey:MemberID" json:"member,omitempty"`
 	Role           MemberRole `gorm:"not null" json:"role"`
 	InvitedBy      uuid.UUID  `json:"invited_by"`

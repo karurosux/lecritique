@@ -13,19 +13,12 @@ import (
 )
 
 type AnalyticsRepository interface {
-	// Dashboard metrics
 	GetFeedbackCounts(ctx context.Context, organizationID uuid.UUID) (*models.FeedbackCounts, error)
 	GetQRCodeMetrics(ctx context.Context, organizationID uuid.UUID) (*models.QRCodeMetrics, error)
 	GetFeedbackWithQRCodes(ctx context.Context, organizationID uuid.UUID, limit int) ([]models.FeedbackWithQRCode, error)
 	GetQRCodePerformanceMetrics(ctx context.Context, organizationID uuid.UUID) ([]models.QRCodePerformanceData, error)
-	
-	// Chart data
 	GetOrganizationChartData(ctx context.Context, organizationID uuid.UUID, filters models.ChartFilters) (*models.ChartDataResult, error)
-	
-	// Time series data
 	GetTimeSeriesData(ctx context.Context, organizationID uuid.UUID, startDate, endDate time.Time) ([]models.TimeSeriesDataPoint, error)
-	
-	// Batch product metrics
 	GetProductRatingsAndCounts(ctx context.Context, organizationID uuid.UUID, productIDs []uuid.UUID) (map[uuid.UUID]models.ProductMetrics, error)
 }
 
@@ -39,7 +32,6 @@ func NewAnalyticsRepository(i *do.Injector) (AnalyticsRepository, error) {
 	}, nil
 }
 
-// GetFeedbackCounts returns all feedback counts in a single query
 func (r *analyticsRepository) GetFeedbackCounts(ctx context.Context, organizationID uuid.UUID) (*models.FeedbackCounts, error) {
 	var result models.FeedbackCounts
 	
@@ -47,7 +39,6 @@ func (r *analyticsRepository) GetFeedbackCounts(ctx context.Context, organizatio
 	yesterdayStart := todayStart.AddDate(0, 0, -1)
 	thirtyDaysAgo := time.Now().AddDate(0, 0, -30)
 	
-	// Single query to get all counts using conditional aggregation
 	err := r.db.WithContext(ctx).
 		Model(&feedbackModels.Feedback{}).
 		Select(`
@@ -62,12 +53,10 @@ func (r *analyticsRepository) GetFeedbackCounts(ctx context.Context, organizatio
 	return &result, err
 }
 
-// GetQRCodeMetrics returns QR code metrics for an organization
 func (r *analyticsRepository) GetQRCodeMetrics(ctx context.Context, organizationID uuid.UUID) (*models.QRCodeMetrics, error) {
 	var result models.QRCodeMetrics
 	todayStart := time.Now().Truncate(24 * time.Hour)
 	
-	// Get QR code stats in a single query
 	err := r.db.WithContext(ctx).
 		Model(&qrcodeModels.QRCode{}).
 		Select(`
@@ -82,11 +71,9 @@ func (r *analyticsRepository) GetQRCodeMetrics(ctx context.Context, organization
 	return &result, err
 }
 
-// GetFeedbackWithQRCodes returns feedback with QR code data preloaded
 func (r *analyticsRepository) GetFeedbackWithQRCodes(ctx context.Context, organizationID uuid.UUID, limit int) ([]models.FeedbackWithQRCode, error) {
 	var results []models.FeedbackWithQRCode
 	
-	// Join feedback with QR codes to get all data in one query
 	err := r.db.WithContext(ctx).
 		Table("feedbacks f").
 		Select(`
@@ -105,11 +92,9 @@ func (r *analyticsRepository) GetFeedbackWithQRCodes(ctx context.Context, organi
 	return results, err
 }
 
-// GetQRCodePerformanceMetrics returns performance metrics for all QR codes
 func (r *analyticsRepository) GetQRCodePerformanceMetrics(ctx context.Context, organizationID uuid.UUID) ([]models.QRCodePerformanceData, error) {
 	var results []models.QRCodePerformanceData
 	
-	// Get QR code performance data with feedback counts in a single query
 	err := r.db.WithContext(ctx).
 		Table("qr_codes q").
 		Select(`
@@ -130,20 +115,17 @@ func (r *analyticsRepository) GetQRCodePerformanceMetrics(ctx context.Context, o
 	return results, err
 }
 
-// GetOrganizationChartData returns chart data with optimized queries
 func (r *analyticsRepository) GetOrganizationChartData(ctx context.Context, organizationID uuid.UUID, filters models.ChartFilters) (*models.ChartDataResult, error) {
 	result := &models.ChartDataResult{
 		OrganizationID: organizationID,
 	}
 	
-	// Build base query
 	query := r.db.WithContext(ctx).
 		Table("feedbacks f").
 		Joins("JOIN feedback_responses fr ON f.id = fr.feedback_id").
 		Joins("LEFT JOIN questions q ON fr.question_id = q.id").
 		Where("f.organization_id = ?", organizationID)
 	
-	// Apply filters
 	if filters.DateFrom != nil {
 		query = query.Where("DATE(f.created_at) >= DATE(?)", *filters.DateFrom)
 	}
@@ -154,7 +136,6 @@ func (r *analyticsRepository) GetOrganizationChartData(ctx context.Context, orga
 		query = query.Where("f.product_id = ?", *filters.ProductID)
 	}
 	
-	// Get aggregated data
 	var aggregatedData []struct {
 		QuestionID   uuid.UUID `gorm:"column:question_id"`
 		QuestionText string    `gorm:"column:question_text"`
@@ -178,7 +159,6 @@ func (r *analyticsRepository) GetOrganizationChartData(ctx context.Context, orga
 		return nil, err
 	}
 	
-	// Get total feedback count
 	var totalCount int64
 	r.db.WithContext(ctx).
 		Model(&feedbackModels.Feedback{}).
@@ -191,11 +171,9 @@ func (r *analyticsRepository) GetOrganizationChartData(ctx context.Context, orga
 	return result, nil
 }
 
-// GetTimeSeriesData returns time series data points
 func (r *analyticsRepository) GetTimeSeriesData(ctx context.Context, organizationID uuid.UUID, startDate, endDate time.Time) ([]models.TimeSeriesDataPoint, error) {
 	var results []models.TimeSeriesDataPoint
 	
-	// Get daily aggregated data
 	err := r.db.WithContext(ctx).
 		Table("feedbacks").
 		Select(`
@@ -211,7 +189,6 @@ func (r *analyticsRepository) GetTimeSeriesData(ctx context.Context, organizatio
 	return results, err
 }
 
-// GetProductRatingsAndCounts returns ratings and counts for multiple products in a single query
 func (r *analyticsRepository) GetProductRatingsAndCounts(ctx context.Context, organizationID uuid.UUID, productIDs []uuid.UUID) (map[uuid.UUID]models.ProductMetrics, error) {
 	if len(productIDs) == 0 {
 		return make(map[uuid.UUID]models.ProductMetrics), nil
@@ -239,7 +216,6 @@ func (r *analyticsRepository) GetProductRatingsAndCounts(ctx context.Context, or
 		return nil, err
 	}
 	
-	// Convert to map
 	metricsMap := make(map[uuid.UUID]models.ProductMetrics)
 	for _, r := range results {
 		metricsMap[r.ProductID] = models.ProductMetrics{
@@ -248,7 +224,6 @@ func (r *analyticsRepository) GetProductRatingsAndCounts(ctx context.Context, or
 		}
 	}
 	
-	// Ensure all products have an entry (even if no feedback)
 	for _, productID := range productIDs {
 		if _, exists := metricsMap[productID]; !exists {
 			metricsMap[productID] = models.ProductMetrics{

@@ -38,7 +38,6 @@ type GenerateQRCodeResponse struct {
 	Data    *models.QRCode `json:"data"`
 }
 
-// Generate creates a new QR code
 // @Summary Generate QR code
 // @Description Generate a new QR code for a organization
 // @Tags qr-codes
@@ -63,7 +62,6 @@ func (h *QRCodeHandler) Generate(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 
-	// Use resource account ID for team-aware access
 	resourceAccountID := middleware.GetResourceAccountID(c)
 
 	qrCode, err := h.qrCodeService.Generate(ctx, resourceAccountID, req.OrganizationID, req.Type, req.Label, req.Location)
@@ -88,7 +86,6 @@ type QRCodeListResponse struct {
 	Data    []models.QRCode  `json:"data"`
 }
 
-// GetByOrganization gets all QR codes for a organization
 // @Summary Get QR codes by organization
 // @Description Get all QR codes for a specific organization
 // @Tags qr-codes
@@ -109,7 +106,6 @@ func (h *QRCodeHandler) GetByOrganization(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, "Invalid organization ID")
 	}
 
-	// Use resource account ID for team-aware access
 	resourceAccountID := middleware.GetResourceAccountID(c)
 
 	qrCodes, err := h.qrCodeService.GetByOrganizationID(ctx, resourceAccountID, organizationID)
@@ -127,7 +123,6 @@ func (h *QRCodeHandler) GetByOrganization(c echo.Context) error {
 	})
 }
 
-// Delete removes a QR code
 // @Summary Delete QR code
 // @Description Delete a QR code from the system
 // @Tags qr-codes
@@ -148,7 +143,6 @@ func (h *QRCodeHandler) Delete(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, "Invalid QR code ID")
 	}
 
-	// Use resource account ID for team-aware access
 	resourceAccountID := middleware.GetResourceAccountID(c)
 
 	if err := h.qrCodeService.Delete(ctx, resourceAccountID, qrCodeID); err != nil {
@@ -176,7 +170,6 @@ type UpdateQRCodeResponse struct {
 	Data    *models.QRCode `json:"data"`
 }
 
-// Update updates a QR code
 // @Summary Update QR code
 // @Description Update QR code details like active status, label, or location
 // @Tags qr-codes
@@ -199,7 +192,6 @@ func (h *QRCodeHandler) Update(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, "Invalid QR code ID")
 	}
 
-	// Use resource account ID for team-aware access
 	resourceAccountID := middleware.GetResourceAccountID(c)
 
 	var req UpdateQRCodeRequest
@@ -211,7 +203,6 @@ func (h *QRCodeHandler) Update(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 
-	// Convert handler request to service request format
 	serviceReq := &services.UpdateQRCodeRequest{
 		IsActive: req.IsActive,
 		Label:    req.Label,

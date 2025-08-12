@@ -37,7 +37,7 @@ type RegisterRequest struct {
 	Name            string `json:"name" validate:"required_without=InvitationToken"`
 	FirstName       string `json:"first_name,omitempty"`
 	LastName        string `json:"last_name,omitempty"`
-	InvitationToken string `json:"invitation_token,omitempty"` // Optional invitation token
+	InvitationToken string `json:"invitation_token,omitempty"`
 }
 
 type LoginRequest struct {
@@ -54,7 +54,6 @@ type TokenResponse struct {
 	Token string `json:"token"`
 }
 
-// Register godoc
 // @Summary Register a new account
 // @Description Create a new organization owner account
 // @Tags auth
@@ -96,7 +95,6 @@ func (h *AuthHandler) Register(c echo.Context) error {
 	})
 }
 
-// Login godoc
 // @Summary Login to account
 // @Description Authenticate and get JWT token
 // @Tags auth
@@ -124,8 +122,6 @@ func (h *AuthHandler) Login(c echo.Context) error {
 		return response.Error(c, err)
 	}
 
-	// All necessary data (account info, role, subscription features) is now in the JWT token
-	// Frontend will decode the token to get this information
 	return response.Success(c, TokenResponse{
 		Token: token,
 	})
@@ -148,7 +144,6 @@ type ResetPasswordRequest struct {
 	NewPassword string `json:"new_password" validate:"required,min=8"`
 }
 
-// SendEmailVerification godoc
 // @Summary Send email verification
 // @Description Send verification email to the authenticated account
 // @Tags auth
@@ -175,7 +170,6 @@ func (h *AuthHandler) SendEmailVerification(c echo.Context) error {
 	})
 }
 
-// ResendVerificationEmail godoc
 // @Summary Resend email verification
 // @Description Resend verification email to the specified email address (public endpoint)
 // @Tags auth
@@ -197,10 +191,7 @@ func (h *AuthHandler) ResendVerificationEmail(c echo.Context) error {
 		return response.Error(c, errors.NewWithDetails("VALIDATION_ERROR", "Validation failed", http.StatusBadRequest, h.validator.FormatErrors(err)))
 	}
 
-	// Note: We don't reveal whether the email exists for security reasons
 	if err := h.authService.ResendVerificationEmail(ctx, req.Email); err != nil {
-		// Log the error but return success to prevent email enumeration
-		// The service will handle logging internally
 	}
 
 	return response.Success(c, map[string]string{
@@ -208,7 +199,6 @@ func (h *AuthHandler) ResendVerificationEmail(c echo.Context) error {
 	})
 }
 
-// VerifyEmail godoc
 // @Summary Verify email address
 // @Description Verify email address using verification token
 // @Tags auth
@@ -235,7 +225,6 @@ func (h *AuthHandler) VerifyEmail(c echo.Context) error {
 	})
 }
 
-// SendPasswordReset godoc
 // @Summary Send password reset email
 // @Description Send password reset email to the specified email address
 // @Tags auth
@@ -266,7 +255,6 @@ func (h *AuthHandler) SendPasswordReset(c echo.Context) error {
 	})
 }
 
-// ResetPassword godoc
 // @Summary Reset password
 // @Description Reset password using reset token
 // @Tags auth
@@ -297,7 +285,6 @@ func (h *AuthHandler) ResetPassword(c echo.Context) error {
 	})
 }
 
-// RefreshToken refreshes an existing JWT token
 // @Summary Refresh JWT token
 // @Description Refresh an existing JWT token to get a new one
 // @Tags auth
@@ -338,7 +325,6 @@ type ConfirmEmailChangeRequest struct {
 	Token string `json:"token" validate:"required"`
 }
 
-// ChangeEmail godoc
 // @Summary Request email change
 // @Description Request to change the account email address
 // @Tags auth
@@ -380,7 +366,6 @@ func (h *AuthHandler) ChangeEmail(c echo.Context) error {
 	if h.config.IsDevMode() && !h.config.IsSMTPConfigured() {
 		message = "Email changed successfully (dev mode - no SMTP configured)."
 		responseData["message"] = message
-		// Include new token in dev mode when email is changed immediately
 		if newToken != "" {
 			responseData["token"] = newToken
 		}
@@ -389,7 +374,6 @@ func (h *AuthHandler) ChangeEmail(c echo.Context) error {
 	return response.Success(c, responseData)
 }
 
-// ConfirmEmailChange godoc
 // @Summary Confirm email change
 // @Description Confirm email change using the token sent to the new email
 // @Tags auth
@@ -422,7 +406,6 @@ func (h *AuthHandler) ConfirmEmailChange(c echo.Context) error {
 	})
 }
 
-// RequestDeactivation godoc
 // @Summary Request account deactivation
 // @Description Request to deactivate the account with a 15-day grace period
 // @Tags auth
@@ -453,7 +436,6 @@ func (h *AuthHandler) RequestDeactivation(c echo.Context) error {
 	})
 }
 
-// CancelDeactivation godoc
 // @Summary Cancel account deactivation
 // @Description Cancel a pending account deactivation request
 // @Tags auth
@@ -486,7 +468,6 @@ type UpdateProfileRequest struct {
 	Phone string `json:"phone,omitempty" validate:"omitempty"`
 }
 
-// UpdateProfile godoc
 // @Summary Update user profile
 // @Description Update user profile information including company name and personal details
 // @Tags auth

@@ -20,7 +20,6 @@ func NewQRCodePublicHandler(i *do.Injector) (*QRCodePublicHandler, error) {
 	}, nil
 }
 
-// ValidateQRCode validates a QR code
 // @Summary Validate QR code
 // @Description Validate a QR code and return associated data
 // @Tags public
@@ -43,13 +42,11 @@ func (h *QRCodePublicHandler) ValidateQRCode(c echo.Context) error {
 		return response.Error(c, errors.NotFound("QR code"))
 	}
 
-	// Record the scan event for analytics
 	if err := h.qrCodeService.RecordScan(ctx, code); err != nil {
 		logger.Error("Failed to record QR scan", err, logrus.Fields{
 			"qr_code_id": qrCode.ID,
 			"code":       code,
 		})
-		// Don't fail the request if scan recording fails
 	}
 
 	return response.Success(c, qrCode)

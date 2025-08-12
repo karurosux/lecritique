@@ -36,7 +36,6 @@ type FeedbackRepository interface {
 	CountByQRCodeIDs(ctx context.Context, qrCodeIDs []uuid.UUID) (map[uuid.UUID]int64, error)
 	GetAverageRating(ctx context.Context, organizationID uuid.UUID, productID *uuid.UUID) (float64, error)
 	Delete(ctx context.Context, id uuid.UUID) error
-	// Analytics methods
 	FindByOrganizationIDForAnalytics(ctx context.Context, organizationID uuid.UUID, limit int) ([]models.Feedback, error)
 	FindByProductIDForAnalytics(ctx context.Context, productID uuid.UUID, limit int) ([]models.Feedback, error)
 	FindByQuestionInPeriod(ctx context.Context, questionID uuid.UUID, startDate, endDate time.Time) ([]models.Feedback, error)
@@ -58,7 +57,6 @@ func (r *feedbackRepository) FindByOrganizationID(ctx context.Context, organizat
 	var feedbacks []models.Feedback
 	var total int64
 	
-	// Set defaults
 	if req.Page < 1 {
 		req.Page = 1
 	}
@@ -66,10 +64,8 @@ func (r *feedbackRepository) FindByOrganizationID(ctx context.Context, organizat
 		req.Limit = 20
 	}
 	
-	// Count total
 	r.DB.WithContext(ctx).Model(&models.Feedback{}).Where("organization_id = ?", organizationID).Count(&total)
 	
-	// Get data
 	query := r.DB.WithContext(ctx).Preload("Product").Preload("QRCode").
 		Where("organization_id = ?", organizationID).
 		Limit(req.Limit).
@@ -80,9 +76,7 @@ func (r *feedbackRepository) FindByOrganizationID(ctx context.Context, organizat
 		return nil, err
 	}
 	
-	// Populate question text for all feedback in batch
 	if err := r.populateQuestionDataBatch(ctx, feedbacks); err != nil {
-		// Log error but don't fail the entire request
 		fmt.Printf("Error populating question data in batch: %v\n", err)
 	}
 	
@@ -104,7 +98,6 @@ func (r *feedbackRepository) FindByOrganizationIDWithFilters(ctx context.Context
 	var feedbacks []models.Feedback
 	var total int64
 	
-	// Set defaults
 	if req.Page < 1 {
 		req.Page = 1
 	}
@@ -112,20 +105,15 @@ func (r *feedbackRepository) FindByOrganizationIDWithFilters(ctx context.Context
 		req.Limit = 20
 	}
 	
-	// Build base query
 	baseQuery := r.DB.WithContext(ctx).Model(&models.Feedback{}).Where("organization_id = ?", organizationID)
 	
-	// Apply filters
 	baseQuery = r.applyFilters(baseQuery, filters)
 	
-	// Count total
 	baseQuery.Count(&total)
 	
-	// Get data with preloads
 	query := r.DB.WithContext(ctx).Preload("Product").Preload("QRCode").
 		Where("organization_id = ?", organizationID)
 	
-	// Apply the same filters to the data query
 	query = r.applyFilters(query, filters)
 	
 	query = query.Limit(req.Limit).
@@ -136,9 +124,7 @@ func (r *feedbackRepository) FindByOrganizationIDWithFilters(ctx context.Context
 		return nil, err
 	}
 	
-	// Populate question text for all feedback in batch
 	if err := r.populateQuestionDataBatch(ctx, feedbacks); err != nil {
-		// Log error but don't fail the entire request
 		fmt.Printf("Error populating question data in batch: %v\n", err)
 	}
 	
@@ -157,7 +143,6 @@ func (r *feedbackRepository) FindByOrganizationIDWithFilters(ctx context.Context
 }
 
 func (r *feedbackRepository) applyFilters(query *gorm.DB, filters FeedbackFilter) *gorm.DB {
-	// Search filter
 	if filters.Search != "" {
 		searchTerm := "%" + strings.ToLower(filters.Search) + "%"
 		query = query.Where(
@@ -166,7 +151,6 @@ func (r *feedbackRepository) applyFilters(query *gorm.DB, filters FeedbackFilter
 		)
 	}
 	
-	// Rating filters
 	if filters.RatingMin != nil {
 		query = query.Where("overall_rating >= ?", *filters.RatingMin)
 	}
@@ -174,7 +158,6 @@ func (r *feedbackRepository) applyFilters(query *gorm.DB, filters FeedbackFilter
 		query = query.Where("overall_rating <= ?", *filters.RatingMax)
 	}
 	
-	// Date filters
 	if filters.DateFrom != nil {
 		query = query.Where("DATE(created_at) >= DATE(?)", *filters.DateFrom)
 	}
@@ -182,12 +165,10 @@ func (r *feedbackRepository) applyFilters(query *gorm.DB, filters FeedbackFilter
 		query = query.Where("DATE(created_at) <= DATE(?)", *filters.DateTo)
 	}
 	
-	// Product filter
 	if filters.ProductID != nil {
 		query = query.Where("product_id = ?", *filters.ProductID)
 	}
 	
-	// Completion filter
 	if filters.IsComplete != nil {
 		query = query.Where("is_complete = ?", *filters.IsComplete)
 	}
@@ -195,19 +176,16 @@ func (r *feedbackRepository) applyFilters(query *gorm.DB, filters FeedbackFilter
 	return query
 }
 
-// populateQuestionData populates the question text and type for each response in the feedback
 func (r *feedbackRepository) populateQuestionData(ctx context.Context, feedback *models.Feedback) error {
 	if len(feedback.Responses) == 0 {
 		return nil
 	}
 	
-	// Extract question IDs from responses
 	var questionIDs []uuid.UUID
 	for _, response := range feedback.Responses {
 		questionIDs = append(questionIDs, response.QuestionID)
 	}
 	
-	// Query questions table to get question data and types
 	var questions []struct {
 		ID   uuid.UUID `gorm:"column:id"`
 		Text string    `gorm:"column:text"`
@@ -221,7 +199,6 @@ func (r *feedbackRepository) populateQuestionData(ctx context.Context, feedback 
 		return err
 	}
 	
-	// Create maps for quick lookup
 	questionTextMap := make(map[uuid.UUID]string)
 	questionTypeMap := make(map[uuid.UUID]string)
 	for _, question := range questions {
@@ -229,7 +206,6 @@ func (r *feedbackRepository) populateQuestionData(ctx context.Context, feedback 
 		questionTypeMap[question.ID] = question.Type
 	}
 	
-	// Update responses with question text and type
 	for i := range feedback.Responses {
 		if text, exists := questionTextMap[feedback.Responses[i].QuestionID]; exists {
 			feedback.Responses[i].QuestionText = text
@@ -242,13 +218,11 @@ func (r *feedbackRepository) populateQuestionData(ctx context.Context, feedback 
 	return nil
 }
 
-// populateQuestionDataBatch populates question data for multiple feedback items in a single query
 func (r *feedbackRepository) populateQuestionDataBatch(ctx context.Context, feedbacks []models.Feedback) error {
 	if len(feedbacks) == 0 {
 		return nil
 	}
 	
-	// Collect all unique question IDs from all feedback items
 	questionIDSet := make(map[uuid.UUID]bool)
 	for _, feedback := range feedbacks {
 		for _, response := range feedback.Responses {
@@ -262,13 +236,11 @@ func (r *feedbackRepository) populateQuestionDataBatch(ctx context.Context, feed
 		return nil
 	}
 	
-	// Convert set to slice
 	var questionIDs []uuid.UUID
 	for id := range questionIDSet {
 		questionIDs = append(questionIDs, id)
 	}
 	
-	// Single query to get all question data including scale labels
 	var questions []struct {
 		ID       uuid.UUID `gorm:"column:id"`
 		Text     string    `gorm:"column:text"`
@@ -286,7 +258,6 @@ func (r *feedbackRepository) populateQuestionDataBatch(ctx context.Context, feed
 		return err
 	}
 	
-	// Create lookup maps
 	questionTextMap := make(map[uuid.UUID]string)
 	questionTypeMap := make(map[uuid.UUID]string)
 	questionDataMap := make(map[uuid.UUID]struct {
@@ -311,7 +282,6 @@ func (r *feedbackRepository) populateQuestionDataBatch(ctx context.Context, feed
 		}
 	}
 	
-	// Update all feedback responses
 	for i := range feedbacks {
 		for j := range feedbacks[i].Responses {
 			questionID := feedbacks[i].Responses[j].QuestionID
@@ -331,7 +301,6 @@ func (r *feedbackRepository) FindByProductID(ctx context.Context, productID uuid
 	var feedbacks []models.Feedback
 	var total int64
 	
-	// Set defaults
 	if req.Page < 1 {
 		req.Page = 1
 	}
@@ -339,10 +308,8 @@ func (r *feedbackRepository) FindByProductID(ctx context.Context, productID uuid
 		req.Limit = 20
 	}
 	
-	// Count total
 	r.DB.WithContext(ctx).Model(&models.Feedback{}).Where("product_id = ?", productID).Count(&total)
 	
-	// Get data
 	query := r.DB.WithContext(ctx).Preload("QRCode").
 		Where("product_id = ?", productID).
 		Limit(req.Limit).
@@ -413,13 +380,11 @@ func (r *feedbackRepository) CountByQRCodeIDs(ctx context.Context, qrCodeIDs []u
 		return nil, err
 	}
 	
-	// Convert to map
 	countMap := make(map[uuid.UUID]int64)
 	for _, r := range results {
 		countMap[r.QRCodeID] = r.Count
 	}
 	
-	// Ensure all QR codes have an entry (even if 0)
 	for _, id := range qrCodeIDs {
 		if _, exists := countMap[id]; !exists {
 			countMap[id] = 0
@@ -438,7 +403,6 @@ func (r *feedbackRepository) GetAverageRating(ctx context.Context, organizationI
 		fmt.Printf("🔍 GetAverageRating called WITH product filter: %s\n", *productID)
 	} else {
 		fmt.Printf("🔍 GetAverageRating called WITHOUT product filter (organization-wide)\n")
-		// Debug: Check individual ratings for organization-wide query
 		var allRatings []int
 		r.DB.WithContext(ctx).Model(&models.Feedback{}).Where("organization_id = ?", organizationID).Pluck("overall_rating", &allRatings)
 		fmt.Printf("🔍 All ratings for organization %s: %v\n", organizationID, allRatings)
@@ -447,7 +411,6 @@ func (r *feedbackRepository) GetAverageRating(ctx context.Context, organizationI
 	err := query.Select("COALESCE(AVG(overall_rating), 0)").Row().Scan(&avg)
 	fmt.Printf("🔍 AVG query result: %v, error: %v, productID: %v\n", avg, err, productID)
 	
-	// If we got 0 and it's a organization-wide query, something's wrong
 	if avg == 0 && productID == nil {
 		fmt.Printf("🚨 WARNING: Organization-wide average is 0, this seems wrong!\n")
 	}
@@ -468,9 +431,7 @@ func (r *feedbackRepository) FindByOrganizationIDForAnalytics(ctx context.Contex
 		return nil, err
 	}
 	
-	// Populate question data to avoid N+1 queries
 	if err := r.populateQuestionDataBatch(ctx, feedbacks); err != nil {
-		// Log error but don't fail the entire request since analytics can work without question details
 		return feedbacks, nil
 	}
 	
@@ -491,7 +452,6 @@ func (r *feedbackRepository) FindByProductIDForAnalytics(ctx context.Context, pr
 func (r *feedbackRepository) FindByQuestionInPeriod(ctx context.Context, questionID uuid.UUID, startDate, endDate time.Time) ([]models.Feedback, error) {
 	var feedbacks []models.Feedback
 	
-	// Query feedback where responses contain the specified question ID and within the date range
 	err := r.DB.WithContext(ctx).
 		Where("created_at >= ? AND created_at <= ?", startDate, endDate).
 		Where("responses::jsonb @> ?", fmt.Sprintf(`[{"question_id": "%s"}]`, questionID)).
@@ -501,9 +461,7 @@ func (r *feedbackRepository) FindByQuestionInPeriod(ctx context.Context, questio
 		return nil, err
 	}
 	
-	// Populate question data for responses
 	if err := r.populateQuestionDataBatch(ctx, feedbacks); err != nil {
-		// Log error but continue since we still have the core feedback data
 		fmt.Printf("Error populating question data for choice distribution: %v\n", err)
 	}
 	

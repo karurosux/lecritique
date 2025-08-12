@@ -24,7 +24,6 @@ func NewQuestionnaireService(i *do.Injector) (*QuestionnaireService, error) {
 	
 	generator, err := aiServices.NewQuestionGenerator(cfg)
 	if err != nil {
-		// AI is optional, so we continue without it
 		generator = nil
 	}
 
@@ -35,7 +34,6 @@ func NewQuestionnaireService(i *do.Injector) (*QuestionnaireService, error) {
 }
 
 func (s *QuestionnaireService) Create(ctx context.Context, accountID, organizationID uuid.UUID, input *models.Questionnaire) (*models.Questionnaire, error) {
-	// Validate organization belongs to account
 	// TODO: Add validation
 
 	questionnaire := &models.Questionnaire{
@@ -132,7 +130,6 @@ func (s *QuestionnaireService) AddQuestion(ctx context.Context, accountID, quest
 	}
 
 	// TODO: Update this to use new Question structure
-	// question.QuestionnaireID = questionnaireID
 	question.DisplayOrder = maxOrder + 1
 
 	if err := s.repo.CreateQuestion(ctx, question); err != nil {
@@ -233,7 +230,7 @@ func (s *QuestionnaireService) GenerateAndSaveQuestionnaireForProduct(ctx contex
 			// QuestionnaireID: questionnaire.ID,
 			Text:         genQ.Text,
 			Type:         genQ.Type,
-			IsRequired:   true, // Default to required
+			IsRequired:   true,
 			DisplayOrder: i + 1,
 			Options:      genQ.Options,
 			MinValue:     genQ.MinValue,

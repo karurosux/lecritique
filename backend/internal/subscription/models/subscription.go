@@ -41,13 +41,11 @@ type SubscriptionPlan struct {
 	Currency    string      `gorm:"default:'USD'" json:"currency"`
 	Interval    string      `gorm:"default:'month'" json:"interval"`
 	
-	// Limits (as columns)
 	MaxOrganizations      int `gorm:"not null;default:1;check:max_organizations >= -1" json:"max_organizations"`
 	MaxQRCodes         int `gorm:"column:max_qr_codes;not null;default:5;check:max_qr_codes >= -1" json:"max_qr_codes"`
 	MaxFeedbacksPerMonth int `gorm:"column:max_feedbacks_per_month;not null;default:50;check:max_feedbacks_per_month >= -1" json:"max_feedbacks_per_month"`
 	MaxTeamMembers     int `gorm:"column:max_team_members;not null;default:2;check:max_team_members >= -1" json:"max_team_members"`
 	
-	// Feature flags (as columns)
 	HasBasicAnalytics    bool `gorm:"column:has_basic_analytics;not null;default:false" json:"has_basic_analytics"`
 	HasAdvancedAnalytics bool `gorm:"column:has_advanced_analytics;not null;default:false" json:"has_advanced_analytics"`
 	HasFeedbackExplorer  bool `gorm:"column:has_feedback_explorer;not null;default:false" json:"has_feedback_explorer"`
@@ -60,7 +58,6 @@ type SubscriptionPlan struct {
 	StripePriceID string    `json:"-"`
 }
 
-// Helper methods for SubscriptionPlan
 func (sp *SubscriptionPlan) GetLimit(key string) int {
 	switch key {
 	case LimitOrganizations:
@@ -97,7 +94,6 @@ func (sp *SubscriptionPlan) IsUnlimited(key string) bool {
 	return sp.GetLimit(key) == -1
 }
 
-// Common limit keys as constants for type safety
 const (
 	LimitOrganizations       = "max_organizations"
 	LimitQRCodes           = "max_qr_codes"
@@ -105,7 +101,6 @@ const (
 	LimitTeamMembers       = "max_team_members"
 )
 
-// Common feature flags
 const (
 	FlagBasicAnalytics    = "basic_analytics"
 	FlagAdvancedAnalytics = "advanced_analytics"

@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 )
 
-// JSONBField provides common JSONB Value/Scan methods for any type
 type JSONBField[T any] struct {
 	Data T
 }
@@ -25,7 +24,6 @@ func (j *JSONBField[T]) Scan(value interface{}) error {
 	return json.Unmarshal(bytes, &j.Data)
 }
 
-// Helper functions for common JSONB types
 func MarshalJSONB(v interface{}) (driver.Value, error) {
 	return json.Marshal(v)
 }

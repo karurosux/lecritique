@@ -32,7 +32,6 @@ func NewFeedbackPublicHandler(i *do.Injector) (*FeedbackPublicHandler, error) {
 }
 
 
-// GetQuestionnaire gets questionnaire for a product
 // @Summary Get questionnaire
 // @Description Get questionnaire for a specific product
 // @Tags public
@@ -58,8 +57,6 @@ func (h *FeedbackPublicHandler) GetQuestionnaire(c echo.Context) error {
 		return response.Error(c, errors.BadRequest("Invalid product ID format"))
 	}
 
-	// Implementation would get questionnaire
-	// For now, return placeholder
 	return response.Success(c, map[string]interface{}{
 		"organization_id": organizationID,
 		"product_id":       productID,
@@ -67,7 +64,6 @@ func (h *FeedbackPublicHandler) GetQuestionnaire(c echo.Context) error {
 	})
 }
 
-// SubmitFeedback submits customer feedback
 // @Summary Submit feedback
 // @Description Submit customer feedback for a product
 // @Tags public
@@ -85,7 +81,6 @@ func (h *FeedbackPublicHandler) SubmitFeedback(c echo.Context) error {
 		return response.Error(c, errors.BadRequest("Invalid feedback data provided"))
 	}
 
-	// Extract device information from request
 	deviceInfo := utils.ExtractDeviceInfo(c.Request())
 	feedback.DeviceInfo = feedbackModels.DeviceInfo{
 		UserAgent: deviceInfo.UserAgent,
@@ -106,7 +101,6 @@ func (h *FeedbackPublicHandler) SubmitFeedback(c echo.Context) error {
 	})
 }
 
-// GetProductQuestions gets questions for a specific product (public endpoint)
 // @Summary Get questions for a product
 // @Description Get all feedback questions for a specific product (public access for customer feedback)
 // @Tags public
@@ -126,13 +120,11 @@ func (h *FeedbackPublicHandler) GetProductQuestions(c echo.Context) error {
 		return response.Error(c, errors.BadRequest("Invalid product ID"))
 	}
 
-	// Verify product exists
 	product, err := h.productRepo.FindByID(ctx, productID)
 	if err != nil {
 		return response.Error(c, errors.NotFound("Product not found"))
 	}
 
-	// Get questions for this product
 	questions, err := h.questionRepo.GetQuestionsByProductID(ctx, productID)
 	if err != nil {
 		logger.Error("Failed to get questions for product", err, logrus.Fields{
@@ -147,7 +139,6 @@ func (h *FeedbackPublicHandler) GetProductQuestions(c echo.Context) error {
 	})
 }
 
-// GetProductsWithQuestions gets all products that have questions for a organization (public endpoint)
 // @Summary Get products with questions
 // @Description Get all products that have feedback questions for a organization (public access for QR code scans)
 // @Tags public
@@ -166,7 +157,6 @@ func (h *FeedbackPublicHandler) GetProductsWithQuestions(c echo.Context) error {
 		return response.Error(c, errors.BadRequest("Invalid organization ID"))
 	}
 
-	// Get products with questions for this organization
 	productIDs, err := h.questionRepo.GetProductsWithQuestions(ctx, organizationID)
 	if err != nil {
 		logger.Error("Failed to get products with questions", err, logrus.Fields{
@@ -175,7 +165,6 @@ func (h *FeedbackPublicHandler) GetProductsWithQuestions(c echo.Context) error {
 		return response.Error(c, errors.Internal("Failed to get products with questions"))
 	}
 
-	// Get full product details for each product ID
 	products := make([]interface{}, 0, len(productIDs))
 	for _, productID := range productIDs {
 		product, err := h.productRepo.FindByID(ctx, productID)

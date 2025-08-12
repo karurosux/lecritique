@@ -35,7 +35,6 @@ type CreateOrganizationRequest struct {
 	Website     string `json:"website"`
 }
 
-// Create godoc
 // @Summary Create a new organization
 // @Description Create a new organization for the authenticated account
 // @Tags organizations
@@ -77,7 +76,6 @@ func (h *OrganizationHandler) Create(c echo.Context) error {
 	return response.Success(c, organization)
 }
 
-// GetAll godoc
 // @Summary Get all organizations
 // @Description Get all organizations for the authenticated account
 // @Tags organizations
@@ -98,7 +96,6 @@ func (h *OrganizationHandler) GetAll(c echo.Context) error {
 	return response.Success(c, organizations)
 }
 
-// GetByID gets a specific organization by ID
 // @Summary Get organization by ID
 // @Description Get a specific organization by its ID
 // @Tags organizations
@@ -128,7 +125,6 @@ func (h *OrganizationHandler) GetByID(c echo.Context) error {
 	return response.Success(c, organization)
 }
 
-// Update updates a organization
 // @Summary Update organization
 // @Description Update a organization's information
 // @Tags organizations
@@ -165,7 +161,6 @@ func (h *OrganizationHandler) Update(c echo.Context) error {
 	})
 }
 
-// Delete deletes a organization
 // @Summary Delete organization
 // @Description Delete a organization from the system
 // @Tags organizations

@@ -12,7 +12,6 @@ import (
 type Organization struct {
 	models.BaseModel
 	AccountID   uuid.UUID      `gorm:"not null" json:"account_id"`
-	// Account     Account        `json:"account,omitempty"` // TODO: Add when cross-domain refs are ready
 	Name        string         `gorm:"not null" json:"name"`
 	Description string         `json:"description"`
 	Address     string         `json:"address"`
@@ -22,8 +21,6 @@ type Organization struct {
 	Email       string         `json:"email"`
 	IsActive    bool           `gorm:"default:true" json:"is_active"`
 	Settings    Settings       `gorm:"type:jsonb" json:"settings"`
-	// Products      []Product         `json:"products,omitempty"`     // TODO: Add when menu domain is ready
-	// QRCodes     []QRCode       `json:"qr_codes,omitempty"`  // TODO: Add when qrcode domain is ready
 }
 
 type Settings struct {
@@ -33,7 +30,6 @@ type Settings struct {
 	LowRatingThreshold   int    `json:"low_rating_threshold"`
 }
 
-// GORM Scanner/Valuer interfaces for JSONB
 func (s Settings) Value() (driver.Value, error) {
 	return json.Marshal(s)
 }
@@ -64,6 +60,4 @@ type Product struct {
 	IsAvailable   bool              `gorm:"default:true" json:"is_available"`
 	IsActive      bool              `gorm:"default:true" json:"is_active"`
 	DisplayOrder  int               `gorm:"default:0" json:"display_order"`
-	// Questionnaire *Questionnaire    `json:"questionnaire,omitempty"` // TODO: Add when feedback domain is ready
-	// Feedbacks     []Feedback        `json:"feedbacks,omitempty"`     // TODO: Add when feedback domain is ready
 }

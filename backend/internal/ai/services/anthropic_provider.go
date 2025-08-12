@@ -111,7 +111,6 @@ func (p *AnthropicProvider) GenerateQuestions(ctx context.Context, prompt string
 		return nil, fmt.Errorf("API error: %s - %s", anthropicResp.Error.Type, anthropicResp.Error.Message)
 	}
 
-	// Extract the JSON from the response
 	if len(anthropicResp.Content) == 0 {
 		return nil, fmt.Errorf("no content in response")
 	}

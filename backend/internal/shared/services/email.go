@@ -34,10 +34,8 @@ func NewEmailService(i *do.Injector) (EmailService, error) {
 
 func (s *emailService) SendVerificationEmail(ctx context.Context, email, token string) error {
 	subject := "Verify Your Email - Kyooar"
-	// Use frontend URL for user-facing verification link
 	frontendURL := s.config.App.FrontendURL
 	if frontendURL == "" {
-		// Default to localhost:5173 for development
 		frontendURL = "http://localhost:5173"
 	}
 	verificationURL := fmt.Sprintf("%s/verify-email?token=%s", frontendURL, token)
@@ -59,10 +57,8 @@ func (s *emailService) SendVerificationEmail(ctx context.Context, email, token s
 
 func (s *emailService) SendPasswordResetEmail(ctx context.Context, email, token string) error {
 	subject := "Reset Your Password - Kyooar"
-	// Use frontend URL for user-facing reset link
 	frontendURL := s.config.App.FrontendURL
 	if frontendURL == "" {
-		// Default to localhost:5173 for development
 		frontendURL = "http://localhost:5173"
 	}
 	resetURL := fmt.Sprintf("%s/reset-password?token=%s", frontendURL, token)
@@ -84,10 +80,8 @@ func (s *emailService) SendPasswordResetEmail(ctx context.Context, email, token 
 
 func (s *emailService) SendTeamInviteEmail(ctx context.Context, email, token, companyName string) error {
 	subject := fmt.Sprintf("Team Invitation - %s", companyName)
-	// Use frontend URL for invitation acceptance
 	frontendURL := s.config.App.FrontendURL
 	if frontendURL == "" {
-		// Default to localhost:5173 for development
 		frontendURL = "http://localhost:5173"
 	}
 	inviteURL := fmt.Sprintf("%s/team/accept-invite?token=%s", frontendURL, token)
@@ -182,13 +176,10 @@ func (s *emailService) SendAccountDeactivated(ctx context.Context, email string)
 }
 
 func (s *emailService) sendEmail(to, subject, body string) error {
-	// For development, just log the email instead of actually sending it
 	if s.config.App.Env == "development" {
 		log.Printf("=== EMAIL ===\nTo: %s\nSubject: %s\nBody: %s\n=============", to, subject, body)
 		
-		// Extract and highlight any links for easy clicking in terminal
 		if strings.Contains(body, "href=") {
-			// Simple regex to find href links
 			linkRegex := regexp.MustCompile(`href="([^"]+)"`)
 			matches := linkRegex.FindAllStringSubmatch(body, -1)
 			if len(matches) > 0 {
@@ -205,16 +196,13 @@ func (s *emailService) sendEmail(to, subject, body string) error {
 		return nil
 	}
 
-	// Production email sending (requires SMTP configuration)
 	if s.config.SMTP == nil {
 		log.Printf("SMTP not configured, skipping email to %s", to)
 		return nil
 	}
 
-	// Compose email
 	msg := fmt.Sprintf("To: %s\r\nSubject: %s\r\nContent-Type: text/html; charset=UTF-8\r\n\r\n%s", to, subject, body)
 
-	// Send email via SMTP
 	auth := smtp.PlainAuth("", s.config.SMTP.Username, s.config.SMTP.Password, s.config.SMTP.Host)
 	err := smtp.SendMail(
 		fmt.Sprintf("%s:%d", s.config.SMTP.Host, s.config.SMTP.Port),

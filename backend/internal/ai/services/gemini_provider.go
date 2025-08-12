@@ -110,7 +110,6 @@ func (p *GeminiProvider) GenerateQuestions(ctx context.Context, prompt string) (
 		return nil, fmt.Errorf("no content in response")
 	}
 
-	// Extract the JSON from the response
 	var questions []GeneratedQuestion
 	if err := json.Unmarshal([]byte(geminiResp.Candidates[0].Content.Parts[0].Text), &questions); err != nil {
 		return nil, fmt.Errorf("failed to parse generated questions: %w", err)

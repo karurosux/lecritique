@@ -15,7 +15,7 @@ import (
 type SubscriptionService interface {
 	GetUserSubscription(ctx context.Context, accountID uuid.UUID) (*models.Subscription, error)
 	GetAvailablePlans(ctx context.Context) ([]models.SubscriptionPlan, error)
-	GetAllPlans(ctx context.Context) ([]models.SubscriptionPlan, error) // Admin only - includes hidden plans
+	GetAllPlans(ctx context.Context) ([]models.SubscriptionPlan, error)
 	CanUserCreateOrganization(ctx context.Context, accountID uuid.UUID) (*PermissionResponse, error)
 	CreateSubscription(ctx context.Context, req *CreateSubscriptionRequest) (*models.Subscription, error)
 	AssignCustomPlan(ctx context.Context, accountID uuid.UUID, planCode string) error
@@ -58,7 +58,6 @@ func (s *subscriptionService) GetAvailablePlans(ctx context.Context) ([]models.S
 }
 
 func (s *subscriptionService) CanUserCreateOrganization(ctx context.Context, accountID uuid.UUID) (*PermissionResponse, error) {
-	// Get user's active subscription
 	subscription, err := s.subscriptionRepo.FindByAccountID(ctx, accountID)
 	if err != nil {
 		return &PermissionResponse{
@@ -68,7 +67,6 @@ func (s *subscriptionService) CanUserCreateOrganization(ctx context.Context, acc
 		}, nil
 	}
 
-	// Check if subscription is active
 	if !subscription.IsActive() {
 		return &PermissionResponse{
 			CanCreate:          false,
@@ -77,7 +75,6 @@ func (s *subscriptionService) CanUserCreateOrganization(ctx context.Context, acc
 		}, nil
 	}
 
-	// Get current organization count
 	organizations, err := s.organizationRepo.FindByAccountID(ctx, accountID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get organization count: %w", err)
@@ -86,7 +83,6 @@ func (s *subscriptionService) CanUserCreateOrganization(ctx context.Context, acc
 	currentCount := len(organizations)
 	maxOrganizations := subscription.Plan.MaxOrganizations
 
-	// Check if user can create more organizations
 	canCreate := subscription.CanAddOrganization(currentCount)
 	
 	var reason string
@@ -106,13 +102,11 @@ func (s *subscriptionService) CanUserCreateOrganization(ctx context.Context, acc
 }
 
 func (s *subscriptionService) CreateSubscription(ctx context.Context, req *CreateSubscriptionRequest) (*models.Subscription, error) {
-	// Get the plan
 	plan, err := s.planRepo.FindByID(ctx, req.PlanID)
 	if err != nil {
 		return nil, fmt.Errorf("plan not found: %w", err)
 	}
 
-	// Create subscription
 	now := time.Now()
 	subscription := &models.Subscription{
 		AccountID:          req.AccountID,
@@ -120,7 +114,7 @@ func (s *subscriptionService) CreateSubscription(ctx context.Context, req *Creat
 		Status:             models.SubscriptionActive,
 		Plan:               *plan,
 		CurrentPeriodStart: now,
-		CurrentPeriodEnd:   now.AddDate(0, 1, 0), // Add one month by default
+		CurrentPeriodEnd:   now.AddDate(0, 1, 0),
 	}
 
 	err = s.subscriptionRepo.Create(ctx, subscription)
@@ -132,28 +126,23 @@ func (s *subscriptionService) CreateSubscription(ctx context.Context, req *Creat
 }
 
 func (s *subscriptionService) GetAllPlans(ctx context.Context) ([]models.SubscriptionPlan, error) {
-	// This method includes hidden plans - should be protected by admin middleware
 	return s.planRepo.FindAllIncludingHidden(ctx)
 }
 
 func (s *subscriptionService) AssignCustomPlan(ctx context.Context, accountID uuid.UUID, planCode string) error {
-	// Find the plan by code (works for both visible and hidden plans)
 	plan, err := s.planRepo.FindByCode(ctx, planCode)
 	if err != nil {
 		return fmt.Errorf("plan not found: %w", err)
 	}
 
-	// Check if user already has a subscription
 	existingSubscription, err := s.subscriptionRepo.FindByAccountID(ctx, accountID)
 	if err == nil && existingSubscription != nil {
-		// Update existing subscription to new plan
 		existingSubscription.PlanID = plan.ID
 		existingSubscription.Plan = *plan
 		existingSubscription.Status = models.SubscriptionActive
 		return s.subscriptionRepo.Update(ctx, existingSubscription)
 	}
 
-	// Create new subscription with the custom plan
 	now := time.Now()
 	subscription := &models.Subscription{
 		AccountID:          accountID,
@@ -161,7 +150,7 @@ func (s *subscriptionService) AssignCustomPlan(ctx context.Context, accountID uu
 		Status:             models.SubscriptionActive,
 		Plan:               *plan,
 		CurrentPeriodStart: now,
-		CurrentPeriodEnd:   now.AddDate(0, 1, 0), // Add one month by default
+		CurrentPeriodEnd:   now.AddDate(0, 1, 0),
 	}
 
 	return s.subscriptionRepo.Create(ctx, subscription)

@@ -35,12 +35,8 @@ func NewOrganizationService(i *do.Injector) (OrganizationService, error) {
 }
 
 func (s *organizationService) Create(ctx context.Context, accountID uuid.UUID, organization *models.Organization) error {
-	// Check subscription limits
 	subscription, err := s.subscriptionRepo.FindByAccountID(ctx, accountID)
 	if err != nil {
-		// For now, allow creation without subscription (development mode)
-		// TODO: Re-enable subscription check in production
-		// return errors.New("SUBSCRIPTION_REQUIRED", "No active subscription found for account", 402)
 	}
 
 	currentCount, err := s.organizationRepo.CountByAccountID(ctx, accountID)
@@ -48,7 +44,6 @@ func (s *organizationService) Create(ctx context.Context, accountID uuid.UUID, o
 		return errors.Wrap(err, "DATABASE_ERROR", "Unable to verify organization count", 500)
 	}
 
-	// Only check limits if subscription exists
 	if subscription != nil && !subscription.CanAddOrganization(int(currentCount)) {
 		return errors.NewWithDetails("SUBSCRIPTION_LIMIT",
 			"Organization limit exceeded for current subscription plan",
@@ -59,7 +54,6 @@ func (s *organizationService) Create(ctx context.Context, accountID uuid.UUID, o
 			})
 	}
 
-	// Set account ID and create
 	organization.AccountID = accountID
 	if err := s.organizationRepo.Create(ctx, organization); err != nil {
 		return errors.Wrap(err, "DATABASE_ERROR", "Unable to create organization", 500)
@@ -69,7 +63,6 @@ func (s *organizationService) Create(ctx context.Context, accountID uuid.UUID, o
 }
 
 func (s *organizationService) Update(ctx context.Context, accountID uuid.UUID, organizationID uuid.UUID, updates map[string]interface{}) error {
-	// Verify ownership
 	organization, err := s.organizationRepo.FindByID(ctx, organizationID)
 	if err != nil {
 		if err == sharedRepos.ErrRecordNotFound {
@@ -82,7 +75,6 @@ func (s *organizationService) Update(ctx context.Context, accountID uuid.UUID, o
 		return errors.Forbidden("update this organization")
 	}
 
-	// Update fields
 	for key, value := range updates {
 		switch key {
 		case "name":
@@ -124,7 +116,6 @@ func (s *organizationService) Update(ctx context.Context, accountID uuid.UUID, o
 }
 
 func (s *organizationService) Delete(ctx context.Context, accountID uuid.UUID, organizationID uuid.UUID) error {
-	// Verify ownership
 	organization, err := s.organizationRepo.FindByID(ctx, organizationID)
 	if err != nil {
 		if err == sharedRepos.ErrRecordNotFound {

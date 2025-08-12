@@ -42,13 +42,11 @@ func NewQuestionService(i *do.Injector) (QuestionService, error) {
 }
 
 func (s *questionService) CreateQuestion(ctx context.Context, accountID, productID uuid.UUID, request *models.CreateQuestionRequest) (*models.Question, error) {
-	// Verify product exists and belongs to account
 	product, err := s.productRepo.FindByID(ctx, productID)
 	if err != nil {
 		return nil, echo.NewHTTPError(http.StatusNotFound, "Product not found")
 	}
 
-	// Verify organization ownership
 	organization, err := s.organizationRepo.FindByID(ctx, product.OrganizationID)
 	if err != nil {
 		return nil, echo.NewHTTPError(http.StatusNotFound, "Organization not found")
@@ -58,13 +56,11 @@ func (s *questionService) CreateQuestion(ctx context.Context, accountID, product
 		return nil, echo.NewHTTPError(http.StatusNotFound, "Product not found")
 	}
 
-	// Get next display order
 	maxOrder, err := s.questionRepo.GetMaxDisplayOrder(ctx, productID)
 	if err != nil {
 		return nil, echo.NewHTTPError(http.StatusInternalServerError, "Failed to get display order")
 	}
 
-	// Create question
 	question := &models.Question{
 		ProductID:       productID,
 		Text:         request.Text,
@@ -86,13 +82,11 @@ func (s *questionService) CreateQuestion(ctx context.Context, accountID, product
 }
 
 func (s *questionService) GetQuestionsByProduct(ctx context.Context, accountID, productID uuid.UUID) ([]*models.Question, error) {
-	// Verify product exists and belongs to account
 	product, err := s.productRepo.FindByID(ctx, productID)
 	if err != nil {
 		return nil, echo.NewHTTPError(http.StatusNotFound, "Product not found")
 	}
 
-	// Verify organization ownership
 	organization, err := s.organizationRepo.FindByID(ctx, product.OrganizationID)
 	if err != nil {
 		return nil, echo.NewHTTPError(http.StatusNotFound, "Organization not found")
@@ -115,7 +109,6 @@ func (s *questionService) GetQuestionsByProducts(ctx context.Context, accountID,
 		return []*models.Question{}, nil
 	}
 
-	// Verify organization ownership
 	organization, err := s.organizationRepo.FindByID(ctx, organizationID)
 	if err != nil {
 		return nil, echo.NewHTTPError(http.StatusNotFound, "Organization not found")
@@ -125,7 +118,6 @@ func (s *questionService) GetQuestionsByProducts(ctx context.Context, accountID,
 		return nil, echo.NewHTTPError(http.StatusForbidden, "Access denied")
 	}
 
-	// Verify all products belong to this organization
 	for _, productID := range productIDs {
 		product, err := s.productRepo.FindByID(ctx, productID)
 		if err != nil {
@@ -149,7 +141,6 @@ func (s *questionService) GetQuestionsByProductsOptimized(ctx context.Context, a
 		return []*models.BatchQuestionResponse{}, nil
 	}
 
-	// Verify organization ownership
 	organization, err := s.organizationRepo.FindByID(ctx, organizationID)
 	if err != nil {
 		return nil, echo.NewHTTPError(http.StatusNotFound, "Organization not found")
@@ -159,7 +150,6 @@ func (s *questionService) GetQuestionsByProductsOptimized(ctx context.Context, a
 		return nil, echo.NewHTTPError(http.StatusForbidden, "Access denied")
 	}
 
-	// Verify all products belong to this organization
 	for _, productID := range productIDs {
 		product, err := s.productRepo.FindByID(ctx, productID)
 		if err != nil {
@@ -170,13 +160,11 @@ func (s *questionService) GetQuestionsByProductsOptimized(ctx context.Context, a
 		}
 	}
 
-	// Get full questions from repository
 	questions, err := s.questionRepo.GetQuestionsByProductIDs(ctx, productIDs)
 	if err != nil {
 		return nil, echo.NewHTTPError(http.StatusInternalServerError, "Failed to get questions")
 	}
 
-	// Convert to optimized response format
 	result := make([]*models.BatchQuestionResponse, len(questions))
 	for i, question := range questions {
 		result[i] = &models.BatchQuestionResponse{
@@ -196,13 +184,11 @@ func (s *questionService) GetQuestion(ctx context.Context, accountID, questionID
 		return nil, echo.NewHTTPError(http.StatusNotFound, "Question not found")
 	}
 
-	// Verify the question's product belongs to the account
 	product, err := s.productRepo.FindByID(ctx, question.ProductID)
 	if err != nil {
 		return nil, echo.NewHTTPError(http.StatusNotFound, "Associated product not found")
 	}
 
-	// Verify organization ownership
 	organization, err := s.organizationRepo.FindByID(ctx, product.OrganizationID)
 	if err != nil {
 		return nil, echo.NewHTTPError(http.StatusNotFound, "Organization not found")
@@ -216,13 +202,11 @@ func (s *questionService) GetQuestion(ctx context.Context, accountID, questionID
 }
 
 func (s *questionService) UpdateQuestion(ctx context.Context, accountID, questionID uuid.UUID, request *models.UpdateQuestionRequest) (*models.Question, error) {
-	// Get existing question and verify access
 	question, err := s.GetQuestion(ctx, accountID, questionID)
 	if err != nil {
 		return nil, err
 	}
 
-	// Update fields
 	question.Text = request.Text
 	question.Type = request.Type
 	question.IsRequired = request.IsRequired
@@ -240,7 +224,6 @@ func (s *questionService) UpdateQuestion(ctx context.Context, accountID, questio
 }
 
 func (s *questionService) DeleteQuestion(ctx context.Context, accountID, questionID uuid.UUID) error {
-	// Verify access first
 	_, err := s.GetQuestion(ctx, accountID, questionID)
 	if err != nil {
 		return err
@@ -254,13 +237,11 @@ func (s *questionService) DeleteQuestion(ctx context.Context, accountID, questio
 }
 
 func (s *questionService) ReorderQuestions(ctx context.Context, accountID, productID uuid.UUID, questionIDs []uuid.UUID) error {
-	// Verify product belongs to account
 	product, err := s.productRepo.FindByID(ctx, productID)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusNotFound, "Product not found")
 	}
 
-	// Verify organization ownership
 	organization, err := s.organizationRepo.FindByID(ctx, product.OrganizationID)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusNotFound, "Organization not found")
@@ -270,7 +251,6 @@ func (s *questionService) ReorderQuestions(ctx context.Context, accountID, produ
 		return echo.NewHTTPError(http.StatusNotFound, "Product not found")
 	}
 
-	// Verify all questions belong to this product
 	for _, questionID := range questionIDs {
 		question, err := s.questionRepo.GetQuestionByID(ctx, questionID)
 		if err != nil {
@@ -289,16 +269,13 @@ func (s *questionService) ReorderQuestions(ctx context.Context, accountID, produ
 }
 
 func (s *questionService) GetProductsWithQuestions(ctx context.Context, accountID, organizationID uuid.UUID) ([]uuid.UUID, error) {
-	// Verify organization ownership
 	organization, err := s.organizationRepo.FindByID(ctx, organizationID)
 	if err != nil {
-		// Log for debugging
 		fmt.Printf("DEBUG: Organization not found. OrganizationID: %s, Error: %v\n", organizationID, err)
 		return nil, echo.NewHTTPError(http.StatusNotFound, "Organization not found")
 	}
 
 	if organization.AccountID != accountID {
-		// Log for debugging
 		fmt.Printf("DEBUG: Account mismatch. OrganizationAccountID: %s, RequestAccountID: %s\n", organization.AccountID, accountID)
 		return nil, echo.NewHTTPError(http.StatusNotFound, "Organization not found")
 	}

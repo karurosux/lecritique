@@ -28,7 +28,6 @@ func NewRateLimiter(rate int, window time.Duration) *RateLimiter {
 		window:   window,
 	}
 
-	// Cleanup old visitors every minute
 	go rl.cleanup()
 
 	return rl
@@ -50,7 +49,6 @@ func (rl *RateLimiter) Middleware() echo.MiddlewareFunc {
 				return next(c)
 			}
 
-			// Reset count if window has passed
 			if time.Since(v.lastSeen) > rl.window {
 				v.count = 1
 				v.lastSeen = time.Now()
@@ -58,7 +56,6 @@ func (rl *RateLimiter) Middleware() echo.MiddlewareFunc {
 				return next(c)
 			}
 
-			// Check rate limit
 			if v.count >= rl.rate {
 				rl.mu.Unlock()
 				return response.Error(c, errors.New("RATE_LIMIT", "Too many requests", 429))

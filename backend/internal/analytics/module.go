@@ -14,10 +14,7 @@ type Module struct {
 }
 
 func NewModule(i *do.Injector) *Module {
-	// Register analytics repositories
 	do.Provide(i, repositories.NewAnalyticsRepository)
-	
-	// Register time series services
 	do.Provide(i, repositories.NewTimeSeriesRepository)
 	do.Provide(i, services.NewTimeSeriesService)
 	do.Provide(i, handlers.NewTimeSeriesHandler)
@@ -26,26 +23,18 @@ func NewModule(i *do.Injector) *Module {
 }
 
 func (m *Module) RegisterRoutes(v1 *echo.Group) {
-	// Get handlers from injector
 	analyticsHandler := do.MustInvoke[*handlers.AnalyticsHandler](m.injector)
 	timeSeriesHandler := do.MustInvoke[*handlers.TimeSeriesHandler](m.injector)
 	
-	// Get middleware provider
 	middlewareProvider := do.MustInvoke[*sharedMiddleware.MiddlewareProvider](m.injector)
-	
-	// Analytics routes
 	analytics := v1.Group("/analytics")
 	analytics.Use(middlewareProvider.AuthMiddleware())
 	analytics.Use(middlewareProvider.TeamAwareMiddleware())
-	
-	// Existing analytics endpoints
 	analytics.GET("/organizations/:organizationId", analyticsHandler.GetOrganizationAnalytics)
 	analytics.GET("/organizations/:organizationId/charts", analyticsHandler.GetOrganizationChartData)
 	analytics.GET("/dashboard/:organizationId", analyticsHandler.GetDashboardMetrics)
 	analytics.GET("/products/:productId", analyticsHandler.GetProductAnalytics)
 	analytics.GET("/products/:productId/insights", analyticsHandler.GetProductInsights)
-	
-	// New time series endpoints
 	analytics.GET("/organizations/:organizationId/time-series", timeSeriesHandler.GetTimeSeries)
 	analytics.POST("/organizations/:organizationId/compare", timeSeriesHandler.CompareTimePeriods)
 	analytics.POST("/organizations/:organizationId/collect-metrics", timeSeriesHandler.CollectMetrics)

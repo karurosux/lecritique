@@ -31,7 +31,6 @@ func NewProductService(i *do.Injector) (ProductService, error) {
 }
 
 func (s *productService) Create(ctx context.Context, accountID uuid.UUID, product *models.Product) error {
-	// Verify organization ownership
 	organization, err := s.organizationRepo.FindByID(ctx, product.OrganizationID)
 	if err != nil {
 		return err
@@ -45,13 +44,11 @@ func (s *productService) Create(ctx context.Context, accountID uuid.UUID, produc
 }
 
 func (s *productService) Update(ctx context.Context, accountID uuid.UUID, productID uuid.UUID, updates map[string]interface{}) error {
-	// Get product
 	product, err := s.productRepo.FindByID(ctx, productID)
 	if err != nil {
 		return err
 	}
 
-	// Verify ownership
 	organization, err := s.organizationRepo.FindByID(ctx, product.OrganizationID)
 	if err != nil {
 		return err
@@ -61,7 +58,6 @@ func (s *productService) Update(ctx context.Context, accountID uuid.UUID, produc
 		return sharedRepos.ErrRecordNotFound
 	}
 
-	// Update fields
 	for key, value := range updates {
 		switch key {
 		case "name":
@@ -83,13 +79,11 @@ func (s *productService) Update(ctx context.Context, accountID uuid.UUID, produc
 }
 
 func (s *productService) Delete(ctx context.Context, accountID uuid.UUID, productID uuid.UUID) error {
-	// Get product
 	product, err := s.productRepo.FindByID(ctx, productID)
 	if err != nil {
 		return err
 	}
 
-	// Verify ownership
 	organization, err := s.organizationRepo.FindByID(ctx, product.OrganizationID)
 	if err != nil {
 		return err
@@ -108,7 +102,6 @@ func (s *productService) GetByID(ctx context.Context, accountID uuid.UUID, produ
 		return nil, err
 	}
 
-	// Verify ownership
 	organization, err := s.organizationRepo.FindByID(ctx, product.OrganizationID)
 	if err != nil {
 		return nil, err
@@ -122,7 +115,6 @@ func (s *productService) GetByID(ctx context.Context, accountID uuid.UUID, produ
 }
 
 func (s *productService) GetByOrganizationID(ctx context.Context, accountID uuid.UUID, organizationID uuid.UUID) ([]models.Product, error) {
-	// Verify organization ownership
 	organization, err := s.organizationRepo.FindByID(ctx, organizationID)
 	if err != nil {
 		return nil, err
