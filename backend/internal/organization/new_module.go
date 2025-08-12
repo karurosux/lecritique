@@ -14,7 +14,7 @@ import (
 	qrcodecontroller "kyooar/internal/qrcode/controller"
 	sharedMiddleware "kyooar/internal/shared/middleware"
 	subscriptionMiddleware "kyooar/internal/subscription/middleware"
-	subscriptionRepos "kyooar/internal/subscription/repositories"
+	subscriptioninterface "kyooar/internal/subscription/interface"
 )
 
 func ProvideOrganizationRepository(i *do.Injector) (organizationinterface.OrganizationRepository, error) {
@@ -24,7 +24,7 @@ func ProvideOrganizationRepository(i *do.Injector) (organizationinterface.Organi
 
 func ProvideOrganizationService(i *do.Injector) (organizationinterface.OrganizationService, error) {
 	organizationRepo := do.MustInvoke[organizationinterface.OrganizationRepository](i)
-	subscriptionRepo := do.MustInvoke[subscriptionRepos.SubscriptionRepository](i)
+	subscriptionRepo := do.MustInvoke[subscriptioninterface.SubscriptionRepository](i)
 
 	return organizationservice.NewOrganizationService(
 		organizationRepo,

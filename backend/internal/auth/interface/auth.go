@@ -104,7 +104,9 @@ type TeamMemberService interface {
 	InviteMember(ctx context.Context, accountID uuid.UUID, email string, role models.MemberRole, invitedBy uuid.UUID) (*models.TeamInvitation, error)
 	ResendInvitation(ctx context.Context, accountID, invitationID uuid.UUID) error
 	UpdateRole(ctx context.Context, accountID, memberID uuid.UUID, role models.MemberRole) error
+	UpdateRoleByID(ctx context.Context, teamMemberID uuid.UUID, role models.MemberRole) error
 	RemoveMember(ctx context.Context, accountID, memberID uuid.UUID) error
+	RemoveMemberByID(ctx context.Context, teamMemberID uuid.UUID) error
 	AcceptInvitation(ctx context.Context, token string) (*models.TeamMember, error)
 }
 

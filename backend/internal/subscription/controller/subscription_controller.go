@@ -1,4 +1,4 @@
-package handlers
+package subscriptioncontroller
 
 import (
 	"errors"
@@ -14,28 +14,27 @@ import (
 	sharedRepos "kyooar/internal/shared/repositories"
 	"kyooar/internal/shared/response"
 	"kyooar/internal/shared/validator"
-	"kyooar/internal/subscription/services"
-	"github.com/samber/do"
+	subscriptioninterface "kyooar/internal/subscription/interface"
 )
 
-type SubscriptionHandler struct {
-	subscriptionService services.SubscriptionService
-	usageService        services.UsageService
+type SubscriptionController struct {
+	subscriptionService subscriptioninterface.SubscriptionService
+	usageService        subscriptioninterface.UsageService
 	teamMemberService   authinterface.TeamMemberService
 	validator           *validator.Validator
 }
 
-func NewSubscriptionHandler(i *do.Injector) (*SubscriptionHandler, error) {
-	return &SubscriptionHandler{
-		subscriptionService: do.MustInvoke[services.SubscriptionService](i),
-		usageService:        do.MustInvoke[services.UsageService](i),
-		teamMemberService:   do.MustInvoke[authinterface.TeamMemberService](i),
+func NewSubscriptionController(
+	subscriptionService subscriptioninterface.SubscriptionService,
+	usageService subscriptioninterface.UsageService,
+	teamMemberService authinterface.TeamMemberService,
+) *SubscriptionController {
+	return &SubscriptionController{
+		subscriptionService: subscriptionService,
+		usageService:        usageService,
+		teamMemberService:   teamMemberService,
 		validator:           validator.New(),
-	}, nil
-}
-
-type CreateSubscriptionRequest struct {
-	PlanID string `json:"plan_id" validate:"required,uuid"`
+	}
 }
 
 
@@ -47,7 +46,7 @@ type CreateSubscriptionRequest struct {
 // @Success 200 {object} response.Response{data=[]models.SubscriptionPlan}
 // @Failure 500 {object} response.Response
 // @Router /api/v1/plans [get]
-func (h *SubscriptionHandler) GetAvailablePlans(c echo.Context) error {
+func (h *SubscriptionController) GetAvailablePlans(c echo.Context) error {
 	ctx := c.Request().Context()
 
 	plans, err := h.subscriptionService.GetAvailablePlans(ctx)
@@ -69,7 +68,7 @@ func (h *SubscriptionHandler) GetAvailablePlans(c echo.Context) error {
 // @Failure 404 {object} response.Response
 // @Failure 500 {object} response.Response
 // @Router /api/v1/user/subscription [get]
-func (h *SubscriptionHandler) GetUserSubscription(c echo.Context) error {
+func (h *SubscriptionController) GetUserSubscription(c echo.Context) error {
 	ctx := c.Request().Context()
 	accountID, err := middleware.GetAccountID(c)
 	if err != nil {
@@ -126,7 +125,7 @@ func (h *SubscriptionHandler) GetUserSubscription(c echo.Context) error {
 // @Failure 404 {object} response.Response
 // @Failure 500 {object} response.Response
 // @Router /api/v1/user/subscription/usage [get]
-func (h *SubscriptionHandler) GetUserUsage(c echo.Context) error {
+func (h *SubscriptionController) GetUserUsage(c echo.Context) error {
 	ctx := c.Request().Context()
 	accountID, err := middleware.GetAccountID(c)
 	if err != nil {
@@ -175,7 +174,7 @@ func (h *SubscriptionHandler) GetUserUsage(c echo.Context) error {
 // @Failure 401 {object} response.Response
 // @Failure 500 {object} response.Response
 // @Router /api/v1/user/can-create-organization [get]
-func (h *SubscriptionHandler) CanUserCreateOrganization(c echo.Context) error {
+func (h *SubscriptionController) CanUserCreateOrganization(c echo.Context) error {
 	ctx := c.Request().Context()
 	accountID, err := middleware.GetAccountID(c)
 	if err != nil {
@@ -213,7 +212,7 @@ func (h *SubscriptionHandler) CanUserCreateOrganization(c echo.Context) error {
 // @Failure 401 {object} response.Response
 // @Failure 500 {object} response.Response
 // @Router /api/v1/user/subscription [post]
-func (h *SubscriptionHandler) CreateSubscription(c echo.Context) error {
+func (h *SubscriptionController) CreateSubscription(c echo.Context) error {
 	ctx := c.Request().Context()
 	accountID, err := middleware.GetAccountID(c)
 	if err != nil {
@@ -234,7 +233,7 @@ func (h *SubscriptionHandler) CreateSubscription(c echo.Context) error {
 		return response.Error(c, sharedErrors.ErrBadRequest)
 	}
 
-	createReq := &services.CreateSubscriptionRequest{
+	createReq := &subscriptioninterface.CreateSubscriptionRequest{
 		AccountID: accountID,
 		PlanID:    planID,
 	}
@@ -258,7 +257,7 @@ func (h *SubscriptionHandler) CreateSubscription(c echo.Context) error {
 // @Failure 404 {object} response.Response
 // @Failure 500 {object} response.Response
 // @Router /api/v1/user/subscription [delete]
-func (h *SubscriptionHandler) CancelSubscription(c echo.Context) error {
+func (h *SubscriptionController) CancelSubscription(c echo.Context) error {
 	ctx := c.Request().Context()
 	accountID, err := middleware.GetAccountID(c)
 	if err != nil {

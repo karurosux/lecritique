@@ -1,4 +1,4 @@
-package services
+package subscriptionservice
 
 import (
 	"context"
@@ -7,60 +7,41 @@ import (
 
 	"github.com/google/uuid"
 	organizationinterface "kyooar/internal/organization/interface"
-	"kyooar/internal/subscription/models"
-	subscriptionRepos "kyooar/internal/subscription/repositories"
-	"github.com/samber/do"
+	subscriptionconstants "kyooar/internal/subscription/constants"
+	subscriptioninterface "kyooar/internal/subscription/interface"
+	subscriptionmodel "kyooar/internal/subscription/model"
 )
 
-type SubscriptionService interface {
-	GetUserSubscription(ctx context.Context, accountID uuid.UUID) (*models.Subscription, error)
-	GetAvailablePlans(ctx context.Context) ([]models.SubscriptionPlan, error)
-	GetAllPlans(ctx context.Context) ([]models.SubscriptionPlan, error)
-	CanUserCreateOrganization(ctx context.Context, accountID uuid.UUID) (*PermissionResponse, error)
-	CreateSubscription(ctx context.Context, req *CreateSubscriptionRequest) (*models.Subscription, error)
-	AssignCustomPlan(ctx context.Context, accountID uuid.UUID, planCode string) error
-	CancelSubscription(ctx context.Context, accountID uuid.UUID) error
-}
-
 type subscriptionService struct {
-	subscriptionRepo     subscriptionRepos.SubscriptionRepository
-	planRepo            subscriptionRepos.SubscriptionPlanRepository
+	subscriptionRepo     subscriptioninterface.SubscriptionRepository
+	planRepo            subscriptioninterface.SubscriptionPlanRepository
 	organizationRepo      organizationinterface.OrganizationRepository
 }
 
-func NewSubscriptionService(i *do.Injector) (SubscriptionService, error) {
+func NewSubscriptionService(
+	subscriptionRepo subscriptioninterface.SubscriptionRepository,
+	planRepo subscriptioninterface.SubscriptionPlanRepository,
+	organizationRepo organizationinterface.OrganizationRepository,
+) subscriptioninterface.SubscriptionService {
 	return &subscriptionService{
-		subscriptionRepo: do.MustInvoke[subscriptionRepos.SubscriptionRepository](i),
-		planRepo:        do.MustInvoke[subscriptionRepos.SubscriptionPlanRepository](i),
-		organizationRepo:  do.MustInvoke[organizationinterface.OrganizationRepository](i),
-	}, nil
+		subscriptionRepo: subscriptionRepo,
+		planRepo:        planRepo,
+		organizationRepo:  organizationRepo,
+	}
 }
 
-type PermissionResponse struct {
-	CanCreate         bool   `json:"can_create"`
-	Reason           string `json:"reason"`
-	CurrentCount     int    `json:"current_count"`
-	MaxAllowed       int    `json:"max_allowed"`
-	SubscriptionStatus string `json:"subscription_status"`
-}
-
-type CreateSubscriptionRequest struct {
-	AccountID uuid.UUID `json:"account_id"`
-	PlanID    uuid.UUID `json:"plan_id"`
-}
-
-func (s *subscriptionService) GetUserSubscription(ctx context.Context, accountID uuid.UUID) (*models.Subscription, error) {
+func (s *subscriptionService) GetUserSubscription(ctx context.Context, accountID uuid.UUID) (*subscriptionmodel.Subscription, error) {
 	return s.subscriptionRepo.FindByAccountID(ctx, accountID)
 }
 
-func (s *subscriptionService) GetAvailablePlans(ctx context.Context) ([]models.SubscriptionPlan, error) {
+func (s *subscriptionService) GetAvailablePlans(ctx context.Context) ([]subscriptionmodel.SubscriptionPlan, error) {
 	return s.planRepo.FindAll(ctx)
 }
 
-func (s *subscriptionService) CanUserCreateOrganization(ctx context.Context, accountID uuid.UUID) (*PermissionResponse, error) {
+func (s *subscriptionService) CanUserCreateOrganization(ctx context.Context, accountID uuid.UUID) (*subscriptioninterface.PermissionResponse, error) {
 	subscription, err := s.subscriptionRepo.FindByAccountID(ctx, accountID)
 	if err != nil {
-		return &PermissionResponse{
+		return &subscriptioninterface.PermissionResponse{
 			CanCreate:          false,
 			Reason:            "No active subscription found",
 			SubscriptionStatus: "none",
@@ -68,7 +49,7 @@ func (s *subscriptionService) CanUserCreateOrganization(ctx context.Context, acc
 	}
 
 	if !subscription.IsActive() {
-		return &PermissionResponse{
+		return &subscriptioninterface.PermissionResponse{
 			CanCreate:          false,
 			Reason:            "Subscription is not active or has expired",
 			SubscriptionStatus: string(subscription.Status),
@@ -92,7 +73,7 @@ func (s *subscriptionService) CanUserCreateOrganization(ctx context.Context, acc
 		reason = fmt.Sprintf("Current: %d/%d organizations", currentCount, maxOrganizations)
 	}
 
-	return &PermissionResponse{
+	return &subscriptioninterface.PermissionResponse{
 		CanCreate:          canCreate,
 		Reason:            reason,
 		CurrentCount:      currentCount,
@@ -101,17 +82,17 @@ func (s *subscriptionService) CanUserCreateOrganization(ctx context.Context, acc
 	}, nil
 }
 
-func (s *subscriptionService) CreateSubscription(ctx context.Context, req *CreateSubscriptionRequest) (*models.Subscription, error) {
+func (s *subscriptionService) CreateSubscription(ctx context.Context, req *subscriptioninterface.CreateSubscriptionRequest) (*subscriptionmodel.Subscription, error) {
 	plan, err := s.planRepo.FindByID(ctx, req.PlanID)
 	if err != nil {
 		return nil, fmt.Errorf("plan not found: %w", err)
 	}
 
 	now := time.Now()
-	subscription := &models.Subscription{
+	subscription := &subscriptionmodel.Subscription{
 		AccountID:          req.AccountID,
 		PlanID:             req.PlanID,
-		Status:             models.SubscriptionActive,
+		Status:             subscriptionconstants.SubscriptionActive,
 		Plan:               *plan,
 		CurrentPeriodStart: now,
 		CurrentPeriodEnd:   now.AddDate(0, 1, 0),
@@ -125,7 +106,7 @@ func (s *subscriptionService) CreateSubscription(ctx context.Context, req *Creat
 	return subscription, nil
 }
 
-func (s *subscriptionService) GetAllPlans(ctx context.Context) ([]models.SubscriptionPlan, error) {
+func (s *subscriptionService) GetAllPlans(ctx context.Context) ([]subscriptionmodel.SubscriptionPlan, error) {
 	return s.planRepo.FindAllIncludingHidden(ctx)
 }
 
@@ -139,15 +120,15 @@ func (s *subscriptionService) AssignCustomPlan(ctx context.Context, accountID uu
 	if err == nil && existingSubscription != nil {
 		existingSubscription.PlanID = plan.ID
 		existingSubscription.Plan = *plan
-		existingSubscription.Status = models.SubscriptionActive
+		existingSubscription.Status = subscriptionconstants.SubscriptionActive
 		return s.subscriptionRepo.Update(ctx, existingSubscription)
 	}
 
 	now := time.Now()
-	subscription := &models.Subscription{
+	subscription := &subscriptionmodel.Subscription{
 		AccountID:          accountID,
 		PlanID:             plan.ID,
-		Status:             models.SubscriptionActive,
+		Status:             subscriptionconstants.SubscriptionActive,
 		Plan:               *plan,
 		CurrentPeriodStart: now,
 		CurrentPeriodEnd:   now.AddDate(0, 1, 0),
@@ -162,6 +143,6 @@ func (s *subscriptionService) CancelSubscription(ctx context.Context, accountID 
 		return fmt.Errorf("subscription not found: %w", err)
 	}
 
-	subscription.Status = models.SubscriptionCanceled
+	subscription.Status = subscriptionconstants.SubscriptionCanceled
 	return s.subscriptionRepo.Update(ctx, subscription)
 }

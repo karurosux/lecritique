@@ -88,6 +88,11 @@ func (s *Server) setupRoutes() {
 	v1 := s.echo.Group("/api/v1")
 	v1.Use(rateLimiter.Middleware())
 
+	// Register Subscription module first since Auth module depends on it
+	subscriptionModule.RegisterNewModule(s.injector)
+	subscriptionMod := subscriptionModule.NewSubscriptionModule(s.injector)
+	subscriptionMod.RegisterRoutes(v1)
+
 	authMod := authModule.NewAuthModule(s.injector)
 	authMod.RegisterRoutes(v1)
 	
@@ -107,9 +112,6 @@ func (s *Server) setupRoutes() {
 	
 	analyticsMod := analyticsModule.NewModule(s.injector)
 	analyticsMod.RegisterRoutes(v1)
-	
-	subscriptionMod := subscriptionModule.NewModule(s.injector)
-	subscriptionMod.RegisterRoutes(v1)
 }
 
 func (s *Server) setupCronJobs() {

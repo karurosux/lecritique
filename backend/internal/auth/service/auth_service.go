@@ -14,7 +14,7 @@ import (
 	"kyooar/internal/shared/config"
 	"kyooar/internal/shared/errors"
 	"kyooar/internal/shared/services"
-	subscriptionServices "kyooar/internal/subscription/services"
+	subscriptioninterface "kyooar/internal/subscription/interface"
 )
 
 type AuthService struct {
@@ -22,7 +22,7 @@ type AuthService struct {
 	tokenRepo           authinterface.TokenRepository
 	emailService        services.EmailService
 	teamService         authinterface.TeamMemberService
-	subscriptionService subscriptionServices.SubscriptionService
+	subscriptionService subscriptioninterface.SubscriptionService
 	config              *config.Config
 }
 
@@ -31,7 +31,7 @@ func NewAuthService(
 	tokenRepo authinterface.TokenRepository,
 	emailService services.EmailService,
 	teamService authinterface.TeamMemberService,
-	subscriptionService subscriptionServices.SubscriptionService,
+	subscriptionService subscriptioninterface.SubscriptionService,
 	config *config.Config,
 ) authinterface.AuthService {
 	return &AuthService{

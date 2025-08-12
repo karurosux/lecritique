@@ -1,6 +1,9 @@
 package authmodel
 
-import "time"
+import (
+	"time"
+	"kyooar/internal/auth/models"
+)
 
 type AuthResponse struct {
 	Token   string      `json:"token"`
@@ -22,7 +25,7 @@ type DeactivationResponse struct {
 }
 
 type MemberListResponse struct {
-	Members []interface{} `json:"members"`
+	Members []*models.TeamMember `json:"members"`
 }
 
 type InvitationResponse struct {

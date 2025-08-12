@@ -8,7 +8,6 @@ import (
 	authmiddleware "kyooar/internal/auth/middleware"
 	
 	organization "kyooar/internal/organization"
-	organizationinterface "kyooar/internal/organization/interface"
 	
 	menuHandlers "kyooar/internal/menu/handlers"
 	menuRepos "kyooar/internal/menu/repositories"
@@ -18,11 +17,8 @@ import (
 	
 	analytics "kyooar/internal/analytics"
 	feedback "kyooar/internal/feedback"
+	subscriptioninterface "kyooar/internal/subscription/interface"
 	
-	subscriptionHandlers "kyooar/internal/subscription/handlers"
-	subscriptionMiddleware "kyooar/internal/subscription/middleware"
-	subscriptionRepos "kyooar/internal/subscription/repositories"
-	subscriptionServices "kyooar/internal/subscription/services"
 	
 	"kyooar/internal/shared/config"
 	"kyooar/internal/shared/middleware"
@@ -88,7 +84,7 @@ func RegisterAll(i *do.Injector, cfg *config.Config, db *gorm.DB) {
 		tokenRepo := do.MustInvoke[authinterface.TokenRepository](i)
 		emailService := do.MustInvoke[sharedServices.EmailService](i)
 		teamService := do.MustInvoke[authinterface.TeamMemberService](i)
-		subscriptionService := do.MustInvoke[subscriptionServices.SubscriptionService](i)
+		subscriptionService := do.MustInvoke[subscriptioninterface.SubscriptionService](i)
 		config := do.MustInvoke[*config.Config](i)
 		
 		return authServices.NewAuthService(
@@ -148,20 +144,5 @@ func RegisterAll(i *do.Injector, cfg *config.Config, db *gorm.DB) {
 	// Feedback module registration
 	feedback.RegisterNewModule(i)
 	
-	do.Provide(i, subscriptionRepos.NewSubscriptionRepository)
-	do.Provide(i, subscriptionRepos.NewSubscriptionPlanRepository)
-	do.Provide(i, subscriptionRepos.NewUsageRepository)
-	do.Provide(i, subscriptionServices.NewSubscriptionService)
-	do.Provide(i, subscriptionServices.NewUsageService)
-	do.Provide(i, subscriptionServices.NewPaymentService)
-	do.Provide(i, subscriptionHandlers.NewSubscriptionHandler)
-	do.Provide(i, subscriptionHandlers.NewPaymentHandler)
-	
-	do.Provide(i, func(i *do.Injector) (*subscriptionMiddleware.SubscriptionMiddleware, error) {
-		return subscriptionMiddleware.NewSubscriptionMiddleware(
-			do.MustInvoke[subscriptionServices.SubscriptionService](i),
-			do.MustInvoke[subscriptionServices.UsageService](i),
-			do.MustInvoke[organizationinterface.OrganizationService](i),
-		), nil
-	})
+	// Subscription providers are now in the subscription module
 }

@@ -1,4 +1,4 @@
-package models
+package subscriptionmodel
 
 import (
 	"time"
@@ -6,7 +6,10 @@ import (
 	"github.com/google/uuid"
 	authModels "kyooar/internal/auth/models"
 	sharedModels "kyooar/internal/shared/models"
+	subscriptionconstants "kyooar/internal/subscription/constants"
 )
+
+type SubscriptionStatus = subscriptionconstants.SubscriptionStatus
 
 type Subscription struct {
 	sharedModels.BaseModel
@@ -22,15 +25,6 @@ type Subscription struct {
 	StripeCustomerID   string             `json:"-"`
 	StripeSubscriptionID string           `json:"-"`
 }
-
-type SubscriptionStatus string
-
-const (
-	SubscriptionActive   SubscriptionStatus = "active"
-	SubscriptionPending  SubscriptionStatus = "pending"
-	SubscriptionCanceled SubscriptionStatus = "canceled"
-	SubscriptionExpired  SubscriptionStatus = "expired"
-)
 
 type SubscriptionPlan struct {
 	sharedModels.BaseModel
@@ -60,13 +54,13 @@ type SubscriptionPlan struct {
 
 func (sp *SubscriptionPlan) GetLimit(key string) int {
 	switch key {
-	case LimitOrganizations:
+	case subscriptionconstants.LimitOrganizations:
 		return sp.MaxOrganizations
-	case LimitQRCodes:
+	case subscriptionconstants.LimitQRCodes:
 		return sp.MaxQRCodes
-	case LimitFeedbacksPerMonth:
+	case subscriptionconstants.LimitFeedbacksPerMonth:
 		return sp.MaxFeedbacksPerMonth
-	case LimitTeamMembers:
+	case subscriptionconstants.LimitTeamMembers:
 		return sp.MaxTeamMembers
 	default:
 		return 0
@@ -75,15 +69,15 @@ func (sp *SubscriptionPlan) GetLimit(key string) int {
 
 func (sp *SubscriptionPlan) GetFlag(key string) bool {
 	switch key {
-	case FlagBasicAnalytics:
+	case subscriptionconstants.FlagBasicAnalytics:
 		return sp.HasBasicAnalytics
-	case FlagAdvancedAnalytics:
+	case subscriptionconstants.FlagAdvancedAnalytics:
 		return sp.HasAdvancedAnalytics
-	case FlagFeedbackExplorer:
+	case subscriptionconstants.FlagFeedbackExplorer:
 		return sp.HasFeedbackExplorer
-	case FlagCustomBranding:
+	case subscriptionconstants.FlagCustomBranding:
 		return sp.HasCustomBranding
-	case FlagPrioritySupport:
+	case subscriptionconstants.FlagPrioritySupport:
 		return sp.HasPrioritySupport
 	default:
 		return false
@@ -94,28 +88,12 @@ func (sp *SubscriptionPlan) IsUnlimited(key string) bool {
 	return sp.GetLimit(key) == -1
 }
 
-const (
-	LimitOrganizations       = "max_organizations"
-	LimitQRCodes           = "max_qr_codes"
-	LimitFeedbacksPerMonth = "max_feedbacks_per_month"
-	LimitTeamMembers       = "max_team_members"
-)
-
-const (
-	FlagBasicAnalytics    = "basic_analytics"
-	FlagAdvancedAnalytics = "advanced_analytics"
-	FlagFeedbackExplorer  = "feedback_explorer"
-	FlagCustomBranding    = "custom_branding"
-	FlagPrioritySupport   = "priority_support"
-)
-
-
 func (s *Subscription) IsActive() bool {
-	return s.Status == SubscriptionActive && time.Now().Before(s.CurrentPeriodEnd)
+	return s.Status == subscriptionconstants.SubscriptionActive && time.Now().Before(s.CurrentPeriodEnd)
 }
 
 func (s *Subscription) CanAddOrganization(currentCount int) bool {
-	limit := s.Plan.GetLimit(LimitOrganizations)
+	limit := s.Plan.GetLimit(subscriptionconstants.LimitOrganizations)
 	if limit == -1 {
 		return true
 	}

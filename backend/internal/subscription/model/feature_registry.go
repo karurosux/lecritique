@@ -1,17 +1,12 @@
-package models
+package subscriptionmodel
 
 import (
 	"fmt"
 	"strings"
+	subscriptionconstants "kyooar/internal/subscription/constants"
 )
 
-type FeatureType string
-
-const (
-	FeatureTypeLimit FeatureType = "limit"
-	FeatureTypeFlag  FeatureType = "flag"
-	FeatureTypeCustom FeatureType = "custom"
-)
+type FeatureType = subscriptionconstants.FeatureType
 
 type FeatureDefinition struct {
 	Key           string                 `json:"key"`
@@ -28,9 +23,9 @@ type FeatureDefinition struct {
 }
 
 var FeatureRegistry = map[string]FeatureDefinition{
-	LimitOrganizations: {
-		Key:           LimitOrganizations,
-		Type:          FeatureTypeLimit,
+	subscriptionconstants.LimitOrganizations: {
+		Key:           subscriptionconstants.LimitOrganizations,
+		Type:          subscriptionconstants.FeatureTypeLimit,
 		DisplayName:   "Organizations",
 		Description:   "Maximum number of organizations",
 		Unit:          "organizations",
@@ -40,9 +35,9 @@ var FeatureRegistry = map[string]FeatureDefinition{
 		Category:      "core",
 		SortOrder:     1,
 	},
-	LimitQRCodes: {
-		Key:           LimitQRCodes,
-		Type:          FeatureTypeLimit,
+	subscriptionconstants.LimitQRCodes: {
+		Key:           subscriptionconstants.LimitQRCodes,
+		Type:          subscriptionconstants.FeatureTypeLimit,
 		DisplayName:   "QR Codes",
 		Description:   "Total QR codes across all organizations",
 		Unit:          "QR codes",
@@ -52,9 +47,9 @@ var FeatureRegistry = map[string]FeatureDefinition{
 		Category:      "core",
 		SortOrder:     2,
 	},
-	LimitFeedbacksPerMonth: {
-		Key:           LimitFeedbacksPerMonth,
-		Type:          FeatureTypeLimit,
+	subscriptionconstants.LimitFeedbacksPerMonth: {
+		Key:           subscriptionconstants.LimitFeedbacksPerMonth,
+		Type:          subscriptionconstants.FeatureTypeLimit,
 		DisplayName:   "Monthly Feedbacks",
 		Description:   "Maximum feedbacks per month",
 		Unit:          "feedbacks/month",
@@ -64,9 +59,9 @@ var FeatureRegistry = map[string]FeatureDefinition{
 		Category:      "core",
 		SortOrder:     3,
 	},
-	LimitTeamMembers: {
-		Key:           LimitTeamMembers,
-		Type:          FeatureTypeLimit,
+	subscriptionconstants.LimitTeamMembers: {
+		Key:           subscriptionconstants.LimitTeamMembers,
+		Type:          subscriptionconstants.FeatureTypeLimit,
 		DisplayName:   "Team Members",
 		Description:   "Maximum team members",
 		Unit:          "members",
@@ -77,45 +72,45 @@ var FeatureRegistry = map[string]FeatureDefinition{
 		SortOrder:     4,
 	},
 
-	FlagBasicAnalytics: {
-		Key:         FlagBasicAnalytics,
-		Type:        FeatureTypeFlag,
+	subscriptionconstants.FlagBasicAnalytics: {
+		Key:         subscriptionconstants.FlagBasicAnalytics,
+		Type:        subscriptionconstants.FeatureTypeFlag,
 		DisplayName: "Basic Analytics",
 		Description: "View feedback analytics and insights",
 		Icon:        "bar-chart-2",
 		Category:    "analytics",
 		SortOrder:   20,
 	},
-	FlagAdvancedAnalytics: {
-		Key:         FlagAdvancedAnalytics,
-		Type:        FeatureTypeFlag,
+	subscriptionconstants.FlagAdvancedAnalytics: {
+		Key:         subscriptionconstants.FlagAdvancedAnalytics,
+		Type:        subscriptionconstants.FeatureTypeFlag,
 		DisplayName: "Advanced Analytics",
 		Description: "Detailed insights and reporting",
 		Icon:        "bar-chart",
 		Category:    "analytics",
 		SortOrder:   21,
 	},
-	FlagFeedbackExplorer: {
-		Key:         FlagFeedbackExplorer,
-		Type:        FeatureTypeFlag,
+	subscriptionconstants.FlagFeedbackExplorer: {
+		Key:         subscriptionconstants.FlagFeedbackExplorer,
+		Type:        subscriptionconstants.FeatureTypeFlag,
 		DisplayName: "Feedback Explorer",
 		Description: "Browse and search all feedback",
 		Icon:        "search",
 		Category:    "analytics",
 		SortOrder:   22,
 	},
-	FlagCustomBranding: {
-		Key:         FlagCustomBranding,
-		Type:        FeatureTypeFlag,
+	subscriptionconstants.FlagCustomBranding: {
+		Key:         subscriptionconstants.FlagCustomBranding,
+		Type:        subscriptionconstants.FeatureTypeFlag,
 		DisplayName: "Custom Branding",
 		Description: "Customize with your brand",
 		Icon:        "palette",
 		Category:    "customization",
 		SortOrder:   23,
 	},
-	FlagPrioritySupport: {
-		Key:         FlagPrioritySupport,
-		Type:        FeatureTypeFlag,
+	subscriptionconstants.FlagPrioritySupport: {
+		Key:         subscriptionconstants.FlagPrioritySupport,
+		Type:        subscriptionconstants.FeatureTypeFlag,
 		DisplayName: "Priority Support",
 		Description: "24/7 priority customer support",
 		Icon:        "headphones",
@@ -146,7 +141,7 @@ func FormatFeatureValue(key string, value interface{}) string {
 	}
 
 	switch def.Type {
-	case FeatureTypeLimit:
+	case subscriptionconstants.FeatureTypeLimit:
 		limitValue, ok := value.(int64)
 		if !ok {
 			if intVal, ok := value.(int); ok {
@@ -168,7 +163,7 @@ func FormatFeatureValue(key string, value interface{}) string {
 		result = replaceValue(result, "{unit}", def.Unit)
 		return result
 		
-	case FeatureTypeFlag:
+	case subscriptionconstants.FeatureTypeFlag:
 		if boolVal, ok := value.(bool); ok && boolVal {
 			return def.DisplayName
 		}

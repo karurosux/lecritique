@@ -1,4 +1,4 @@
-package services
+package subscriptionservice
 
 import (
 	"context"
@@ -6,33 +6,23 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"kyooar/internal/subscription/models"
-	subscriptionRepos "kyooar/internal/subscription/repositories"
-	"github.com/samber/do"
+	subscriptioninterface "kyooar/internal/subscription/interface"
+	subscriptionmodel "kyooar/internal/subscription/model"
 )
 
-type UsageService interface {
-	TrackUsage(ctx context.Context, subscriptionID uuid.UUID, resourceType string, delta int) error
-	RecordUsageEvent(ctx context.Context, event *models.UsageEvent) error
-	
-	CanAddResource(ctx context.Context, subscriptionID uuid.UUID, resourceType string) (bool, string, error)
-	GetCurrentUsage(ctx context.Context, subscriptionID uuid.UUID) (*models.SubscriptionUsage, error)
-	GetUsageForPeriod(ctx context.Context, subscriptionID uuid.UUID, start, end time.Time) (*models.SubscriptionUsage, error)
-	
-	InitializeUsagePeriod(ctx context.Context, subscriptionID uuid.UUID, periodStart, periodEnd time.Time) error
-	ResetMonthlyUsage(ctx context.Context) error
-}
-
 type usageService struct {
-	usageRepo        subscriptionRepos.UsageRepository
-	subscriptionRepo subscriptionRepos.SubscriptionRepository
+	usageRepo        subscriptioninterface.UsageRepository
+	subscriptionRepo subscriptioninterface.SubscriptionRepository
 }
 
-func NewUsageService(i *do.Injector) (UsageService, error) {
+func NewUsageService(
+	usageRepo subscriptioninterface.UsageRepository,
+	subscriptionRepo subscriptioninterface.SubscriptionRepository,
+) subscriptioninterface.UsageService {
 	return &usageService{
-		usageRepo:        do.MustInvoke[subscriptionRepos.UsageRepository](i),
-		subscriptionRepo: do.MustInvoke[subscriptionRepos.SubscriptionRepository](i),
-	}, nil
+		usageRepo:        usageRepo,
+		subscriptionRepo: subscriptionRepo,
+	}
 }
 
 func (s *usageService) TrackUsage(ctx context.Context, subscriptionID uuid.UUID, resourceType string, delta int) error {
@@ -43,7 +33,7 @@ func (s *usageService) TrackUsage(ctx context.Context, subscriptionID uuid.UUID,
 
 	usage, err := s.usageRepo.FindBySubscriptionAndPeriod(ctx, subscriptionID, subscription.CurrentPeriodStart, subscription.CurrentPeriodEnd)
 	if err != nil {
-		usage = &models.SubscriptionUsage{
+		usage = &subscriptionmodel.SubscriptionUsage{
 			SubscriptionID: subscriptionID,
 			PeriodStart:    subscription.CurrentPeriodStart,
 			PeriodEnd:      subscription.CurrentPeriodEnd,
@@ -54,15 +44,15 @@ func (s *usageService) TrackUsage(ctx context.Context, subscriptionID uuid.UUID,
 	}
 
 	switch resourceType {
-	case models.ResourceTypeFeedback:
+	case subscriptionmodel.ResourceTypeFeedback:
 		usage.FeedbacksCount += delta
-	case models.ResourceTypeOrganization:
+	case subscriptionmodel.ResourceTypeOrganization:
 		usage.OrganizationsCount += delta
-	case models.ResourceTypeLocation:
+	case subscriptionmodel.ResourceTypeLocation:
 		usage.LocationsCount += delta
-	case models.ResourceTypeQRCode:
+	case subscriptionmodel.ResourceTypeQRCode:
 		usage.QRCodesCount += delta
-	case models.ResourceTypeTeamMember:
+	case subscriptionmodel.ResourceTypeTeamMember:
 		usage.TeamMembersCount += delta
 	default:
 		return fmt.Errorf("unknown resource type: %s", resourceType)
@@ -72,7 +62,7 @@ func (s *usageService) TrackUsage(ctx context.Context, subscriptionID uuid.UUID,
 	return s.usageRepo.Update(ctx, usage)
 }
 
-func (s *usageService) RecordUsageEvent(ctx context.Context, event *models.UsageEvent) error {
+func (s *usageService) RecordUsageEvent(ctx context.Context, event *subscriptionmodel.UsageEvent) error {
 	event.CreatedAt = time.Now()
 	return s.usageRepo.CreateEvent(ctx, event)
 }
@@ -96,7 +86,7 @@ func (s *usageService) CanAddResource(ctx context.Context, subscriptionID uuid.U
 	return canAdd, reason, nil
 }
 
-func (s *usageService) GetCurrentUsage(ctx context.Context, subscriptionID uuid.UUID) (*models.SubscriptionUsage, error) {
+func (s *usageService) GetCurrentUsage(ctx context.Context, subscriptionID uuid.UUID) (*subscriptionmodel.SubscriptionUsage, error) {
 	subscription, err := s.subscriptionRepo.FindByID(ctx, subscriptionID)
 	if err != nil {
 		return nil, fmt.Errorf("subscription not found: %w", err)
@@ -104,7 +94,7 @@ func (s *usageService) GetCurrentUsage(ctx context.Context, subscriptionID uuid.
 
 	usage, err := s.usageRepo.FindBySubscriptionAndPeriod(ctx, subscriptionID, subscription.CurrentPeriodStart, subscription.CurrentPeriodEnd)
 	if err != nil {
-		return &models.SubscriptionUsage{
+		return &subscriptionmodel.SubscriptionUsage{
 			SubscriptionID:   subscriptionID,
 			PeriodStart:      subscription.CurrentPeriodStart,
 			PeriodEnd:        subscription.CurrentPeriodEnd,
@@ -119,7 +109,7 @@ func (s *usageService) GetCurrentUsage(ctx context.Context, subscriptionID uuid.
 	return usage, nil
 }
 
-func (s *usageService) GetUsageForPeriod(ctx context.Context, subscriptionID uuid.UUID, start, end time.Time) (*models.SubscriptionUsage, error) {
+func (s *usageService) GetUsageForPeriod(ctx context.Context, subscriptionID uuid.UUID, start, end time.Time) (*subscriptionmodel.SubscriptionUsage, error) {
 	return s.usageRepo.FindBySubscriptionAndPeriod(ctx, subscriptionID, start, end)
 }
 
@@ -129,7 +119,7 @@ func (s *usageService) InitializeUsagePeriod(ctx context.Context, subscriptionID
 		return nil
 	}
 
-	usage := &models.SubscriptionUsage{
+	usage := &subscriptionmodel.SubscriptionUsage{
 		SubscriptionID: subscriptionID,
 		PeriodStart:    periodStart,
 		PeriodEnd:      periodEnd,
@@ -140,5 +130,5 @@ func (s *usageService) InitializeUsagePeriod(ctx context.Context, subscriptionID
 }
 
 func (s *usageService) ResetMonthlyUsage(ctx context.Context) error {
-	return nil
+	return s.usageRepo.ResetMonthlyUsage(ctx)
 }

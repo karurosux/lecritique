@@ -51,7 +51,7 @@ func (c *TeamController) ListMembers(ctx echo.Context) error {
 	}
 
 	return response.Success(ctx, authmodel.MemberListResponse{
-		Members: convertMembersToInterface(members),
+		Members: members,
 	})
 }
 
@@ -142,11 +142,6 @@ func (c *TeamController) ResendInvitation(ctx echo.Context) error {
 // @Failure 401 {object} response.Response
 // @Router /api/v1/team/members/{id}/role [put]
 func (c *TeamController) UpdateRole(ctx echo.Context) error {
-	accountID, err := middleware.GetAccountID(ctx)
-	if err != nil {
-		return response.Error(ctx, err)
-	}
-
 	memberID, err := uuid.Parse(ctx.Param("id"))
 	if err != nil {
 		return response.Error(ctx, errors.ErrBadRequest)
@@ -162,7 +157,7 @@ func (c *TeamController) UpdateRole(ctx echo.Context) error {
 	}
 
 	role := models.MemberRole(req.Role)
-	if err := c.teamMemberService.UpdateRole(ctx.Request().Context(), accountID, memberID, role); err != nil {
+	if err := c.teamMemberService.UpdateRoleByID(ctx.Request().Context(), memberID, role); err != nil {
 		return response.Error(ctx, err)
 	}
 
@@ -183,17 +178,12 @@ func (c *TeamController) UpdateRole(ctx echo.Context) error {
 // @Failure 401 {object} response.Response
 // @Router /api/v1/team/members/{id} [delete]
 func (c *TeamController) RemoveMember(ctx echo.Context) error {
-	accountID, err := middleware.GetAccountID(ctx)
-	if err != nil {
-		return response.Error(ctx, err)
-	}
-
 	memberID, err := uuid.Parse(ctx.Param("id"))
 	if err != nil {
 		return response.Error(ctx, errors.ErrBadRequest)
 	}
 
-	if err := c.teamMemberService.RemoveMember(ctx.Request().Context(), accountID, memberID); err != nil {
+	if err := c.teamMemberService.RemoveMemberByID(ctx.Request().Context(), memberID); err != nil {
 		return response.Error(ctx, err)
 	}
 
@@ -247,7 +237,7 @@ func (c *TeamController) ListMembersWithTeamID(ctx echo.Context) error {
 	}
 
 	return response.Success(ctx, authmodel.MemberListResponse{
-		Members: convertMembersToInterface(members),
+		Members: members,
 	})
 }
 
@@ -377,10 +367,3 @@ func (c *TeamController) RegisterRoutes(v1 *echo.Group, authMiddleware echo.Midd
 	v1.POST("/team/accept-invite", c.AcceptInvitation)
 }
 
-func convertMembersToInterface(members []*models.TeamMember) []interface{} {
-	result := make([]interface{}, len(members))
-	for i, member := range members {
-		result[i] = member
-	}
-	return result
-}

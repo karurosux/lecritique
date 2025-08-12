@@ -15,7 +15,7 @@ import (
 	"kyooar/internal/shared/response"
 	"kyooar/internal/shared/validator"
 	subscriptionMiddleware "kyooar/internal/subscription/middleware"
-	subscriptionModels "kyooar/internal/subscription/models"
+	subscriptionmodel "kyooar/internal/subscription/model"
 )
 
 type OrganizationController struct {
@@ -54,7 +54,7 @@ func (c *OrganizationController) RegisterRoutes(v1 *echo.Group, middlewareProvid
 	
 	// Organization CRUD routes
 	organizations.POST("", c.Create,
-		subscriptionMW.CheckResourceLimit(subscriptionModels.ResourceTypeOrganization),
+		subscriptionMW.CheckResourceLimit(subscriptionmodel.ResourceTypeOrganization),
 		subscriptionMW.TrackUsageAfterSuccess(),
 	)
 	organizations.GET("", c.GetAll)

@@ -8,17 +8,17 @@ import (
 	organizationmodel "kyooar/internal/organization/model"
 	"kyooar/internal/shared/errors"
 	sharedRepos "kyooar/internal/shared/repositories"
-	subscriptionRepos "kyooar/internal/subscription/repositories"
+	subscriptioninterface "kyooar/internal/subscription/interface"
 )
 
 type organizationService struct {
 	organizationRepo   organizationinterface.OrganizationRepository
-	subscriptionRepo   subscriptionRepos.SubscriptionRepository
+	subscriptionRepo   subscriptioninterface.SubscriptionRepository
 }
 
 func NewOrganizationService(
 	organizationRepo organizationinterface.OrganizationRepository,
-	subscriptionRepo subscriptionRepos.SubscriptionRepository,
+	subscriptionRepo subscriptioninterface.SubscriptionRepository,
 ) organizationinterface.OrganizationService {
 	return &organizationService{
 		organizationRepo:   organizationRepo,

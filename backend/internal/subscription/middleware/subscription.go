@@ -6,20 +6,20 @@ import (
 	"github.com/labstack/echo/v4"
 	"kyooar/internal/shared/errors"
 	"kyooar/internal/shared/response"
-	"kyooar/internal/subscription/models"
-	"kyooar/internal/subscription/services"
+	subscriptioninterface "kyooar/internal/subscription/interface"
+	subscriptionmodel "kyooar/internal/subscription/model"
 	organizationinterface "kyooar/internal/organization/interface"
 )
 
 type SubscriptionMiddleware struct {
-	subscriptionService services.SubscriptionService
-	usageService        services.UsageService
+	subscriptionService subscriptioninterface.SubscriptionService
+	usageService        subscriptioninterface.UsageService
 	organizationService   organizationinterface.OrganizationService
 }
 
 func NewSubscriptionMiddleware(
-	subscriptionService services.SubscriptionService,
-	usageService services.UsageService,
+	subscriptionService subscriptioninterface.SubscriptionService,
+	usageService subscriptioninterface.UsageService,
 	organizationService organizationinterface.OrganizationService,
 ) *SubscriptionMiddleware {
 	return &SubscriptionMiddleware{
@@ -55,7 +55,7 @@ func (m *SubscriptionMiddleware) RequireActiveSubscription() echo.MiddlewareFunc
 func (m *SubscriptionMiddleware) RequireFeature(feature string) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
-			subscription, ok := c.Get("subscription").(*models.Subscription)
+			subscription, ok := c.Get("subscription").(*subscriptionmodel.Subscription)
 			if !ok {
 				accountID, ok := c.Get("account_id").(uuid.UUID)
 				if !ok {
@@ -84,7 +84,7 @@ func (m *SubscriptionMiddleware) RequireFeature(feature string) echo.MiddlewareF
 func (m *SubscriptionMiddleware) CheckResourceLimit(resourceType string) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
-			subscription, ok := c.Get("subscription").(*models.Subscription)
+			subscription, ok := c.Get("subscription").(*subscriptionmodel.Subscription)
 			if !ok {
 				accountID, ok := c.Get("account_id").(uuid.UUID)
 				if !ok {
@@ -99,7 +99,7 @@ func (m *SubscriptionMiddleware) CheckResourceLimit(resourceType string) echo.Mi
 				c.Set("subscription", subscription)
 			}
 
-			if resourceType == models.ResourceTypeOrganization {
+			if resourceType == subscriptionmodel.ResourceTypeOrganization {
 				accountID, ok := c.Get("account_id").(uuid.UUID)
 				if !ok {
 					return response.Error(c, errors.ErrUnauthorized)
@@ -130,8 +130,8 @@ func (m *SubscriptionMiddleware) CheckResourceLimit(resourceType string) echo.Mi
 	}
 }
 
-func GetSubscriptionFromContext(c echo.Context) (*models.Subscription, error) {
-	subscription, ok := c.Get("subscription").(*models.Subscription)
+func GetSubscriptionFromContext(c echo.Context) (*subscriptionmodel.Subscription, error) {
+	subscription, ok := c.Get("subscription").(*subscriptionmodel.Subscription)
 	if !ok {
 		return nil, errors.ErrNoSubscriptionFound
 	}
@@ -146,14 +146,14 @@ func (m *SubscriptionMiddleware) TrackUsageAfterSuccess() echo.MiddlewareFunc {
 			if err == nil && c.Response().Status < 400 {
 				resourceType, ok := c.Get("track_resource_type").(string)
 				if ok {
-					subscription, ok := c.Get("subscription").(*models.Subscription)
+					subscription, ok := c.Get("subscription").(*subscriptionmodel.Subscription)
 					if ok {
 						go func() {
 							_ = m.usageService.TrackUsage(c.Request().Context(), subscription.ID, resourceType, 1)
 
-							event := &models.UsageEvent{
+							event := &subscriptionmodel.UsageEvent{
 								SubscriptionID: subscription.ID,
-								EventType:      models.EventTypeCreate,
+								EventType:      subscriptionmodel.EventTypeCreate,
 								ResourceType:   resourceType,
 							}
 							_ = m.usageService.RecordUsageEvent(c.Request().Context(), event)

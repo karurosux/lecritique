@@ -13,7 +13,7 @@ import (
 	"kyooar/internal/shared/config"
 	"kyooar/internal/shared/services"
 	"kyooar/internal/shared/validator"
-	subscriptionServices "kyooar/internal/subscription/services"
+	subscriptioninterface "kyooar/internal/subscription/interface"
 )
 
 func ProvideAccountRepository(i *do.Injector) (authinterface.AccountRepository, error) {
@@ -49,7 +49,7 @@ func ProvideAuthService(i *do.Injector) (authinterface.AuthService, error) {
 	tokenRepo := do.MustInvoke[authinterface.TokenRepository](i)
 	emailService := do.MustInvoke[services.EmailService](i)
 	teamService := do.MustInvoke[authinterface.TeamMemberService](i)
-	subscriptionService := do.MustInvoke[subscriptionServices.SubscriptionService](i)
+	subscriptionService := do.MustInvoke[subscriptioninterface.SubscriptionService](i)
 	config := do.MustInvoke[*config.Config](i)
 
 	return authservice.NewAuthService(

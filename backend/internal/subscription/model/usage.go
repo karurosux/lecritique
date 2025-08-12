@@ -1,4 +1,4 @@
-package models
+package subscriptionmodel
 
 import (
 	"fmt"
@@ -6,7 +6,10 @@ import (
 
 	"github.com/google/uuid"
 	sharedModels "kyooar/internal/shared/models"
+	subscriptionconstants "kyooar/internal/subscription/constants"
 )
+
+type UsageType = subscriptionconstants.UsageType
 
 type SubscriptionUsage struct {
 	sharedModels.BaseModel

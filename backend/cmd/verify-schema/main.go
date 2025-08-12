@@ -6,7 +6,7 @@ import (
 
 	"kyooar/internal/shared/config"
 	"kyooar/internal/shared/database"
-	"kyooar/internal/subscription/models"
+	subscriptionmodel "kyooar/internal/subscription/model"
 )
 
 func main() {
@@ -20,7 +20,7 @@ func main() {
 		log.Fatal("Failed to connect to database:", err)
 	}
 
-	var plan models.SubscriptionPlan
+	var plan subscriptionmodel.SubscriptionPlan
 	err = db.First(&plan).Error
 	if err != nil {
 		log.Printf("No plans found (which is ok): %v\n", err)

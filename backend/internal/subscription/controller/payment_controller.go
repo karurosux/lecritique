@@ -1,28 +1,25 @@
-package handlers
+package subscriptioncontroller
 
 import (
 	"io"
 	"net/http"
 	"strconv"
-	"time"
 
-	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"kyooar/internal/shared/errors"
 	"kyooar/internal/shared/middleware"
 	"kyooar/internal/shared/response"
-	"kyooar/internal/subscription/services"
-	"github.com/samber/do"
+	subscriptioninterface "kyooar/internal/subscription/interface"
 )
 
-type PaymentHandler struct {
-	paymentService services.PaymentService
+type PaymentController struct {
+	paymentService subscriptioninterface.PaymentService
 }
 
-func NewPaymentHandler(i *do.Injector) (*PaymentHandler, error) {
-	return &PaymentHandler{
-		paymentService: do.MustInvoke[services.PaymentService](i),
-	}, nil
+func NewPaymentController(paymentService subscriptioninterface.PaymentService) *PaymentController {
+	return &PaymentController{
+		paymentService: paymentService,
+	}
 }
 
 // @Summary Create a checkout session
@@ -36,7 +33,7 @@ func NewPaymentHandler(i *do.Injector) (*PaymentHandler, error) {
 // @Failure 401 {object} response.Response
 // @Router /api/v1/payment/checkout [post]
 // @Security BearerAuth
-func (h *PaymentHandler) CreateCheckoutSession(c echo.Context) error {
+func (h *PaymentController) CreateCheckoutSession(c echo.Context) error {
 	accountID, err := middleware.GetAccountID(c)
 	if err != nil {
 		return response.Error(c, err)
@@ -71,7 +68,7 @@ func (h *PaymentHandler) CreateCheckoutSession(c echo.Context) error {
 // @Success 200 {object} response.Response
 // @Failure 400 {object} response.Response
 // @Router /api/v1/payment/checkout/complete [post]
-func (h *PaymentHandler) CompleteCheckout(c echo.Context) error {
+func (h *PaymentController) CompleteCheckout(c echo.Context) error {
 	var req CompleteCheckoutRequest
 	if err := c.Bind(&req); err != nil {
 		return response.Error(c, errors.New("BAD_REQUEST", "Invalid request", http.StatusBadRequest))
@@ -97,7 +94,7 @@ func (h *PaymentHandler) CompleteCheckout(c echo.Context) error {
 // @Failure 401 {object} response.Response
 // @Router /api/v1/payment/portal [post]
 // @Security BearerAuth
-func (h *PaymentHandler) CreatePortalSession(c echo.Context) error {
+func (h *PaymentController) CreatePortalSession(c echo.Context) error {
 	accountID, err := middleware.GetAccountID(c)
 	if err != nil {
 		return response.Error(c, err)
@@ -121,7 +118,7 @@ func (h *PaymentHandler) CreatePortalSession(c echo.Context) error {
 // @Success 200 {object} response.Response
 // @Failure 400 {object} response.Response
 // @Router /api/v1/payment/webhook [post]
-func (h *PaymentHandler) HandleWebhook(c echo.Context) error {
+func (h *PaymentController) HandleWebhook(c echo.Context) error {
 	body, err := io.ReadAll(c.Request().Body)
 	if err != nil {
 		return response.Error(c, errors.New("BAD_REQUEST", "Failed to read request body", http.StatusBadRequest))
@@ -148,7 +145,7 @@ func (h *PaymentHandler) HandleWebhook(c echo.Context) error {
 // @Failure 401 {object} response.Response
 // @Router /api/v1/payment/methods [get]
 // @Security BearerAuth
-func (h *PaymentHandler) GetPaymentMethods(c echo.Context) error {
+func (h *PaymentController) GetPaymentMethods(c echo.Context) error {
 	accountID, err := middleware.GetAccountID(c)
 	if err != nil {
 		return response.Error(c, err)
@@ -191,7 +188,7 @@ func (h *PaymentHandler) GetPaymentMethods(c echo.Context) error {
 // @Failure 401 {object} response.Response
 // @Router /api/v1/payment/methods/default [post]
 // @Security BearerAuth
-func (h *PaymentHandler) SetDefaultPaymentMethod(c echo.Context) error {
+func (h *PaymentController) SetDefaultPaymentMethod(c echo.Context) error {
 	accountID, err := middleware.GetAccountID(c)
 	if err != nil {
 		return response.Error(c, err)
@@ -223,7 +220,7 @@ func (h *PaymentHandler) SetDefaultPaymentMethod(c echo.Context) error {
 // @Failure 401 {object} response.Response
 // @Router /api/v1/payment/invoices [get]
 // @Security BearerAuth
-func (h *PaymentHandler) GetInvoices(c echo.Context) error {
+func (h *PaymentController) GetInvoices(c echo.Context) error {
 	accountID, err := middleware.GetAccountID(c)
 	if err != nil {
 		return response.Error(c, err)
@@ -258,53 +255,4 @@ func (h *PaymentHandler) GetInvoices(c echo.Context) error {
 	}
 
 	return response.Success(c, resp)
-}
-
-
-type CreateCheckoutRequest struct {
-	PlanID uuid.UUID `json:"plan_id" validate:"required"`
-}
-
-type CheckoutResponse struct {
-	SessionID   string `json:"session_id"`
-	CheckoutURL string `json:"checkout_url"`
-}
-
-type CompleteCheckoutRequest struct {
-	SessionID string `json:"session_id" validate:"required"`
-}
-
-type PortalResponse struct {
-	PortalURL string `json:"portal_url"`
-}
-
-type PaymentMethodResponse struct {
-	ID        string                `json:"id"`
-	Type      string                `json:"type"`
-	IsDefault bool                  `json:"is_default"`
-	Card      *CardDetailsResponse  `json:"card,omitempty"`
-}
-
-type CardDetailsResponse struct {
-	Brand    string `json:"brand"`
-	Last4    string `json:"last4"`
-	ExpMonth int    `json:"exp_month"`
-	ExpYear  int    `json:"exp_year"`
-}
-
-type SetDefaultPaymentRequest struct {
-	PaymentMethodID string `json:"payment_method_id" validate:"required"`
-}
-
-type InvoiceResponse struct {
-	ID               string     `json:"id"`
-	Number           string     `json:"number"`
-	Status           string     `json:"status"`
-	AmountDue        int64      `json:"amount_due"`
-	AmountPaid       int64      `json:"amount_paid"`
-	Currency         string     `json:"currency"`
-	InvoicePDF       string     `json:"invoice_pdf"`
-	HostedInvoiceURL string     `json:"hosted_invoice_url"`
-	CreatedAt        time.Time  `json:"created_at"`
-	PaidAt           *time.Time `json:"paid_at"`
 }

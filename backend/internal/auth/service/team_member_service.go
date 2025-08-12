@@ -9,6 +9,7 @@ import (
 	authinterface "kyooar/internal/auth/interface"
 	"kyooar/internal/auth/models"
 	"kyooar/internal/shared/errors"
+	sharedmodels "kyooar/internal/shared/models"
 )
 
 type TeamMemberService struct {
@@ -40,7 +41,38 @@ func (s *TeamMemberService) GetMemberByMemberID(ctx context.Context, memberID uu
 }
 
 func (s *TeamMemberService) ListMembers(ctx context.Context, accountID uuid.UUID) ([]*models.TeamMember, error) {
-	return s.teamMemberRepo.FindByAccountID(ctx, accountID)
+	members, err := s.teamMemberRepo.FindByAccountID(ctx, accountID)
+	if err != nil {
+		return nil, err
+	}
+
+	pendingInvitations, err := s.invitationRepo.FindByAccountID(ctx, accountID)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, invitation := range pendingInvitations {
+		if invitation.AcceptedAt != nil {
+			continue
+		}
+
+		pendingMember := &models.TeamMember{
+			BaseModel: sharedmodels.BaseModel{
+				ID: invitation.ID,
+			},
+			AccountID: invitation.AccountID,
+			Role:      invitation.Role,
+			InvitedBy: invitation.InvitedBy,
+			InvitedAt: invitation.InvitedAt,
+			AcceptedAt: nil,
+			MemberAccount: models.Account{
+				Email: invitation.Email,
+			},
+		}
+		members = append(members, pendingMember)
+	}
+
+	return members, nil
 }
 
 func (s *TeamMemberService) InviteMember(ctx context.Context, accountID uuid.UUID, email string, role models.MemberRole, invitedBy uuid.UUID) (*models.TeamInvitation, error) {
@@ -98,6 +130,16 @@ func (s *TeamMemberService) UpdateRole(ctx context.Context, accountID, memberID 
 	return s.teamMemberRepo.Update(ctx, member)
 }
 
+func (s *TeamMemberService) UpdateRoleByID(ctx context.Context, teamMemberID uuid.UUID, role models.MemberRole) error {
+	member, err := s.teamMemberRepo.FindByID(ctx, teamMemberID)
+	if err != nil {
+		return err
+	}
+
+	member.Role = role
+	return s.teamMemberRepo.Update(ctx, member)
+}
+
 func (s *TeamMemberService) RemoveMember(ctx context.Context, accountID, memberID uuid.UUID) error {
 	member, err := s.teamMemberRepo.FindByAccountAndMember(ctx, accountID, memberID)
 	if err != nil {
@@ -105,6 +147,23 @@ func (s *TeamMemberService) RemoveMember(ctx context.Context, accountID, memberI
 	}
 
 	return s.teamMemberRepo.Delete(ctx, member.ID)
+}
+
+func (s *TeamMemberService) RemoveMemberByID(ctx context.Context, teamMemberID uuid.UUID) error {
+	// First try to find it as a team invitation
+	_, err := s.invitationRepo.FindByID(ctx, teamMemberID)
+	if err == nil {
+		// It's a pending invitation
+		return s.invitationRepo.Delete(ctx, teamMemberID)
+	}
+
+	// If not found as invitation, try as team member
+	_, err = s.teamMemberRepo.FindByID(ctx, teamMemberID)
+	if err != nil {
+		return err
+	}
+
+	return s.teamMemberRepo.Delete(ctx, teamMemberID)
 }
 
 func (s *TeamMemberService) AcceptInvitation(ctx context.Context, token string) (*models.TeamMember, error) {
