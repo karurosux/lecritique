@@ -791,7 +791,59 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/auth/cancel-deactivation": {
+        "/api/v1/auth/deactivate": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Request to deactivate the account with a 15-day grace period",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Request account deactivation",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/authmodel.DeactivationResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/auth/deactivate/cancel": {
             "post": {
                 "security": [
                     {
@@ -846,7 +898,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/auth/change-email": {
+        "/api/v1/auth/email-change": {
             "post": {
                 "security": [
                     {
@@ -871,7 +923,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/handlers.ChangeEmailRequest"
+                            "$ref": "#/definitions/authmodel.ChangeEmailRequest"
                         }
                     }
                 ],
@@ -912,7 +964,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/auth/confirm-email-change": {
+        "/api/v1/auth/email-change/confirm": {
             "post": {
                 "description": "Confirm email change using the token sent to the new email",
                 "consumes": [
@@ -932,7 +984,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/handlers.ConfirmEmailChangeRequest"
+                            "$ref": "#/definitions/authmodel.ConfirmEmailChangeRequest"
                         }
                     }
                 ],
@@ -960,59 +1012,6 @@ const docTemplate = `{
                     },
                     "400": {
                         "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/response.Response"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/v1/auth/deactivate": {
-            "post": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "description": "Request to deactivate the account with a 15-day grace period",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "auth"
-                ],
-                "summary": "Request account deactivation",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/response.Response"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object",
-                                            "additionalProperties": true
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/response.Response"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
                         "schema": {
                             "$ref": "#/definitions/response.Response"
                         }
@@ -1040,7 +1039,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/handlers.PasswordResetRequest"
+                            "$ref": "#/definitions/authmodel.PasswordResetRequest"
                         }
                     }
                 ],
@@ -1095,7 +1094,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/handlers.LoginRequest"
+                            "$ref": "#/definitions/authmodel.LoginRequest"
                         }
                     }
                 ],
@@ -1111,7 +1110,7 @@ const docTemplate = `{
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/handlers.AuthResponse"
+                                            "$ref": "#/definitions/authmodel.TokenResponse"
                                         }
                                     }
                                 }
@@ -1158,7 +1157,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/handlers.UpdateProfileRequest"
+                            "$ref": "#/definitions/authmodel.UpdateProfileRequest"
                         }
                     }
                 ],
@@ -1230,10 +1229,7 @@ const docTemplate = `{
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "type": "object",
-                                            "additionalProperties": {
-                                                "type": "string"
-                                            }
+                                            "$ref": "#/definitions/authmodel.TokenResponse"
                                         }
                                     }
                                 }
@@ -1275,7 +1271,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/handlers.RegisterRequest"
+                            "$ref": "#/definitions/authmodel.RegisterRequest"
                         }
                     }
                 ],
@@ -1331,7 +1327,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/handlers.ResendVerificationRequest"
+                            "$ref": "#/definitions/authmodel.ResendVerificationRequest"
                         }
                     }
                 ],
@@ -1386,7 +1382,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/handlers.ResetPasswordRequest"
+                            "$ref": "#/definitions/authmodel.ResetPasswordRequest"
                         }
                     }
                 ],
@@ -4307,7 +4303,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/team/accept-invite": {
+        "/api/v1/team/accept-invitation": {
             "post": {
                 "description": "Accept a team invitation using the invitation token",
                 "consumes": [
@@ -4327,7 +4323,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/handlers.AcceptInviteRequest"
+                            "$ref": "#/definitions/authmodel.AcceptInvitationRequest"
                         }
                     }
                 ],
@@ -4342,12 +4338,7 @@ const docTemplate = `{
                                 {
                                     "type": "object",
                                     "properties": {
-                                        "data": {
-                                            "type": "object",
-                                            "additionalProperties": {
-                                                "type": "string"
-                                            }
-                                        }
+                                        "data": {}
                                     }
                                 }
                             ]
@@ -4355,18 +4346,6 @@ const docTemplate = `{
                     },
                     "400": {
                         "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/response.Response"
-                        }
-                    },
-                    "404": {
-                        "description": "Not Found",
-                        "schema": {
-                            "$ref": "#/definitions/response.Response"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
                         "schema": {
                             "$ref": "#/definitions/response.Response"
                         }
@@ -4378,10 +4357,10 @@ const docTemplate = `{
             "get": {
                 "security": [
                     {
-                        "BearerAuth": []
+                        "ApiKeyAuth": []
                     }
                 ],
-                "description": "Get all team members for the account",
+                "description": "Get list of team members for the authenticated account",
                 "consumes": [
                     "application/json"
                 ],
@@ -4404,10 +4383,7 @@ const docTemplate = `{
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "type": "array",
-                                            "items": {
-                                                "$ref": "#/definitions/models.TeamMember"
-                                            }
+                                            "$ref": "#/definitions/authmodel.MemberListResponse"
                                         }
                                     }
                                 }
@@ -4419,12 +4395,6 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/response.Response"
                         }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/response.Response"
-                        }
                     }
                 }
             }
@@ -4433,10 +4403,10 @@ const docTemplate = `{
             "post": {
                 "security": [
                     {
-                        "BearerAuth": []
+                        "ApiKeyAuth": []
                     }
                 ],
-                "description": "Invite a new team member to the account",
+                "description": "Invite a new member to the team",
                 "consumes": [
                     "application/json"
                 ],
@@ -4449,12 +4419,12 @@ const docTemplate = `{
                 "summary": "Invite team member",
                 "parameters": [
                     {
-                        "description": "Invitation details",
+                        "description": "Member invitation details",
                         "name": "request",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/handlers.InviteMemberRequest"
+                            "$ref": "#/definitions/authmodel.InviteMemberRequest"
                         }
                     }
                 ],
@@ -4470,7 +4440,7 @@ const docTemplate = `{
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/models.TeamMember"
+                                            "$ref": "#/definitions/authmodel.InvitationResponse"
                                         }
                                     }
                                 }
@@ -4488,24 +4458,6 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/response.Response"
                         }
-                    },
-                    "403": {
-                        "description": "Forbidden",
-                        "schema": {
-                            "$ref": "#/definitions/response.Response"
-                        }
-                    },
-                    "409": {
-                        "description": "Conflict",
-                        "schema": {
-                            "$ref": "#/definitions/response.Response"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/response.Response"
-                        }
                     }
                 }
             }
@@ -4514,10 +4466,10 @@ const docTemplate = `{
             "delete": {
                 "security": [
                     {
-                        "BearerAuth": []
+                        "ApiKeyAuth": []
                     }
                 ],
-                "description": "Remove a team member from the account",
+                "description": "Remove a member from the team",
                 "consumes": [
                     "application/json"
                 ],
@@ -4570,24 +4522,6 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/response.Response"
                         }
-                    },
-                    "403": {
-                        "description": "Forbidden",
-                        "schema": {
-                            "$ref": "#/definitions/response.Response"
-                        }
-                    },
-                    "404": {
-                        "description": "Not Found",
-                        "schema": {
-                            "$ref": "#/definitions/response.Response"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/response.Response"
-                        }
                     }
                 }
             }
@@ -4596,10 +4530,10 @@ const docTemplate = `{
             "post": {
                 "security": [
                     {
-                        "BearerAuth": []
+                        "ApiKeyAuth": []
                     }
                 ],
-                "description": "Resend an invitation email to a pending team member",
+                "description": "Resend invitation to a team member",
                 "consumes": [
                     "application/json"
                 ],
@@ -4609,7 +4543,7 @@ const docTemplate = `{
                 "tags": [
                     "team"
                 ],
-                "summary": "Resend team invitation",
+                "summary": "Resend invitation",
                 "parameters": [
                     {
                         "type": "string",
@@ -4617,91 +4551,6 @@ const docTemplate = `{
                         "name": "id",
                         "in": "path",
                         "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/response.Response"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object",
-                                            "additionalProperties": {
-                                                "type": "string"
-                                            }
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/response.Response"
-                        }
-                    },
-                    "403": {
-                        "description": "Forbidden",
-                        "schema": {
-                            "$ref": "#/definitions/response.Response"
-                        }
-                    },
-                    "404": {
-                        "description": "Not Found",
-                        "schema": {
-                            "$ref": "#/definitions/response.Response"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/response.Response"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/v1/team/members/{id}/role": {
-            "put": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Update the role of a team member",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "team"
-                ],
-                "summary": "Update team member role",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Member ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "description": "New role",
-                        "name": "request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/handlers.UpdateRoleRequest"
-                        }
                     }
                 ],
                 "responses": {
@@ -4737,21 +4586,76 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/response.Response"
                         }
+                    }
+                }
+            }
+        },
+        "/api/v1/team/members/{id}/role": {
+            "put": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Update the role of a team member",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "team"
+                ],
+                "summary": "Update member role",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Member ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
                     },
-                    "403": {
-                        "description": "Forbidden",
+                    {
+                        "description": "Role update details",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/authmodel.UpdateRoleRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "additionalProperties": {
+                                                "type": "string"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
                         "schema": {
                             "$ref": "#/definitions/response.Response"
                         }
                     },
-                    "404": {
-                        "description": "Not Found",
-                        "schema": {
-                            "$ref": "#/definitions/response.Response"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
+                    "401": {
+                        "description": "Unauthorized",
                         "schema": {
                             "$ref": "#/definitions/response.Response"
                         }
@@ -5318,7 +5222,7 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "handlers.AcceptInviteRequest": {
+        "authmodel.AcceptInvitationRequest": {
             "type": "object",
             "required": [
                 "token"
@@ -5329,12 +5233,193 @@ const docTemplate = `{
                 }
             }
         },
-        "handlers.AuthResponse": {
+        "authmodel.ChangeEmailRequest": {
             "type": "object",
+            "required": [
+                "new_email"
+            ],
             "properties": {
-                "account": {},
+                "new_email": {
+                    "type": "string"
+                }
+            }
+        },
+        "authmodel.ConfirmEmailChangeRequest": {
+            "type": "object",
+            "required": [
+                "token"
+            ],
+            "properties": {
                 "token": {
                     "type": "string"
+                }
+            }
+        },
+        "authmodel.DeactivationResponse": {
+            "type": "object",
+            "properties": {
+                "deactivation_date": {
+                    "type": "string"
+                },
+                "message": {
+                    "type": "string"
+                }
+            }
+        },
+        "authmodel.InvitationResponse": {
+            "type": "object",
+            "properties": {
+                "invitation": {},
+                "message": {
+                    "type": "string"
+                }
+            }
+        },
+        "authmodel.InviteMemberRequest": {
+            "type": "object",
+            "required": [
+                "email",
+                "role"
+            ],
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "role": {
+                    "type": "string",
+                    "enum": [
+                        "OWNER",
+                        "ADMIN",
+                        "MANAGER",
+                        "VIEWER"
+                    ]
+                }
+            }
+        },
+        "authmodel.LoginRequest": {
+            "type": "object",
+            "required": [
+                "email",
+                "password"
+            ],
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string"
+                }
+            }
+        },
+        "authmodel.MemberListResponse": {
+            "type": "object",
+            "properties": {
+                "members": {
+                    "type": "array",
+                    "items": {}
+                }
+            }
+        },
+        "authmodel.PasswordResetRequest": {
+            "type": "object",
+            "required": [
+                "email"
+            ],
+            "properties": {
+                "email": {
+                    "type": "string"
+                }
+            }
+        },
+        "authmodel.RegisterRequest": {
+            "type": "object",
+            "required": [
+                "email",
+                "password"
+            ],
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "first_name": {
+                    "type": "string"
+                },
+                "invitation_token": {
+                    "type": "string"
+                },
+                "last_name": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string",
+                    "minLength": 8
+                }
+            }
+        },
+        "authmodel.ResendVerificationRequest": {
+            "type": "object",
+            "required": [
+                "email"
+            ],
+            "properties": {
+                "email": {
+                    "type": "string"
+                }
+            }
+        },
+        "authmodel.ResetPasswordRequest": {
+            "type": "object",
+            "required": [
+                "new_password",
+                "token"
+            ],
+            "properties": {
+                "new_password": {
+                    "type": "string",
+                    "minLength": 8
+                },
+                "token": {
+                    "type": "string"
+                }
+            }
+        },
+        "authmodel.TokenResponse": {
+            "type": "object",
+            "properties": {
+                "token": {
+                    "type": "string"
+                }
+            }
+        },
+        "authmodel.UpdateProfileRequest": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string",
+                    "minLength": 1
+                },
+                "phone": {
+                    "type": "string"
+                }
+            }
+        },
+        "authmodel.UpdateRoleRequest": {
+            "type": "object",
+            "required": [
+                "role"
+            ],
+            "properties": {
+                "role": {
+                    "type": "string",
+                    "enum": [
+                        "OWNER",
+                        "ADMIN",
+                        "MANAGER",
+                        "VIEWER"
+                    ]
                 }
             }
         },
@@ -5351,17 +5436,6 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "last4": {
-                    "type": "string"
-                }
-            }
-        },
-        "handlers.ChangeEmailRequest": {
-            "type": "object",
-            "required": [
-                "new_email"
-            ],
-            "properties": {
-                "new_email": {
                     "type": "string"
                 }
             }
@@ -5384,17 +5458,6 @@ const docTemplate = `{
             ],
             "properties": {
                 "session_id": {
-                    "type": "string"
-                }
-            }
-        },
-        "handlers.ConfirmEmailChangeRequest": {
-            "type": "object",
-            "required": [
-                "token"
-            ],
-            "properties": {
-                "token": {
                     "type": "string"
                 }
             }
@@ -5522,30 +5585,6 @@ const docTemplate = `{
                 }
             }
         },
-        "handlers.InviteMemberRequest": {
-            "type": "object",
-            "required": [
-                "email",
-                "role"
-            ],
-            "properties": {
-                "email": {
-                    "type": "string"
-                },
-                "role": {
-                    "enum": [
-                        "ADMIN",
-                        "MANAGER",
-                        "VIEWER"
-                    ],
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/models.MemberRole"
-                        }
-                    ]
-                }
-            }
-        },
         "handlers.InvoiceResponse": {
             "type": "object",
             "properties": {
@@ -5577,32 +5616,6 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "status": {
-                    "type": "string"
-                }
-            }
-        },
-        "handlers.LoginRequest": {
-            "type": "object",
-            "required": [
-                "email",
-                "password"
-            ],
-            "properties": {
-                "email": {
-                    "type": "string"
-                },
-                "password": {
-                    "type": "string"
-                }
-            }
-        },
-        "handlers.PasswordResetRequest": {
-            "type": "object",
-            "required": [
-                "email"
-            ],
-            "properties": {
-                "email": {
                     "type": "string"
                 }
             }
@@ -5646,62 +5659,6 @@ const docTemplate = `{
                 }
             }
         },
-        "handlers.RegisterRequest": {
-            "type": "object",
-            "required": [
-                "email",
-                "password"
-            ],
-            "properties": {
-                "email": {
-                    "type": "string"
-                },
-                "first_name": {
-                    "type": "string"
-                },
-                "invitation_token": {
-                    "description": "Optional invitation token",
-                    "type": "string"
-                },
-                "last_name": {
-                    "type": "string"
-                },
-                "name": {
-                    "type": "string"
-                },
-                "password": {
-                    "type": "string",
-                    "minLength": 8
-                }
-            }
-        },
-        "handlers.ResendVerificationRequest": {
-            "type": "object",
-            "required": [
-                "email"
-            ],
-            "properties": {
-                "email": {
-                    "type": "string"
-                }
-            }
-        },
-        "handlers.ResetPasswordRequest": {
-            "type": "object",
-            "required": [
-                "new_password",
-                "token"
-            ],
-            "properties": {
-                "new_password": {
-                    "type": "string",
-                    "minLength": 8
-                },
-                "token": {
-                    "type": "string"
-                }
-            }
-        },
         "handlers.SetDefaultPaymentRequest": {
             "type": "object",
             "required": [
@@ -5709,18 +5666,6 @@ const docTemplate = `{
             ],
             "properties": {
                 "payment_method_id": {
-                    "type": "string"
-                }
-            }
-        },
-        "handlers.UpdateProfileRequest": {
-            "type": "object",
-            "properties": {
-                "name": {
-                    "type": "string",
-                    "minLength": 1
-                },
-                "phone": {
                     "type": "string"
                 }
             }
@@ -5750,26 +5695,6 @@ const docTemplate = `{
                 },
                 "success": {
                     "type": "boolean"
-                }
-            }
-        },
-        "handlers.UpdateRoleRequest": {
-            "type": "object",
-            "required": [
-                "role"
-            ],
-            "properties": {
-                "role": {
-                    "enum": [
-                        "ADMIN",
-                        "MANAGER",
-                        "VIEWER"
-                    ],
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/models.MemberRole"
-                        }
-                    ]
                 }
             }
         },
@@ -5859,14 +5784,11 @@ const docTemplate = `{
                 "phone": {
                     "type": "string"
                 },
-                "subscription": {
-                    "description": "Populated when needed"
-                },
+                "subscription": {},
                 "subscription_id": {
                     "type": "string"
                 },
                 "team_members": {
-                    "description": "Organizations      []Organization  ` + "`" + `json:\"organizations,omitempty\"` + "`" + `  // TODO: Add when organization domain is ready",
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/models.TeamMember"
@@ -6223,7 +6145,6 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "name": {
-                    "description": "Account     Account        ` + "`" + `json:\"account,omitempty\"` + "`" + ` // TODO: Add when cross-domain refs are ready",
                     "type": "string"
                 },
                 "phone": {
@@ -6259,14 +6180,12 @@ const docTemplate = `{
                     "type": "boolean"
                 },
                 "label": {
-                    "description": "e.g., \"Table 1\", \"Entrance\", etc.",
                     "type": "string"
                 },
                 "last_scanned_at": {
                     "type": "string"
                 },
                 "location": {
-                    "description": "Free text location description",
                     "type": "string"
                 },
                 "organization": {
@@ -6362,22 +6281,6 @@ const docTemplate = `{
                 "single_choice",
                 "text",
                 "yes_no"
-            ],
-            "x-enum-comments": {
-                "QuestionTypeMultiChoice": "Multiple choice",
-                "QuestionTypeRating": "1-5 stars",
-                "QuestionTypeScale": "1-10 scale",
-                "QuestionTypeSingleChoice": "Single choice",
-                "QuestionTypeText": "Free text",
-                "QuestionTypeYesNo": "Yes/No"
-            },
-            "x-enum-descriptions": [
-                "1-5 stars",
-                "1-10 scale",
-                "Multiple choice",
-                "Single choice",
-                "Free text",
-                "Yes/No"
             ],
             "x-enum-varnames": [
                 "QuestionTypeRating",
@@ -6524,7 +6427,6 @@ const docTemplate = `{
                     "type": "boolean"
                 },
                 "has_basic_analytics": {
-                    "description": "Feature flags (as columns)",
                     "type": "boolean"
                 },
                 "has_custom_branding": {
@@ -6552,7 +6454,6 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "max_organizations": {
-                    "description": "Limits (as columns)",
                     "type": "integer"
                 },
                 "max_qr_codes": {
@@ -6644,7 +6545,6 @@ const docTemplate = `{
                     "$ref": "#/definitions/models.Account"
                 },
                 "account_id": {
-                    "description": "The organization account",
                     "type": "string"
                 },
                 "created_at": {
@@ -6663,7 +6563,6 @@ const docTemplate = `{
                     "$ref": "#/definitions/models.Account"
                 },
                 "member_id": {
-                    "description": "The member's account ID",
                     "type": "string"
                 },
                 "role": {

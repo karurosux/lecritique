@@ -39,7 +39,13 @@ type Question struct {
 type QuestionType string
 
 const (
-	QuestionTypeRating       QuestionType = "rating"      	QuestionTypeScale        QuestionType = "scale"       	QuestionTypeMultiChoice  QuestionType = "multi_choice"	QuestionTypeSingleChoice QuestionType = "single_choice"	QuestionTypeText         QuestionType = "text"        	QuestionTypeYesNo        QuestionType = "yes_no"      )
+	QuestionTypeRating       QuestionType = "rating"
+	QuestionTypeScale        QuestionType = "scale"
+	QuestionTypeMultiChoice  QuestionType = "multi_choice"
+	QuestionTypeSingleChoice QuestionType = "single_choice"
+	QuestionTypeText         QuestionType = "text"
+	QuestionTypeYesNo        QuestionType = "yes_no"
+)
 
 type QuestionTemplate struct {
 	sharedModels.BaseModel

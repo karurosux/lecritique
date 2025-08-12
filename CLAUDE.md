@@ -1,0 +1,4 @@
+- dont add inline comments
+- no magic numbers and strings
+- no leftovers
+- no workarounds

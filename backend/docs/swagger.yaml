@@ -1,16 +1,137 @@
 definitions:
-  handlers.AcceptInviteRequest:
+  authmodel.AcceptInvitationRequest:
     properties:
       token:
         type: string
     required:
     - token
     type: object
-  handlers.AuthResponse:
+  authmodel.ChangeEmailRequest:
     properties:
-      account: {}
+      new_email:
+        type: string
+    required:
+    - new_email
+    type: object
+  authmodel.ConfirmEmailChangeRequest:
+    properties:
       token:
         type: string
+    required:
+    - token
+    type: object
+  authmodel.DeactivationResponse:
+    properties:
+      deactivation_date:
+        type: string
+      message:
+        type: string
+    type: object
+  authmodel.InvitationResponse:
+    properties:
+      invitation: {}
+      message:
+        type: string
+    type: object
+  authmodel.InviteMemberRequest:
+    properties:
+      email:
+        type: string
+      role:
+        enum:
+        - OWNER
+        - ADMIN
+        - MANAGER
+        - VIEWER
+        type: string
+    required:
+    - email
+    - role
+    type: object
+  authmodel.LoginRequest:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+    required:
+    - email
+    - password
+    type: object
+  authmodel.MemberListResponse:
+    properties:
+      members:
+        items: {}
+        type: array
+    type: object
+  authmodel.PasswordResetRequest:
+    properties:
+      email:
+        type: string
+    required:
+    - email
+    type: object
+  authmodel.RegisterRequest:
+    properties:
+      email:
+        type: string
+      first_name:
+        type: string
+      invitation_token:
+        type: string
+      last_name:
+        type: string
+      name:
+        type: string
+      password:
+        minLength: 8
+        type: string
+    required:
+    - email
+    - password
+    type: object
+  authmodel.ResendVerificationRequest:
+    properties:
+      email:
+        type: string
+    required:
+    - email
+    type: object
+  authmodel.ResetPasswordRequest:
+    properties:
+      new_password:
+        minLength: 8
+        type: string
+      token:
+        type: string
+    required:
+    - new_password
+    - token
+    type: object
+  authmodel.TokenResponse:
+    properties:
+      token:
+        type: string
+    type: object
+  authmodel.UpdateProfileRequest:
+    properties:
+      name:
+        minLength: 1
+        type: string
+      phone:
+        type: string
+    type: object
+  authmodel.UpdateRoleRequest:
+    properties:
+      role:
+        enum:
+        - OWNER
+        - ADMIN
+        - MANAGER
+        - VIEWER
+        type: string
+    required:
+    - role
     type: object
   handlers.CardDetailsResponse:
     properties:
@@ -22,13 +143,6 @@ definitions:
         type: integer
       last4:
         type: string
-    type: object
-  handlers.ChangeEmailRequest:
-    properties:
-      new_email:
-        type: string
-    required:
-    - new_email
     type: object
   handlers.CheckoutResponse:
     properties:
@@ -43,13 +157,6 @@ definitions:
         type: string
     required:
     - session_id
-    type: object
-  handlers.ConfirmEmailChangeRequest:
-    properties:
-      token:
-        type: string
-    required:
-    - token
     type: object
   handlers.CreateCheckoutRequest:
     properties:
@@ -133,21 +240,6 @@ definitions:
       success:
         type: boolean
     type: object
-  handlers.InviteMemberRequest:
-    properties:
-      email:
-        type: string
-      role:
-        allOf:
-        - $ref: '#/definitions/models.MemberRole'
-        enum:
-        - ADMIN
-        - MANAGER
-        - VIEWER
-    required:
-    - email
-    - role
-    type: object
   handlers.InvoiceResponse:
     properties:
       amount_due:
@@ -170,23 +262,6 @@ definitions:
         type: string
       status:
         type: string
-    type: object
-  handlers.LoginRequest:
-    properties:
-      email:
-        type: string
-      password:
-        type: string
-    required:
-    - email
-    - password
-    type: object
-  handlers.PasswordResetRequest:
-    properties:
-      email:
-        type: string
-    required:
-    - email
     type: object
   handlers.PaymentMethodResponse:
     properties:
@@ -213,58 +288,12 @@ definitions:
       success:
         type: boolean
     type: object
-  handlers.RegisterRequest:
-    properties:
-      email:
-        type: string
-      first_name:
-        type: string
-      invitation_token:
-        description: Optional invitation token
-        type: string
-      last_name:
-        type: string
-      name:
-        type: string
-      password:
-        minLength: 8
-        type: string
-    required:
-    - email
-    - password
-    type: object
-  handlers.ResendVerificationRequest:
-    properties:
-      email:
-        type: string
-    required:
-    - email
-    type: object
-  handlers.ResetPasswordRequest:
-    properties:
-      new_password:
-        minLength: 8
-        type: string
-      token:
-        type: string
-    required:
-    - new_password
-    - token
-    type: object
   handlers.SetDefaultPaymentRequest:
     properties:
       payment_method_id:
         type: string
     required:
     - payment_method_id
-    type: object
-  handlers.UpdateProfileRequest:
-    properties:
-      name:
-        minLength: 1
-        type: string
-      phone:
-        type: string
     type: object
   handlers.UpdateQRCodeRequest:
     properties:
@@ -284,18 +313,6 @@ definitions:
         $ref: '#/definitions/models.QRCode'
       success:
         type: boolean
-    type: object
-  handlers.UpdateRoleRequest:
-    properties:
-      role:
-        allOf:
-        - $ref: '#/definitions/models.MemberRole'
-        enum:
-        - ADMIN
-        - MANAGER
-        - VIEWER
-    required:
-    - role
     type: object
   kyooar_internal_menu_models.Product:
     properties:
@@ -354,13 +371,10 @@ definitions:
         type: string
       phone:
         type: string
-      subscription:
-        description: Populated when needed
+      subscription: {}
       subscription_id:
         type: string
       team_members:
-        description: 'Organizations      []Organization  `json:"organizations,omitempty"`  //
-          TODO: Add when organization domain is ready'
         items:
           $ref: '#/definitions/models.TeamMember'
         type: array
@@ -596,8 +610,6 @@ definitions:
       logo:
         type: string
       name:
-        description: 'Account     Account        `json:"account,omitempty"` // TODO:
-          Add when cross-domain refs are ready'
         type: string
       phone:
         type: string
@@ -621,12 +633,10 @@ definitions:
       is_active:
         type: boolean
       label:
-        description: e.g., "Table 1", "Entrance", etc.
         type: string
       last_scanned_at:
         type: string
       location:
-        description: Free text location description
         type: string
       organization:
         $ref: '#/definitions/models.Organization'
@@ -695,20 +705,6 @@ definitions:
     - text
     - yes_no
     type: string
-    x-enum-comments:
-      QuestionTypeMultiChoice: Multiple choice
-      QuestionTypeRating: 1-5 stars
-      QuestionTypeScale: 1-10 scale
-      QuestionTypeSingleChoice: Single choice
-      QuestionTypeText: Free text
-      QuestionTypeYesNo: Yes/No
-    x-enum-descriptions:
-    - 1-5 stars
-    - 1-10 scale
-    - Multiple choice
-    - Single choice
-    - Free text
-    - Yes/No
     x-enum-varnames:
     - QuestionTypeRating
     - QuestionTypeScale
@@ -806,7 +802,6 @@ definitions:
       has_advanced_analytics:
         type: boolean
       has_basic_analytics:
-        description: Feature flags (as columns)
         type: boolean
       has_custom_branding:
         type: boolean
@@ -825,7 +820,6 @@ definitions:
       max_feedbacks_per_month:
         type: integer
       max_organizations:
-        description: Limits (as columns)
         type: integer
       max_qr_codes:
         type: integer
@@ -888,7 +882,6 @@ definitions:
       account:
         $ref: '#/definitions/models.Account'
       account_id:
-        description: The organization account
         type: string
       created_at:
         type: string
@@ -901,7 +894,6 @@ definitions:
       member:
         $ref: '#/definitions/models.Account'
       member_id:
-        description: The member's account ID
         type: string
       role:
         $ref: '#/definitions/models.MemberRole'
@@ -1643,7 +1635,37 @@ paths:
       summary: Get product insights
       tags:
       - analytics
-  /api/v1/auth/cancel-deactivation:
+  /api/v1/auth/deactivate:
+    post:
+      consumes:
+      - application/json
+      description: Request to deactivate the account with a 15-day grace period
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/authmodel.DeactivationResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - ApiKeyAuth: []
+      summary: Request account deactivation
+      tags:
+      - auth
+  /api/v1/auth/deactivate/cancel:
     post:
       consumes:
       - application/json
@@ -1675,7 +1697,7 @@ paths:
       summary: Cancel account deactivation
       tags:
       - auth
-  /api/v1/auth/change-email:
+  /api/v1/auth/email-change:
     post:
       consumes:
       - application/json
@@ -1686,7 +1708,7 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/handlers.ChangeEmailRequest'
+          $ref: '#/definitions/authmodel.ChangeEmailRequest'
       produces:
       - application/json
       responses:
@@ -1714,7 +1736,7 @@ paths:
       summary: Request email change
       tags:
       - auth
-  /api/v1/auth/confirm-email-change:
+  /api/v1/auth/email-change/confirm:
     post:
       consumes:
       - application/json
@@ -1725,7 +1747,7 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/handlers.ConfirmEmailChangeRequest'
+          $ref: '#/definitions/authmodel.ConfirmEmailChangeRequest'
       produces:
       - application/json
       responses:
@@ -1747,37 +1769,6 @@ paths:
       summary: Confirm email change
       tags:
       - auth
-  /api/v1/auth/deactivate:
-    post:
-      consumes:
-      - application/json
-      description: Request to deactivate the account with a 15-day grace period
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            allOf:
-            - $ref: '#/definitions/response.Response'
-            - properties:
-                data:
-                  additionalProperties: true
-                  type: object
-              type: object
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/response.Response'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/response.Response'
-      security:
-      - ApiKeyAuth: []
-      summary: Request account deactivation
-      tags:
-      - auth
   /api/v1/auth/forgot-password:
     post:
       consumes:
@@ -1789,7 +1780,7 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/handlers.PasswordResetRequest'
+          $ref: '#/definitions/authmodel.PasswordResetRequest'
       produces:
       - application/json
       responses:
@@ -1822,7 +1813,7 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/handlers.LoginRequest'
+          $ref: '#/definitions/authmodel.LoginRequest'
       produces:
       - application/json
       responses:
@@ -1833,7 +1824,7 @@ paths:
             - $ref: '#/definitions/response.Response'
             - properties:
                 data:
-                  $ref: '#/definitions/handlers.AuthResponse'
+                  $ref: '#/definitions/authmodel.TokenResponse'
               type: object
         "400":
           description: Bad Request
@@ -1858,7 +1849,7 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/handlers.UpdateProfileRequest'
+          $ref: '#/definitions/authmodel.UpdateProfileRequest'
       produces:
       - application/json
       responses:
@@ -1902,9 +1893,7 @@ paths:
             - $ref: '#/definitions/response.Response'
             - properties:
                 data:
-                  additionalProperties:
-                    type: string
-                  type: object
+                  $ref: '#/definitions/authmodel.TokenResponse'
               type: object
         "400":
           description: Bad Request
@@ -1930,7 +1919,7 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/handlers.RegisterRequest'
+          $ref: '#/definitions/authmodel.RegisterRequest'
       produces:
       - application/json
       responses:
@@ -1965,7 +1954,7 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/handlers.ResendVerificationRequest'
+          $ref: '#/definitions/authmodel.ResendVerificationRequest'
       produces:
       - application/json
       responses:
@@ -1998,7 +1987,7 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/handlers.ResetPasswordRequest'
+          $ref: '#/definitions/authmodel.ResetPasswordRequest'
       produces:
       - application/json
       responses:
@@ -3852,7 +3841,7 @@ paths:
       summary: Update QR code
       tags:
       - qr-codes
-  /api/v1/team/accept-invite:
+  /api/v1/team/accept-invitation:
     post:
       consumes:
       - application/json
@@ -3863,7 +3852,7 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/handlers.AcceptInviteRequest'
+          $ref: '#/definitions/authmodel.AcceptInvitationRequest'
       produces:
       - application/json
       responses:
@@ -3873,21 +3862,10 @@ paths:
             allOf:
             - $ref: '#/definitions/response.Response'
             - properties:
-                data:
-                  additionalProperties:
-                    type: string
-                  type: object
+                data: {}
               type: object
         "400":
           description: Bad Request
-          schema:
-            $ref: '#/definitions/response.Response'
-        "404":
-          description: Not Found
-          schema:
-            $ref: '#/definitions/response.Response'
-        "500":
-          description: Internal Server Error
           schema:
             $ref: '#/definitions/response.Response'
       summary: Accept team invitation
@@ -3897,7 +3875,7 @@ paths:
     get:
       consumes:
       - application/json
-      description: Get all team members for the account
+      description: Get list of team members for the authenticated account
       produces:
       - application/json
       responses:
@@ -3908,20 +3886,14 @@ paths:
             - $ref: '#/definitions/response.Response'
             - properties:
                 data:
-                  items:
-                    $ref: '#/definitions/models.TeamMember'
-                  type: array
+                  $ref: '#/definitions/authmodel.MemberListResponse'
               type: object
         "401":
           description: Unauthorized
           schema:
             $ref: '#/definitions/response.Response'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/response.Response'
       security:
-      - BearerAuth: []
+      - ApiKeyAuth: []
       summary: List team members
       tags:
       - team
@@ -3929,7 +3901,7 @@ paths:
     delete:
       consumes:
       - application/json
-      description: Remove a team member from the account
+      description: Remove a member from the team
       parameters:
       - description: Member ID
         in: path
@@ -3958,20 +3930,8 @@ paths:
           description: Unauthorized
           schema:
             $ref: '#/definitions/response.Response'
-        "403":
-          description: Forbidden
-          schema:
-            $ref: '#/definitions/response.Response'
-        "404":
-          description: Not Found
-          schema:
-            $ref: '#/definitions/response.Response'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/response.Response'
       security:
-      - BearerAuth: []
+      - ApiKeyAuth: []
       summary: Remove team member
       tags:
       - team
@@ -3979,7 +3939,7 @@ paths:
     post:
       consumes:
       - application/json
-      description: Resend an invitation email to a pending team member
+      description: Resend invitation to a team member
       parameters:
       - description: Invitation ID
         in: path
@@ -4000,25 +3960,17 @@ paths:
                     type: string
                   type: object
               type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
         "401":
           description: Unauthorized
           schema:
             $ref: '#/definitions/response.Response'
-        "403":
-          description: Forbidden
-          schema:
-            $ref: '#/definitions/response.Response'
-        "404":
-          description: Not Found
-          schema:
-            $ref: '#/definitions/response.Response'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/response.Response'
       security:
-      - BearerAuth: []
-      summary: Resend team invitation
+      - ApiKeyAuth: []
+      summary: Resend invitation
       tags:
       - team
   /api/v1/team/members/{id}/role:
@@ -4032,12 +3984,12 @@ paths:
         name: id
         required: true
         type: string
-      - description: New role
+      - description: Role update details
         in: body
         name: request
         required: true
         schema:
-          $ref: '#/definitions/handlers.UpdateRoleRequest'
+          $ref: '#/definitions/authmodel.UpdateRoleRequest'
       produces:
       - application/json
       responses:
@@ -4060,35 +4012,23 @@ paths:
           description: Unauthorized
           schema:
             $ref: '#/definitions/response.Response'
-        "403":
-          description: Forbidden
-          schema:
-            $ref: '#/definitions/response.Response'
-        "404":
-          description: Not Found
-          schema:
-            $ref: '#/definitions/response.Response'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/response.Response'
       security:
-      - BearerAuth: []
-      summary: Update team member role
+      - ApiKeyAuth: []
+      summary: Update member role
       tags:
       - team
   /api/v1/team/members/invite:
     post:
       consumes:
       - application/json
-      description: Invite a new team member to the account
+      description: Invite a new member to the team
       parameters:
-      - description: Invitation details
+      - description: Member invitation details
         in: body
         name: request
         required: true
         schema:
-          $ref: '#/definitions/handlers.InviteMemberRequest'
+          $ref: '#/definitions/authmodel.InviteMemberRequest'
       produces:
       - application/json
       responses:
@@ -4099,7 +4039,7 @@ paths:
             - $ref: '#/definitions/response.Response'
             - properties:
                 data:
-                  $ref: '#/definitions/models.TeamMember'
+                  $ref: '#/definitions/authmodel.InvitationResponse'
               type: object
         "400":
           description: Bad Request
@@ -4109,20 +4049,8 @@ paths:
           description: Unauthorized
           schema:
             $ref: '#/definitions/response.Response'
-        "403":
-          description: Forbidden
-          schema:
-            $ref: '#/definitions/response.Response'
-        "409":
-          description: Conflict
-          schema:
-            $ref: '#/definitions/response.Response'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/response.Response'
       security:
-      - BearerAuth: []
+      - ApiKeyAuth: []
       summary: Invite team member
       tags:
       - team

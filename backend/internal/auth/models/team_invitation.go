@@ -15,6 +15,7 @@ type TeamInvitation struct {
 	Role            MemberRole `gorm:"not null" json:"role"`
 	InvitedBy       uuid.UUID  `gorm:"not null" json:"invited_by"`
 	InvitedByUser   Account    `gorm:"foreignKey:InvitedBy" json:"invited_by_user,omitempty"`
+	InvitedAt       time.Time  `gorm:"not null" json:"invited_at"`
 	Token           string     `gorm:"uniqueIndex;not null" json:"-"`
 	ExpiresAt       time.Time  `gorm:"not null" json:"expires_at"`
 	AcceptedAt      *time.Time `json:"accepted_at"`

@@ -4,20 +4,20 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/samber/do"
 	"gorm.io/gorm"
-	authServices "kyooar/internal/auth/services"
+	authinterface "kyooar/internal/auth/interface"
 )
 
 type MiddlewareProvider struct {
 	db                  *gorm.DB
-	authService         authServices.AuthService
-	teamMemberService   authServices.TeamMemberServiceV2
+	authService         authinterface.AuthService
+	teamMemberService   authinterface.TeamMemberService
 }
 
 func NewMiddlewareProvider(i *do.Injector) (*MiddlewareProvider, error) {
 	return &MiddlewareProvider{
 		db:                  do.MustInvoke[*gorm.DB](i),
-		authService:         do.MustInvoke[authServices.AuthService](i),
-		teamMemberService:   do.MustInvoke[authServices.TeamMemberServiceV2](i),
+		authService:         do.MustInvoke[authinterface.AuthService](i),
+		teamMemberService:   do.MustInvoke[authinterface.TeamMemberService](i),
 	}, nil
 }
 

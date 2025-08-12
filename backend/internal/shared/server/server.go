@@ -22,7 +22,7 @@ import (
 	analyticsModule "kyooar/internal/analytics"
 	subscriptionModule "kyooar/internal/subscription"
 	
-	authServices "kyooar/internal/auth/services"
+	authinterface "kyooar/internal/auth/interface"
 	
 	"github.com/samber/do"
 	"github.com/sirupsen/logrus"
@@ -88,7 +88,7 @@ func (s *Server) setupRoutes() {
 	v1 := s.echo.Group("/api/v1")
 	v1.Use(rateLimiter.Middleware())
 
-	authMod := authModule.NewModule(s.injector)
+	authMod := authModule.NewAuthModule(s.injector)
 	authMod.RegisterRoutes(v1)
 	
 	organizationMod := organizationModule.NewModule(s.injector)
@@ -111,7 +111,7 @@ func (s *Server) setupRoutes() {
 }
 
 func (s *Server) setupCronJobs() {
-	authService := do.MustInvoke[authServices.AuthService](s.injector)
+	authService := do.MustInvoke[authinterface.AuthService](s.injector)
 	s.cron = cron.SetupDeactivationCron(authService)
 	logger.Info("Cron jobs initialized", logrus.Fields{
 		"job": "account_deactivation",

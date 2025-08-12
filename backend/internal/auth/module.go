@@ -2,54 +2,124 @@ package auth
 
 import (
 	"github.com/labstack/echo/v4"
-	"kyooar/internal/auth/handlers"
-	sharedMiddleware "kyooar/internal/shared/middleware"
 	"github.com/samber/do"
+	"gorm.io/gorm"
+
+	authcontroller "kyooar/internal/auth/controller"
+	authinterface "kyooar/internal/auth/interface"
+	authmiddleware "kyooar/internal/auth/middleware"
+	gormrepo "kyooar/internal/auth/repository/gorm"
+	authservice "kyooar/internal/auth/service"
+	"kyooar/internal/shared/config"
+	"kyooar/internal/shared/services"
+	"kyooar/internal/shared/validator"
+	subscriptionServices "kyooar/internal/subscription/services"
 )
 
-type Module struct {
+func ProvideAccountRepository(i *do.Injector) (authinterface.AccountRepository, error) {
+	db := do.MustInvoke[*gorm.DB](i)
+	return gormrepo.NewAccountRepository(db), nil
+}
+
+func ProvideTokenRepository(i *do.Injector) (authinterface.TokenRepository, error) {
+	db := do.MustInvoke[*gorm.DB](i)
+	return gormrepo.NewTokenRepository(db), nil
+}
+
+func ProvideTeamMemberRepository(i *do.Injector) (authinterface.TeamMemberRepository, error) {
+	db := do.MustInvoke[*gorm.DB](i)
+	return gormrepo.NewTeamMemberRepository(db), nil
+}
+
+func ProvideTeamInvitationRepository(i *do.Injector) (authinterface.TeamInvitationRepository, error) {
+	db := do.MustInvoke[*gorm.DB](i)
+	return gormrepo.NewTeamInvitationRepository(db), nil
+}
+
+func ProvidePasswordHasher(i *do.Injector) (authinterface.PasswordHasher, error) {
+	return authservice.NewBcryptPasswordHasher(12), nil
+}
+
+func ProvideTokenGenerator(i *do.Injector) (authinterface.TokenGenerator, error) {
+	return authservice.NewTokenGenerator(), nil
+}
+
+func ProvideAuthService(i *do.Injector) (authinterface.AuthService, error) {
+	accountRepo := do.MustInvoke[authinterface.AccountRepository](i)
+	tokenRepo := do.MustInvoke[authinterface.TokenRepository](i)
+	emailService := do.MustInvoke[services.EmailService](i)
+	teamService := do.MustInvoke[authinterface.TeamMemberService](i)
+	subscriptionService := do.MustInvoke[subscriptionServices.SubscriptionService](i)
+	config := do.MustInvoke[*config.Config](i)
+
+	return authservice.NewAuthService(
+		accountRepo,
+		tokenRepo,
+		emailService,
+		teamService,
+		subscriptionService,
+		config,
+	), nil
+}
+
+func ProvideAuthMiddleware(i *do.Injector) (*authmiddleware.AuthMiddleware, error) {
+	authService := do.MustInvoke[authinterface.AuthService](i)
+	return authmiddleware.NewAuthMiddleware(authService), nil
+}
+
+func ProvideAuthController(i *do.Injector) (*authcontroller.AuthController, error) {
+	authService := do.MustInvoke[authinterface.AuthService](i)
+	teamMemberService := do.MustInvoke[authinterface.TeamMemberService](i)
+	validator := validator.New()
+	config := do.MustInvoke[*config.Config](i)
+
+	return authcontroller.NewAuthController(
+		authService,
+		teamMemberService,
+		validator,
+		config,
+	), nil
+}
+
+func ProvideTeamController(i *do.Injector) (*authcontroller.TeamController, error) {
+	teamMemberService := do.MustInvoke[authinterface.TeamMemberService](i)
+	validator := validator.New()
+
+	return authcontroller.NewTeamController(
+		teamMemberService,
+		validator,
+	), nil
+}
+
+type NewModule struct {
 	injector *do.Injector
 }
 
-func NewModule(i *do.Injector) *Module {
-	return &Module{injector: i}
+func NewAuthModule(i *do.Injector) *NewModule {
+	return &NewModule{injector: i}
 }
 
-func (m *Module) RegisterRoutes(v1 *echo.Group) {
-	authHandler := do.MustInvoke[*handlers.AuthHandler](m.injector)
-	teamMemberHandler := do.MustInvoke[*handlers.TeamMemberHandler](m.injector)
+func (m *NewModule) RegisterRoutes(v1 *echo.Group) {
+	authController := do.MustInvoke[*authcontroller.AuthController](m.injector)
+	teamController := do.MustInvoke[*authcontroller.TeamController](m.injector)
+	authMiddleware := do.MustInvoke[*authmiddleware.AuthMiddleware](m.injector)
 	
-	middlewareProvider := do.MustInvoke[*sharedMiddleware.MiddlewareProvider](m.injector)
-	auth := v1.Group("/auth")
-	auth.POST("/register", authHandler.Register)
-	auth.POST("/login", authHandler.Login)
-	auth.POST("/refresh", authHandler.RefreshToken)
-	auth.GET("/verify-email", authHandler.VerifyEmail)
-	auth.POST("/resend-verification", authHandler.ResendVerificationEmail)
-	auth.POST("/forgot-password", authHandler.SendPasswordReset)
-	auth.POST("/reset-password", authHandler.ResetPassword)
-	authProtected := v1.Group("/auth")
-	authProtected.Use(middlewareProvider.AuthMiddleware())
-	authProtected.PUT("/profile", authHandler.UpdateProfile)
-	authProtected.POST("/deactivate", authHandler.RequestDeactivation)
-	authProtected.POST("/deactivate/cancel", authHandler.CancelDeactivation)
-	authProtected.POST("/email-change", authHandler.ChangeEmail)
-	authProtected.POST("/email-change/confirm", authHandler.ConfirmEmailChange)
-	authProtected.POST("/send-verification", authHandler.SendEmailVerification)
-	team := v1.Group("/team")
-	team.Use(middlewareProvider.AuthMiddleware())
-	team.GET("/members", teamMemberHandler.ListMembers)
-	team.POST("/members/invite", teamMemberHandler.InviteMember)
-	team.POST("/members/:id/resend-invitation", teamMemberHandler.ResendInvitation)
-	team.PUT("/members/:id/role", teamMemberHandler.UpdateRole)
-	team.DELETE("/members/:id", teamMemberHandler.RemoveMember)
-	teams := v1.Group("/teams")
-	teams.Use(middlewareProvider.AuthMiddleware())
-	teams.GET("/:teamId/members", teamMemberHandler.ListMembers)
-	teams.POST("/:teamId/invitations", teamMemberHandler.InviteMember)
-	teams.POST("/:teamId/invitations/:invitationId/resend", teamMemberHandler.ResendInvitation)
-	teams.PUT("/:teamId/members/:memberId", teamMemberHandler.UpdateRole)
-	teams.DELETE("/:teamId/members/:memberId", teamMemberHandler.RemoveMember)
-	teams.POST("/accept-invitation", teamMemberHandler.AcceptInvitation)
-	v1.POST("/team/accept-invite", teamMemberHandler.AcceptInvitation)
+	// Register routes with the middleware
+	authController.RegisterRoutes(v1, authMiddleware.RequireAuth())
+	teamController.RegisterRoutes(v1, authMiddleware.RequireAuth())
+}
+
+func RegisterNewModule(container *do.Injector) error {
+	do.Provide(container, ProvideAccountRepository)
+	do.Provide(container, ProvideTokenRepository)
+	do.Provide(container, ProvideTeamMemberRepository)
+	do.Provide(container, ProvideTeamInvitationRepository)
+	do.Provide(container, ProvidePasswordHasher)
+	do.Provide(container, ProvideTokenGenerator)
+	do.Provide(container, ProvideAuthService)
+	do.Provide(container, ProvideAuthMiddleware)
+	do.Provide(container, ProvideAuthController)
+	do.Provide(container, ProvideTeamController)
+
+	return nil
 }

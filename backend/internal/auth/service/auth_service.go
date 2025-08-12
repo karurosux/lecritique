@@ -1,93 +1,50 @@
-package services
+package authservice
 
 import (
 	"context"
-	"kyooar/internal/auth/models"
-	"kyooar/internal/auth/repositories"
-	"kyooar/internal/shared/config"
-	"kyooar/internal/shared/errors"
-	"kyooar/internal/shared/services"
 	"log"
 	"net/http"
 	"time"
 
-	subscriptionServices "kyooar/internal/subscription/services"
-
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
-	"github.com/samber/do"
+
+	authinterface "kyooar/internal/auth/interface"
+	"kyooar/internal/auth/models"
+	"kyooar/internal/shared/config"
+	"kyooar/internal/shared/errors"
+	"kyooar/internal/shared/services"
+	subscriptionServices "kyooar/internal/subscription/services"
 )
 
-type RegisterData struct {
-	Email     string
-	Password  string
-	Name      string
-	FirstName string
-	LastName  string
-}
-
-type AuthService interface {
-	Register(ctx context.Context, data RegisterData) (*models.Account, error)
-	Login(ctx context.Context, email, password string) (string, *models.Account, error)
-	ValidateToken(tokenString string) (*Claims, error)
-	RefreshToken(ctx context.Context, oldToken string) (string, error)
-	SendEmailVerification(ctx context.Context, accountID uuid.UUID) error
-	ResendVerificationEmail(ctx context.Context, email string) error
-	VerifyEmail(ctx context.Context, token string) error
-	SendPasswordReset(ctx context.Context, email string) error
-	ResetPassword(ctx context.Context, token, newPassword string) error
-	RequestEmailChange(ctx context.Context, accountID uuid.UUID, newEmail string) (string, error)
-	ConfirmEmailChange(ctx context.Context, token string) (string, error)
-	RequestDeactivation(ctx context.Context, accountID uuid.UUID) error
-	CancelDeactivation(ctx context.Context, accountID uuid.UUID) error
-	ProcessPendingDeactivations(ctx context.Context) error
-	UpdateProfile(ctx context.Context, accountID uuid.UUID, updates map[string]interface{}) (*models.Account, error)
-	GetAccountByEmail(ctx context.Context, email string) (*models.Account, error)
-}
-
-type authService struct {
-	accountRepo         repositories.AccountRepository
-	tokenRepo           repositories.TokenRepository
+type AuthService struct {
+	accountRepo         authinterface.AccountRepository
+	tokenRepo           authinterface.TokenRepository
 	emailService        services.EmailService
-	teamService         TeamMemberServiceV2
+	teamService         authinterface.TeamMemberService
 	subscriptionService subscriptionServices.SubscriptionService
 	config              *config.Config
 }
 
-type SubscriptionFeatures struct {
-	MaxOrganizations       int  `json:"max_organizations"`
-	MaxQRCodes           int  `json:"max_qr_codes"`
-	MaxFeedbacksPerMonth int  `json:"max_feedbacks_per_month"`
-	MaxTeamMembers       int  `json:"max_team_members"`
-	HasBasicAnalytics    bool `json:"has_basic_analytics"`
-	HasAdvancedAnalytics bool `json:"has_advanced_analytics"`
-	HasFeedbackExplorer  bool `json:"has_feedback_explorer"`
-	HasCustomBranding    bool `json:"has_custom_branding"`
-	HasPrioritySupport   bool `json:"has_priority_support"`
+func NewAuthService(
+	accountRepo authinterface.AccountRepository,
+	tokenRepo authinterface.TokenRepository,
+	emailService services.EmailService,
+	teamService authinterface.TeamMemberService,
+	subscriptionService subscriptionServices.SubscriptionService,
+	config *config.Config,
+) authinterface.AuthService {
+	return &AuthService{
+		accountRepo:         accountRepo,
+		tokenRepo:           tokenRepo,
+		emailService:        emailService,
+		teamService:         teamService,
+		subscriptionService: subscriptionService,
+		config:              config,
+	}
 }
 
-type Claims struct {
-	AccountID            uuid.UUID             `json:"account_id"`
-	MemberID             uuid.UUID             `json:"member_id"`
-	Name                 string                `json:"name"`
-	Email                string                `json:"email"`
-	Role                 models.MemberRole     `json:"role"`
-	SubscriptionFeatures *SubscriptionFeatures `json:"subscription_features,omitempty"`
-	jwt.RegisteredClaims
-}
-
-func NewAuthService(i *do.Injector) (AuthService, error) {
-	return &authService{
-		accountRepo:         do.MustInvoke[repositories.AccountRepository](i),
-		tokenRepo:           do.MustInvoke[repositories.TokenRepository](i),
-		emailService:        do.MustInvoke[services.EmailService](i),
-		teamService:         do.MustInvoke[TeamMemberServiceV2](i),
-		subscriptionService: do.MustInvoke[subscriptionServices.SubscriptionService](i),
-		config:              do.MustInvoke[*config.Config](i),
-	}, nil
-}
-
-func (s *authService) Register(ctx context.Context, data RegisterData) (*models.Account, error) {
+func (s *AuthService) Register(ctx context.Context, data authinterface.RegisterData) (*models.Account, error) {
 	existing, _ := s.accountRepo.FindByEmail(ctx, data.Email)
 	if existing != nil {
 		return nil, errors.ErrConflict
@@ -97,8 +54,8 @@ func (s *authService) Register(ctx context.Context, data RegisterData) (*models.
 		Email:     data.Email,
 		Name:      data.Name,
 		FirstName: data.FirstName,
-		LastName:    data.LastName,
-		IsActive:    true,
+		LastName:  data.LastName,
+		IsActive:  true,
 	}
 
 	if err := account.SetPassword(data.Password); err != nil {
@@ -120,7 +77,7 @@ func (s *authService) Register(ctx context.Context, data RegisterData) (*models.
 	return account, nil
 }
 
-func (s *authService) Login(ctx context.Context, email, password string) (string, *models.Account, error) {
+func (s *AuthService) Login(ctx context.Context, email, password string) (string, *models.Account, error) {
 	account, err := s.accountRepo.FindByEmail(ctx, email)
 	if err != nil {
 		return "", nil, errors.ErrInvalidCredentials
@@ -153,20 +110,13 @@ func (s *authService) Login(ctx context.Context, email, password string) (string
 	return token, account, nil
 }
 
-func (s *authService) generateToken(account *models.Account) (string, error) {
-	claims := &Claims{
+func (s *AuthService) generateToken(account *models.Account) (string, error) {
+	claims := &authinterface.Claims{
 		AccountID: account.ID,
 		MemberID:  account.ID,
 		Name:      account.Name,
 		Email:     account.Email,
 		Role:      models.RoleOwner,
-		RegisteredClaims: jwt.RegisteredClaims{
-			ExpiresAt: jwt.NewNumericDate(time.Now().Add(s.config.JWT.Expiration)),
-			IssuedAt:  jwt.NewNumericDate(time.Now()),
-			NotBefore: jwt.NewNumericDate(time.Now()),
-			Issuer:    s.config.App.Name,
-			Subject:   account.ID.String(),
-		},
 	}
 
 	teamMember, err := s.teamService.GetMemberByMemberID(context.Background(), account.ID)
@@ -179,45 +129,69 @@ func (s *authService) generateToken(account *models.Account) (string, error) {
 		claims.Role = teamMember.Role
 	}
 
-	subscription, err := s.subscriptionService.GetUserSubscription(context.Background(), claims.AccountID)
-	if err != nil {
-		log.Printf("Could not get subscription for account %s: %v", claims.AccountID, err)
-	}
+	if s.subscriptionService != nil {
+		subscription, err := s.subscriptionService.GetUserSubscription(context.Background(), claims.AccountID)
+		if err != nil {
+			log.Printf("Could not get subscription for account %s: %v", claims.AccountID, err)
+		}
 
-	if subscription != nil && subscription.IsActive() {
-		claims.SubscriptionFeatures = &SubscriptionFeatures{
-			MaxOrganizations:       subscription.Plan.MaxOrganizations,
-			MaxQRCodes:           subscription.Plan.MaxQRCodes,
-			MaxFeedbacksPerMonth: subscription.Plan.MaxFeedbacksPerMonth,
-			MaxTeamMembers:       subscription.Plan.MaxTeamMembers,
-			HasBasicAnalytics:    subscription.Plan.HasBasicAnalytics,
-			HasAdvancedAnalytics: subscription.Plan.HasAdvancedAnalytics,
-			HasFeedbackExplorer:  subscription.Plan.HasFeedbackExplorer,
-			HasCustomBranding:    subscription.Plan.HasCustomBranding,
-			HasPrioritySupport:   subscription.Plan.HasPrioritySupport,
+		if subscription != nil && subscription.IsActive() {
+			claims.SubscriptionFeatures = &authinterface.SubscriptionFeatures{
+				MaxOrganizations:       subscription.Plan.MaxOrganizations,
+				MaxQRCodes:           subscription.Plan.MaxQRCodes,
+				MaxFeedbacksPerMonth: subscription.Plan.MaxFeedbacksPerMonth,
+				MaxTeamMembers:       subscription.Plan.MaxTeamMembers,
+				HasBasicAnalytics:    subscription.Plan.HasBasicAnalytics,
+				HasAdvancedAnalytics: subscription.Plan.HasAdvancedAnalytics,
+				HasFeedbackExplorer:  subscription.Plan.HasFeedbackExplorer,
+				HasCustomBranding:    subscription.Plan.HasCustomBranding,
+				HasPrioritySupport:   subscription.Plan.HasPrioritySupport,
+			}
 		}
 	}
 
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+		"account_id":             claims.AccountID.String(),
+		"member_id":              claims.MemberID.String(),
+		"name":                   claims.Name,
+		"email":                  claims.Email,
+		"role":                   string(claims.Role),
+		"subscription_features":  claims.SubscriptionFeatures,
+		"exp":                    time.Now().Add(s.config.JWT.Expiration).Unix(),
+		"iat":                    time.Now().Unix(),
+		"nbf":                    time.Now().Unix(),
+		"iss":                    s.config.App.Name,
+		"sub":                    account.ID.String(),
+	})
+
 	return token.SignedString([]byte(s.config.JWT.Secret))
 }
 
-func (s *authService) ValidateToken(tokenString string) (*Claims, error) {
-	token, err := jwt.ParseWithClaims(tokenString, &Claims{}, func(token *jwt.Token) (interface{}, error) {
+func (s *AuthService) ValidateToken(tokenString string) (*authinterface.Claims, error) {
+	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
 		return []byte(s.config.JWT.Secret), nil
 	})
 	if err != nil {
 		return nil, errors.ErrTokenInvalid
 	}
 
-	if claims, ok := token.Claims.(*Claims); ok && token.Valid {
-		return claims, nil
+	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
+		accountID, _ := uuid.Parse(claims["account_id"].(string))
+		memberID, _ := uuid.Parse(claims["member_id"].(string))
+		
+		return &authinterface.Claims{
+			AccountID: accountID,
+			MemberID:  memberID,
+			Name:      claims["name"].(string),
+			Email:     claims["email"].(string),
+			Role:      models.MemberRole(claims["role"].(string)),
+		}, nil
 	}
 
 	return nil, errors.ErrTokenInvalid
 }
 
-func (s *authService) RefreshToken(ctx context.Context, oldToken string) (string, error) {
+func (s *AuthService) RefreshToken(ctx context.Context, oldToken string) (string, error) {
 	claims, err := s.ValidateToken(oldToken)
 	if err != nil {
 		return "", err
@@ -231,7 +205,7 @@ func (s *authService) RefreshToken(ctx context.Context, oldToken string) (string
 	return s.generateToken(account)
 }
 
-func (s *authService) SendEmailVerification(ctx context.Context, accountID uuid.UUID) error {
+func (s *AuthService) SendEmailVerification(ctx context.Context, accountID uuid.UUID) error {
 	account, err := s.accountRepo.FindByID(ctx, accountID)
 	if err != nil {
 		return err
@@ -260,7 +234,7 @@ func (s *authService) SendEmailVerification(ctx context.Context, accountID uuid.
 	return s.emailService.SendVerificationEmail(ctx, account.Email, token)
 }
 
-func (s *authService) ResendVerificationEmail(ctx context.Context, email string) error {
+func (s *AuthService) ResendVerificationEmail(ctx context.Context, email string) error {
 	account, err := s.accountRepo.FindByEmail(ctx, email)
 	if err != nil {
 		log.Printf("Resend verification requested for non-existent email: %s", email)
@@ -294,7 +268,7 @@ func (s *authService) ResendVerificationEmail(ctx context.Context, email string)
 	return s.emailService.SendVerificationEmail(ctx, account.Email, token)
 }
 
-func (s *authService) VerifyEmail(ctx context.Context, token string) error {
+func (s *AuthService) VerifyEmail(ctx context.Context, token string) error {
 	verificationToken, err := s.tokenRepo.FindByToken(ctx, token)
 	if err != nil {
 		return errors.NewWithDetails("INVALID_TOKEN", "Invalid or expired verification token", 400, nil)
@@ -316,7 +290,7 @@ func (s *authService) VerifyEmail(ctx context.Context, token string) error {
 	return s.tokenRepo.MarkAsUsed(ctx, verificationToken.ID)
 }
 
-func (s *authService) SendPasswordReset(ctx context.Context, email string) error {
+func (s *AuthService) SendPasswordReset(ctx context.Context, email string) error {
 	account, err := s.accountRepo.FindByEmail(ctx, email)
 	if err != nil {
 		return nil
@@ -341,7 +315,7 @@ func (s *authService) SendPasswordReset(ctx context.Context, email string) error
 	return s.emailService.SendPasswordResetEmail(ctx, email, token)
 }
 
-func (s *authService) ResetPassword(ctx context.Context, token, newPassword string) error {
+func (s *AuthService) ResetPassword(ctx context.Context, token, newPassword string) error {
 	resetToken, err := s.tokenRepo.FindByToken(ctx, token)
 	if err != nil {
 		return errors.NewWithDetails("INVALID_TOKEN", "Invalid or expired reset token", 400, nil)
@@ -371,7 +345,7 @@ func (s *authService) ResetPassword(ctx context.Context, token, newPassword stri
 	return s.tokenRepo.MarkAsUsed(ctx, resetToken.ID)
 }
 
-func (s *authService) RequestEmailChange(ctx context.Context, accountID uuid.UUID, newEmail string) (string, error) {
+func (s *AuthService) RequestEmailChange(ctx context.Context, accountID uuid.UUID, newEmail string) (string, error) {
 	existingAccount, _ := s.accountRepo.FindByEmail(ctx, newEmail)
 	if existingAccount != nil {
 		return "", errors.NewWithDetails("EMAIL_EXISTS", "Email already in use", 400, nil)
@@ -394,7 +368,7 @@ func (s *authService) RequestEmailChange(ctx context.Context, accountID uuid.UUI
 		now := time.Now()
 		account.EmailVerifiedAt = &now
 
-			if err := s.accountRepo.Update(ctx, account); err != nil {
+		if err := s.accountRepo.Update(ctx, account); err != nil {
 			return "", err
 		}
 
@@ -432,7 +406,7 @@ func (s *authService) RequestEmailChange(ctx context.Context, accountID uuid.UUI
 	return "", nil
 }
 
-func (s *authService) ConfirmEmailChange(ctx context.Context, token string) (string, error) {
+func (s *AuthService) ConfirmEmailChange(ctx context.Context, token string) (string, error) {
 	changeToken, err := s.tokenRepo.FindByToken(ctx, token)
 	if err != nil {
 		return "", errors.NewWithDetails("INVALID_TOKEN", "Invalid or expired token", 400, nil)
@@ -477,7 +451,7 @@ func (s *authService) ConfirmEmailChange(ctx context.Context, token string) (str
 	return newToken, nil
 }
 
-func (s *authService) RequestDeactivation(ctx context.Context, accountID uuid.UUID) error {
+func (s *AuthService) RequestDeactivation(ctx context.Context, accountID uuid.UUID) error {
 	account, err := s.accountRepo.FindByID(ctx, accountID)
 	if err != nil {
 		return errors.ErrNotFound
@@ -505,7 +479,7 @@ func (s *authService) RequestDeactivation(ctx context.Context, accountID uuid.UU
 	return nil
 }
 
-func (s *authService) CancelDeactivation(ctx context.Context, accountID uuid.UUID) error {
+func (s *AuthService) CancelDeactivation(ctx context.Context, accountID uuid.UUID) error {
 	account, err := s.accountRepo.FindByID(ctx, accountID)
 	if err != nil {
 		return errors.ErrNotFound
@@ -529,7 +503,7 @@ func (s *authService) CancelDeactivation(ctx context.Context, accountID uuid.UUI
 	return nil
 }
 
-func (s *authService) ProcessPendingDeactivations(ctx context.Context) error {
+func (s *AuthService) ProcessPendingDeactivations(ctx context.Context) error {
 	accounts, err := s.accountRepo.FindAccountsPendingDeactivation(ctx)
 	if err != nil {
 		return err
@@ -557,7 +531,7 @@ func (s *authService) ProcessPendingDeactivations(ctx context.Context) error {
 	return nil
 }
 
-func (s *authService) UpdateProfile(ctx context.Context, accountID uuid.UUID, updates map[string]interface{}) (*models.Account, error) {
+func (s *AuthService) UpdateProfile(ctx context.Context, accountID uuid.UUID, updates map[string]interface{}) (*models.Account, error) {
 	if len(updates) == 0 {
 		return nil, errors.New("BAD_REQUEST", "No updates provided", http.StatusBadRequest)
 	}
@@ -582,6 +556,6 @@ func (s *authService) UpdateProfile(ctx context.Context, accountID uuid.UUID, up
 	return account, nil
 }
 
-func (s *authService) GetAccountByEmail(ctx context.Context, email string) (*models.Account, error) {
+func (s *AuthService) GetAccountByEmail(ctx context.Context, email string) (*models.Account, error) {
 	return s.accountRepo.FindByEmail(ctx, email)
 }

@@ -3,10 +3,10 @@ package middleware
 import (
 	"github.com/labstack/echo/v4"
 	"kyooar/internal/auth/models"
-	"kyooar/internal/auth/services"
+	authinterface "kyooar/internal/auth/interface"
 )
 
-func TeamAuthMiddleware(teamMemberService services.TeamMemberServiceV2) echo.MiddlewareFunc {
+func TeamAuthMiddleware(teamMemberService authinterface.TeamMemberService) echo.MiddlewareFunc {
 	
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {

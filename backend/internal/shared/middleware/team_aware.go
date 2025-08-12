@@ -6,10 +6,10 @@ import (
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	authModels "kyooar/internal/auth/models"
-	"kyooar/internal/auth/services"
+	authinterface "kyooar/internal/auth/interface"
 )
 
-func TeamAware(teamMemberService services.TeamMemberServiceV2) echo.MiddlewareFunc {
+func TeamAware(teamMemberService authinterface.TeamMemberService) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
 			ctx := c.Request().Context()

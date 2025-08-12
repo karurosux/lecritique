@@ -1,9 +1,11 @@
 package providers
 
 import (
-	authHandlers "kyooar/internal/auth/handlers"
-	authRepos "kyooar/internal/auth/repositories"
-	authServices "kyooar/internal/auth/services"
+	authController "kyooar/internal/auth/controller"
+	authRepos "kyooar/internal/auth/repository/gorm"
+	authServices "kyooar/internal/auth/service"
+	authinterface "kyooar/internal/auth/interface"
+	authmiddleware "kyooar/internal/auth/middleware"
 	
 	organizationHandlers "kyooar/internal/organization/handlers"
 	organizationRepos "kyooar/internal/organization/repositories"
@@ -32,6 +34,7 @@ import (
 	"kyooar/internal/shared/config"
 	"kyooar/internal/shared/middleware"
 	sharedServices "kyooar/internal/shared/services"
+	"kyooar/internal/shared/validator"
 	
 	"github.com/samber/do"
 	"gorm.io/gorm"
@@ -44,14 +47,95 @@ func RegisterAll(i *do.Injector, cfg *config.Config, db *gorm.DB) {
 	do.Provide(i, sharedServices.NewEmailService)
 	do.Provide(i, middleware.NewMiddlewareProvider)
 	
-	do.Provide(i, authRepos.NewAccountRepository)
-	do.Provide(i, authRepos.NewTokenRepository)
-	do.Provide(i, authRepos.NewTeamMemberRepository)
-	do.Provide(i, authRepos.NewTeamInvitationRepository)
-	do.Provide(i, authServices.NewAuthService)
-	do.Provide(i, authServices.NewTeamMemberServiceV2)
-	do.Provide(i, authHandlers.NewAuthHandler)
-	do.Provide(i, authHandlers.NewTeamMemberHandler)
+	// Auth repositories
+	do.Provide(i, func(i *do.Injector) (authinterface.AccountRepository, error) {
+		db := do.MustInvoke[*gorm.DB](i)
+		return authRepos.NewAccountRepository(db), nil
+	})
+	do.Provide(i, func(i *do.Injector) (authinterface.TokenRepository, error) {
+		db := do.MustInvoke[*gorm.DB](i)
+		return authRepos.NewTokenRepository(db), nil
+	})
+	do.Provide(i, func(i *do.Injector) (authinterface.TeamMemberRepository, error) {
+		db := do.MustInvoke[*gorm.DB](i)
+		return authRepos.NewTeamMemberRepository(db), nil
+	})
+	do.Provide(i, func(i *do.Injector) (authinterface.TeamInvitationRepository, error) {
+		db := do.MustInvoke[*gorm.DB](i)
+		return authRepos.NewTeamInvitationRepository(db), nil
+	})
+	
+	// Auth utility services
+	do.Provide(i, func(i *do.Injector) (authinterface.PasswordHasher, error) {
+		return authServices.NewBcryptPasswordHasher(12), nil
+	})
+	do.Provide(i, func(i *do.Injector) (authinterface.TokenGenerator, error) {
+		return authServices.NewTokenGenerator(), nil
+	})
+	
+	// Auth services - put TeamMemberService before AuthService to avoid dependency cycle
+	do.Provide(i, func(i *do.Injector) (authinterface.TeamMemberService, error) {
+		teamMemberRepo := do.MustInvoke[authinterface.TeamMemberRepository](i)
+		invitationRepo := do.MustInvoke[authinterface.TeamInvitationRepository](i)
+		accountRepo := do.MustInvoke[authinterface.AccountRepository](i)
+		tokenGenerator := do.MustInvoke[authinterface.TokenGenerator](i)
+		// emailSender will be nil for now
+		
+		return authServices.NewTeamMemberService(
+			teamMemberRepo,
+			invitationRepo,
+			accountRepo,
+			tokenGenerator,
+			nil, // emailSender - temporarily nil
+		), nil
+	})
+	
+	do.Provide(i, func(i *do.Injector) (authinterface.AuthService, error) {
+		accountRepo := do.MustInvoke[authinterface.AccountRepository](i)
+		tokenRepo := do.MustInvoke[authinterface.TokenRepository](i)
+		emailService := do.MustInvoke[sharedServices.EmailService](i)
+		teamService := do.MustInvoke[authinterface.TeamMemberService](i)
+		subscriptionService := do.MustInvoke[subscriptionServices.SubscriptionService](i)
+		config := do.MustInvoke[*config.Config](i)
+		
+		return authServices.NewAuthService(
+			accountRepo,
+			tokenRepo,
+			emailService,
+			teamService,
+			subscriptionService,
+			config,
+		), nil
+	})
+	
+	// Auth middleware
+	do.Provide(i, func(i *do.Injector) (*authmiddleware.AuthMiddleware, error) {
+		authService := do.MustInvoke[authinterface.AuthService](i)
+		return authmiddleware.NewAuthMiddleware(authService), nil
+	})
+	
+	// Auth controllers
+	do.Provide(i, func(i *do.Injector) (*authController.AuthController, error) {
+		authService := do.MustInvoke[authinterface.AuthService](i)
+		teamMemberService := do.MustInvoke[authinterface.TeamMemberService](i)
+		config := do.MustInvoke[*config.Config](i)
+		
+		return authController.NewAuthController(
+			authService,
+			teamMemberService,
+			validator.New(),
+			config,
+		), nil
+	})
+	
+	do.Provide(i, func(i *do.Injector) (*authController.TeamController, error) {
+		teamMemberService := do.MustInvoke[authinterface.TeamMemberService](i)
+		
+		return authController.NewTeamController(
+			teamMemberService,
+			validator.New(),
+		), nil
+	})
 	
 	do.Provide(i, organizationRepos.NewOrganizationRepository)
 	do.Provide(i, organizationServices.NewOrganizationService)

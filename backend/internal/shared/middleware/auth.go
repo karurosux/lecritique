@@ -5,13 +5,13 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/google/uuid"
-	"kyooar/internal/auth/services"
+	authinterface "kyooar/internal/auth/interface"
 	"kyooar/internal/auth/models"
 	"kyooar/internal/shared/errors"
 	"kyooar/internal/shared/response"
 )
 
-func JWTAuth(authService services.AuthService) echo.MiddlewareFunc {
+func JWTAuth(authService authinterface.AuthService) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
 			authHeader := c.Request().Header.Get("Authorization")
@@ -47,7 +47,6 @@ func JWTAuth(authService services.AuthService) echo.MiddlewareFunc {
 	}
 }
 
-func GetAccountID(c echo.Context) (uuid.UUID, error) {
 func GetAccountID(c echo.Context) (uuid.UUID, error) {
 	accountID, ok := c.Get("account_id").(uuid.UUID)
 	if !ok {
@@ -88,16 +87,16 @@ func GetRole(c echo.Context) (models.MemberRole, error) {
 	return role, nil
 }
 
-func GetClaims(c echo.Context) (*services.Claims, error) {
-	claims, ok := c.Get("claims").(*services.Claims)
+func GetClaims(c echo.Context) (*authinterface.Claims, error) {
+	claims, ok := c.Get("claims").(*authinterface.Claims)
 	if !ok {
 		return nil, errors.ErrUnauthorized
 	}
 	return claims, nil
 }
 
-func GetSubscriptionFeatures(c echo.Context) (*services.SubscriptionFeatures, error) {
-	features, ok := c.Get("subscription_features").(*services.SubscriptionFeatures)
+func GetSubscriptionFeatures(c echo.Context) (*authinterface.SubscriptionFeatures, error) {
+	features, ok := c.Get("subscription_features").(*authinterface.SubscriptionFeatures)
 	if !ok {
 		return nil, errors.New("SUBSCRIPTION_REQUIRED", "No subscription features available", 403)
 	}

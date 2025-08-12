@@ -8,7 +8,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	authModels "kyooar/internal/auth/models"
-	authServices "kyooar/internal/auth/services"
+	authinterface "kyooar/internal/auth/interface"
 	sharedErrors "kyooar/internal/shared/errors"
 	"kyooar/internal/shared/middleware"
 	sharedRepos "kyooar/internal/shared/repositories"
@@ -21,7 +21,7 @@ import (
 type SubscriptionHandler struct {
 	subscriptionService services.SubscriptionService
 	usageService        services.UsageService
-	teamMemberService   authServices.TeamMemberServiceV2
+	teamMemberService   authinterface.TeamMemberService
 	validator           *validator.Validator
 }
 
@@ -29,7 +29,7 @@ func NewSubscriptionHandler(i *do.Injector) (*SubscriptionHandler, error) {
 	return &SubscriptionHandler{
 		subscriptionService: do.MustInvoke[services.SubscriptionService](i),
 		usageService:        do.MustInvoke[services.UsageService](i),
-		teamMemberService:   do.MustInvoke[authServices.TeamMemberServiceV2](i),
+		teamMemberService:   do.MustInvoke[authinterface.TeamMemberService](i),
 		validator:           validator.New(),
 	}, nil
 }
