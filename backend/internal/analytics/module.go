@@ -12,7 +12,7 @@ import (
 	feedbackinterface "kyooar/internal/feedback/interface"
 	menuRepos "kyooar/internal/menu/repositories"
 	organizationinterface "kyooar/internal/organization/interface"
-	qrcodeRepos "kyooar/internal/qrcode/repositories"
+	qrcodeinterface "kyooar/internal/qrcode/interface"
 	sharedMiddleware "kyooar/internal/shared/middleware"
 )
 
@@ -30,7 +30,7 @@ func ProvideAnalyticsService(i *do.Injector) (analyticsinterface.AnalyticsServic
 	analyticsRepo := do.MustInvoke[analyticsinterface.AnalyticsRepository](i)
 	feedbackRepo := do.MustInvoke[feedbackinterface.FeedbackRepository](i)
 	productRepo := do.MustInvoke[menuRepos.ProductRepository](i)
-	qrCodeRepo := do.MustInvoke[qrcodeRepos.QRCodeRepository](i)
+	qrCodeRepo := do.MustInvoke[qrcodeinterface.QRCodeRepository](i)
 	organizationRepo := do.MustInvoke[organizationinterface.OrganizationRepository](i)
 
 	return analyticsservice.NewAnalyticsService(

@@ -1,41 +1,37 @@
-package handlers
+package qrcodecontroller
 
 import (
 	"net/http"
 
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
-	"kyooar/internal/qrcode/models"
-	"kyooar/internal/qrcode/services"
+	qrcodeinterface "kyooar/internal/qrcode/interface"
+	qrcodemodel "kyooar/internal/qrcode/model"
+	"kyooar/internal/shared/errors"
 	"kyooar/internal/shared/logger"
 	"kyooar/internal/shared/middleware"
+	"kyooar/internal/shared/response"
 	"kyooar/internal/shared/validator"
-	"github.com/samber/do"
 	"github.com/sirupsen/logrus"
 )
 
-type QRCodeHandler struct {
-	qrCodeService services.QRCodeService
+type QRCodeController struct {
+	qrCodeService qrcodeinterface.QRCodeService
 	validator     *validator.Validator
 }
 
-func NewQRCodeHandler(i *do.Injector) (*QRCodeHandler, error) {
-	return &QRCodeHandler{
-		qrCodeService: do.MustInvoke[services.QRCodeService](i),
+func NewQRCodeController(qrCodeService qrcodeinterface.QRCodeService) *QRCodeController {
+	return &QRCodeController{
+		qrCodeService: qrCodeService,
 		validator:     validator.New(),
-	}, nil
+	}
 }
 
 type GenerateQRCodeRequest struct {
 	OrganizationID uuid.UUID          `json:"organization_id" validate:"required"`
-	Type         models.QRCodeType  `json:"type" validate:"required,oneof=table location takeaway delivery general"`
+	Type         qrcodemodel.QRCodeType  `json:"type" validate:"required,oneof=table location takeaway delivery general"`
 	Label        string             `json:"label" validate:"required,min=1,max=100"`
 	Location     *string            `json:"location" validate:"omitempty,max=200"`
-}
-
-type GenerateQRCodeResponse struct {
-	Success bool           `json:"success"`
-	Data    *models.QRCode `json:"data"`
 }
 
 // @Summary Generate QR code
@@ -45,21 +41,21 @@ type GenerateQRCodeResponse struct {
 // @Produce json
 // @Security ApiKeyAuth
 // @Param qr_code body GenerateQRCodeRequest true "QR code information"
-// @Success 201 {object} GenerateQRCodeResponse
+// @Success 201 {object} response.Response{data=qrcodemodel.QRCode}
 // @Failure 400 {object} response.Response
 // @Failure 401 {object} response.Response
 // @Failure 500 {object} response.Response
 // @Router /api/v1/organizations/{organizationId}/qr-codes [post]
-func (h *QRCodeHandler) Generate(c echo.Context) error {
+func (h *QRCodeController) Generate(c echo.Context) error {
 	ctx := c.Request().Context()
 	
 	var req GenerateQRCodeRequest
 	if err := c.Bind(&req); err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, "Invalid request body")
+		return response.Error(c, errors.ErrBadRequest)
 	}
 
 	if err := h.validator.Validate(req); err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+		return response.Error(c, errors.NewWithDetails("VALIDATION_ERROR", "Validation failed", http.StatusBadRequest, h.validator.FormatErrors(err)))
 	}
 
 	resourceAccountID := middleware.GetResourceAccountID(c)
@@ -72,18 +68,10 @@ func (h *QRCodeHandler) Generate(c echo.Context) error {
 			"type":          req.Type,
 			"label":         req.Label,
 		})
-		return echo.NewHTTPError(http.StatusInternalServerError, "Failed to generate QR code")
+		return response.Error(c, err)
 	}
 
-	return c.JSON(http.StatusCreated, GenerateQRCodeResponse{
-		Success: true,
-		Data:    qrCode,
-	})
-}
-
-type QRCodeListResponse struct {
-	Success bool             `json:"success"`
-	Data    []models.QRCode  `json:"data"`
+	return response.Success(c, qrCode)
 }
 
 // @Summary Get QR codes by organization
@@ -93,17 +81,17 @@ type QRCodeListResponse struct {
 // @Produce json
 // @Security ApiKeyAuth
 // @Param organizationId path string true "Organization ID"
-// @Success 200 {object} QRCodeListResponse
+// @Success 200 {object} response.Response{data=[]qrcodemodel.QRCode}
 // @Failure 400 {object} response.Response
 // @Failure 401 {object} response.Response
 // @Failure 500 {object} response.Response
 // @Router /api/v1/organizations/{organizationId}/qr-codes [get]
-func (h *QRCodeHandler) GetByOrganization(c echo.Context) error {
+func (h *QRCodeController) GetByOrganization(c echo.Context) error {
 	ctx := c.Request().Context()
 	
 	organizationID, err := uuid.Parse(c.Param("organizationId"))
 	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, "Invalid organization ID")
+		return response.Error(c, errors.ErrBadRequest)
 	}
 
 	resourceAccountID := middleware.GetResourceAccountID(c)
@@ -114,13 +102,10 @@ func (h *QRCodeHandler) GetByOrganization(c echo.Context) error {
 			"account_id":    resourceAccountID,
 			"organization_id": organizationID,
 		})
-		return echo.NewHTTPError(http.StatusInternalServerError, "Failed to get QR codes")
+		return response.Error(c, err)
 	}
 
-	return c.JSON(http.StatusOK, QRCodeListResponse{
-		Success: true,
-		Data:    qrCodes,
-	})
+	return response.Success(c, qrCodes)
 }
 
 // @Summary Delete QR code
@@ -130,17 +115,17 @@ func (h *QRCodeHandler) GetByOrganization(c echo.Context) error {
 // @Produce json
 // @Security ApiKeyAuth
 // @Param id path string true "QR Code ID"
-// @Success 200 {object} map[string]interface{}
+// @Success 200 {object} response.Response{data=map[string]string}
 // @Failure 400 {object} response.Response
 // @Failure 401 {object} response.Response
 // @Failure 500 {object} response.Response
 // @Router /api/v1/qr-codes/{id} [delete]
-func (h *QRCodeHandler) Delete(c echo.Context) error {
+func (h *QRCodeController) Delete(c echo.Context) error {
 	ctx := c.Request().Context()
 	
 	qrCodeID, err := uuid.Parse(c.Param("id"))
 	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, "Invalid QR code ID")
+		return response.Error(c, errors.ErrBadRequest)
 	}
 
 	resourceAccountID := middleware.GetResourceAccountID(c)
@@ -150,11 +135,10 @@ func (h *QRCodeHandler) Delete(c echo.Context) error {
 			"account_id": resourceAccountID,
 			"qr_code_id": qrCodeID,
 		})
-		return echo.NewHTTPError(http.StatusInternalServerError, "Failed to delete QR code")
+		return response.Error(c, err)
 	}
 
-	return c.JSON(http.StatusOK, map[string]interface{}{
-		"success": true,
+	return response.Success(c, map[string]string{
 		"message": "QR code deleted successfully",
 	})
 }
@@ -165,11 +149,6 @@ type UpdateQRCodeRequest struct {
 	Location *string `json:"location" validate:"omitempty,max=200"`
 }
 
-type UpdateQRCodeResponse struct {
-	Success bool           `json:"success"`
-	Data    *models.QRCode `json:"data"`
-}
-
 // @Summary Update QR code
 // @Description Update QR code details like active status, label, or location
 // @Tags qr-codes
@@ -178,32 +157,32 @@ type UpdateQRCodeResponse struct {
 // @Security ApiKeyAuth
 // @Param id path string true "QR Code ID"
 // @Param qr_code body UpdateQRCodeRequest true "QR code update information"
-// @Success 200 {object} UpdateQRCodeResponse
+// @Success 200 {object} response.Response{data=qrcodemodel.QRCode}
 // @Failure 400 {object} response.Response
 // @Failure 401 {object} response.Response
 // @Failure 404 {object} response.Response
 // @Failure 500 {object} response.Response
 // @Router /api/v1/qr-codes/{id} [patch]
-func (h *QRCodeHandler) Update(c echo.Context) error {
+func (h *QRCodeController) Update(c echo.Context) error {
 	ctx := c.Request().Context()
 	
 	qrCodeID, err := uuid.Parse(c.Param("id"))
 	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, "Invalid QR code ID")
+		return response.Error(c, errors.ErrBadRequest)
 	}
 
 	resourceAccountID := middleware.GetResourceAccountID(c)
 
 	var req UpdateQRCodeRequest
 	if err := c.Bind(&req); err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, "Invalid request body")
+		return response.Error(c, errors.ErrBadRequest)
 	}
 
 	if err := h.validator.Validate(&req); err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+		return response.Error(c, errors.NewWithDetails("VALIDATION_ERROR", "Validation failed", http.StatusBadRequest, h.validator.FormatErrors(err)))
 	}
 
-	serviceReq := &services.UpdateQRCodeRequest{
+	serviceReq := &qrcodeinterface.UpdateQRCodeRequest{
 		IsActive: req.IsActive,
 		Label:    req.Label,
 		Location: req.Location,
@@ -215,11 +194,8 @@ func (h *QRCodeHandler) Update(c echo.Context) error {
 			"account_id": resourceAccountID,
 			"qr_code_id": qrCodeID,
 		})
-		return echo.NewHTTPError(http.StatusInternalServerError, "Failed to update QR code")
+		return response.Error(c, err)
 	}
 
-	return c.JSON(http.StatusOK, UpdateQRCodeResponse{
-		Success: true,
-		Data:    updatedQRCode,
-	})
+	return response.Success(c, updatedQRCode)
 }

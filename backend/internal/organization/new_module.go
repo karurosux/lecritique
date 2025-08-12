@@ -11,7 +11,7 @@ import (
 	organizationinterface "kyooar/internal/organization/interface"
 	gormrepo "kyooar/internal/organization/repository/gorm"
 	organizationservice "kyooar/internal/organization/service"
-	qrcodeHandlers "kyooar/internal/qrcode/handlers"
+	qrcodecontroller "kyooar/internal/qrcode/controller"
 	sharedMiddleware "kyooar/internal/shared/middleware"
 	subscriptionMiddleware "kyooar/internal/subscription/middleware"
 	subscriptionRepos "kyooar/internal/subscription/repositories"
@@ -35,7 +35,7 @@ func ProvideOrganizationService(i *do.Injector) (organizationinterface.Organizat
 func ProvideOrganizationController(i *do.Injector) (*organizationcontroller.OrganizationController, error) {
 	organizationService := do.MustInvoke[organizationinterface.OrganizationService](i)
 	productHandler := do.MustInvoke[*menuHandlers.ProductHandler](i)
-	qrCodeHandler := do.MustInvoke[*qrcodeHandlers.QRCodeHandler](i)
+	qrCodeHandler := do.MustInvoke[*qrcodecontroller.QRCodeController](i)
 	feedbackController := do.MustInvoke[*feedbackcontroller.FeedbackController](i)
 	questionnaireController := do.MustInvoke[*feedbackcontroller.QuestionnaireController](i)
 	questionController := do.MustInvoke[*feedbackcontroller.QuestionController](i)

@@ -7,7 +7,7 @@ import (
 	"github.com/google/uuid"
 	models "kyooar/internal/analytics/model"
 	feedbackmodel "kyooar/internal/feedback/model"
-	qrcodeModels "kyooar/internal/qrcode/models"
+	qrcodemodel "kyooar/internal/qrcode/model"
 	"gorm.io/gorm"
 )
 
@@ -108,7 +108,7 @@ func (r *AnalyticsRepository) GetQRCodeMetrics(ctx context.Context, organization
 	todayStart := time.Now().Truncate(24 * time.Hour)
 	
 	err := r.db.WithContext(ctx).
-		Model(&qrcodeModels.QRCode{}).
+		Model(&qrcodemodel.QRCode{}).
 		Select(`
 			COUNT(*) as total_qr_codes,
 			COUNT(CASE WHEN is_active = true THEN 1 END) as active_count,

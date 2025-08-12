@@ -15,8 +15,8 @@ import (
 	feedbackmodel "kyooar/internal/feedback/model"
 	feedbackinterface "kyooar/internal/feedback/interface"
 	menuRepos "kyooar/internal/menu/repositories"
-	qrcodeModels "kyooar/internal/qrcode/models"
-	qrcodeRepos "kyooar/internal/qrcode/repositories"
+	qrcodemodel "kyooar/internal/qrcode/model"
+	qrcodeinterface "kyooar/internal/qrcode/interface"
 	organizationinterface "kyooar/internal/organization/interface"
 	"kyooar/internal/shared/logger"
 	"github.com/sirupsen/logrus"
@@ -26,7 +26,7 @@ type AnalyticsService struct {
 	analyticsRepo    analyticsinterface.AnalyticsRepository
 	feedbackRepo     feedbackinterface.FeedbackRepository
 	productRepo      menuRepos.ProductRepository
-	qrCodeRepo       qrcodeRepos.QRCodeRepository
+	qrCodeRepo       qrcodeinterface.QRCodeRepository
 	organizationRepo organizationinterface.OrganizationRepository
 }
 
@@ -34,7 +34,7 @@ func NewAnalyticsService(
 	analyticsRepo analyticsinterface.AnalyticsRepository,
 	feedbackRepo feedbackinterface.FeedbackRepository,
 	productRepo menuRepos.ProductRepository,
-	qrCodeRepo qrcodeRepos.QRCodeRepository,
+	qrCodeRepo qrcodeinterface.QRCodeRepository,
 	organizationRepo organizationinterface.OrganizationRepository,
 ) *AnalyticsService {
 	return &AnalyticsService{
@@ -601,7 +601,7 @@ func (s *AnalyticsService) getAverageResponseTimeFromFeedback(ctx context.Contex
 		return 0
 	}
 	
-	qrCodeMap := make(map[uuid.UUID]*qrcodeModels.QRCode)
+	qrCodeMap := make(map[uuid.UUID]*qrcodemodel.QRCode)
 	for i := range qrCodes {
 		qrCodeMap[qrCodes[i].ID] = &qrCodes[i]
 	}

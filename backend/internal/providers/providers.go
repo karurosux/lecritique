@@ -15,9 +15,6 @@ import (
 	menuServices "kyooar/internal/menu/services"
 	
 	
-	qrcodeHandlers "kyooar/internal/qrcode/handlers"
-	qrcodeRepos "kyooar/internal/qrcode/repositories"
-	qrcodeServices "kyooar/internal/qrcode/services"
 	
 	analytics "kyooar/internal/analytics"
 	feedback "kyooar/internal/feedback"
@@ -143,10 +140,7 @@ func RegisterAll(i *do.Injector, cfg *config.Config, db *gorm.DB) {
 	
 	// Feedback repositories, services and handlers are now provided by the new feedback module
 	
-	do.Provide(i, qrcodeRepos.NewQRCodeRepository)
-	do.Provide(i, qrcodeServices.NewQRCodeService)
-	do.Provide(i, qrcodeHandlers.NewQRCodeHandler)
-	do.Provide(i, qrcodeHandlers.NewQRCodePublicHandler)
+	// QR code providers are now in the qrcode module
 	
 	// Analytics module registration
 	analytics.RegisterModule(i)

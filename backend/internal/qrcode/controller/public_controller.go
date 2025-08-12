@@ -1,23 +1,22 @@
-package handlers
+package qrcodecontroller
 
 import (
 	"github.com/labstack/echo/v4"
-	qrcodeServices "kyooar/internal/qrcode/services"
+	qrcodeinterface "kyooar/internal/qrcode/interface"
 	"kyooar/internal/shared/errors"
 	"kyooar/internal/shared/logger"
 	"kyooar/internal/shared/response"
-	"github.com/samber/do"
 	"github.com/sirupsen/logrus"
 )
 
-type QRCodePublicHandler struct {
-	qrCodeService qrcodeServices.QRCodeService
+type PublicController struct {
+	qrCodeService qrcodeinterface.QRCodeService
 }
 
-func NewQRCodePublicHandler(i *do.Injector) (*QRCodePublicHandler, error) {
-	return &QRCodePublicHandler{
-		qrCodeService: do.MustInvoke[qrcodeServices.QRCodeService](i),
-	}, nil
+func NewPublicController(qrCodeService qrcodeinterface.QRCodeService) *PublicController {
+	return &PublicController{
+		qrCodeService: qrCodeService,
+	}
 }
 
 // @Summary Validate QR code
@@ -26,11 +25,11 @@ func NewQRCodePublicHandler(i *do.Injector) (*QRCodePublicHandler, error) {
 // @Accept json
 // @Produce json
 // @Param code path string true "QR Code"
-// @Success 200 {object} map[string]interface{}
+// @Success 200 {object} response.Response{data=qrcodemodel.QRCode}
 // @Failure 400 {object} response.Response
 // @Failure 404 {object} response.Response
 // @Router /api/v1/public/qr/{code} [get]
-func (h *QRCodePublicHandler) ValidateQRCode(c echo.Context) error {
+func (h *PublicController) ValidateQRCode(c echo.Context) error {
 	ctx := c.Request().Context()
 	code := c.Param("code")
 	if code == "" {

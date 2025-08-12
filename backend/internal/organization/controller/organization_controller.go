@@ -9,7 +9,7 @@ import (
 	menuHandlers "kyooar/internal/menu/handlers"
 	organizationinterface "kyooar/internal/organization/interface"
 	organizationmodel "kyooar/internal/organization/model"
-	qrcodeHandlers "kyooar/internal/qrcode/handlers"
+	qrcodecontroller "kyooar/internal/qrcode/controller"
 	"kyooar/internal/shared/errors"
 	sharedMiddleware "kyooar/internal/shared/middleware"
 	"kyooar/internal/shared/response"
@@ -21,7 +21,7 @@ import (
 type OrganizationController struct {
 	organizationService     organizationinterface.OrganizationService
 	productHandler         *menuHandlers.ProductHandler
-	qrCodeHandler          *qrcodeHandlers.QRCodeHandler
+	qrCodeHandler          *qrcodecontroller.QRCodeController
 	feedbackController     *feedbackcontroller.FeedbackController
 	questionnaireController *feedbackcontroller.QuestionnaireController
 	questionController     *feedbackcontroller.QuestionController
@@ -31,7 +31,7 @@ type OrganizationController struct {
 func NewOrganizationController(
 	organizationService organizationinterface.OrganizationService,
 	productHandler *menuHandlers.ProductHandler,
-	qrCodeHandler *qrcodeHandlers.QRCodeHandler,
+	qrCodeHandler *qrcodecontroller.QRCodeController,
 	feedbackController *feedbackcontroller.FeedbackController,
 	questionnaireController *feedbackcontroller.QuestionnaireController,
 	questionController *feedbackcontroller.QuestionController,

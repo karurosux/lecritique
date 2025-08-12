@@ -1,4 +1,4 @@
-package services
+package qrcodeservice
 
 import (
 	"context"
@@ -8,41 +8,28 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"kyooar/internal/qrcode/models"
-	qrcodeRepos "kyooar/internal/qrcode/repositories"
 	organizationinterface "kyooar/internal/organization/interface"
+	qrcodeinterface "kyooar/internal/qrcode/interface"
+	qrcodemodel "kyooar/internal/qrcode/model"
 	sharedRepos "kyooar/internal/shared/repositories"
-	"github.com/samber/do"
 )
 
-type UpdateQRCodeRequest struct {
-	IsActive *bool   `json:"is_active"`
-	Label    *string `json:"label"`
-	Location *string `json:"location"`
-}
-
-type QRCodeService interface {
-	Generate(ctx context.Context, accountID uuid.UUID, organizationID uuid.UUID, qrType models.QRCodeType, label string, location *string) (*models.QRCode, error)
-	GetByCode(ctx context.Context, code string) (*models.QRCode, error)
-	GetByOrganizationID(ctx context.Context, accountID uuid.UUID, organizationID uuid.UUID) ([]models.QRCode, error)
-	Update(ctx context.Context, accountID uuid.UUID, qrCodeID uuid.UUID, updateReq *UpdateQRCodeRequest) (*models.QRCode, error)
-	Delete(ctx context.Context, accountID uuid.UUID, qrCodeID uuid.UUID) error
-	RecordScan(ctx context.Context, code string) error
-}
-
 type qrCodeService struct {
-	qrCodeRepo     qrcodeRepos.QRCodeRepository
+	qrCodeRepo       qrcodeinterface.QRCodeRepository
 	organizationRepo organizationinterface.OrganizationRepository
 }
 
-func NewQRCodeService(i *do.Injector) (QRCodeService, error) {
+func NewQRCodeService(
+	qrCodeRepo qrcodeinterface.QRCodeRepository,
+	organizationRepo organizationinterface.OrganizationRepository,
+) qrcodeinterface.QRCodeService {
 	return &qrCodeService{
-		qrCodeRepo:     do.MustInvoke[qrcodeRepos.QRCodeRepository](i),
-		organizationRepo: do.MustInvoke[organizationinterface.OrganizationRepository](i),
-	}, nil
+		qrCodeRepo:       qrCodeRepo,
+		organizationRepo: organizationRepo,
+	}
 }
 
-func (s *qrCodeService) Generate(ctx context.Context, accountID uuid.UUID, organizationID uuid.UUID, qrType models.QRCodeType, label string, location *string) (*models.QRCode, error) {
+func (s *qrCodeService) Generate(ctx context.Context, accountID uuid.UUID, organizationID uuid.UUID, qrType qrcodemodel.QRCodeType, label string, location *string) (*qrcodemodel.QRCode, error) {
 	organization, err := s.organizationRepo.FindByID(ctx, organizationID)
 	if err != nil {
 		return nil, err
@@ -57,7 +44,7 @@ func (s *qrCodeService) Generate(ctx context.Context, accountID uuid.UUID, organ
 		return nil, err
 	}
 
-	qrCode := &models.QRCode{
+	qrCode := &qrcodemodel.QRCode{
 		OrganizationID: organizationID,
 		Code:         code,
 		Type:         qrType,
@@ -73,7 +60,7 @@ func (s *qrCodeService) Generate(ctx context.Context, accountID uuid.UUID, organ
 	return qrCode, nil
 }
 
-func (s *qrCodeService) GetByCode(ctx context.Context, code string) (*models.QRCode, error) {
+func (s *qrCodeService) GetByCode(ctx context.Context, code string) (*qrcodemodel.QRCode, error) {
 	qrCode, err := s.qrCodeRepo.FindByCode(ctx, code)
 	if err != nil {
 		return nil, err
@@ -86,7 +73,7 @@ func (s *qrCodeService) GetByCode(ctx context.Context, code string) (*models.QRC
 	return qrCode, nil
 }
 
-func (s *qrCodeService) GetByOrganizationID(ctx context.Context, accountID uuid.UUID, organizationID uuid.UUID) ([]models.QRCode, error) {
+func (s *qrCodeService) GetByOrganizationID(ctx context.Context, accountID uuid.UUID, organizationID uuid.UUID) ([]qrcodemodel.QRCode, error) {
 	organization, err := s.organizationRepo.FindByID(ctx, organizationID)
 	if err != nil {
 		return nil, err
@@ -99,7 +86,7 @@ func (s *qrCodeService) GetByOrganizationID(ctx context.Context, accountID uuid.
 	return s.qrCodeRepo.FindByOrganizationID(ctx, organizationID)
 }
 
-func (s *qrCodeService) Update(ctx context.Context, accountID uuid.UUID, qrCodeID uuid.UUID, updateReq *UpdateQRCodeRequest) (*models.QRCode, error) {
+func (s *qrCodeService) Update(ctx context.Context, accountID uuid.UUID, qrCodeID uuid.UUID, updateReq *qrcodeinterface.UpdateQRCodeRequest) (*qrcodemodel.QRCode, error) {
 	qrCode, err := s.qrCodeRepo.FindByID(ctx, qrCodeID)
 	if err != nil {
 		return nil, err

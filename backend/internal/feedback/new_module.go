@@ -13,7 +13,7 @@ import (
 	menuRepos "kyooar/internal/menu/repositories"
 	menuServices "kyooar/internal/menu/services"
 	organizationinterface "kyooar/internal/organization/interface"
-	qrcodeRepos "kyooar/internal/qrcode/repositories"
+	qrcodeinterface "kyooar/internal/qrcode/interface"
 	"kyooar/internal/shared/config"
 )
 
@@ -35,7 +35,7 @@ func ProvideQuestionnaireRepository(i *do.Injector) (feedbackinterface.Questionn
 func ProvideFeedbackService(i *do.Injector) (feedbackinterface.FeedbackService, error) {
 	feedbackRepo := do.MustInvoke[feedbackinterface.FeedbackRepository](i)
 	organizationRepo := do.MustInvoke[organizationinterface.OrganizationRepository](i)
-	qrCodeRepo := do.MustInvoke[qrcodeRepos.QRCodeRepository](i)
+	qrCodeRepo := do.MustInvoke[qrcodeinterface.QRCodeRepository](i)
 
 	return feedbackservice.NewFeedbackService(
 		feedbackRepo,

@@ -91,6 +91,11 @@ func (s *Server) setupRoutes() {
 	authMod := authModule.NewAuthModule(s.injector)
 	authMod.RegisterRoutes(v1)
 	
+	// Register QRCode module before Organization module since Organization depends on it
+	qrcodeModule.RegisterNewModule(s.injector)
+	qrcodeMod := qrcodeModule.NewQRCodeModule(s.injector)
+	qrcodeMod.RegisterRoutes(v1)
+	
 	organizationMod := organizationModule.NewOrganizationModule(s.injector)
 	organizationMod.RegisterRoutes(v1)
 	
@@ -99,9 +104,6 @@ func (s *Server) setupRoutes() {
 	
 	feedbackMod := feedbackModule.NewModule(s.injector)
 	feedbackMod.RegisterRoutes(v1)
-	
-	qrcodeMod := qrcodeModule.NewModule(s.injector)
-	qrcodeMod.RegisterRoutes(v1)
 	
 	analyticsMod := analyticsModule.NewModule(s.injector)
 	analyticsMod.RegisterRoutes(v1)
