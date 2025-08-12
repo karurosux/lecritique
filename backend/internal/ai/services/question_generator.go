@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"strings"
 
-	"kyooar/internal/feedback/models"
+	feedbackmodel "kyooar/internal/feedback/model"
 	menuModels "kyooar/internal/menu/models"
 	"kyooar/internal/shared/config"
 )
@@ -21,7 +21,7 @@ type AIProvider interface {
 
 type GeneratedQuestion struct {
 	Text         string               `json:"text"`
-	Type         models.QuestionType  `json:"type"`
+	Type         feedbackmodel.QuestionType  `json:"type"`
 	Options      []string             `json:"options,omitempty"`
 	MinValue     *int                 `json:"min_value,omitempty"`
 	MaxValue     *int                 `json:"max_value,omitempty"`
@@ -49,9 +49,28 @@ func NewQuestionGenerator(cfg *config.Config) (*QuestionGenerator, error) {
 	}, nil
 }
 
-func (qg *QuestionGenerator) GenerateQuestionsForProduct(ctx context.Context, product *menuModels.Product) ([]GeneratedQuestion, error) {
+func (qg *QuestionGenerator) GenerateQuestionsForProduct(ctx context.Context, product *menuModels.Product) ([]*feedbackmodel.GeneratedQuestion, error) {
 	prompt := qg.buildPromptForProduct(product)
-	return qg.provider.GenerateQuestions(ctx, prompt)
+	aiQuestions, err := qg.provider.GenerateQuestions(ctx, prompt)
+	if err != nil {
+		return nil, err
+	}
+
+	// Convert from AI service GeneratedQuestion to feedback model GeneratedQuestion
+	result := make([]*feedbackmodel.GeneratedQuestion, len(aiQuestions))
+	for i, q := range aiQuestions {
+		result[i] = &feedbackmodel.GeneratedQuestion{
+			Text:     q.Text,
+			Type:     q.Type,
+			Options:  q.Options,
+			MinValue: q.MinValue,
+			MaxValue: q.MaxValue,
+			MinLabel: q.MinLabel,
+			MaxLabel: q.MaxLabel,
+		}
+	}
+	
+	return result, nil
 }
 
 func (qg *QuestionGenerator) buildPromptForProduct(product *menuModels.Product) string {

@@ -1,36 +1,38 @@
-package handlers
+package controller
 
 import (
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
-	feedbackModels "kyooar/internal/feedback/models"
-	feedbackRepos "kyooar/internal/feedback/repositories"
-	feedbackServices "kyooar/internal/feedback/services"
+	feedbackinterface "kyooar/internal/feedback/interface"
+	feedbackmodel "kyooar/internal/feedback/model"
 	menuRepos "kyooar/internal/menu/repositories"
 	"kyooar/internal/shared/errors"
 	"kyooar/internal/shared/logger"
 	"kyooar/internal/shared/response"
 	"kyooar/internal/shared/utils"
-	"github.com/samber/do"
 	"github.com/sirupsen/logrus"
 )
 
-type FeedbackPublicHandler struct {
-	feedbackService   feedbackServices.FeedbackService
+type PublicController struct {
+	feedbackService   feedbackinterface.FeedbackService
 	productRepo          menuRepos.ProductRepository
-	questionnaireRepo feedbackRepos.QuestionnaireRepository
-	questionRepo      feedbackRepos.QuestionRepository
+	questionnaireRepo feedbackinterface.QuestionnaireRepository
+	questionRepo      feedbackinterface.QuestionRepository
 }
 
-func NewFeedbackPublicHandler(i *do.Injector) (*FeedbackPublicHandler, error) {
-	return &FeedbackPublicHandler{
-		feedbackService:   do.MustInvoke[feedbackServices.FeedbackService](i),
-		productRepo:          do.MustInvoke[menuRepos.ProductRepository](i),
-		questionnaireRepo: do.MustInvoke[feedbackRepos.QuestionnaireRepository](i),
-		questionRepo:      do.MustInvoke[feedbackRepos.QuestionRepository](i),
-	}, nil
+func NewPublicController(
+	feedbackService feedbackinterface.FeedbackService,
+	productRepo menuRepos.ProductRepository,
+	questionnaireRepo feedbackinterface.QuestionnaireRepository,
+	questionRepo feedbackinterface.QuestionRepository,
+) *PublicController {
+	return &PublicController{
+		feedbackService:   feedbackService,
+		productRepo:       productRepo,
+		questionnaireRepo: questionnaireRepo,
+		questionRepo:      questionRepo,
+	}
 }
-
 
 // @Summary Get questionnaire
 // @Description Get questionnaire for a specific product
@@ -43,7 +45,7 @@ func NewFeedbackPublicHandler(i *do.Injector) (*FeedbackPublicHandler, error) {
 // @Failure 400 {object} response.Response
 // @Failure 404 {object} response.Response
 // @Router /api/v1/public/questionnaire/{organizationId}/{productId} [get]
-func (h *FeedbackPublicHandler) GetQuestionnaire(c echo.Context) error {
+func (h *PublicController) GetQuestionnaire(c echo.Context) error {
 	organizationIDStr := c.Param("organizationId")
 	productIDStr := c.Param("productId")
 
@@ -59,8 +61,8 @@ func (h *FeedbackPublicHandler) GetQuestionnaire(c echo.Context) error {
 
 	return response.Success(c, map[string]interface{}{
 		"organization_id": organizationID,
-		"product_id":       productID,
-		"message":       "Questionnaire endpoint - to be implemented",
+		"product_id":      productID,
+		"message":         "Questionnaire endpoint - to be implemented",
 	})
 }
 
@@ -69,20 +71,20 @@ func (h *FeedbackPublicHandler) GetQuestionnaire(c echo.Context) error {
 // @Tags public
 // @Accept json
 // @Produce json
-// @Param feedback body feedbackModels.Feedback true "Feedback data"
+// @Param feedback body feedbackmodel.Feedback true "Feedback data"
 // @Success 200 {object} map[string]interface{}
 // @Failure 400 {object} response.Response
 // @Failure 500 {object} response.Response
 // @Router /api/v1/public/feedback [post]
-func (h *FeedbackPublicHandler) SubmitFeedback(c echo.Context) error {
+func (h *PublicController) SubmitFeedback(c echo.Context) error {
 	ctx := c.Request().Context()
-	var feedback feedbackModels.Feedback
+	var feedback feedbackmodel.Feedback
 	if err := c.Bind(&feedback); err != nil {
 		return response.Error(c, errors.BadRequest("Invalid feedback data provided"))
 	}
 
 	deviceInfo := utils.ExtractDeviceInfo(c.Request())
-	feedback.DeviceInfo = feedbackModels.DeviceInfo{
+	feedback.DeviceInfo = feedbackmodel.DeviceInfo{
 		UserAgent: deviceInfo.UserAgent,
 		IP:        deviceInfo.IP,
 		Platform:  deviceInfo.Platform,
@@ -112,7 +114,7 @@ func (h *FeedbackPublicHandler) SubmitFeedback(c echo.Context) error {
 // @Failure 404 {object} response.Response "Product not found"
 // @Failure 500 {object} response.Response "Server error"
 // @Router /api/v1/public/organization/{organizationId}/products/{productId}/questions [get]
-func (h *FeedbackPublicHandler) GetProductQuestions(c echo.Context) error {
+func (h *PublicController) GetProductQuestions(c echo.Context) error {
 	ctx := c.Request().Context()
 
 	productID, err := uuid.Parse(c.Param("productId"))
@@ -134,7 +136,7 @@ func (h *FeedbackPublicHandler) GetProductQuestions(c echo.Context) error {
 	}
 
 	return response.Success(c, map[string]interface{}{
-		"product":      product,
+		"product":   product,
 		"questions": questions,
 	})
 }
@@ -149,7 +151,7 @@ func (h *FeedbackPublicHandler) GetProductQuestions(c echo.Context) error {
 // @Failure 404 {object} response.Response "Organization not found"
 // @Failure 500 {object} response.Response "Server error"
 // @Router /api/v1/public/organization/{organizationId}/questions/products-with-questions [get]
-func (h *FeedbackPublicHandler) GetProductsWithQuestions(c echo.Context) error {
+func (h *PublicController) GetProductsWithQuestions(c echo.Context) error {
 	ctx := c.Request().Context()
 
 	organizationID, err := uuid.Parse(c.Param("organizationId"))
@@ -171,7 +173,7 @@ func (h *FeedbackPublicHandler) GetProductsWithQuestions(c echo.Context) error {
 		if err != nil {
 			logger.Warn("Failed to get product details", logrus.Fields{
 				"product_id": productID,
-				"error":   err,
+				"error":      err,
 			})
 			continue
 		}

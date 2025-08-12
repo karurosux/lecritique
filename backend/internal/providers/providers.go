@@ -15,15 +15,13 @@ import (
 	menuRepos "kyooar/internal/menu/repositories"
 	menuServices "kyooar/internal/menu/services"
 	
-	feedbackHandlers "kyooar/internal/feedback/handlers"
-	feedbackRepos "kyooar/internal/feedback/repositories"
-	feedbackServices "kyooar/internal/feedback/services"
 	
 	qrcodeHandlers "kyooar/internal/qrcode/handlers"
 	qrcodeRepos "kyooar/internal/qrcode/repositories"
 	qrcodeServices "kyooar/internal/qrcode/services"
 	
 	analytics "kyooar/internal/analytics"
+	feedback "kyooar/internal/feedback"
 	
 	subscriptionHandlers "kyooar/internal/subscription/handlers"
 	subscriptionMiddleware "kyooar/internal/subscription/middleware"
@@ -145,17 +143,7 @@ func RegisterAll(i *do.Injector, cfg *config.Config, db *gorm.DB) {
 	do.Provide(i, menuHandlers.NewProductHandler)
 	do.Provide(i, menuHandlers.NewMenuPublicHandler)
 	
-	do.Provide(i, feedbackRepos.NewFeedbackRepository)
-	do.Provide(i, feedbackRepos.NewQuestionnaireRepository)
-	do.Provide(i, feedbackRepos.NewQuestionRepository)
-	do.Provide(i, feedbackRepos.NewQuestionTemplateRepository)
-	do.Provide(i, feedbackServices.NewFeedbackService)
-	do.Provide(i, feedbackServices.NewQuestionnaireService)
-	do.Provide(i, feedbackServices.NewQuestionService)
-	do.Provide(i, feedbackHandlers.NewFeedbackHandler)
-	do.Provide(i, feedbackHandlers.NewQuestionnaireHandler)
-	do.Provide(i, feedbackHandlers.NewQuestionHandler)
-	do.Provide(i, feedbackHandlers.NewFeedbackPublicHandler)
+	// Feedback repositories, services and handlers are now provided by the new feedback module
 	
 	do.Provide(i, qrcodeRepos.NewQRCodeRepository)
 	do.Provide(i, qrcodeServices.NewQRCodeService)
@@ -164,6 +152,9 @@ func RegisterAll(i *do.Injector, cfg *config.Config, db *gorm.DB) {
 	
 	// Analytics module registration
 	analytics.RegisterModule(i)
+	
+	// Feedback module registration
+	feedback.RegisterNewModule(i)
 	
 	do.Provide(i, subscriptionRepos.NewSubscriptionRepository)
 	do.Provide(i, subscriptionRepos.NewSubscriptionPlanRepository)

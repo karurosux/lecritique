@@ -6,7 +6,7 @@ import (
 
 	"github.com/google/uuid"
 	models "kyooar/internal/analytics/model"
-	feedbackModels "kyooar/internal/feedback/models"
+	feedbackmodel "kyooar/internal/feedback/model"
 	qrcodeModels "kyooar/internal/qrcode/models"
 	"gorm.io/gorm"
 )
@@ -90,7 +90,7 @@ func (r *AnalyticsRepository) GetFeedbackCounts(ctx context.Context, organizatio
 	thirtyDaysAgo := time.Now().AddDate(0, 0, -30)
 	
 	err := r.db.WithContext(ctx).
-		Model(&feedbackModels.Feedback{}).
+		Model(&feedbackmodel.Feedback{}).
 		Select(`
 			COUNT(*) as total,
 			COUNT(CASE WHEN created_at >= ? THEN 1 END) as today,
@@ -134,7 +134,7 @@ func (r *AnalyticsRepository) GetProductRatingsAndCounts(ctx context.Context, or
 	
 	var results []result
 	err := r.db.WithContext(ctx).
-		Model(&feedbackModels.Feedback{}).
+		Model(&feedbackmodel.Feedback{}).
 		Select(`
 			product_id,
 			COALESCE(AVG(overall_rating), 0) as average_rating,

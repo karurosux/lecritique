@@ -9,8 +9,7 @@ import (
 	analyticsinterface "kyooar/internal/analytics/interface"
 	gormrepo "kyooar/internal/analytics/repository/gorm"
 	analyticsservice "kyooar/internal/analytics/services"
-	feedbackRepos "kyooar/internal/feedback/repositories"
-	feedbackServices "kyooar/internal/feedback/services"
+	feedbackinterface "kyooar/internal/feedback/interface"
 	menuRepos "kyooar/internal/menu/repositories"
 	organizationRepos "kyooar/internal/organization/repositories"
 	organizationServices "kyooar/internal/organization/services"
@@ -30,7 +29,7 @@ func ProvideTimeSeriesRepository(i *do.Injector) (analyticsinterface.TimeSeriesR
 
 func ProvideAnalyticsService(i *do.Injector) (analyticsinterface.AnalyticsService, error) {
 	analyticsRepo := do.MustInvoke[analyticsinterface.AnalyticsRepository](i)
-	feedbackRepo := do.MustInvoke[feedbackRepos.FeedbackRepository](i)
+	feedbackRepo := do.MustInvoke[feedbackinterface.FeedbackRepository](i)
 	productRepo := do.MustInvoke[menuRepos.ProductRepository](i)
 	qrCodeRepo := do.MustInvoke[qrcodeRepos.QRCodeRepository](i)
 	organizationRepo := do.MustInvoke[organizationRepos.OrganizationRepository](i)
@@ -46,10 +45,10 @@ func ProvideAnalyticsService(i *do.Injector) (analyticsinterface.AnalyticsServic
 
 func ProvideTimeSeriesService(i *do.Injector) (analyticsinterface.TimeSeriesService, error) {
 	timeSeriesRepo := do.MustInvoke[analyticsinterface.TimeSeriesRepository](i)
-	feedbackService := do.MustInvoke[feedbackServices.FeedbackService](i)
+	feedbackService := do.MustInvoke[feedbackinterface.FeedbackService](i)
 	organizationService := do.MustInvoke[organizationServices.OrganizationService](i)
 	analyticsService := do.MustInvoke[analyticsinterface.AnalyticsService](i)
-	questionService := do.MustInvoke[feedbackServices.QuestionService](i)
+	questionService := do.MustInvoke[feedbackinterface.QuestionService](i)
 
 	return analyticsservice.NewTimeSeriesService(
 		timeSeriesRepo,
@@ -61,7 +60,7 @@ func ProvideTimeSeriesService(i *do.Injector) (analyticsinterface.TimeSeriesServ
 }
 
 func ProvideAnalyticsController(i *do.Injector) (*analyticscontroller.AnalyticsController, error) {
-	feedbackRepo := do.MustInvoke[feedbackRepos.FeedbackRepository](i)
+	feedbackRepo := do.MustInvoke[feedbackinterface.FeedbackRepository](i)
 	productRepo := do.MustInvoke[menuRepos.ProductRepository](i)
 	organizationRepo := do.MustInvoke[organizationRepos.OrganizationRepository](i)
 	analyticsService := do.MustInvoke[analyticsinterface.AnalyticsService](i)

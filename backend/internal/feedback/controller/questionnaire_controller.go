@@ -1,27 +1,29 @@
-package handlers
+package controller
 
 import (
 	"net/http"
 
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
-	"kyooar/internal/feedback/models"
-	"kyooar/internal/feedback/services"
+	feedbackinterface "kyooar/internal/feedback/interface"
+	feedbackmodel "kyooar/internal/feedback/model"
 	menuServices "kyooar/internal/menu/services"
 	"kyooar/internal/shared/middleware"
-	"github.com/samber/do"
 )
 
-type QuestionnaireHandler struct {
-	questionnaireService *services.QuestionnaireService
-	productService         menuServices.ProductService
+type QuestionnaireController struct {
+	questionnaireService feedbackinterface.QuestionnaireService
+	productService       menuServices.ProductService
 }
 
-func NewQuestionnaireHandler(i *do.Injector) (*QuestionnaireHandler, error) {
-	return &QuestionnaireHandler{
-		questionnaireService: do.MustInvoke[*services.QuestionnaireService](i),
-		productService:         do.MustInvoke[menuServices.ProductService](i),
-	}, nil
+func NewQuestionnaireController(
+	questionnaireService feedbackinterface.QuestionnaireService,
+	productService menuServices.ProductService,
+) *QuestionnaireController {
+	return &QuestionnaireController{
+		questionnaireService: questionnaireService,
+		productService:       productService,
+	}
 }
 
 // @Summary Create questionnaire
@@ -30,21 +32,21 @@ func NewQuestionnaireHandler(i *do.Injector) (*QuestionnaireHandler, error) {
 // @Accept json
 // @Produce json
 // @Param organizationId path string true "Organization ID"
-// @Param questionnaire body models.CreateQuestionnaireRequest true "Questionnaire data"
-// @Success 201 {object} response.Response{data=models.Questionnaire}
+// @Param questionnaire body feedbackmodel.CreateQuestionnaireRequest true "Questionnaire data"
+// @Success 201 {object} response.Response{data=feedbackmodel.Questionnaire}
 // @Failure 400 {object} response.Response
 // @Failure 401 {object} response.Response
 // @Failure 500 {object} response.Response
 // @Router /api/v1/organizations/{organizationId}/questionnaires [post]
 // @Security Bearer
-func (h *QuestionnaireHandler) CreateQuestionnaire(c echo.Context) error {
+func (h *QuestionnaireController) CreateQuestionnaire(c echo.Context) error {
 	accountID := middleware.GetResourceAccountID(c)
 	organizationID, err := uuid.Parse(c.Param("organizationId"))
 	if err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, "Invalid organization ID")
 	}
 
-	var input models.Questionnaire
+	var input feedbackmodel.Questionnaire
 	if err := c.Bind(&input); err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, "Invalid request body")
 	}
@@ -68,13 +70,13 @@ func (h *QuestionnaireHandler) CreateQuestionnaire(c echo.Context) error {
 // @Produce json
 // @Param organizationId path string true "Organization ID"
 // @Param id path string true "Questionnaire ID"
-// @Success 200 {object} response.Response{data=models.Questionnaire}
+// @Success 200 {object} response.Response{data=feedbackmodel.Questionnaire}
 // @Failure 400 {object} response.Response
 // @Failure 401 {object} response.Response
 // @Failure 404 {object} response.Response
 // @Router /api/v1/organizations/{organizationId}/questionnaires/{id} [get]
 // @Security Bearer
-func (h *QuestionnaireHandler) GetQuestionnaire(c echo.Context) error {
+func (h *QuestionnaireController) GetQuestionnaire(c echo.Context) error {
 	accountID := middleware.GetResourceAccountID(c)
 	questionnaireID, err := uuid.Parse(c.Param("id"))
 	if err != nil {
@@ -99,12 +101,12 @@ func (h *QuestionnaireHandler) GetQuestionnaire(c echo.Context) error {
 // @Accept json
 // @Produce json
 // @Param organizationId path string true "Organization ID"
-// @Success 200 {object} response.Response{data=[]models.Questionnaire}
+// @Success 200 {object} response.Response{data=[]feedbackmodel.Questionnaire}
 // @Failure 400 {object} response.Response
 // @Failure 401 {object} response.Response
 // @Router /api/v1/organizations/{organizationId}/questionnaires [get]
 // @Security Bearer
-func (h *QuestionnaireHandler) ListQuestionnaires(c echo.Context) error {
+func (h *QuestionnaireController) ListQuestionnaires(c echo.Context) error {
 	accountID := middleware.GetResourceAccountID(c)
 	organizationID, err := uuid.Parse(c.Param("organizationId"))
 	if err != nil {
@@ -130,21 +132,21 @@ func (h *QuestionnaireHandler) ListQuestionnaires(c echo.Context) error {
 // @Produce json
 // @Param organizationId path string true "Organization ID"
 // @Param id path string true "Questionnaire ID"
-// @Param questionnaire body models.Questionnaire true "Questionnaire data"
-// @Success 200 {object} response.Response{data=models.Questionnaire}
+// @Param questionnaire body feedbackmodel.Questionnaire true "Questionnaire data"
+// @Success 200 {object} response.Response{data=feedbackmodel.Questionnaire}
 // @Failure 400 {object} response.Response
 // @Failure 401 {object} response.Response
 // @Failure 404 {object} response.Response
 // @Router /api/v1/organizations/{organizationId}/questionnaires/{id} [put]
 // @Security Bearer
-func (h *QuestionnaireHandler) UpdateQuestionnaire(c echo.Context) error {
+func (h *QuestionnaireController) UpdateQuestionnaire(c echo.Context) error {
 	accountID := middleware.GetResourceAccountID(c)
 	questionnaireID, err := uuid.Parse(c.Param("id"))
 	if err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, "Invalid questionnaire ID")
 	}
 
-	var input models.Questionnaire
+	var input feedbackmodel.Questionnaire
 	if err := c.Bind(&input); err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, "Invalid request body")
 	}
@@ -174,7 +176,7 @@ func (h *QuestionnaireHandler) UpdateQuestionnaire(c echo.Context) error {
 // @Failure 404 {object} response.Response
 // @Router /api/v1/organizations/{organizationId}/questionnaires/{id} [delete]
 // @Security Bearer
-func (h *QuestionnaireHandler) DeleteQuestionnaire(c echo.Context) error {
+func (h *QuestionnaireController) DeleteQuestionnaire(c echo.Context) error {
 	accountID := middleware.GetResourceAccountID(c)
 	questionnaireID, err := uuid.Parse(c.Param("id"))
 	if err != nil {
@@ -197,21 +199,21 @@ func (h *QuestionnaireHandler) DeleteQuestionnaire(c echo.Context) error {
 // @Accept json
 // @Produce json
 // @Param id path string true "Questionnaire ID"
-// @Param question body models.Question true "Question data"
+// @Param question body feedbackmodel.Question true "Question data"
 // @Success 201 {object} map[string]interface{} "Question added successfully"
 // @Failure 400 {object} map[string]interface{} "Invalid request"
 // @Failure 401 {object} map[string]interface{} "Unauthorized"
 // @Failure 500 {object} map[string]interface{} "Server error"
 // @Router /organizations/{organizationId}/questionnaires/{id}/questions [post]
 // @Security BearerAuth
-func (h *QuestionnaireHandler) AddQuestion(c echo.Context) error {
+func (h *QuestionnaireController) AddQuestion(c echo.Context) error {
 	accountID := middleware.GetResourceAccountID(c)
 	questionnaireID, err := uuid.Parse(c.Param("id"))
 	if err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, "Invalid questionnaire ID")
 	}
 
-	var input models.Question
+	var input feedbackmodel.Question
 	if err := c.Bind(&input); err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, "Invalid request body")
 	}
@@ -235,21 +237,21 @@ func (h *QuestionnaireHandler) AddQuestion(c echo.Context) error {
 // @Produce json
 // @Param id path string true "Questionnaire ID"
 // @Param questionId path string true "Question ID"
-// @Param question body models.Question true "Question data"
+// @Param question body feedbackmodel.Question true "Question data"
 // @Success 200 {object} map[string]interface{} "Question updated successfully"
 // @Failure 400 {object} map[string]interface{} "Invalid request"
 // @Failure 401 {object} map[string]interface{} "Unauthorized"
 // @Failure 500 {object} map[string]interface{} "Server error"
 // @Router /organizations/{organizationId}/questionnaires/{id}/questions/{questionId} [put]
 // @Security BearerAuth
-func (h *QuestionnaireHandler) UpdateQuestion(c echo.Context) error {
+func (h *QuestionnaireController) UpdateQuestion(c echo.Context) error {
 	accountID := middleware.GetResourceAccountID(c)
 	questionID, err := uuid.Parse(c.Param("questionId"))
 	if err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, "Invalid question ID")
 	}
 
-	var input models.Question
+	var input feedbackmodel.Question
 	if err := c.Bind(&input); err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, "Invalid request body")
 	}
@@ -279,7 +281,7 @@ func (h *QuestionnaireHandler) UpdateQuestion(c echo.Context) error {
 // @Failure 500 {object} map[string]interface{} "Server error"
 // @Router /organizations/{organizationId}/questionnaires/{id}/questions/{questionId} [delete]
 // @Security BearerAuth
-func (h *QuestionnaireHandler) DeleteQuestion(c echo.Context) error {
+func (h *QuestionnaireController) DeleteQuestion(c echo.Context) error {
 	accountID := middleware.GetResourceAccountID(c)
 	questionID, err := uuid.Parse(c.Param("questionId"))
 	if err != nil {
@@ -309,7 +311,7 @@ func (h *QuestionnaireHandler) DeleteQuestion(c echo.Context) error {
 // @Failure 500 {object} map[string]interface{} "Server error"
 // @Router /organizations/{organizationId}/questionnaires/{id}/reorder [post]
 // @Security BearerAuth
-func (h *QuestionnaireHandler) ReorderQuestions(c echo.Context) error {
+func (h *QuestionnaireController) ReorderQuestions(c echo.Context) error {
 	accountID := middleware.GetResourceAccountID(c)
 	questionnaireID, err := uuid.Parse(c.Param("id"))
 	if err != nil {
@@ -339,14 +341,14 @@ func (h *QuestionnaireHandler) ReorderQuestions(c echo.Context) error {
 // @Accept json
 // @Produce json
 // @Param productId path string true "Product ID"
-// @Success 200 {object} response.Response{data=[]models.GeneratedQuestion}
+// @Success 200 {object} response.Response{data=[]feedbackmodel.GeneratedQuestion}
 // @Failure 400 {object} response.Response
 // @Failure 401 {object} response.Response
 // @Failure 404 {object} response.Response
 // @Failure 500 {object} response.Response
 // @Router /api/v1/ai/generate-questions/{productId} [post]
 // @Security Bearer
-func (h *QuestionnaireHandler) GenerateQuestions(c echo.Context) error {
+func (h *QuestionnaireController) GenerateQuestions(c echo.Context) error {
 	accountID := middleware.GetResourceAccountID(c)
 	productID, err := uuid.Parse(c.Param("productId"))
 	if err != nil {
@@ -376,15 +378,15 @@ func (h *QuestionnaireHandler) GenerateQuestions(c echo.Context) error {
 // @Accept json
 // @Produce json
 // @Param productId path string true "Product ID"
-// @Param questionnaire body models.GenerateQuestionnaireRequest true "Questionnaire generation data"
-// @Success 201 {object} response.Response{data=models.Questionnaire}
+// @Param questionnaire body feedbackmodel.GenerateQuestionnaireRequest true "Questionnaire generation data"
+// @Success 201 {object} response.Response{data=feedbackmodel.Questionnaire}
 // @Failure 400 {object} response.Response
 // @Failure 401 {object} response.Response
 // @Failure 404 {object} response.Response
 // @Failure 500 {object} response.Response
 // @Router /api/v1/ai/generate-questionnaire/{productId} [post]
 // @Security Bearer
-func (h *QuestionnaireHandler) GenerateAndSaveQuestionnaire(c echo.Context) error {
+func (h *QuestionnaireController) GenerateAndSaveQuestionnaire(c echo.Context) error {
 	accountID := middleware.GetResourceAccountID(c)
 	productID, err := uuid.Parse(c.Param("productId"))
 	if err != nil {

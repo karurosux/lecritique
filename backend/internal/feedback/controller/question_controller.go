@@ -1,24 +1,23 @@
-package handlers
+package controller
 
 import (
 	"net/http"
 
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
-	"kyooar/internal/feedback/models"
-	"kyooar/internal/feedback/services"
+	feedbackinterface "kyooar/internal/feedback/interface"
+	feedbackmodel "kyooar/internal/feedback/model"
 	"kyooar/internal/shared/middleware"
-	"github.com/samber/do"
 )
 
-type QuestionHandler struct {
-	questionService services.QuestionService
+type QuestionController struct {
+	questionService feedbackinterface.QuestionService
 }
 
-func NewQuestionHandler(i *do.Injector) (*QuestionHandler, error) {
-	return &QuestionHandler{
-		questionService: do.MustInvoke[services.QuestionService](i),
-	}, nil
+func NewQuestionController(questionService feedbackinterface.QuestionService) *QuestionController {
+	return &QuestionController{
+		questionService: questionService,
+	}
 }
 
 // @Summary Add a question to a product
@@ -28,7 +27,7 @@ func NewQuestionHandler(i *do.Injector) (*QuestionHandler, error) {
 // @Produce json
 // @Param organizationId path string true "Organization ID"
 // @Param productId path string true "Product ID"
-// @Param question body models.CreateQuestionRequest true "Question data"
+// @Param question body feedbackmodel.CreateQuestionRequest true "Question data"
 // @Success 201 {object} map[string]interface{} "Question created successfully"
 // @Failure 400 {object} map[string]interface{} "Invalid request"
 // @Failure 401 {object} map[string]interface{} "Unauthorized"
@@ -37,7 +36,7 @@ func NewQuestionHandler(i *do.Injector) (*QuestionHandler, error) {
 // @Failure 500 {object} map[string]interface{} "Server error"
 // @Router /api/v1/organizations/{organizationId}/products/{productId}/questions [post]
 // @Security BearerAuth
-func (h *QuestionHandler) CreateQuestion(c echo.Context) error {
+func (h *QuestionController) CreateQuestion(c echo.Context) error {
 	accountID := middleware.GetResourceAccountID(c)
 
 	productID, err := uuid.Parse(c.Param("productId"))
@@ -45,7 +44,7 @@ func (h *QuestionHandler) CreateQuestion(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, "Invalid product ID")
 	}
 
-	var request models.CreateQuestionRequest
+	var request feedbackmodel.CreateQuestionRequest
 	if err := c.Bind(&request); err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, "Invalid request body")
 	}
@@ -76,7 +75,7 @@ func (h *QuestionHandler) CreateQuestion(c echo.Context) error {
 // @Failure 500 {object} map[string]interface{} "Server error"
 // @Router /api/v1/organizations/{organizationId}/products/{productId}/questions [get]
 // @Security BearerAuth
-func (h *QuestionHandler) GetQuestionsByProduct(c echo.Context) error {
+func (h *QuestionController) GetQuestionsByProduct(c echo.Context) error {
 	accountID := middleware.GetResourceAccountID(c)
 
 	productID, err := uuid.Parse(c.Param("productId"))
@@ -101,7 +100,7 @@ func (h *QuestionHandler) GetQuestionsByProduct(c echo.Context) error {
 // @Accept json
 // @Produce json
 // @Param organizationId path string true "Organization ID"
-// @Param request body models.BatchQuestionsRequest true "Product IDs"
+// @Param request body feedbackmodel.BatchQuestionsRequest true "Product IDs"
 // @Success 200 {object} map[string]interface{} "Questions retrieved successfully"
 // @Failure 400 {object} map[string]interface{} "Invalid request"
 // @Failure 401 {object} map[string]interface{} "Unauthorized"
@@ -110,7 +109,7 @@ func (h *QuestionHandler) GetQuestionsByProduct(c echo.Context) error {
 // @Failure 500 {object} map[string]interface{} "Server error"
 // @Router /api/v1/organizations/{organizationId}/questions/batch [post]
 // @Security BearerAuth
-func (h *QuestionHandler) GetQuestionsByProducts(c echo.Context) error {
+func (h *QuestionController) GetQuestionsByProducts(c echo.Context) error {
 	accountID := middleware.GetResourceAccountID(c)
 
 	organizationID, err := uuid.Parse(c.Param("organizationId"))
@@ -118,7 +117,7 @@ func (h *QuestionHandler) GetQuestionsByProducts(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, "Invalid organization ID")
 	}
 
-	var request models.BatchQuestionsRequest
+	var request feedbackmodel.BatchQuestionsRequest
 	if err := c.Bind(&request); err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, "Invalid request body")
 	}
@@ -149,7 +148,7 @@ func (h *QuestionHandler) GetQuestionsByProducts(c echo.Context) error {
 // @Failure 500 {object} map[string]interface{} "Server error"
 // @Router /api/v1/organizations/{organizationId}/products/{productId}/questions/{questionId} [get]
 // @Security BearerAuth
-func (h *QuestionHandler) GetQuestion(c echo.Context) error {
+func (h *QuestionController) GetQuestion(c echo.Context) error {
 	accountID := middleware.GetResourceAccountID(c)
 
 	questionID, err := uuid.Parse(c.Param("questionId"))
@@ -176,7 +175,7 @@ func (h *QuestionHandler) GetQuestion(c echo.Context) error {
 // @Param organizationId path string true "Organization ID"
 // @Param productId path string true "Product ID"
 // @Param questionId path string true "Question ID"
-// @Param question body models.UpdateQuestionRequest true "Question data"
+// @Param question body feedbackmodel.UpdateQuestionRequest true "Question data"
 // @Success 200 {object} map[string]interface{} "Question updated successfully"
 // @Failure 400 {object} map[string]interface{} "Invalid request"
 // @Failure 401 {object} map[string]interface{} "Unauthorized"
@@ -185,7 +184,7 @@ func (h *QuestionHandler) GetQuestion(c echo.Context) error {
 // @Failure 500 {object} map[string]interface{} "Server error"
 // @Router /api/v1/organizations/{organizationId}/products/{productId}/questions/{questionId} [put]
 // @Security BearerAuth
-func (h *QuestionHandler) UpdateQuestion(c echo.Context) error {
+func (h *QuestionController) UpdateQuestion(c echo.Context) error {
 	accountID := middleware.GetResourceAccountID(c)
 
 	questionID, err := uuid.Parse(c.Param("questionId"))
@@ -193,7 +192,7 @@ func (h *QuestionHandler) UpdateQuestion(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, "Invalid question ID")
 	}
 
-	var request models.UpdateQuestionRequest
+	var request feedbackmodel.UpdateQuestionRequest
 	if err := c.Bind(&request); err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, "Invalid request body")
 	}
@@ -225,7 +224,7 @@ func (h *QuestionHandler) UpdateQuestion(c echo.Context) error {
 // @Failure 500 {object} map[string]interface{} "Server error"
 // @Router /api/v1/organizations/{organizationId}/products/{productId}/questions/{questionId} [delete]
 // @Security BearerAuth
-func (h *QuestionHandler) DeleteQuestion(c echo.Context) error {
+func (h *QuestionController) DeleteQuestion(c echo.Context) error {
 	accountID := middleware.GetResourceAccountID(c)
 
 	questionID, err := uuid.Parse(c.Param("questionId"))
@@ -259,7 +258,7 @@ func (h *QuestionHandler) DeleteQuestion(c echo.Context) error {
 // @Failure 500 {object} map[string]interface{} "Server error"
 // @Router /api/v1/organizations/{organizationId}/products/{productId}/questions/reorder [post]
 // @Security BearerAuth
-func (h *QuestionHandler) ReorderQuestions(c echo.Context) error {
+func (h *QuestionController) ReorderQuestions(c echo.Context) error {
 	accountID := middleware.GetResourceAccountID(c)
 
 	productID, err := uuid.Parse(c.Param("productId"))
@@ -294,7 +293,7 @@ func (h *QuestionHandler) ReorderQuestions(c echo.Context) error {
 // @Failure 500 {object} map[string]interface{} "Server error"
 // @Router /api/v1/organizations/{organizationId}/questions/products-with-questions [get]
 // @Security BearerAuth
-func (h *QuestionHandler) GetProductsWithQuestions(c echo.Context) error {
+func (h *QuestionController) GetProductsWithQuestions(c echo.Context) error {
 	accountID := middleware.GetResourceAccountID(c)
 
 	organizationID, err := uuid.Parse(c.Param("organizationId"))

@@ -12,20 +12,19 @@ import (
 	"github.com/grassmudhorses/vader-go/sentitext"
 	analyticsModels "kyooar/internal/analytics/model"
 	analyticsinterface "kyooar/internal/analytics/interface"
-	feedbackModels "kyooar/internal/feedback/models"
-	feedbackRepos "kyooar/internal/feedback/repositories"
+	feedbackmodel "kyooar/internal/feedback/model"
+	feedbackinterface "kyooar/internal/feedback/interface"
 	menuRepos "kyooar/internal/menu/repositories"
 	qrcodeModels "kyooar/internal/qrcode/models"
 	qrcodeRepos "kyooar/internal/qrcode/repositories"
 	organizationRepos "kyooar/internal/organization/repositories"
 	"kyooar/internal/shared/logger"
-	sharedModels "kyooar/internal/shared/models"
 	"github.com/sirupsen/logrus"
 )
 
 type AnalyticsService struct {
 	analyticsRepo    analyticsinterface.AnalyticsRepository
-	feedbackRepo     feedbackRepos.FeedbackRepository
+	feedbackRepo     feedbackinterface.FeedbackRepository
 	productRepo      menuRepos.ProductRepository
 	qrCodeRepo       qrcodeRepos.QRCodeRepository
 	organizationRepo organizationRepos.OrganizationRepository
@@ -33,7 +32,7 @@ type AnalyticsService struct {
 
 func NewAnalyticsService(
 	analyticsRepo analyticsinterface.AnalyticsRepository,
-	feedbackRepo feedbackRepos.FeedbackRepository,
+	feedbackRepo feedbackinterface.FeedbackRepository,
 	productRepo menuRepos.ProductRepository,
 	qrCodeRepo qrcodeRepos.QRCodeRepository,
 	organizationRepo organizationRepos.OrganizationRepository,
@@ -91,7 +90,7 @@ func (s *AnalyticsService) GetDashboardMetrics(ctx context.Context, organization
 		logger.Error("Failed to get feedback for dashboard metrics", err, logrus.Fields{
 			"organization_id": organizationID,
 		})
-		feedback = []feedbackModels.Feedback{}
+		feedback = []feedbackmodel.Feedback{}
 	}
 	
 	metrics.DeviceBreakdown = s.getDeviceMetricsFromFeedback(feedback)
@@ -190,7 +189,7 @@ func (s *AnalyticsService) GetOrganizationInsights(ctx context.Context, organiza
 }
 
 
-func (s *AnalyticsService) calculateOverallMetrics(feedback []feedbackModels.Feedback) (satisfaction, recommendRate, sentiment float64) {
+func (s *AnalyticsService) calculateOverallMetrics(feedback []feedbackmodel.Feedback) (satisfaction, recommendRate, sentiment float64) {
 	if len(feedback) == 0 {
 		return 0, 0, 0
 	}
@@ -243,7 +242,7 @@ func (s *AnalyticsService) calculateOverallMetrics(feedback []feedbackModels.Fee
 	return
 }
 
-func (s *AnalyticsService) aggregateQuestionMetrics(feedback []feedbackModels.Feedback, questions []feedbackModels.Question) []analyticsModels.QuestionMetric {
+func (s *AnalyticsService) aggregateQuestionMetrics(feedback []feedbackmodel.Feedback, questions []feedbackmodel.Question) []analyticsModels.QuestionMetric {
 	metricsMap := make(map[uuid.UUID]*analyticsModels.QuestionMetric)
 	
 	for _, q := range questions {
@@ -293,7 +292,7 @@ func (s *AnalyticsService) aggregateQuestionMetrics(feedback []feedbackModels.Fe
 				}
 				
 			case string:
-				if metric.QuestionType == string(feedbackModels.QuestionTypeText) {
+				if metric.QuestionType == string(feedbackmodel.QuestionTypeText) {
 					metric.TextResponses = append(metric.TextResponses, v)
 				} else {
 					metric.OptionDistribution[v]++
@@ -332,7 +331,7 @@ func (s *AnalyticsService) aggregateQuestionMetrics(feedback []feedbackModels.Fe
 	return metrics
 }
 
-func (s *AnalyticsService) identifyTopIssues(feedback []feedbackModels.Feedback) []analyticsModels.QuickIssue {
+func (s *AnalyticsService) identifyTopIssues(feedback []feedbackmodel.Feedback) []analyticsModels.QuickIssue {
 	issues := []analyticsModels.QuickIssue{}
 	
 	lowRatingCount := 0
@@ -355,7 +354,7 @@ func (s *AnalyticsService) identifyTopIssues(feedback []feedbackModels.Feedback)
 	return issues
 }
 
-func (s *AnalyticsService) aggregateByProduct(feedback []feedbackModels.Feedback) map[uuid.UUID]*analyticsModels.ProductSummary {
+func (s *AnalyticsService) aggregateByProduct(feedback []feedbackmodel.Feedback) map[uuid.UUID]*analyticsModels.ProductSummary {
 	productMap := make(map[uuid.UUID]*analyticsModels.ProductSummary)
 	
 	for _, f := range feedback {
@@ -411,7 +410,7 @@ func (s *AnalyticsService) getBottomProducts(productMap map[uuid.UUID]*analytics
 	return products
 }
 
-func (s *AnalyticsService) getRecentFeedbackSummaries(feedback []feedbackModels.Feedback, limit int) []analyticsModels.FeedbackSummary {
+func (s *AnalyticsService) getRecentFeedbackSummaries(feedback []feedbackmodel.Feedback, limit int) []analyticsModels.FeedbackSummary {
 	sort.Slice(feedback, func(i, j int) bool {
 		return feedback[i].CreatedAt.After(feedback[j].CreatedAt)
 	})
@@ -490,8 +489,8 @@ func (s *AnalyticsService) identifyNeedsAttention(metrics []analyticsModels.Ques
 	return needs
 }
 
-func filterFeedbackByDate(feedback []feedbackModels.Feedback, since time.Time) []feedbackModels.Feedback {
-	var filtered []feedbackModels.Feedback
+func filterFeedbackByDate(feedback []feedbackmodel.Feedback, since time.Time) []feedbackmodel.Feedback {
+	var filtered []feedbackmodel.Feedback
 	for _, f := range feedback {
 		if f.CreatedAt.After(since) {
 			filtered = append(filtered, f)
@@ -539,7 +538,7 @@ func (s *AnalyticsService) getDeviceMetrics(ctx context.Context, organizationID 
 	return s.getDeviceMetricsFromFeedback(feedback), nil
 }
 
-func (s *AnalyticsService) getDeviceMetricsFromFeedback(feedback []feedbackModels.Feedback) map[string]int64 {
+func (s *AnalyticsService) getDeviceMetricsFromFeedback(feedback []feedbackmodel.Feedback) map[string]int64 {
 	deviceBreakdown := make(map[string]int64)
 	platformBreakdown := make(map[string]int64)
 	
@@ -573,7 +572,7 @@ func (s *AnalyticsService) getAverageResponseTime(ctx context.Context, organizat
 	return s.getAverageResponseTimeFromFeedback(ctx, feedback), nil
 }
 
-func (s *AnalyticsService) getAverageResponseTimeFromFeedback(ctx context.Context, feedback []feedbackModels.Feedback) float64 {
+func (s *AnalyticsService) getAverageResponseTimeFromFeedback(ctx context.Context, feedback []feedbackmodel.Feedback) float64 {
 	if len(feedback) == 0 {
 		return 0
 	}
@@ -639,7 +638,7 @@ func (s *AnalyticsService) getPeakUsageHours(ctx context.Context, organizationID
 	return s.getPeakUsageHoursFromFeedback(feedback), nil
 }
 
-func (s *AnalyticsService) getPeakUsageHoursFromFeedback(feedback []feedbackModels.Feedback) []int {
+func (s *AnalyticsService) getPeakUsageHoursFromFeedback(feedback []feedbackmodel.Feedback) []int {
 	weekAgo := time.Now().AddDate(0, 0, -7)
 	recentFeedback := filterFeedbackByDate(feedback, weekAgo)
 	
@@ -755,9 +754,7 @@ func (s *AnalyticsService) GetOrganizationChartData(ctx context.Context, organiz
 		"feedback_filters": feedbackFilters,
 	})
 	
-	feedback, err := s.feedbackRepo.FindByOrganizationIDWithFilters(ctx, organizationID, sharedModels.PageRequest{
-		Page: 1, Limit: 10000,
-	}, feedbackFilters)
+	feedback, err := s.feedbackRepo.FindByOrganizationIDWithFilters(ctx, uuid.Nil, organizationID, 1, 10000, feedbackFilters)
 	if err != nil {
 		logger.Error("Failed to fetch feedback data", err, logrus.Fields{
 			"organization_id": organizationID,
@@ -804,7 +801,7 @@ func (s *AnalyticsService) GetOrganizationChartData(ctx context.Context, organiz
 		ProductID     uuid.UUID
 	}
 	
-	questionProductResponses := make(map[questionProductKey][]feedbackModels.Response)
+	questionProductResponses := make(map[questionProductKey][]feedbackmodel.Response)
 	questionProductMeta := make(map[questionProductKey]struct {
 		Text     string
 		Type     string
@@ -861,14 +858,12 @@ func (s *AnalyticsService) GetQuestionChartData(ctx context.Context, questionID 
 	feedbackFilters := s.buildFeedbackFilters(filters)
 	
 	
-	allFeedback, err := s.feedbackRepo.FindByOrganizationIDWithFilters(ctx, uuid.UUID{}, sharedModels.PageRequest{
-		Page: 1, Limit: 10000,
-	}, feedbackFilters)
+	allFeedback, err := s.feedbackRepo.FindByOrganizationIDWithFilters(ctx, uuid.Nil, uuid.Nil, 1, 10000, feedbackFilters)
 	if err != nil {
 		return nil, err
 	}
 	
-	var responses []feedbackModels.Response
+	var responses []feedbackmodel.Response
 	var questionText, questionType string
 	
 	for _, f := range allFeedback.Data {
@@ -888,8 +883,8 @@ func (s *AnalyticsService) GetQuestionChartData(ctx context.Context, questionID 
 }
 
 
-func (s *AnalyticsService) buildFeedbackFilters(filters map[string]interface{}) feedbackRepos.FeedbackFilter {
-	feedbackFilters := feedbackRepos.FeedbackFilter{}
+func (s *AnalyticsService) buildFeedbackFilters(filters map[string]interface{}) feedbackmodel.FeedbackFilter {
+	feedbackFilters := feedbackmodel.FeedbackFilter{}
 	
 	if dateFrom, ok := filters["date_from"].(string); ok {
 		if parsed, err := time.Parse("2006-01-02", dateFrom); err == nil {
@@ -912,7 +907,7 @@ func (s *AnalyticsService) buildFeedbackFilters(filters map[string]interface{}) 
 	return feedbackFilters
 }
 
-func (s *AnalyticsService) aggregateQuestionResponses(questionID uuid.UUID, questionText, questionType string, responses []feedbackModels.Response) analyticsModels.ChartData {
+func (s *AnalyticsService) aggregateQuestionResponses(questionID uuid.UUID, questionText, questionType string, responses []feedbackmodel.Response) analyticsModels.ChartData {
 	chartData := analyticsModels.ChartData{
 		QuestionID:   questionID,
 		QuestionText: questionText,
@@ -944,7 +939,7 @@ func (s *AnalyticsService) aggregateQuestionResponses(questionID uuid.UUID, ques
 	return chartData
 }
 
-func (s *AnalyticsService) aggregateRatingResponses(responses []feedbackModels.Response) map[string]interface{} {
+func (s *AnalyticsService) aggregateRatingResponses(responses []feedbackmodel.Response) map[string]interface{} {
 	distribution := make(map[string]int64)
 	var total int64
 	var sum float64
@@ -997,7 +992,7 @@ func (s *AnalyticsService) aggregateRatingResponses(responses []feedbackModels.R
 	}
 }
 
-func (s *AnalyticsService) aggregateScaleResponses(responses []feedbackModels.Response) map[string]interface{} {
+func (s *AnalyticsService) aggregateScaleResponses(responses []feedbackmodel.Response) map[string]interface{} {
 	distribution := make(map[string]int64)
 	var total int64
 	var sum float64
@@ -1051,7 +1046,7 @@ func (s *AnalyticsService) aggregateScaleResponses(responses []feedbackModels.Re
 	}
 }
 
-func (s *AnalyticsService) aggregateChoiceResponses(responses []feedbackModels.Response, isMultiChoice bool) map[string]interface{} {
+func (s *AnalyticsService) aggregateChoiceResponses(responses []feedbackmodel.Response, isMultiChoice bool) map[string]interface{} {
 	options := make(map[string]int64)
 	combinations := make(map[string]int64)
 	var total int64
@@ -1154,7 +1149,7 @@ func (s *AnalyticsService) GetProductAnalyticsBatch(ctx context.Context, organiz
 	return result, nil
 }
 
-func (s *AnalyticsService) aggregateYesNoResponses(responses []feedbackModels.Response) map[string]interface{} {
+func (s *AnalyticsService) aggregateYesNoResponses(responses []feedbackmodel.Response) map[string]interface{} {
 	options := make(map[string]int64)
 	var total int64
 	
@@ -1203,7 +1198,7 @@ func (s *AnalyticsService) analyzeSentiment(text string) float64 {
 	return sentiment.Compound
 }
 
-func (s *AnalyticsService) aggregateTextResponses(responses []feedbackModels.Response) map[string]interface{} {
+func (s *AnalyticsService) aggregateTextResponses(responses []feedbackmodel.Response) map[string]interface{} {
 	var positive, neutral, negative int64
 	var samples []string
 	var totalSentiment float64

@@ -1,4 +1,4 @@
-package handlers
+package controller
 
 import (
 	"net/http"
@@ -7,24 +7,22 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
-	"kyooar/internal/feedback/models"
-	"kyooar/internal/feedback/repositories"
-	"kyooar/internal/feedback/services"
+	feedbackinterface "kyooar/internal/feedback/interface"
+	feedbackmodel "kyooar/internal/feedback/model"
 	"kyooar/internal/shared/logger"
 	"kyooar/internal/shared/middleware"
 	sharedModels "kyooar/internal/shared/models"
-	"github.com/samber/do"
 	"github.com/sirupsen/logrus"
 )
 
-type FeedbackHandler struct {
-	feedbackService services.FeedbackService
+type FeedbackController struct {
+	feedbackService feedbackinterface.FeedbackService
 }
 
-func NewFeedbackHandler(i *do.Injector) (*FeedbackHandler, error) {
-	return &FeedbackHandler{
-		feedbackService: do.MustInvoke[services.FeedbackService](i),
-	}, nil
+func NewFeedbackController(feedbackService feedbackinterface.FeedbackService) *FeedbackController {
+	return &FeedbackController{
+		feedbackService: feedbackService,
+	}
 }
 
 // @Summary Get organization feedback with filters
@@ -48,9 +46,9 @@ func NewFeedbackHandler(i *do.Injector) (*FeedbackHandler, error) {
 // @Failure 401 {object} response.Response
 // @Failure 500 {object} response.Response
 // @Router /api/v1/organizations/{organizationId}/feedback [get]
-func (h *FeedbackHandler) GetByOrganization(c echo.Context) error {
+func (h *FeedbackController) GetByOrganization(c echo.Context) error {
 	ctx := c.Request().Context()
-	
+
 	organizationID, err := uuid.Parse(c.Param("organizationId"))
 	if err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, "Invalid organization ID")
@@ -62,13 +60,13 @@ func (h *FeedbackHandler) GetByOrganization(c echo.Context) error {
 	if page < 1 {
 		page = 1
 	}
-	
+
 	limit, _ := strconv.Atoi(c.QueryParam("limit"))
 	if limit < 1 || limit > 100 {
 		limit = 20
 	}
 
-	filters := repositories.FeedbackFilter{
+	filters := feedbackmodel.FeedbackFilter{
 		Search: c.QueryParam("search"),
 	}
 
@@ -106,7 +104,7 @@ func (h *FeedbackHandler) GetByOrganization(c echo.Context) error {
 		}
 	}
 
-	hasFilters := filters.Search != "" || filters.RatingMin != nil || filters.RatingMax != nil || 
+	hasFilters := filters.Search != "" || filters.RatingMin != nil || filters.RatingMax != nil ||
 		filters.DateFrom != nil || filters.DateTo != nil || filters.ProductID != nil || filters.IsComplete != nil
 
 	var feedbacks interface{}
@@ -118,24 +116,24 @@ func (h *FeedbackHandler) GetByOrganization(c echo.Context) error {
 
 	if err != nil {
 		logger.Error("Failed to get feedbacks", err, logrus.Fields{
-			"account_id":    accountID,
+			"account_id":      accountID,
 			"organization_id": organizationID,
-			"page":          page,
-			"limit":         limit,
-			"filters":       filters,
+			"page":            page,
+			"limit":           limit,
+			"filters":         filters,
 		})
 		return echo.NewHTTPError(http.StatusInternalServerError, "Failed to get feedbacks")
 	}
 
-	if response, ok := feedbacks.(*sharedModels.PageResponse[models.Feedback]); ok {
+	if response, ok := feedbacks.(*sharedModels.PageResponse[feedbackmodel.Feedback]); ok {
 		return c.JSON(http.StatusOK, map[string]interface{}{
 			"success": true,
 			"data":    response.Data,
 			"meta": map[string]interface{}{
-				"total":        response.Total,
-				"page":         response.Page,
-				"limit":        response.Limit,
-				"total_pages":  response.TotalPages,
+				"total":       response.Total,
+				"page":        response.Page,
+				"limit":       response.Limit,
+				"total_pages": response.TotalPages,
 			},
 		})
 	}
@@ -155,9 +153,9 @@ func (h *FeedbackHandler) GetByOrganization(c echo.Context) error {
 // @Failure 401 {object} response.Response
 // @Failure 500 {object} response.Response
 // @Router /api/v1/organizations/{organizationId}/analytics [get]
-func (h *FeedbackHandler) GetStats(c echo.Context) error {
+func (h *FeedbackController) GetStats(c echo.Context) error {
 	ctx := c.Request().Context()
-	
+
 	organizationID, err := uuid.Parse(c.Param("organizationId"))
 	if err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, "Invalid organization ID")
@@ -168,7 +166,7 @@ func (h *FeedbackHandler) GetStats(c echo.Context) error {
 	stats, err := h.feedbackService.GetStats(ctx, accountID, organizationID)
 	if err != nil {
 		logger.Error("Failed to get feedback stats", err, logrus.Fields{
-			"account_id":    accountID,
+			"account_id":      accountID,
 			"organization_id": organizationID,
 		})
 		return echo.NewHTTPError(http.StatusInternalServerError, "Failed to get feedback statistics")

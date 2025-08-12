@@ -3,7 +3,7 @@ package analyticsmodel
 import (
 	"time"
 	"github.com/google/uuid"
-	feedbackModels "kyooar/internal/feedback/models"
+	feedbackmodel "kyooar/internal/feedback/model"
 )
 
 type FeedbackCounts struct {
@@ -24,7 +24,7 @@ type FeedbackWithQRCode struct {
 	FeedbackID         uuid.UUID                   `gorm:"column:feedback_id"`
 	FeedbackCreatedAt  time.Time                   `gorm:"column:feedback_created_at"`
 	QRCodeID           uuid.UUID                   `gorm:"column:qr_code_id"`
-	DeviceInfo         feedbackModels.DeviceInfo   `gorm:"column:device_info;type:jsonb"`
+	DeviceInfo         feedbackmodel.DeviceInfo   `gorm:"column:device_info;type:jsonb"`
 	QRLastScannedAt    *time.Time                  `gorm:"column:qr_last_scanned_at"`
 }
 

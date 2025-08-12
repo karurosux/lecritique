@@ -11,7 +11,7 @@ import (
 	analyticsconstants "kyooar/internal/analytics/constants"
 	analyticsinterface "kyooar/internal/analytics/interface"
 	analyticsmodel "kyooar/internal/analytics/model"
-	feedbackRepos "kyooar/internal/feedback/repositories"
+	feedbackinterface "kyooar/internal/feedback/interface"
 	menuRepos "kyooar/internal/menu/repositories"
 	organizationRepos "kyooar/internal/organization/repositories"
 	"kyooar/internal/shared/errors"
@@ -24,14 +24,14 @@ import (
 )
 
 type AnalyticsController struct {
-	feedbackRepo     feedbackRepos.FeedbackRepository
+	feedbackRepo     feedbackinterface.FeedbackRepository
 	productRepo      menuRepos.ProductRepository
 	organizationRepo organizationRepos.OrganizationRepository
 	analyticsService analyticsinterface.AnalyticsService
 }
 
 func NewAnalyticsController(
-	feedbackRepo feedbackRepos.FeedbackRepository,
+	feedbackRepo feedbackinterface.FeedbackRepository,
 	productRepo menuRepos.ProductRepository,
 	organizationRepo organizationRepos.OrganizationRepository,
 	analyticsService analyticsinterface.AnalyticsService,

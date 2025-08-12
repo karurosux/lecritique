@@ -12,8 +12,8 @@ import (
 	"strings"
 	"time"
 
-	feedbackModels "kyooar/internal/feedback/models"
-	feedbackServices "kyooar/internal/feedback/services"
+	feedbackmodel "kyooar/internal/feedback/model"
+	feedbackinterface "kyooar/internal/feedback/interface"
 	organizationServices "kyooar/internal/organization/services"
 
 	"github.com/google/uuid"
@@ -41,18 +41,18 @@ type QuestionData struct {
 
 type TimeSeriesService struct {
 	timeSeriesRepo      analyticsinterface.TimeSeriesRepository
-	feedbackService     feedbackServices.FeedbackService
+	feedbackService     feedbackinterface.FeedbackService
 	organizationService organizationServices.OrganizationService
 	analyticsService    analyticsinterface.AnalyticsService
-	questionService     feedbackServices.QuestionService
+	questionService     feedbackinterface.QuestionService
 }
 
 func NewTimeSeriesService(
 	timeSeriesRepo analyticsinterface.TimeSeriesRepository,
-	feedbackService feedbackServices.FeedbackService,
+	feedbackService feedbackinterface.FeedbackService,
 	organizationService organizationServices.OrganizationService,
 	analyticsService analyticsinterface.AnalyticsService,
-	questionService feedbackServices.QuestionService,
+	questionService feedbackinterface.QuestionService,
 ) *TimeSeriesService {
 	return &TimeSeriesService{
 		timeSeriesRepo:      timeSeriesRepo,
@@ -102,7 +102,7 @@ func (s *TimeSeriesService) collectOrganizationMetrics(ctx context.Context, orga
 		return nil, err
 	}
 
-	questionMap := make(map[uuid.UUID]*feedbackModels.Question)
+	questionMap := make(map[uuid.UUID]*feedbackmodel.Question)
 	processedProducts := make(map[uuid.UUID]bool)
 	for _, feedback := range feedbacks {
 		if feedback.ProductID != uuid.Nil && !processedProducts[feedback.ProductID] {
@@ -179,7 +179,7 @@ func (s *TimeSeriesService) collectOrganizationMetrics(ctx context.Context, orga
 
 		questionCount := len(qData.Responses)
 
-		if qData.QuestionType == string(feedbackModels.QuestionTypeSingleChoice) {
+		if qData.QuestionType == string(feedbackmodel.QuestionTypeSingleChoice) {
 			choiceMetrics := s.processSingleChoiceQuestion(
 				qData.Responses, qData, questionID, accountID, organizationID, date, questionMap,
 			)
@@ -187,7 +187,7 @@ func (s *TimeSeriesService) collectOrganizationMetrics(ctx context.Context, orga
 			continue
 		}
 		
-		if qData.QuestionType == string(feedbackModels.QuestionTypeMultiChoice) {
+		if qData.QuestionType == string(feedbackmodel.QuestionTypeMultiChoice) {
 			choiceMetrics := s.processMultiChoiceQuestion(
 				qData.Responses, qData, questionID, accountID, organizationID, date, questionMap,
 			)
@@ -210,7 +210,7 @@ func (s *TimeSeriesService) collectOrganizationMetrics(ctx context.Context, orga
 		questionMetricType := "question_" + questionID
 		questionMetricName := fmt.Sprintf("%s - %s", qData.ProductName, qData.QuestionText)
 
-		var question *feedbackModels.Question
+		var question *feedbackmodel.Question
 		if questionUUID != nil {
 			question = questionMap[*questionUUID]
 		}
@@ -261,7 +261,7 @@ func (s *TimeSeriesService) createMetadataWithProduct(questionType string, produ
 	return &metadata
 }
 
-func (s *TimeSeriesService) createMetadataWithQuestion(questionType string, productName string, questionText string, question *feedbackModels.Question) *string {
+func (s *TimeSeriesService) createMetadataWithQuestion(questionType string, productName string, questionText string, question *feedbackmodel.Question) *string {
 	metadataMap := map[string]interface{}{
 		"question_type": questionType,
 		"question_text": questionText,
@@ -292,7 +292,7 @@ func (s *TimeSeriesService) createMetadataWithQuestion(questionType string, prod
 	return &metadataStr
 }
 
-func (s *TimeSeriesService) createMetadataWithChoice(questionType string, productName string, questionText string, choiceOption string, question *feedbackModels.Question) *string {
+func (s *TimeSeriesService) createMetadataWithChoice(questionType string, productName string, questionText string, choiceOption string, question *feedbackmodel.Question) *string {
 	metadataMap := map[string]interface{}{
 		"question_type": questionType,
 		"question_text": questionText,
@@ -337,17 +337,17 @@ func (s *TimeSeriesService) analyzeSentiment(text string) float64 {
 
 func (s *TimeSeriesService) getMetricName(questionType string, questionTexts []string) string {
 	switch questionType {
-	case string(feedbackModels.QuestionTypeRating):
+	case string(feedbackmodel.QuestionTypeRating):
 		return "Rating Questions"
-	case string(feedbackModels.QuestionTypeScale):
+	case string(feedbackmodel.QuestionTypeScale):
 		return "Scale Questions"
-	case string(feedbackModels.QuestionTypeYesNo):
+	case string(feedbackmodel.QuestionTypeYesNo):
 		return "Yes/No Questions"
-	case string(feedbackModels.QuestionTypeText):
+	case string(feedbackmodel.QuestionTypeText):
 		return "Text Sentiment"
-	case string(feedbackModels.QuestionTypeSingleChoice):
+	case string(feedbackmodel.QuestionTypeSingleChoice):
 		return "Single Choice Questions"
-	case string(feedbackModels.QuestionTypeMultiChoice):
+	case string(feedbackmodel.QuestionTypeMultiChoice):
 		return "Multiple Choice Questions"
 	default:
 		return "Other Questions"
@@ -851,7 +851,7 @@ func (s *TimeSeriesService) processTextQuestion(responses []any) float64 {
 	return 0
 }
 
-func (s *TimeSeriesService) processFeedbackData(feedbacks []feedbackModels.Feedback) (
+func (s *TimeSeriesService) processFeedbackData(feedbacks []feedbackmodel.Feedback) (
 	map[string]*ResponseData,
 	map[string]*QuestionData,
 	map[string]int,
@@ -930,7 +930,7 @@ func (s *TimeSeriesService) processSingleChoiceQuestion(
 	questionID string,
 	accountID, organizationID uuid.UUID,
 	date time.Time,
-	questionMap map[uuid.UUID]*feedbackModels.Question,
+	questionMap map[uuid.UUID]*feedbackmodel.Question,
 ) []models.TimeSeriesMetric {
 	var metrics []models.TimeSeriesMetric
 	choiceDistribution := make(map[string]int)
@@ -955,7 +955,7 @@ func (s *TimeSeriesService) processSingleChoiceQuestion(
 			questionUUID = &qid
 		}
 
-		var question *feedbackModels.Question
+		var question *feedbackmodel.Question
 		if questionUUID != nil {
 			question = questionMap[*questionUUID]
 		}
@@ -989,7 +989,7 @@ func (s *TimeSeriesService) processMultiChoiceQuestion(
 	questionID string,
 	accountID, organizationID uuid.UUID,
 	date time.Time,
-	questionMap map[uuid.UUID]*feedbackModels.Question,
+	questionMap map[uuid.UUID]*feedbackmodel.Question,
 ) []models.TimeSeriesMetric {
 	var metrics []models.TimeSeriesMetric
 	choiceDistribution := make(map[string]int)
@@ -1049,7 +1049,7 @@ func (s *TimeSeriesService) processMultiChoiceQuestion(
 			questionUUID = &qid
 		}
 
-		var question *feedbackModels.Question
+		var question *feedbackmodel.Question
 		if questionUUID != nil {
 			question = questionMap[*questionUUID]
 		}
@@ -1079,15 +1079,15 @@ func (s *TimeSeriesService) processMultiChoiceQuestion(
 
 func (s *TimeSeriesService) processQuestionByType(questionType string, responses []any) float64 {
 	switch questionType {
-	case string(feedbackModels.QuestionTypeRating), string(feedbackModels.QuestionTypeScale):
+	case string(feedbackmodel.QuestionTypeRating), string(feedbackmodel.QuestionTypeScale):
 		return s.processRatingScaleQuestion(responses)
-	case string(feedbackModels.QuestionTypeYesNo):
+	case string(feedbackmodel.QuestionTypeYesNo):
 		return s.processYesNoQuestion(responses)
-	case string(feedbackModels.QuestionTypeText):
+	case string(feedbackmodel.QuestionTypeText):
 		return s.processTextQuestion(responses)
-	case string(feedbackModels.QuestionTypeSingleChoice):
+	case string(feedbackmodel.QuestionTypeSingleChoice):
 		return float64(len(responses))
-	case string(feedbackModels.QuestionTypeMultiChoice):
+	case string(feedbackmodel.QuestionTypeMultiChoice):
 		return float64(len(responses))
 	default:
 		return float64(len(responses))
