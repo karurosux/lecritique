@@ -5,6 +5,9 @@
     Card,
     ConfirmDialog,
     NoDataAvailable,
+    SearchInput,
+    Select,
+    FilterChip,
   } from '$lib/components/ui';
   import { Plus } from 'lucide-svelte';
   import ProductCard from '$lib/components/products/ProductCard.svelte';
@@ -222,15 +225,110 @@
         <p class="text-gray-600">Loading products...</p>
       </div>
     {:else}
-      <!-- Search and Filters -->
-      <ProductSearchAndFilters
-        bind:searchQuery
-        bind:categoryFilter
-        bind:availabilityFilter
-        bind:sortBy
-        {categories}
-        totalProducts={products.length}
-        filteredCount={filteredProducts.length} />
+      <!-- Header -->
+      <div class="mb-6">
+        <h1 class="text-2xl font-bold text-gray-900">Products</h1>
+        <p class="text-gray-600">Manage your product catalog</p>
+      </div>
+
+      <!-- Search, Filters and Add Button -->
+      <div class="mb-6">
+        <Card variant="glass">
+          <div class="flex flex-col lg:flex-row gap-4">
+            <!-- Search Input -->
+            <SearchInput
+              bind:value={searchQuery}
+              placeholder="Search products by name or description..."
+              class="flex-1" />
+
+            <!-- Filters -->
+            <div class="flex items-center space-x-3">
+              <!-- Category Filter -->
+              <Select bind:value={categoryFilter} options={[
+                { value: 'all', label: 'All Categories' },
+                ...categories.map(cat => ({ value: cat.name, label: cat.name }))
+              ]} />
+
+              <!-- Availability Filter -->
+              <Select bind:value={availabilityFilter} options={[
+                { value: 'all', label: 'All Status' },
+                { value: 'available', label: 'Available Only' },
+                { value: 'unavailable', label: 'Hidden Only' }
+              ]} />
+
+              <!-- Sort Options -->
+              <Select bind:value={sortBy} options={[
+                { value: 'name', label: 'Sort by Name' },
+                { value: 'price', label: 'Sort by Price' },
+                { value: 'category', label: 'Sort by Category' },
+                { value: 'created_at', label: 'Sort by Date Added' }
+              ]} />
+
+              <!-- Add Product Button -->
+              <RoleGate roles={['OWNER', 'ADMIN', 'MANAGER']}>
+                <Button 
+                  onclick={handleAddProduct}
+                  variant="gradient"
+                  size="lg"
+                  class="flex-shrink-0">
+                  <Plus class="mr-2 h-5 w-5" />
+                  Add Product
+                </Button>
+              </RoleGate>
+            </div>
+          </div>
+
+          <!-- Active Filters Display -->
+          {#if searchQuery !== '' || categoryFilter !== 'all' || availabilityFilter !== 'all' || sortBy !== 'name'}
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mt-4 pt-4 border-t border-gray-100">
+              <div class="flex items-center flex-wrap gap-2">
+                <span class="text-sm text-gray-600">Active filters:</span>
+                {#if searchQuery}
+                  <FilterChip
+                    label="Search: {searchQuery}"
+                    value="search"
+                    variant="blue"
+                    onremove={() => searchQuery = ''} />
+                {/if}
+                {#if categoryFilter !== 'all'}
+                  <FilterChip
+                    label="Category: {categoryFilter}"
+                    value="category"
+                    variant="purple"
+                    onremove={() => categoryFilter = 'all'} />
+                {/if}
+                {#if availabilityFilter !== 'all'}
+                  <FilterChip
+                    label="Status: {availabilityFilter === 'available' ? 'Available' : 'Hidden'}"
+                    value="availability"
+                    variant="green"
+                    onremove={() => availabilityFilter = 'all'} />
+                {/if}
+                {#if sortBy !== 'name'}
+                  <FilterChip
+                    label="Sort: {sortBy === 'price' ? 'Price' : sortBy === 'category' ? 'Category' : 'Date Added'}"
+                    value="sort"
+                    variant="orange"
+                    onremove={() => sortBy = 'name'} />
+                {/if}
+              </div>
+
+              <Button
+                variant="ghost"
+                size="sm"
+                onclick={() => {
+                  searchQuery = '';
+                  categoryFilter = 'all';
+                  availabilityFilter = 'all';
+                  sortBy = 'name';
+                }}
+                class="text-gray-500 hover:text-gray-700 flex-shrink-0">
+                Clear all filters
+              </Button>
+            </div>
+          {/if}
+        </Card>
+      </div>
 
       <!-- Products Grid -->
       {#if filteredProducts.length === 0}
