@@ -4,14 +4,14 @@ import (
 	"github.com/google/uuid"
 	"github.com/lib/pq"
 	menuModels "kyooar/internal/menu/models"
-	organizationModels "kyooar/internal/organization/models"
+	organizationmodel "kyooar/internal/organization/model"
 	sharedModels "kyooar/internal/shared/models"
 )
 
 type Questionnaire struct {
 	sharedModels.BaseModel
 	OrganizationID uuid.UUID                   `gorm:"not null" json:"organization_id"`
-	Organization   organizationModels.Organization `json:"organization,omitempty"`
+	Organization   organizationmodel.Organization `json:"organization,omitempty"`
 	ProductID      *uuid.UUID                  `json:"product_id"`
 	Product        *menuModels.Product         `json:"product,omitempty"`
 	Name           string                      `gorm:"not null" json:"name"`

@@ -4,14 +4,14 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	organizationModels "kyooar/internal/organization/models"
+	organizationmodel "kyooar/internal/organization/model"
 	sharedModels "kyooar/internal/shared/models"
 )
 
 type QRCode struct {
 	sharedModels.BaseModel
 	OrganizationID uuid.UUID   `gorm:"not null" json:"organization_id"`
-	Organization   organizationModels.Organization  `json:"organization,omitempty"`
+	Organization   organizationmodel.Organization  `json:"organization,omitempty"`
 	Location     *string     `json:"location"`
 	Code         string      `gorm:"uniqueIndex;not null" json:"code"`
 	Label        string      `json:"label"`

@@ -10,7 +10,7 @@ import (
 	analyticsconstants "kyooar/internal/analytics/constants"
 	analyticsinterface "kyooar/internal/analytics/interface"
 	models "kyooar/internal/analytics/model"
-	organizationRepos "kyooar/internal/organization/repositories"
+	organizationinterface "kyooar/internal/organization/interface"
 	"kyooar/internal/shared/logger"
 	"kyooar/internal/shared/middleware"
 
@@ -19,12 +19,12 @@ import (
 
 type TimeSeriesController struct {
 	timeSeriesService analyticsinterface.TimeSeriesService
-	organizationRepo  organizationRepos.OrganizationRepository
+	organizationRepo  organizationinterface.OrganizationRepository
 }
 
 func NewTimeSeriesController(
 	timeSeriesService analyticsinterface.TimeSeriesService,
-	organizationRepo organizationRepos.OrganizationRepository,
+	organizationRepo organizationinterface.OrganizationRepository,
 ) *TimeSeriesController {
 	return &TimeSeriesController{
 		timeSeriesService: timeSeriesService,

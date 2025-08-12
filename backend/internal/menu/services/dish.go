@@ -5,7 +5,7 @@ import (
 	"github.com/google/uuid"
 	"kyooar/internal/menu/models"
 	menuRepos "kyooar/internal/menu/repositories"
-	organizationRepos "kyooar/internal/organization/repositories"
+	organizationinterface "kyooar/internal/organization/interface"
 	sharedRepos "kyooar/internal/shared/repositories"
 	"github.com/samber/do"
 )
@@ -20,13 +20,13 @@ type ProductService interface {
 
 type productService struct {
 	productRepo       menuRepos.ProductRepository
-	organizationRepo organizationRepos.OrganizationRepository
+	organizationRepo organizationinterface.OrganizationRepository
 }
 
 func NewProductService(i *do.Injector) (ProductService, error) {
 	return &productService{
 		productRepo:       do.MustInvoke[menuRepos.ProductRepository](i),
-		organizationRepo: do.MustInvoke[organizationRepos.OrganizationRepository](i),
+		organizationRepo: do.MustInvoke[organizationinterface.OrganizationRepository](i),
 	}, nil
 }
 

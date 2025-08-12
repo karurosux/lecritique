@@ -9,19 +9,19 @@ import (
 	feedbackinterface "kyooar/internal/feedback/interface"
 	feedbackmodel "kyooar/internal/feedback/model"
 	menuRepos "kyooar/internal/menu/repositories"
-	organizationRepos "kyooar/internal/organization/repositories"
+	organizationinterface "kyooar/internal/organization/interface"
 )
 
 type questionService struct {
 	questionRepo     feedbackinterface.QuestionRepository
 	productRepo      menuRepos.ProductRepository
-	organizationRepo organizationRepos.OrganizationRepository
+	organizationRepo organizationinterface.OrganizationRepository
 }
 
 func NewQuestionService(
 	questionRepo feedbackinterface.QuestionRepository,
 	productRepo menuRepos.ProductRepository,
-	organizationRepo organizationRepos.OrganizationRepository,
+	organizationRepo organizationinterface.OrganizationRepository,
 ) feedbackinterface.QuestionService {
 	return &questionService{
 		questionRepo:     questionRepo,

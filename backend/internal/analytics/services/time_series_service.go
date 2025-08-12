@@ -14,7 +14,7 @@ import (
 
 	feedbackmodel "kyooar/internal/feedback/model"
 	feedbackinterface "kyooar/internal/feedback/interface"
-	organizationServices "kyooar/internal/organization/services"
+	organizationinterface "kyooar/internal/organization/interface"
 
 	"github.com/google/uuid"
 	"github.com/grassmudhorses/vader-go/lexicon"
@@ -42,7 +42,7 @@ type QuestionData struct {
 type TimeSeriesService struct {
 	timeSeriesRepo      analyticsinterface.TimeSeriesRepository
 	feedbackService     feedbackinterface.FeedbackService
-	organizationService organizationServices.OrganizationService
+	organizationService organizationinterface.OrganizationService
 	analyticsService    analyticsinterface.AnalyticsService
 	questionService     feedbackinterface.QuestionService
 }
@@ -50,7 +50,7 @@ type TimeSeriesService struct {
 func NewTimeSeriesService(
 	timeSeriesRepo analyticsinterface.TimeSeriesRepository,
 	feedbackService feedbackinterface.FeedbackService,
-	organizationService organizationServices.OrganizationService,
+	organizationService organizationinterface.OrganizationService,
 	analyticsService analyticsinterface.AnalyticsService,
 	questionService feedbackinterface.QuestionService,
 ) *TimeSeriesService {

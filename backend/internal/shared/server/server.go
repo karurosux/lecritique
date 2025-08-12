@@ -91,7 +91,7 @@ func (s *Server) setupRoutes() {
 	authMod := authModule.NewAuthModule(s.injector)
 	authMod.RegisterRoutes(v1)
 	
-	organizationMod := organizationModule.NewModule(s.injector)
+	organizationMod := organizationModule.NewOrganizationModule(s.injector)
 	organizationMod.RegisterRoutes(v1)
 	
 	menuMod := menuModule.NewModule(s.injector)

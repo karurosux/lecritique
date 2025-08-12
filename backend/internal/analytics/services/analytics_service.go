@@ -17,7 +17,7 @@ import (
 	menuRepos "kyooar/internal/menu/repositories"
 	qrcodeModels "kyooar/internal/qrcode/models"
 	qrcodeRepos "kyooar/internal/qrcode/repositories"
-	organizationRepos "kyooar/internal/organization/repositories"
+	organizationinterface "kyooar/internal/organization/interface"
 	"kyooar/internal/shared/logger"
 	"github.com/sirupsen/logrus"
 )
@@ -27,7 +27,7 @@ type AnalyticsService struct {
 	feedbackRepo     feedbackinterface.FeedbackRepository
 	productRepo      menuRepos.ProductRepository
 	qrCodeRepo       qrcodeRepos.QRCodeRepository
-	organizationRepo organizationRepos.OrganizationRepository
+	organizationRepo organizationinterface.OrganizationRepository
 }
 
 func NewAnalyticsService(
@@ -35,7 +35,7 @@ func NewAnalyticsService(
 	feedbackRepo feedbackinterface.FeedbackRepository,
 	productRepo menuRepos.ProductRepository,
 	qrCodeRepo qrcodeRepos.QRCodeRepository,
-	organizationRepo organizationRepos.OrganizationRepository,
+	organizationRepo organizationinterface.OrganizationRepository,
 ) *AnalyticsService {
 	return &AnalyticsService{
 		analyticsRepo:    analyticsRepo,

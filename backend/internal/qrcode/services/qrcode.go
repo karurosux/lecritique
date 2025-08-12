@@ -10,7 +10,7 @@ import (
 	"github.com/google/uuid"
 	"kyooar/internal/qrcode/models"
 	qrcodeRepos "kyooar/internal/qrcode/repositories"
-	organizationRepos "kyooar/internal/organization/repositories"
+	organizationinterface "kyooar/internal/organization/interface"
 	sharedRepos "kyooar/internal/shared/repositories"
 	"github.com/samber/do"
 )
@@ -32,13 +32,13 @@ type QRCodeService interface {
 
 type qrCodeService struct {
 	qrCodeRepo     qrcodeRepos.QRCodeRepository
-	organizationRepo organizationRepos.OrganizationRepository
+	organizationRepo organizationinterface.OrganizationRepository
 }
 
 func NewQRCodeService(i *do.Injector) (QRCodeService, error) {
 	return &qrCodeService{
 		qrCodeRepo:     do.MustInvoke[qrcodeRepos.QRCodeRepository](i),
-		organizationRepo: do.MustInvoke[organizationRepos.OrganizationRepository](i),
+		organizationRepo: do.MustInvoke[organizationinterface.OrganizationRepository](i),
 	}, nil
 }
 

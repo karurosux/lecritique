@@ -7,9 +7,8 @@ import (
 	authinterface "kyooar/internal/auth/interface"
 	authmiddleware "kyooar/internal/auth/middleware"
 	
-	organizationHandlers "kyooar/internal/organization/handlers"
-	organizationRepos "kyooar/internal/organization/repositories"
-	organizationServices "kyooar/internal/organization/services"
+	organization "kyooar/internal/organization"
+	organizationinterface "kyooar/internal/organization/interface"
 	
 	menuHandlers "kyooar/internal/menu/handlers"
 	menuRepos "kyooar/internal/menu/repositories"
@@ -134,9 +133,8 @@ func RegisterAll(i *do.Injector, cfg *config.Config, db *gorm.DB) {
 		), nil
 	})
 	
-	do.Provide(i, organizationRepos.NewOrganizationRepository)
-	do.Provide(i, organizationServices.NewOrganizationService)
-	do.Provide(i, organizationHandlers.NewOrganizationHandler)
+	// Organization module registration
+	organization.RegisterNewModule(i)
 	
 	do.Provide(i, menuRepos.NewProductRepository)
 	do.Provide(i, menuServices.NewProductService)
@@ -169,7 +167,7 @@ func RegisterAll(i *do.Injector, cfg *config.Config, db *gorm.DB) {
 		return subscriptionMiddleware.NewSubscriptionMiddleware(
 			do.MustInvoke[subscriptionServices.SubscriptionService](i),
 			do.MustInvoke[subscriptionServices.UsageService](i),
-			do.MustInvoke[organizationServices.OrganizationService](i),
+			do.MustInvoke[organizationinterface.OrganizationService](i),
 		), nil
 	})
 }

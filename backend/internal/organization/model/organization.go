@@ -1,4 +1,4 @@
-package models
+package organizationmodel
 
 import (
 	"database/sql/driver"

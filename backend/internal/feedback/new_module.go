@@ -12,7 +12,7 @@ import (
 	feedbackservice "kyooar/internal/feedback/service"
 	menuRepos "kyooar/internal/menu/repositories"
 	menuServices "kyooar/internal/menu/services"
-	organizationRepos "kyooar/internal/organization/repositories"
+	organizationinterface "kyooar/internal/organization/interface"
 	qrcodeRepos "kyooar/internal/qrcode/repositories"
 	"kyooar/internal/shared/config"
 )
@@ -34,7 +34,7 @@ func ProvideQuestionnaireRepository(i *do.Injector) (feedbackinterface.Questionn
 
 func ProvideFeedbackService(i *do.Injector) (feedbackinterface.FeedbackService, error) {
 	feedbackRepo := do.MustInvoke[feedbackinterface.FeedbackRepository](i)
-	organizationRepo := do.MustInvoke[organizationRepos.OrganizationRepository](i)
+	organizationRepo := do.MustInvoke[organizationinterface.OrganizationRepository](i)
 	qrCodeRepo := do.MustInvoke[qrcodeRepos.QRCodeRepository](i)
 
 	return feedbackservice.NewFeedbackService(
@@ -47,7 +47,7 @@ func ProvideFeedbackService(i *do.Injector) (feedbackinterface.FeedbackService, 
 func ProvideQuestionService(i *do.Injector) (feedbackinterface.QuestionService, error) {
 	questionRepo := do.MustInvoke[feedbackinterface.QuestionRepository](i)
 	productRepo := do.MustInvoke[menuRepos.ProductRepository](i)
-	organizationRepo := do.MustInvoke[organizationRepos.OrganizationRepository](i)
+	organizationRepo := do.MustInvoke[organizationinterface.OrganizationRepository](i)
 
 	return feedbackservice.NewQuestionService(
 		questionRepo,
@@ -105,41 +105,12 @@ func NewFeedbackModule(i *do.Injector) *FeedbackModule {
 
 func (m *FeedbackModule) RegisterRoutes(v1 *echo.Group) {
 	publicController := do.MustInvoke[*feedbackcontroller.PublicController](m.injector)
-	feedbackController := do.MustInvoke[*feedbackcontroller.FeedbackController](m.injector)
-	questionController := do.MustInvoke[*feedbackcontroller.QuestionController](m.injector)
-	questionnaireController := do.MustInvoke[*feedbackcontroller.QuestionnaireController](m.injector)
 
+	// Public feedback routes only (organization-scoped routes are now in organization module)
 	v1.GET("/questionnaire/:organizationId/:productId", publicController.GetQuestionnaire)
 	v1.GET("/public/organization/:organizationId/products/:productId/questions", publicController.GetProductQuestions)
 	v1.GET("/public/organization/:organizationId/questions/products-with-questions", publicController.GetProductsWithQuestions)
 	v1.POST("/public/feedback", publicController.SubmitFeedback)
-
-	orgGroup := v1.Group("/organizations/:organizationId")
-	orgGroup.GET("/feedback", feedbackController.GetByOrganization)
-	orgGroup.GET("/analytics", feedbackController.GetStats)
-
-	orgGroup.POST("/products/:productId/questions", questionController.CreateQuestion)
-	orgGroup.GET("/products/:productId/questions", questionController.GetQuestionsByProduct)
-	orgGroup.GET("/questions/batch", questionController.GetQuestionsByProducts)
-	orgGroup.GET("/products/:productId/questions/:questionId", questionController.GetQuestion)
-	orgGroup.PUT("/products/:productId/questions/:questionId", questionController.UpdateQuestion)
-	orgGroup.DELETE("/products/:productId/questions/:questionId", questionController.DeleteQuestion)
-	orgGroup.POST("/products/:productId/questions/reorder", questionController.ReorderQuestions)
-	orgGroup.GET("/questions/products-with-questions", questionController.GetProductsWithQuestions)
-
-	orgGroup.POST("/questionnaires", questionnaireController.CreateQuestionnaire)
-	orgGroup.GET("/questionnaires", questionnaireController.ListQuestionnaires)
-	orgGroup.GET("/questionnaires/:id", questionnaireController.GetQuestionnaire)
-	orgGroup.PUT("/questionnaires/:id", questionnaireController.UpdateQuestionnaire)
-	orgGroup.DELETE("/questionnaires/:id", questionnaireController.DeleteQuestionnaire)
-	orgGroup.POST("/questionnaires/:id/questions", questionnaireController.AddQuestion)
-	orgGroup.PUT("/questionnaires/:id/questions/:questionId", questionnaireController.UpdateQuestion)
-	orgGroup.DELETE("/questionnaires/:id/questions/:questionId", questionnaireController.DeleteQuestion)
-	orgGroup.POST("/questionnaires/:id/reorder", questionnaireController.ReorderQuestions)
-
-	aiGroup := v1.Group("/ai")
-	aiGroup.POST("/generate-questions/:productId", questionnaireController.GenerateQuestions)
-	aiGroup.POST("/generate-questionnaire/:productId", questionnaireController.GenerateAndSaveQuestionnaire)
 }
 
 func RegisterNewModule(container *do.Injector) error {

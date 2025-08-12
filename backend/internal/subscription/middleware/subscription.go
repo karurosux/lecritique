@@ -8,19 +8,19 @@ import (
 	"kyooar/internal/shared/response"
 	"kyooar/internal/subscription/models"
 	"kyooar/internal/subscription/services"
-	organizationServices "kyooar/internal/organization/services"
+	organizationinterface "kyooar/internal/organization/interface"
 )
 
 type SubscriptionMiddleware struct {
 	subscriptionService services.SubscriptionService
 	usageService        services.UsageService
-	organizationService   organizationServices.OrganizationService
+	organizationService   organizationinterface.OrganizationService
 }
 
 func NewSubscriptionMiddleware(
 	subscriptionService services.SubscriptionService,
 	usageService services.UsageService,
-	organizationService organizationServices.OrganizationService,
+	organizationService organizationinterface.OrganizationService,
 ) *SubscriptionMiddleware {
 	return &SubscriptionMiddleware{
 		subscriptionService: subscriptionService,

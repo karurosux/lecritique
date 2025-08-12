@@ -1,40 +1,32 @@
-package services
+package organizationservice
 
 import (
 	"context"
 
 	"github.com/google/uuid"
-	"kyooar/internal/organization/models"
-	organizationRepos "kyooar/internal/organization/repositories"
+	organizationinterface "kyooar/internal/organization/interface"
+	organizationmodel "kyooar/internal/organization/model"
 	"kyooar/internal/shared/errors"
 	sharedRepos "kyooar/internal/shared/repositories"
 	subscriptionRepos "kyooar/internal/subscription/repositories"
-	"github.com/samber/do"
 )
 
-type OrganizationService interface {
-	Create(ctx context.Context, accountID uuid.UUID, organization *models.Organization) error
-	Update(ctx context.Context, accountID uuid.UUID, organizationID uuid.UUID, updates map[string]interface{}) error
-	Delete(ctx context.Context, accountID uuid.UUID, organizationID uuid.UUID) error
-	GetByID(ctx context.Context, accountID uuid.UUID, organizationID uuid.UUID) (*models.Organization, error)
-	GetByAccountID(ctx context.Context, accountID uuid.UUID) ([]models.Organization, error)
-	CountByAccountID(ctx context.Context, accountID uuid.UUID) (int64, error)
-	GetByIDForAnalytics(ctx context.Context, organizationID uuid.UUID) (*models.Organization, error)
-}
-
 type organizationService struct {
-	organizationRepo   organizationRepos.OrganizationRepository
-	subscriptionRepo subscriptionRepos.SubscriptionRepository
+	organizationRepo   organizationinterface.OrganizationRepository
+	subscriptionRepo   subscriptionRepos.SubscriptionRepository
 }
 
-func NewOrganizationService(i *do.Injector) (OrganizationService, error) {
+func NewOrganizationService(
+	organizationRepo organizationinterface.OrganizationRepository,
+	subscriptionRepo subscriptionRepos.SubscriptionRepository,
+) organizationinterface.OrganizationService {
 	return &organizationService{
-		organizationRepo:   do.MustInvoke[organizationRepos.OrganizationRepository](i),
-		subscriptionRepo: do.MustInvoke[subscriptionRepos.SubscriptionRepository](i),
-	}, nil
+		organizationRepo:   organizationRepo,
+		subscriptionRepo:   subscriptionRepo,
+	}
 }
 
-func (s *organizationService) Create(ctx context.Context, accountID uuid.UUID, organization *models.Organization) error {
+func (s *organizationService) Create(ctx context.Context, accountID uuid.UUID, organization *organizationmodel.Organization) error {
 	subscription, err := s.subscriptionRepo.FindByAccountID(ctx, accountID)
 	if err != nil {
 	}
@@ -135,7 +127,7 @@ func (s *organizationService) Delete(ctx context.Context, accountID uuid.UUID, o
 	return nil
 }
 
-func (s *organizationService) GetByID(ctx context.Context, accountID uuid.UUID, organizationID uuid.UUID) (*models.Organization, error) {
+func (s *organizationService) GetByID(ctx context.Context, accountID uuid.UUID, organizationID uuid.UUID) (*organizationmodel.Organization, error) {
 	organization, err := s.organizationRepo.FindByID(ctx, organizationID)
 	if err != nil {
 		if err == sharedRepos.ErrRecordNotFound {
@@ -151,7 +143,7 @@ func (s *organizationService) GetByID(ctx context.Context, accountID uuid.UUID, 
 	return organization, nil
 }
 
-func (s *organizationService) GetByAccountID(ctx context.Context, accountID uuid.UUID) ([]models.Organization, error) {
+func (s *organizationService) GetByAccountID(ctx context.Context, accountID uuid.UUID) ([]organizationmodel.Organization, error) {
 	organizations, err := s.organizationRepo.FindByAccountID(ctx, accountID)
 	if err != nil {
 		return nil, errors.Wrap(err, "DATABASE_ERROR", "Unable to retrieve organizations", 500)
@@ -167,6 +159,6 @@ func (s *organizationService) CountByAccountID(ctx context.Context, accountID uu
 	return count, nil
 }
 
-func (s *organizationService) GetByIDForAnalytics(ctx context.Context, organizationID uuid.UUID) (*models.Organization, error) {
+func (s *organizationService) GetByIDForAnalytics(ctx context.Context, organizationID uuid.UUID) (*organizationmodel.Organization, error) {
 	return s.organizationRepo.FindByID(ctx, organizationID)
 }

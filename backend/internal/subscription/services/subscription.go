@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"kyooar/internal/organization/repositories"
+	organizationinterface "kyooar/internal/organization/interface"
 	"kyooar/internal/subscription/models"
 	subscriptionRepos "kyooar/internal/subscription/repositories"
 	"github.com/samber/do"
@@ -25,14 +25,14 @@ type SubscriptionService interface {
 type subscriptionService struct {
 	subscriptionRepo     subscriptionRepos.SubscriptionRepository
 	planRepo            subscriptionRepos.SubscriptionPlanRepository
-	organizationRepo      repositories.OrganizationRepository
+	organizationRepo      organizationinterface.OrganizationRepository
 }
 
 func NewSubscriptionService(i *do.Injector) (SubscriptionService, error) {
 	return &subscriptionService{
 		subscriptionRepo: do.MustInvoke[subscriptionRepos.SubscriptionRepository](i),
 		planRepo:        do.MustInvoke[subscriptionRepos.SubscriptionPlanRepository](i),
-		organizationRepo:  do.MustInvoke[repositories.OrganizationRepository](i),
+		organizationRepo:  do.MustInvoke[organizationinterface.OrganizationRepository](i),
 	}, nil
 }
 

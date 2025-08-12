@@ -11,8 +11,7 @@ import (
 	analyticsservice "kyooar/internal/analytics/services"
 	feedbackinterface "kyooar/internal/feedback/interface"
 	menuRepos "kyooar/internal/menu/repositories"
-	organizationRepos "kyooar/internal/organization/repositories"
-	organizationServices "kyooar/internal/organization/services"
+	organizationinterface "kyooar/internal/organization/interface"
 	qrcodeRepos "kyooar/internal/qrcode/repositories"
 	sharedMiddleware "kyooar/internal/shared/middleware"
 )
@@ -32,7 +31,7 @@ func ProvideAnalyticsService(i *do.Injector) (analyticsinterface.AnalyticsServic
 	feedbackRepo := do.MustInvoke[feedbackinterface.FeedbackRepository](i)
 	productRepo := do.MustInvoke[menuRepos.ProductRepository](i)
 	qrCodeRepo := do.MustInvoke[qrcodeRepos.QRCodeRepository](i)
-	organizationRepo := do.MustInvoke[organizationRepos.OrganizationRepository](i)
+	organizationRepo := do.MustInvoke[organizationinterface.OrganizationRepository](i)
 
 	return analyticsservice.NewAnalyticsService(
 		analyticsRepo,
@@ -46,7 +45,7 @@ func ProvideAnalyticsService(i *do.Injector) (analyticsinterface.AnalyticsServic
 func ProvideTimeSeriesService(i *do.Injector) (analyticsinterface.TimeSeriesService, error) {
 	timeSeriesRepo := do.MustInvoke[analyticsinterface.TimeSeriesRepository](i)
 	feedbackService := do.MustInvoke[feedbackinterface.FeedbackService](i)
-	organizationService := do.MustInvoke[organizationServices.OrganizationService](i)
+	organizationService := do.MustInvoke[organizationinterface.OrganizationService](i)
 	analyticsService := do.MustInvoke[analyticsinterface.AnalyticsService](i)
 	questionService := do.MustInvoke[feedbackinterface.QuestionService](i)
 
@@ -62,7 +61,7 @@ func ProvideTimeSeriesService(i *do.Injector) (analyticsinterface.TimeSeriesServ
 func ProvideAnalyticsController(i *do.Injector) (*analyticscontroller.AnalyticsController, error) {
 	feedbackRepo := do.MustInvoke[feedbackinterface.FeedbackRepository](i)
 	productRepo := do.MustInvoke[menuRepos.ProductRepository](i)
-	organizationRepo := do.MustInvoke[organizationRepos.OrganizationRepository](i)
+	organizationRepo := do.MustInvoke[organizationinterface.OrganizationRepository](i)
 	analyticsService := do.MustInvoke[analyticsinterface.AnalyticsService](i)
 
 	return analyticscontroller.NewAnalyticsController(
@@ -75,7 +74,7 @@ func ProvideAnalyticsController(i *do.Injector) (*analyticscontroller.AnalyticsC
 
 func ProvideTimeSeriesController(i *do.Injector) (*analyticscontroller.TimeSeriesController, error) {
 	timeSeriesService := do.MustInvoke[analyticsinterface.TimeSeriesService](i)
-	organizationRepo := do.MustInvoke[organizationRepos.OrganizationRepository](i)
+	organizationRepo := do.MustInvoke[organizationinterface.OrganizationRepository](i)
 
 	return analyticscontroller.NewTimeSeriesController(
 		timeSeriesService,

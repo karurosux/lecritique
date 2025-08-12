@@ -8,14 +8,14 @@ import (
 	"github.com/google/uuid"
 	menuModels "kyooar/internal/menu/models"
 	qrcodeModels "kyooar/internal/qrcode/models"
-	organizationModels "kyooar/internal/organization/models"
+	organizationmodel "kyooar/internal/organization/model"
 	sharedModels "kyooar/internal/shared/models"
 )
 
 type Feedback struct {
 	sharedModels.BaseModel
 	OrganizationID uuid.UUID                           `gorm:"not null" json:"organization_id"`
-	Organization   organizationModels.Organization     `json:"organization,omitempty"`
+	Organization   organizationmodel.Organization     `json:"organization,omitempty"`
 	ProductID      uuid.UUID                           `gorm:"not null" json:"product_id"`
 	Product        menuModels.Product                  `json:"product,omitempty"`
 	QRCodeID       uuid.UUID                           `gorm:"not null" json:"qr_code_id"`

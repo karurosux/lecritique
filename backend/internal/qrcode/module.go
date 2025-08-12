@@ -20,8 +20,11 @@ func (m *Module) RegisterRoutes(v1 *echo.Group) {
 	publicHandler := do.MustInvoke[*handlers.QRCodePublicHandler](m.injector)
 	
 	middlewareProvider := do.MustInvoke[*sharedMiddleware.MiddlewareProvider](m.injector)
+	
+	// Public routes
 	v1.GET("/public/qr/:code", publicHandler.ValidateQRCode)
 	
+	// QR code CRUD routes
 	qrCodes := v1.Group("/qr-codes")
 	qrCodes.Use(middlewareProvider.AuthMiddleware())
 	qrCodes.Use(middlewareProvider.TeamAwareMiddleware())

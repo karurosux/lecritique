@@ -8,20 +8,20 @@ import (
 	"github.com/google/uuid"
 	feedbackinterface "kyooar/internal/feedback/interface"
 	feedbackmodel "kyooar/internal/feedback/model"
-	organizationRepos "kyooar/internal/organization/repositories"
+	organizationinterface "kyooar/internal/organization/interface"
 	qrcodeRepos "kyooar/internal/qrcode/repositories"
 	sharedModels "kyooar/internal/shared/models"
 )
 
 type feedbackService struct {
 	feedbackRepo     feedbackinterface.FeedbackRepository
-	organizationRepo organizationRepos.OrganizationRepository
+	organizationRepo organizationinterface.OrganizationRepository
 	qrCodeRepo       qrcodeRepos.QRCodeRepository
 }
 
 func NewFeedbackService(
 	feedbackRepo feedbackinterface.FeedbackRepository,
-	organizationRepo organizationRepos.OrganizationRepository,
+	organizationRepo organizationinterface.OrganizationRepository,
 	qrCodeRepo qrcodeRepos.QRCodeRepository,
 ) feedbackinterface.FeedbackService {
 	return &feedbackService{
