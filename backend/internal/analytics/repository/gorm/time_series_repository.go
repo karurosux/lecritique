@@ -8,7 +8,7 @@ import (
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 	gormLogger "gorm.io/gorm/logger"
-	"kyooar/internal/analytics/models"
+	models "kyooar/internal/analytics/model"
 	"kyooar/internal/shared/logger"
 	"github.com/sirupsen/logrus"
 )

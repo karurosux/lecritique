@@ -10,7 +10,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/grassmudhorses/vader-go/lexicon"
 	"github.com/grassmudhorses/vader-go/sentitext"
-	analyticsModels "kyooar/internal/analytics/models"
+	analyticsModels "kyooar/internal/analytics/model"
 	analyticsinterface "kyooar/internal/analytics/interface"
 	feedbackModels "kyooar/internal/feedback/models"
 	feedbackRepos "kyooar/internal/feedback/repositories"

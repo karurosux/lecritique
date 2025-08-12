@@ -9,7 +9,7 @@ import (
 
 	analyticsconstants "kyooar/internal/analytics/constants"
 	analyticsinterface "kyooar/internal/analytics/interface"
-	"kyooar/internal/analytics/models"
+	models "kyooar/internal/analytics/model"
 	organizationRepos "kyooar/internal/organization/repositories"
 	"kyooar/internal/shared/logger"
 	"kyooar/internal/shared/middleware"

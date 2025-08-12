@@ -1,4 +1,4 @@
-package models
+package analyticsmodel
 
 import (
 	"time"
@@ -77,18 +77,6 @@ type TimeSeriesFilters struct {
 	Granularity    string     `json:"granularity,omitempty"`
 }
 
-
-type TimeSeriesRequest struct {
-	OrganizationID uuid.UUID  `json:"organization_id"`
-	ProductID      *uuid.UUID `json:"product_id,omitempty"`
-	QuestionID     *uuid.UUID `json:"question_id,omitempty"`
-	MetricTypes    []string   `json:"metric_types"`
-	StartDate      time.Time  `json:"start_date"`
-	EndDate        time.Time  `json:"end_date"`
-	Granularity    string     `json:"granularity"`
-	GroupBy        []string   `json:"group_by,omitempty"`
-}
-
 type TimeSeriesResponse struct {
 	Request    TimeSeriesRequest        `json:"request"`
 	Series     []TimeSeriesData         `json:"series"`
@@ -133,18 +121,6 @@ type DateRange struct {
 	Start time.Time `json:"start"`
 	End   time.Time `json:"end"`
 }
-
-type ComparisonRequest struct {
-	OrganizationID uuid.UUID  `json:"organization_id"`
-	ProductID      *uuid.UUID `json:"product_id,omitempty"`
-	QuestionID     *uuid.UUID `json:"question_id,omitempty"`
-	MetricTypes    []string   `json:"metric_types"`
-	Period1Start   time.Time  `json:"period1_start"`
-	Period1End     time.Time  `json:"period1_end"`
-	Period2Start   time.Time  `json:"period2_start"`
-	Period2End     time.Time  `json:"period2_end"`
-}
-
 type ComparisonResponse struct {
 	Request     ComparisonRequest      `json:"request"`
 	Comparisons []TimeSeriesComparison `json:"comparisons"`

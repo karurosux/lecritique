@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"kyooar/internal/analytics/models"
+	models "kyooar/internal/analytics/model"
 	analyticsinterface "kyooar/internal/analytics/interface"
 	"kyooar/internal/shared/logger"
 	"math"

@@ -38,12 +38,12 @@ type ProductInsightsResponse struct {
 	Data    interface{} `json:"data"`
 }
 
-type TimeSeriesResponse struct {
+type TimeSeriesAPIResponse struct {
 	Success bool        `json:"success"`
 	Data    interface{} `json:"data"`
 }
 
-type ComparisonResponse struct {
+type ComparisonAPIResponse struct {
 	Success bool        `json:"success"`
 	Data    interface{} `json:"data"`
 }

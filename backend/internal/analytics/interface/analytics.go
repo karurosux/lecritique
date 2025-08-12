@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"kyooar/internal/analytics/models"
+	models "kyooar/internal/analytics/model"
 )
 
 type AnalyticsRepository interface {
