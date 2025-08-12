@@ -1,4 +1,4 @@
-package services
+package analyticsservice
 
 import (
 	"context"
@@ -11,7 +11,7 @@ import (
 	"github.com/grassmudhorses/vader-go/lexicon"
 	"github.com/grassmudhorses/vader-go/sentitext"
 	analyticsModels "kyooar/internal/analytics/models"
-	analyticsRepos "kyooar/internal/analytics/repositories"
+	analyticsinterface "kyooar/internal/analytics/interface"
 	feedbackModels "kyooar/internal/feedback/models"
 	feedbackRepos "kyooar/internal/feedback/repositories"
 	menuRepos "kyooar/internal/menu/repositories"
@@ -20,40 +20,34 @@ import (
 	organizationRepos "kyooar/internal/organization/repositories"
 	"kyooar/internal/shared/logger"
 	sharedModels "kyooar/internal/shared/models"
-	"github.com/samber/do"
 	"github.com/sirupsen/logrus"
 )
 
-type AnalyticsService interface {
-	GetDashboardMetrics(ctx context.Context, organizationID uuid.UUID) (*analyticsModels.DashboardMetrics, error)
-	GetProductInsights(ctx context.Context, productID uuid.UUID) (*analyticsModels.ProductInsights, error)
-	GetOrganizationInsights(ctx context.Context, organizationID uuid.UUID, period string) (*analyticsModels.OrganizationInsights, error)
-	
-	GetOrganizationChartData(ctx context.Context, organizationID uuid.UUID, filters map[string]interface{}) (*analyticsModels.OrganizationChartData, error)
-	GetQuestionChartData(ctx context.Context, questionID uuid.UUID, filters map[string]interface{}) (*analyticsModels.ChartData, error)
-	
-	GetProductAnalyticsBatch(ctx context.Context, organizationID uuid.UUID, productIDs []uuid.UUID) (map[uuid.UUID]analyticsModels.ProductAnalytics, error)
-}
-
-type analyticsService struct {
-	analyticsRepo    analyticsRepos.AnalyticsRepository
+type AnalyticsService struct {
+	analyticsRepo    analyticsinterface.AnalyticsRepository
 	feedbackRepo     feedbackRepos.FeedbackRepository
 	productRepo      menuRepos.ProductRepository
 	qrCodeRepo       qrcodeRepos.QRCodeRepository
 	organizationRepo organizationRepos.OrganizationRepository
 }
 
-func NewAnalyticsService(i *do.Injector) (AnalyticsService, error) {
-	return &analyticsService{
-		analyticsRepo:    do.MustInvoke[analyticsRepos.AnalyticsRepository](i),
-		feedbackRepo:     do.MustInvoke[feedbackRepos.FeedbackRepository](i),
-		productRepo:      do.MustInvoke[menuRepos.ProductRepository](i),
-		qrCodeRepo:       do.MustInvoke[qrcodeRepos.QRCodeRepository](i),
-		organizationRepo: do.MustInvoke[organizationRepos.OrganizationRepository](i),
-	}, nil
+func NewAnalyticsService(
+	analyticsRepo analyticsinterface.AnalyticsRepository,
+	feedbackRepo feedbackRepos.FeedbackRepository,
+	productRepo menuRepos.ProductRepository,
+	qrCodeRepo qrcodeRepos.QRCodeRepository,
+	organizationRepo organizationRepos.OrganizationRepository,
+) *AnalyticsService {
+	return &AnalyticsService{
+		analyticsRepo:    analyticsRepo,
+		feedbackRepo:     feedbackRepo,
+		productRepo:      productRepo,
+		qrCodeRepo:       qrCodeRepo,
+		organizationRepo: organizationRepo,
+	}
 }
 
-func (s *analyticsService) GetDashboardMetrics(ctx context.Context, organizationID uuid.UUID) (*analyticsModels.DashboardMetrics, error) {
+func (s *AnalyticsService) GetDashboardMetrics(ctx context.Context, organizationID uuid.UUID) (*analyticsModels.DashboardMetrics, error) {
 	metrics := &analyticsModels.DashboardMetrics{}
 	
 	feedbackCounts, err := s.analyticsRepo.GetFeedbackCounts(ctx, organizationID)
@@ -118,7 +112,7 @@ func (s *analyticsService) GetDashboardMetrics(ctx context.Context, organization
 	return metrics, nil
 }
 
-func (s *analyticsService) GetProductInsights(ctx context.Context, productID uuid.UUID) (*analyticsModels.ProductInsights, error) {
+func (s *AnalyticsService) GetProductInsights(ctx context.Context, productID uuid.UUID) (*analyticsModels.ProductInsights, error) {
 	product, err := s.productRepo.FindByID(ctx, productID)
 	if err != nil {
 		return nil, err
@@ -186,7 +180,7 @@ func (s *analyticsService) GetProductInsights(ctx context.Context, productID uui
 	return insights, nil
 }
 
-func (s *analyticsService) GetOrganizationInsights(ctx context.Context, organizationID uuid.UUID, period string) (*analyticsModels.OrganizationInsights, error) {
+func (s *AnalyticsService) GetOrganizationInsights(ctx context.Context, organizationID uuid.UUID, period string) (*analyticsModels.OrganizationInsights, error) {
 	return &analyticsModels.OrganizationInsights{
 		OrganizationID:   organizationID,
 		Period:         period,
@@ -196,7 +190,7 @@ func (s *analyticsService) GetOrganizationInsights(ctx context.Context, organiza
 }
 
 
-func (s *analyticsService) calculateOverallMetrics(feedback []feedbackModels.Feedback) (satisfaction, recommendRate, sentiment float64) {
+func (s *AnalyticsService) calculateOverallMetrics(feedback []feedbackModels.Feedback) (satisfaction, recommendRate, sentiment float64) {
 	if len(feedback) == 0 {
 		return 0, 0, 0
 	}
@@ -249,7 +243,7 @@ func (s *analyticsService) calculateOverallMetrics(feedback []feedbackModels.Fee
 	return
 }
 
-func (s *analyticsService) aggregateQuestionMetrics(feedback []feedbackModels.Feedback, questions []feedbackModels.Question) []analyticsModels.QuestionMetric {
+func (s *AnalyticsService) aggregateQuestionMetrics(feedback []feedbackModels.Feedback, questions []feedbackModels.Question) []analyticsModels.QuestionMetric {
 	metricsMap := make(map[uuid.UUID]*analyticsModels.QuestionMetric)
 	
 	for _, q := range questions {
@@ -338,7 +332,7 @@ func (s *analyticsService) aggregateQuestionMetrics(feedback []feedbackModels.Fe
 	return metrics
 }
 
-func (s *analyticsService) identifyTopIssues(feedback []feedbackModels.Feedback) []analyticsModels.QuickIssue {
+func (s *AnalyticsService) identifyTopIssues(feedback []feedbackModels.Feedback) []analyticsModels.QuickIssue {
 	issues := []analyticsModels.QuickIssue{}
 	
 	lowRatingCount := 0
@@ -361,7 +355,7 @@ func (s *analyticsService) identifyTopIssues(feedback []feedbackModels.Feedback)
 	return issues
 }
 
-func (s *analyticsService) aggregateByProduct(feedback []feedbackModels.Feedback) map[uuid.UUID]*analyticsModels.ProductSummary {
+func (s *AnalyticsService) aggregateByProduct(feedback []feedbackModels.Feedback) map[uuid.UUID]*analyticsModels.ProductSummary {
 	productMap := make(map[uuid.UUID]*analyticsModels.ProductSummary)
 	
 	for _, f := range feedback {
@@ -381,7 +375,7 @@ func (s *analyticsService) aggregateByProduct(feedback []feedbackModels.Feedback
 	return productMap
 }
 
-func (s *analyticsService) getTopProducts(productMap map[uuid.UUID]*analyticsModels.ProductSummary, limit int) []analyticsModels.ProductSummary {
+func (s *AnalyticsService) getTopProducts(productMap map[uuid.UUID]*analyticsModels.ProductSummary, limit int) []analyticsModels.ProductSummary {
 	var products []analyticsModels.ProductSummary
 	for _, d := range productMap {
 		products = append(products, *d)
@@ -398,7 +392,7 @@ func (s *analyticsService) getTopProducts(productMap map[uuid.UUID]*analyticsMod
 	return products
 }
 
-func (s *analyticsService) getBottomProducts(productMap map[uuid.UUID]*analyticsModels.ProductSummary, limit int) []analyticsModels.ProductSummary {
+func (s *AnalyticsService) getBottomProducts(productMap map[uuid.UUID]*analyticsModels.ProductSummary, limit int) []analyticsModels.ProductSummary {
 	var products []analyticsModels.ProductSummary
 	for _, d := range productMap {
 		if d.Score < 3.5 {
@@ -417,7 +411,7 @@ func (s *analyticsService) getBottomProducts(productMap map[uuid.UUID]*analytics
 	return products
 }
 
-func (s *analyticsService) getRecentFeedbackSummaries(feedback []feedbackModels.Feedback, limit int) []analyticsModels.FeedbackSummary {
+func (s *AnalyticsService) getRecentFeedbackSummaries(feedback []feedbackModels.Feedback, limit int) []analyticsModels.FeedbackSummary {
 	sort.Slice(feedback, func(i, j int) bool {
 		return feedback[i].CreatedAt.After(feedback[j].CreatedAt)
 	})
@@ -460,7 +454,7 @@ func (s *analyticsService) getRecentFeedbackSummaries(feedback []feedbackModels.
 	return summaries
 }
 
-func (s *analyticsService) identifyBestAspects(metrics []analyticsModels.QuestionMetric) []string {
+func (s *AnalyticsService) identifyBestAspects(metrics []analyticsModels.QuestionMetric) []string {
 	var best []string
 	
 	for _, m := range metrics {
@@ -478,7 +472,7 @@ func (s *analyticsService) identifyBestAspects(metrics []analyticsModels.Questio
 	return best
 }
 
-func (s *analyticsService) identifyNeedsAttention(metrics []analyticsModels.QuestionMetric) []string {
+func (s *AnalyticsService) identifyNeedsAttention(metrics []analyticsModels.QuestionMetric) []string {
 	var needs []string
 	
 	for _, m := range metrics {
@@ -513,7 +507,7 @@ type QRMetrics struct {
 	ScansToday  int64
 }
 
-func (s *analyticsService) getQRCodeMetrics(ctx context.Context, organizationID uuid.UUID) (*QRMetrics, error) {
+func (s *AnalyticsService) getQRCodeMetrics(ctx context.Context, organizationID uuid.UUID) (*QRMetrics, error) {
 	qrCodes, err := s.qrCodeRepo.FindByOrganizationID(ctx, organizationID)
 	if err != nil {
 		return nil, err
@@ -536,7 +530,7 @@ func (s *analyticsService) getQRCodeMetrics(ctx context.Context, organizationID 
 	return metrics, nil
 }
 
-func (s *analyticsService) getDeviceMetrics(ctx context.Context, organizationID uuid.UUID) (map[string]int64, error) {
+func (s *AnalyticsService) getDeviceMetrics(ctx context.Context, organizationID uuid.UUID) (map[string]int64, error) {
 	feedback, err := s.feedbackRepo.FindByOrganizationIDForAnalytics(ctx, organizationID, 1000)
 	if err != nil {
 		return nil, err
@@ -545,7 +539,7 @@ func (s *analyticsService) getDeviceMetrics(ctx context.Context, organizationID 
 	return s.getDeviceMetricsFromFeedback(feedback), nil
 }
 
-func (s *analyticsService) getDeviceMetricsFromFeedback(feedback []feedbackModels.Feedback) map[string]int64 {
+func (s *AnalyticsService) getDeviceMetricsFromFeedback(feedback []feedbackModels.Feedback) map[string]int64 {
 	deviceBreakdown := make(map[string]int64)
 	platformBreakdown := make(map[string]int64)
 	
@@ -570,7 +564,7 @@ func (s *analyticsService) getDeviceMetricsFromFeedback(feedback []feedbackModel
 	return result
 }
 
-func (s *analyticsService) getAverageResponseTime(ctx context.Context, organizationID uuid.UUID) (float64, error) {
+func (s *AnalyticsService) getAverageResponseTime(ctx context.Context, organizationID uuid.UUID) (float64, error) {
 	feedback, err := s.feedbackRepo.FindByOrganizationIDForAnalytics(ctx, organizationID, 500)
 	if err != nil {
 		return 0, err
@@ -579,7 +573,7 @@ func (s *analyticsService) getAverageResponseTime(ctx context.Context, organizat
 	return s.getAverageResponseTimeFromFeedback(ctx, feedback), nil
 }
 
-func (s *analyticsService) getAverageResponseTimeFromFeedback(ctx context.Context, feedback []feedbackModels.Feedback) float64 {
+func (s *AnalyticsService) getAverageResponseTimeFromFeedback(ctx context.Context, feedback []feedbackModels.Feedback) float64 {
 	if len(feedback) == 0 {
 		return 0
 	}
@@ -636,7 +630,7 @@ func (s *analyticsService) getAverageResponseTimeFromFeedback(ctx context.Contex
 	return totalTime / float64(count)
 }
 
-func (s *analyticsService) getPeakUsageHours(ctx context.Context, organizationID uuid.UUID) ([]int, error) {
+func (s *AnalyticsService) getPeakUsageHours(ctx context.Context, organizationID uuid.UUID) ([]int, error) {
 	feedback, err := s.feedbackRepo.FindByOrganizationIDForAnalytics(ctx, organizationID, 1000)
 	if err != nil {
 		return nil, err
@@ -645,7 +639,7 @@ func (s *analyticsService) getPeakUsageHours(ctx context.Context, organizationID
 	return s.getPeakUsageHoursFromFeedback(feedback), nil
 }
 
-func (s *analyticsService) getPeakUsageHoursFromFeedback(feedback []feedbackModels.Feedback) []int {
+func (s *AnalyticsService) getPeakUsageHoursFromFeedback(feedback []feedbackModels.Feedback) []int {
 	weekAgo := time.Now().AddDate(0, 0, -7)
 	recentFeedback := filterFeedbackByDate(feedback, weekAgo)
 	
@@ -680,7 +674,7 @@ func (s *analyticsService) getPeakUsageHoursFromFeedback(feedback []feedbackMode
 	return peakHours
 }
 
-func (s *analyticsService) getQRCodePerformance(ctx context.Context, organizationID uuid.UUID) ([]analyticsModels.QRCodePerformance, error) {
+func (s *AnalyticsService) getQRCodePerformance(ctx context.Context, organizationID uuid.UUID) ([]analyticsModels.QRCodePerformance, error) {
 	organization, err := s.organizationRepo.FindByID(ctx, organizationID)
 	if err != nil {
 		return nil, err
@@ -750,7 +744,7 @@ func (s *analyticsService) getQRCodePerformance(ctx context.Context, organizatio
 }
 
 
-func (s *analyticsService) GetOrganizationChartData(ctx context.Context, organizationID uuid.UUID, filters map[string]interface{}) (*analyticsModels.OrganizationChartData, error) {
+func (s *AnalyticsService) GetOrganizationChartData(ctx context.Context, organizationID uuid.UUID, filters map[string]interface{}) (*analyticsModels.OrganizationChartData, error) {
 	logger.Info("Starting GetOrganizationChartData", logrus.Fields{
 		"organization_id": organizationID,
 		"filters": filters,
@@ -863,7 +857,7 @@ func (s *analyticsService) GetOrganizationChartData(ctx context.Context, organiz
 	return chartData, nil
 }
 
-func (s *analyticsService) GetQuestionChartData(ctx context.Context, questionID uuid.UUID, filters map[string]interface{}) (*analyticsModels.ChartData, error) {
+func (s *AnalyticsService) GetQuestionChartData(ctx context.Context, questionID uuid.UUID, filters map[string]interface{}) (*analyticsModels.ChartData, error) {
 	feedbackFilters := s.buildFeedbackFilters(filters)
 	
 	
@@ -894,7 +888,7 @@ func (s *analyticsService) GetQuestionChartData(ctx context.Context, questionID 
 }
 
 
-func (s *analyticsService) buildFeedbackFilters(filters map[string]interface{}) feedbackRepos.FeedbackFilter {
+func (s *AnalyticsService) buildFeedbackFilters(filters map[string]interface{}) feedbackRepos.FeedbackFilter {
 	feedbackFilters := feedbackRepos.FeedbackFilter{}
 	
 	if dateFrom, ok := filters["date_from"].(string); ok {
@@ -918,7 +912,7 @@ func (s *analyticsService) buildFeedbackFilters(filters map[string]interface{}) 
 	return feedbackFilters
 }
 
-func (s *analyticsService) aggregateQuestionResponses(questionID uuid.UUID, questionText, questionType string, responses []feedbackModels.Response) analyticsModels.ChartData {
+func (s *AnalyticsService) aggregateQuestionResponses(questionID uuid.UUID, questionText, questionType string, responses []feedbackModels.Response) analyticsModels.ChartData {
 	chartData := analyticsModels.ChartData{
 		QuestionID:   questionID,
 		QuestionText: questionText,
@@ -950,7 +944,7 @@ func (s *analyticsService) aggregateQuestionResponses(questionID uuid.UUID, ques
 	return chartData
 }
 
-func (s *analyticsService) aggregateRatingResponses(responses []feedbackModels.Response) map[string]interface{} {
+func (s *AnalyticsService) aggregateRatingResponses(responses []feedbackModels.Response) map[string]interface{} {
 	distribution := make(map[string]int64)
 	var total int64
 	var sum float64
@@ -1003,7 +997,7 @@ func (s *analyticsService) aggregateRatingResponses(responses []feedbackModels.R
 	}
 }
 
-func (s *analyticsService) aggregateScaleResponses(responses []feedbackModels.Response) map[string]interface{} {
+func (s *AnalyticsService) aggregateScaleResponses(responses []feedbackModels.Response) map[string]interface{} {
 	distribution := make(map[string]int64)
 	var total int64
 	var sum float64
@@ -1057,7 +1051,7 @@ func (s *analyticsService) aggregateScaleResponses(responses []feedbackModels.Re
 	}
 }
 
-func (s *analyticsService) aggregateChoiceResponses(responses []feedbackModels.Response, isMultiChoice bool) map[string]interface{} {
+func (s *AnalyticsService) aggregateChoiceResponses(responses []feedbackModels.Response, isMultiChoice bool) map[string]interface{} {
 	options := make(map[string]int64)
 	combinations := make(map[string]int64)
 	var total int64
@@ -1124,7 +1118,7 @@ func (s *analyticsService) aggregateChoiceResponses(responses []feedbackModels.R
 	return result
 }
 
-func (s *analyticsService) GetProductAnalyticsBatch(ctx context.Context, organizationID uuid.UUID, productIDs []uuid.UUID) (map[uuid.UUID]analyticsModels.ProductAnalytics, error) {
+func (s *AnalyticsService) GetProductAnalyticsBatch(ctx context.Context, organizationID uuid.UUID, productIDs []uuid.UUID) (map[uuid.UUID]analyticsModels.ProductAnalytics, error) {
 	if len(productIDs) == 0 {
 		return make(map[uuid.UUID]analyticsModels.ProductAnalytics), nil
 	}
@@ -1160,7 +1154,7 @@ func (s *analyticsService) GetProductAnalyticsBatch(ctx context.Context, organiz
 	return result, nil
 }
 
-func (s *analyticsService) aggregateYesNoResponses(responses []feedbackModels.Response) map[string]interface{} {
+func (s *AnalyticsService) aggregateYesNoResponses(responses []feedbackModels.Response) map[string]interface{} {
 	options := make(map[string]int64)
 	var total int64
 	
@@ -1198,7 +1192,7 @@ func (s *analyticsService) aggregateYesNoResponses(responses []feedbackModels.Re
 	}
 }
 
-func (s *analyticsService) analyzeSentiment(text string) float64 {
+func (s *AnalyticsService) analyzeSentiment(text string) float64 {
 	if strings.TrimSpace(text) == "" {
 		return 0.0
 	}
@@ -1209,7 +1203,7 @@ func (s *analyticsService) analyzeSentiment(text string) float64 {
 	return sentiment.Compound
 }
 
-func (s *analyticsService) aggregateTextResponses(responses []feedbackModels.Response) map[string]interface{} {
+func (s *AnalyticsService) aggregateTextResponses(responses []feedbackModels.Response) map[string]interface{} {
 	var positive, neutral, negative int64
 	var samples []string
 	var totalSentiment float64

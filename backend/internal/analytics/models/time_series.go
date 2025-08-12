@@ -67,6 +67,17 @@ type TimeSeriesPoint struct {
 	Count     int64     `json:"count"`
 }
 
+type TimeSeriesFilters struct {
+	OrganizationID *uuid.UUID `json:"organization_id,omitempty"`
+	ProductID      *uuid.UUID `json:"product_id,omitempty"`
+	QuestionID     *uuid.UUID `json:"question_id,omitempty"`
+	MetricType     string     `json:"metric_type,omitempty"`
+	StartDate      time.Time  `json:"start_date"`
+	EndDate        time.Time  `json:"end_date"`
+	Granularity    string     `json:"granularity,omitempty"`
+}
+
+
 type TimeSeriesRequest struct {
 	OrganizationID uuid.UUID  `json:"organization_id"`
 	ProductID      *uuid.UUID `json:"product_id,omitempty"`

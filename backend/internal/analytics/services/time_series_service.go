@@ -1,11 +1,11 @@
-package services
+package analyticsservice
 
 import (
 	"context"
 	"encoding/json"
 	"fmt"
 	"kyooar/internal/analytics/models"
-	"kyooar/internal/analytics/repositories"
+	analyticsinterface "kyooar/internal/analytics/interface"
 	"kyooar/internal/shared/logger"
 	"math"
 	"sort"
@@ -19,7 +19,6 @@ import (
 	"github.com/google/uuid"
 	"github.com/grassmudhorses/vader-go/lexicon"
 	"github.com/grassmudhorses/vader-go/sentitext"
-	"github.com/samber/do"
 	"github.com/sirupsen/logrus"
 )
 
@@ -40,32 +39,31 @@ type QuestionData struct {
 	ProductName  string
 }
 
-type TimeSeriesService interface {
-	CollectMetrics(ctx context.Context, organizationID uuid.UUID) error
-	GetTimeSeries(ctx context.Context, request models.TimeSeriesRequest) (*models.TimeSeriesResponse, error)
-	GetComparison(ctx context.Context, request models.ComparisonRequest) (*models.ComparisonResponse, error)
-	CleanupOldMetrics(ctx context.Context, retentionDays int) error
-}
-
-type timeSeriesService struct {
-	timeSeriesRepo      repositories.TimeSeriesRepository
+type TimeSeriesService struct {
+	timeSeriesRepo      analyticsinterface.TimeSeriesRepository
 	feedbackService     feedbackServices.FeedbackService
 	organizationService organizationServices.OrganizationService
-	analyticsService    AnalyticsService
+	analyticsService    analyticsinterface.AnalyticsService
 	questionService     feedbackServices.QuestionService
 }
 
-func NewTimeSeriesService(i *do.Injector) (TimeSeriesService, error) {
-	return &timeSeriesService{
-		timeSeriesRepo:      do.MustInvoke[repositories.TimeSeriesRepository](i),
-		feedbackService:     do.MustInvoke[feedbackServices.FeedbackService](i),
-		organizationService: do.MustInvoke[organizationServices.OrganizationService](i),
-		analyticsService:    do.MustInvoke[AnalyticsService](i),
-		questionService:     do.MustInvoke[feedbackServices.QuestionService](i),
-	}, nil
+func NewTimeSeriesService(
+	timeSeriesRepo analyticsinterface.TimeSeriesRepository,
+	feedbackService feedbackServices.FeedbackService,
+	organizationService organizationServices.OrganizationService,
+	analyticsService analyticsinterface.AnalyticsService,
+	questionService feedbackServices.QuestionService,
+) *TimeSeriesService {
+	return &TimeSeriesService{
+		timeSeriesRepo:      timeSeriesRepo,
+		feedbackService:     feedbackService,
+		organizationService: organizationService,
+		analyticsService:    analyticsService,
+		questionService:     questionService,
+	}
 }
 
-func (s *timeSeriesService) CollectMetrics(ctx context.Context, organizationID uuid.UUID) error {
+func (s *TimeSeriesService) CollectMetrics(ctx context.Context, organizationID uuid.UUID) error {
 	now := time.Now()
 
 	organization, err := s.organizationService.GetByIDForAnalytics(ctx, organizationID)
@@ -96,7 +94,7 @@ func (s *timeSeriesService) CollectMetrics(ctx context.Context, organizationID u
 	return nil
 }
 
-func (s *timeSeriesService) collectOrganizationMetrics(ctx context.Context, organizationID, accountID uuid.UUID, timestamp time.Time) ([]models.TimeSeriesMetric, error) {
+func (s *TimeSeriesService) collectOrganizationMetrics(ctx context.Context, organizationID, accountID uuid.UUID, timestamp time.Time) ([]models.TimeSeriesMetric, error) {
 	var metrics []models.TimeSeriesMetric
 
 	feedbacks, err := s.feedbackService.GetByOrganizationIDForAnalytics(ctx, organizationID, 1000)
@@ -253,17 +251,17 @@ func (s *timeSeriesService) collectOrganizationMetrics(ctx context.Context, orga
 	return metrics, nil
 }
 
-func (s *timeSeriesService) createMetadata(questionType string) *string {
+func (s *TimeSeriesService) createMetadata(questionType string) *string {
 	metadata := fmt.Sprintf(`{"question_type": "%s"}`, questionType)
 	return &metadata
 }
 
-func (s *timeSeriesService) createMetadataWithProduct(questionType string, productName string) *string {
+func (s *TimeSeriesService) createMetadataWithProduct(questionType string, productName string) *string {
 	metadata := fmt.Sprintf(`{"question_type": "%s"}`, questionType)
 	return &metadata
 }
 
-func (s *timeSeriesService) createMetadataWithQuestion(questionType string, productName string, questionText string, question *feedbackModels.Question) *string {
+func (s *TimeSeriesService) createMetadataWithQuestion(questionType string, productName string, questionText string, question *feedbackModels.Question) *string {
 	metadataMap := map[string]interface{}{
 		"question_type": questionType,
 		"question_text": questionText,
@@ -294,7 +292,7 @@ func (s *timeSeriesService) createMetadataWithQuestion(questionType string, prod
 	return &metadataStr
 }
 
-func (s *timeSeriesService) createMetadataWithChoice(questionType string, productName string, questionText string, choiceOption string, question *feedbackModels.Question) *string {
+func (s *TimeSeriesService) createMetadataWithChoice(questionType string, productName string, questionText string, choiceOption string, question *feedbackModels.Question) *string {
 	metadataMap := map[string]interface{}{
 		"question_type": questionType,
 		"question_text": questionText,
@@ -326,7 +324,7 @@ func (s *timeSeriesService) createMetadataWithChoice(questionType string, produc
 	return &metadataStr
 }
 
-func (s *timeSeriesService) analyzeSentiment(text string) float64 {
+func (s *TimeSeriesService) analyzeSentiment(text string) float64 {
 	if strings.TrimSpace(text) == "" {
 		return 0.0
 	}
@@ -337,7 +335,7 @@ func (s *timeSeriesService) analyzeSentiment(text string) float64 {
 	return sentiment.Compound
 }
 
-func (s *timeSeriesService) getMetricName(questionType string, questionTexts []string) string {
+func (s *TimeSeriesService) getMetricName(questionType string, questionTexts []string) string {
 	switch questionType {
 	case string(feedbackModels.QuestionTypeRating):
 		return "Rating Questions"
@@ -356,11 +354,11 @@ func (s *timeSeriesService) getMetricName(questionType string, questionTexts []s
 	}
 }
 
-func (s *timeSeriesService) getMetricNameWithProduct(questionType string, productName string, questionTexts []string) string {
+func (s *TimeSeriesService) getMetricNameWithProduct(questionType string, productName string, questionTexts []string) string {
 	return s.getMetricName(questionType, questionTexts)
 }
 
-func (s *timeSeriesService) GetTimeSeries(ctx context.Context, request models.TimeSeriesRequest) (*models.TimeSeriesResponse, error) {
+func (s *TimeSeriesService) GetTimeSeries(ctx context.Context, request models.TimeSeriesRequest) (*models.TimeSeriesResponse, error) {
 	metrics, err := s.timeSeriesRepo.GetTimeSeries(ctx, request)
 	if err != nil {
 		return nil, err
@@ -406,7 +404,7 @@ func (s *timeSeriesService) GetTimeSeries(ctx context.Context, request models.Ti
 	return response, nil
 }
 
-func (s *timeSeriesService) GetComparison(ctx context.Context, request models.ComparisonRequest) (*models.ComparisonResponse, error) {
+func (s *TimeSeriesService) GetComparison(ctx context.Context, request models.ComparisonRequest) (*models.ComparisonResponse, error) {
 	period1Metrics, period2Metrics, err := s.timeSeriesRepo.GetComparison(ctx, request)
 	if err != nil {
 		return nil, err
@@ -425,7 +423,7 @@ func (s *timeSeriesService) GetComparison(ctx context.Context, request models.Co
 	return response, nil
 }
 
-func (s *timeSeriesService) compareMetrics(period1Metrics, period2Metrics []models.TimeSeriesMetric, request models.ComparisonRequest) []models.TimeSeriesComparison {
+func (s *TimeSeriesService) compareMetrics(period1Metrics, period2Metrics []models.TimeSeriesMetric, request models.ComparisonRequest) []models.TimeSeriesComparison {
 	period1Map := s.groupMetricsByType(period1Metrics)
 	period2Map := s.groupMetricsByType(period2Metrics)
 
@@ -462,7 +460,7 @@ func (s *timeSeriesService) compareMetrics(period1Metrics, period2Metrics []mode
 	return comparisons
 }
 
-func (s *timeSeriesService) groupMetricsByType(metrics []models.TimeSeriesMetric) map[string][]models.TimeSeriesMetric {
+func (s *TimeSeriesService) groupMetricsByType(metrics []models.TimeSeriesMetric) map[string][]models.TimeSeriesMetric {
 	grouped := make(map[string][]models.TimeSeriesMetric)
 
 	for _, metric := range metrics {
@@ -472,7 +470,7 @@ func (s *timeSeriesService) groupMetricsByType(metrics []models.TimeSeriesMetric
 	return grouped
 }
 
-func (s *timeSeriesService) aggregatePeriodMetrics(metrics []models.TimeSeriesMetric, startDate, endDate time.Time) models.TimePeriodMetrics {
+func (s *TimeSeriesService) aggregatePeriodMetrics(metrics []models.TimeSeriesMetric, startDate, endDate time.Time) models.TimePeriodMetrics {
 	if len(metrics) == 0 {
 		return models.TimePeriodMetrics{
 			StartDate: startDate,
@@ -565,7 +563,7 @@ func (s *timeSeriesService) aggregatePeriodMetrics(metrics []models.TimeSeriesMe
 	return result
 }
 
-func (s *timeSeriesService) calculateStatistics(points []models.TimeSeriesPoint) models.TimeSeriesStats {
+func (s *TimeSeriesService) calculateStatistics(points []models.TimeSeriesPoint) models.TimeSeriesStats {
 	if len(points) == 0 {
 		return models.TimeSeriesStats{}
 	}
@@ -602,7 +600,7 @@ func (s *timeSeriesService) calculateStatistics(points []models.TimeSeriesPoint)
 	}
 }
 
-func (s *timeSeriesService) calculateTrend(points []models.TimeSeriesPoint) (string, float64) {
+func (s *TimeSeriesService) calculateTrend(points []models.TimeSeriesPoint) (string, float64) {
 	if len(points) < 2 {
 		return models.TrendStable, 0.0
 	}
@@ -651,7 +649,7 @@ func (s *timeSeriesService) calculateTrend(points []models.TimeSeriesPoint) (str
 	return direction, math.Abs(rSquared)
 }
 
-func (s *timeSeriesService) determineTrend(changePercent float64) string {
+func (s *TimeSeriesService) determineTrend(changePercent float64) string {
 	if math.Abs(changePercent) < 5 {
 		return models.TrendStable
 	} else if changePercent > 0 {
@@ -661,7 +659,7 @@ func (s *timeSeriesService) determineTrend(changePercent float64) string {
 	}
 }
 
-func (s *timeSeriesService) generateInsights(comparisons []models.TimeSeriesComparison) []models.ComparisonInsight {
+func (s *TimeSeriesService) generateInsights(comparisons []models.TimeSeriesComparison) []models.ComparisonInsight {
 	var insights []models.ComparisonInsight
 
 	for _, comp := range comparisons {
@@ -697,7 +695,7 @@ func (s *timeSeriesService) generateInsights(comparisons []models.TimeSeriesComp
 	return insights
 }
 
-func (s *timeSeriesService) getChoiceDistribution(ctx context.Context, questionID uuid.UUID, startDate, endDate time.Time, isMultiChoice bool) (map[string]int64, *models.ChoiceInfo, []models.ChoiceInfo) {
+func (s *TimeSeriesService) getChoiceDistribution(ctx context.Context, questionID uuid.UUID, startDate, endDate time.Time, isMultiChoice bool) (map[string]int64, *models.ChoiceInfo, []models.ChoiceInfo) {
 	feedbacks, err := s.feedbackService.GetByQuestionInPeriod(ctx, questionID, startDate, endDate)
 	if err != nil {
 		logger.Error("Failed to get feedback for choice distribution", err, logrus.Fields{
@@ -786,7 +784,7 @@ func (s *timeSeriesService) getChoiceDistribution(ctx context.Context, questionI
 	return choiceDistribution, mostPopular, topChoices
 }
 
-func (s *timeSeriesService) processRatingScaleQuestion(responses []any) float64 {
+func (s *TimeSeriesService) processRatingScaleQuestion(responses []any) float64 {
 	var total float64
 	validCount := 0
 	for _, resp := range responses {
@@ -804,7 +802,7 @@ func (s *timeSeriesService) processRatingScaleQuestion(responses []any) float64 
 	return 0
 }
 
-func (s *timeSeriesService) processYesNoQuestion(responses []any) float64 {
+func (s *TimeSeriesService) processYesNoQuestion(responses []any) float64 {
 	yesCount := 0
 	totalCount := len(responses)
 
@@ -835,7 +833,7 @@ func (s *timeSeriesService) processYesNoQuestion(responses []any) float64 {
 	return 0
 }
 
-func (s *timeSeriesService) processTextQuestion(responses []any) float64 {
+func (s *TimeSeriesService) processTextQuestion(responses []any) float64 {
 	var totalSentiment float64
 	validCount := 0
 
@@ -853,7 +851,7 @@ func (s *timeSeriesService) processTextQuestion(responses []any) float64 {
 	return 0
 }
 
-func (s *timeSeriesService) processFeedbackData(feedbacks []feedbackModels.Feedback) (
+func (s *TimeSeriesService) processFeedbackData(feedbacks []feedbackModels.Feedback) (
 	map[string]*ResponseData,
 	map[string]*QuestionData,
 	map[string]int,
@@ -926,7 +924,7 @@ func (s *timeSeriesService) processFeedbackData(feedbacks []feedbackModels.Feedb
 	return timeSeriesData, individualQuestionData, surveyResponsesByDate
 }
 
-func (s *timeSeriesService) processSingleChoiceQuestion(
+func (s *TimeSeriesService) processSingleChoiceQuestion(
 	responses []any,
 	questionData *QuestionData,
 	questionID string,
@@ -985,7 +983,7 @@ func (s *timeSeriesService) processSingleChoiceQuestion(
 	return metrics
 }
 
-func (s *timeSeriesService) processMultiChoiceQuestion(
+func (s *TimeSeriesService) processMultiChoiceQuestion(
 	responses []any,
 	questionData *QuestionData,
 	questionID string,
@@ -1079,7 +1077,7 @@ func (s *timeSeriesService) processMultiChoiceQuestion(
 	return metrics
 }
 
-func (s *timeSeriesService) processQuestionByType(questionType string, responses []any) float64 {
+func (s *TimeSeriesService) processQuestionByType(questionType string, responses []any) float64 {
 	switch questionType {
 	case string(feedbackModels.QuestionTypeRating), string(feedbackModels.QuestionTypeScale):
 		return s.processRatingScaleQuestion(responses)
@@ -1096,13 +1094,13 @@ func (s *timeSeriesService) processQuestionByType(questionType string, responses
 	}
 }
 
-func (s *timeSeriesService) CleanupOldMetrics(ctx context.Context, retentionDays int) error {
+func (s *TimeSeriesService) CleanupOldMetrics(ctx context.Context, retentionDays int) error {
 	cutoffDate := time.Now().AddDate(0, 0, -retentionDays)
 	return s.timeSeriesRepo.DeleteOldMetrics(ctx, cutoffDate)
 }
 
 
-func (s *timeSeriesService) isSingleChoiceQuestion(ctx context.Context, questionID string) bool {
+func (s *TimeSeriesService) isSingleChoiceQuestion(ctx context.Context, questionID string) bool {
 	_, err := uuid.Parse(questionID)
 	if err != nil {
 		return false
@@ -1114,7 +1112,7 @@ func (s *timeSeriesService) isSingleChoiceQuestion(ctx context.Context, question
 	return hasChoiceMetrics
 }
 
-func (s *timeSeriesService) getChoiceSpecificMetrics(ctx context.Context, questionID string) []string {
+func (s *TimeSeriesService) getChoiceSpecificMetrics(ctx context.Context, questionID string) []string {
 	pattern := fmt.Sprintf("question_%s_choice_", questionID)
 	
 	choiceMetrics := s.timeSeriesRepo.GetMetricTypesByPattern(ctx, pattern)
@@ -1122,7 +1120,7 @@ func (s *timeSeriesService) getChoiceSpecificMetrics(ctx context.Context, questi
 	return choiceMetrics
 }
 
-func (s *timeSeriesService) getChoiceMetricsForRequest(ctx context.Context, request models.TimeSeriesRequest) ([]models.TimeSeriesMetric, error) {
+func (s *TimeSeriesService) getChoiceMetricsForRequest(ctx context.Context, request models.TimeSeriesRequest) ([]models.TimeSeriesMetric, error) {
 	var allChoiceMetrics []models.TimeSeriesMetric
 	
 	for _, metricType := range request.MetricTypes {
@@ -1150,7 +1148,7 @@ func (s *timeSeriesService) getChoiceMetricsForRequest(ctx context.Context, requ
 	return allChoiceMetrics, nil
 }
 
-func (s *timeSeriesService) groupMetricsWithChoiceHandling(metrics []models.TimeSeriesMetric) map[string]*models.TimeSeriesData {
+func (s *TimeSeriesService) groupMetricsWithChoiceHandling(metrics []models.TimeSeriesMetric) map[string]*models.TimeSeriesData {
 	seriesMap := make(map[string]*models.TimeSeriesData)
 	choiceMetricsMap := make(map[string][]models.TimeSeriesMetric)
 	
@@ -1255,7 +1253,7 @@ func (s *timeSeriesService) groupMetricsWithChoiceHandling(metrics []models.Time
 	return seriesMap
 }
 
-func (s *timeSeriesService) extractQuestionNameFromChoiceMetric(metric models.TimeSeriesMetric) string {
+func (s *TimeSeriesService) extractQuestionNameFromChoiceMetric(metric models.TimeSeriesMetric) string {
 	parts := strings.Split(metric.MetricName, ": ")
 	if len(parts) > 1 {
 		return strings.Join(parts[:len(parts)-1], ": ")
@@ -1263,7 +1261,7 @@ func (s *timeSeriesService) extractQuestionNameFromChoiceMetric(metric models.Ti
 	return metric.MetricName
 }
 
-func (s *timeSeriesService) extractChoiceFromMetricType(metricType string) string {
+func (s *TimeSeriesService) extractChoiceFromMetricType(metricType string) string {
 	parts := strings.Split(metricType, "_choice_")
 	if len(parts) == 2 {
 		return strings.ReplaceAll(parts[1], "_", " ")
@@ -1271,17 +1269,17 @@ func (s *timeSeriesService) extractChoiceFromMetricType(metricType string) strin
 	return metricType
 }
 
-func (s *timeSeriesService) createSingleChoiceMetadata() *string {
+func (s *TimeSeriesService) createSingleChoiceMetadata() *string {
 	metadata := `{"question_type": "single_choice", "has_choice_series": true}`
 	return &metadata
 }
 
-func (s *timeSeriesService) createMultiChoiceMetadata() *string {
+func (s *TimeSeriesService) createMultiChoiceMetadata() *string {
 	metadata := `{"question_type": "multi_choice", "has_choice_series": true}`
 	return &metadata
 }
 
-func (s *timeSeriesService) parseMetadata(metadataStr *string) map[string]any {
+func (s *TimeSeriesService) parseMetadata(metadataStr *string) map[string]any {
 	if metadataStr == nil {
 		return nil
 	}

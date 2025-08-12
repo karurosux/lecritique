@@ -23,8 +23,7 @@ import (
 	qrcodeRepos "kyooar/internal/qrcode/repositories"
 	qrcodeServices "kyooar/internal/qrcode/services"
 	
-	analyticsHandlers "kyooar/internal/analytics/handlers"
-	analyticsServices "kyooar/internal/analytics/services"
+	analytics "kyooar/internal/analytics"
 	
 	subscriptionHandlers "kyooar/internal/subscription/handlers"
 	subscriptionMiddleware "kyooar/internal/subscription/middleware"
@@ -163,8 +162,8 @@ func RegisterAll(i *do.Injector, cfg *config.Config, db *gorm.DB) {
 	do.Provide(i, qrcodeHandlers.NewQRCodeHandler)
 	do.Provide(i, qrcodeHandlers.NewQRCodePublicHandler)
 	
-	do.Provide(i, analyticsServices.NewAnalyticsService)
-	do.Provide(i, analyticsHandlers.NewAnalyticsHandler)
+	// Analytics module registration
+	analytics.RegisterModule(i)
 	
 	do.Provide(i, subscriptionRepos.NewSubscriptionRepository)
 	do.Provide(i, subscriptionRepos.NewSubscriptionPlanRepository)

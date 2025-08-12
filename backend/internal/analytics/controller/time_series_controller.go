@@ -1,4 +1,4 @@
-package handlers
+package analyticscontroller
 
 import (
 	"net/http"
@@ -6,25 +6,30 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
-	analyticsServices "kyooar/internal/analytics/services"
+
+	analyticsconstants "kyooar/internal/analytics/constants"
+	analyticsinterface "kyooar/internal/analytics/interface"
 	"kyooar/internal/analytics/models"
 	organizationRepos "kyooar/internal/organization/repositories"
 	"kyooar/internal/shared/logger"
 	"kyooar/internal/shared/middleware"
-	"github.com/samber/do"
+
 	"github.com/sirupsen/logrus"
 )
 
-type TimeSeriesHandler struct {
-	timeSeriesService analyticsServices.TimeSeriesService
+type TimeSeriesController struct {
+	timeSeriesService analyticsinterface.TimeSeriesService
 	organizationRepo  organizationRepos.OrganizationRepository
 }
 
-func NewTimeSeriesHandler(i *do.Injector) (*TimeSeriesHandler, error) {
-	return &TimeSeriesHandler{
-		timeSeriesService: do.MustInvoke[analyticsServices.TimeSeriesService](i),
-		organizationRepo:  do.MustInvoke[organizationRepos.OrganizationRepository](i),
-	}, nil
+func NewTimeSeriesController(
+	timeSeriesService analyticsinterface.TimeSeriesService,
+	organizationRepo organizationRepos.OrganizationRepository,
+) *TimeSeriesController {
+	return &TimeSeriesController{
+		timeSeriesService: timeSeriesService,
+		organizationRepo:  organizationRepo,
+	}
 }
 
 // @Summary Get time series analytics data
@@ -47,26 +52,26 @@ func NewTimeSeriesHandler(i *do.Injector) (*TimeSeriesHandler, error) {
 // @Failure 404 {object} response.Response
 // @Failure 500 {object} response.Response
 // @Router /api/v1/analytics/organizations/{organizationId}/time-series [get]
-func (h *TimeSeriesHandler) GetTimeSeries(c echo.Context) error {
-	ctx := c.Request().Context()
+func (c *TimeSeriesController) GetTimeSeries(ctx echo.Context) error {
+	requestCtx := ctx.Request().Context()
 	
-	organizationID, err := uuid.Parse(c.Param("organizationId"))
+	organizationID, err := uuid.Parse(ctx.Param("organizationId"))
 	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, "Invalid organization ID")
+		return echo.NewHTTPError(http.StatusBadRequest, analyticsconstants.ErrInvalidOrganizationID)
 	}
 
-	resourceAccountID := middleware.GetResourceAccountID(c)
+	resourceAccountID := middleware.GetResourceAccountID(ctx)
 
-	organization, err := h.organizationRepo.FindByID(ctx, organizationID)
+	organization, err := c.organizationRepo.FindByID(requestCtx, organizationID)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusNotFound, "Organization not found")
+		return echo.NewHTTPError(http.StatusNotFound, analyticsconstants.ErrOrganizationNotFound)
 	}
 	if organization.AccountID != resourceAccountID {
-		return echo.NewHTTPError(http.StatusForbidden, "Access denied")
+		return echo.NewHTTPError(http.StatusForbidden, analyticsconstants.ErrAccessDenied)
 	}
 
-	startDateStr := c.QueryParam("start_date")
-	endDateStr := c.QueryParam("end_date")
+	startDateStr := ctx.QueryParam("start_date")
+	endDateStr := ctx.QueryParam("end_date")
 	
 	if startDateStr == "" || endDateStr == "" {
 		return echo.NewHTTPError(http.StatusBadRequest, "start_date and end_date are required")
@@ -82,7 +87,7 @@ func (h *TimeSeriesHandler) GetTimeSeries(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, "Invalid end_date format")
 	}
 	
-	granularity := c.QueryParam("granularity")
+	granularity := ctx.QueryParam("granularity")
 	if granularity == "" {
 		granularity = models.GranularityDaily
 	}
@@ -94,13 +99,13 @@ func (h *TimeSeriesHandler) GetTimeSeries(c echo.Context) error {
 		models.GranularityMonthly: true,
 	}
 	if !validGranularities[granularity] {
-		return echo.NewHTTPError(http.StatusBadRequest, "Invalid granularity")
+		return echo.NewHTTPError(http.StatusBadRequest, analyticsconstants.ErrInvalidGranularity)
 	}
 	
-	metricTypes := c.QueryParams()["metric_types"]
+	metricTypes := ctx.QueryParams()["metric_types"]
 	
 	if len(metricTypes) == 0 {
-		metricTypes = c.QueryParams()["metric_types[]"]
+		metricTypes = ctx.QueryParams()["metric_types[]"]
 	}
 	
 	if len(metricTypes) == 0 {
@@ -115,15 +120,15 @@ func (h *TimeSeriesHandler) GetTimeSeries(c echo.Context) error {
 		Granularity:    granularity,
 	}
 	
-	if productIDStr := c.QueryParam("product_id"); productIDStr != "" {
+	if productIDStr := ctx.QueryParam("product_id"); productIDStr != "" {
 		productID, err := uuid.Parse(productIDStr)
 		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, "Invalid product_id")
+			return echo.NewHTTPError(http.StatusBadRequest, analyticsconstants.ErrInvalidProductID)
 		}
 		request.ProductID = &productID
 	}
 	
-	if questionIDStr := c.QueryParam("question_id"); questionIDStr != "" {
+	if questionIDStr := ctx.QueryParam("question_id"); questionIDStr != "" {
 		questionID, err := uuid.Parse(questionIDStr)
 		if err != nil {
 			return echo.NewHTTPError(http.StatusBadRequest, "Invalid question_id")
@@ -131,16 +136,16 @@ func (h *TimeSeriesHandler) GetTimeSeries(c echo.Context) error {
 		request.QuestionID = &questionID
 	}
 	
-	response, err := h.timeSeriesService.GetTimeSeries(ctx, request)
+	response, err := c.timeSeriesService.GetTimeSeries(requestCtx, request)
 	if err != nil {
 		logger.Error("Failed to get time series data", err, logrus.Fields{
 			"organization_id": organizationID,
 			"metric_types":    metricTypes,
 		})
-		return echo.NewHTTPError(http.StatusInternalServerError, "Failed to get time series data")
+		return echo.NewHTTPError(http.StatusInternalServerError, analyticsconstants.ErrFailedToGetMetrics)
 	}
 	
-	return c.JSON(http.StatusOK, response)
+	return ctx.JSON(http.StatusOK, response)
 }
 
 // @Summary Compare analytics between two time periods
@@ -158,26 +163,26 @@ func (h *TimeSeriesHandler) GetTimeSeries(c echo.Context) error {
 // @Failure 404 {object} response.Response
 // @Failure 500 {object} response.Response
 // @Router /api/v1/analytics/organizations/{organizationId}/compare [post]
-func (h *TimeSeriesHandler) CompareTimePeriods(c echo.Context) error {
-	ctx := c.Request().Context()
+func (c *TimeSeriesController) CompareTimePeriods(ctx echo.Context) error {
+	requestCtx := ctx.Request().Context()
 	
-	organizationID, err := uuid.Parse(c.Param("organizationId"))
+	organizationID, err := uuid.Parse(ctx.Param("organizationId"))
 	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, "Invalid organization ID")
+		return echo.NewHTTPError(http.StatusBadRequest, analyticsconstants.ErrInvalidOrganizationID)
 	}
 
-	resourceAccountID := middleware.GetResourceAccountID(c)
+	resourceAccountID := middleware.GetResourceAccountID(ctx)
 
-	organization, err := h.organizationRepo.FindByID(ctx, organizationID)
+	organization, err := c.organizationRepo.FindByID(requestCtx, organizationID)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusNotFound, "Organization not found")
+		return echo.NewHTTPError(http.StatusNotFound, analyticsconstants.ErrOrganizationNotFound)
 	}
 	if organization.AccountID != resourceAccountID {
-		return echo.NewHTTPError(http.StatusForbidden, "Access denied")
+		return echo.NewHTTPError(http.StatusForbidden, analyticsconstants.ErrAccessDenied)
 	}
 
 	var request models.ComparisonRequest
-	if err := c.Bind(&request); err != nil {
+	if err := ctx.Bind(&request); err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, "Invalid request body")
 	}
 	
@@ -189,22 +194,22 @@ func (h *TimeSeriesHandler) CompareTimePeriods(c echo.Context) error {
 	}
 	
 	if request.Period1Start.After(request.Period1End) || request.Period2Start.After(request.Period2End) {
-		return echo.NewHTTPError(http.StatusBadRequest, "Start date must be before end date")
+		return echo.NewHTTPError(http.StatusBadRequest, analyticsconstants.ErrInvalidDateRange)
 	}
 	
 	if len(request.MetricTypes) == 0 {
 		return echo.NewHTTPError(http.StatusBadRequest, "At least one metric type is required")
 	}
 	
-	response, err := h.timeSeriesService.GetComparison(ctx, request)
+	response, err := c.timeSeriesService.GetComparison(requestCtx, request)
 	if err != nil {
 		logger.Error("Failed to get comparison data", err, logrus.Fields{
 			"organization_id": organizationID,
 		})
-		return echo.NewHTTPError(http.StatusInternalServerError, "Failed to get comparison data")
+		return echo.NewHTTPError(http.StatusInternalServerError, analyticsconstants.ErrFailedToGetMetrics)
 	}
 	
-	return c.JSON(http.StatusOK, response)
+	return ctx.JSON(http.StatusOK, response)
 }
 
 // @Summary Collect metrics for an organization
@@ -221,32 +226,32 @@ func (h *TimeSeriesHandler) CompareTimePeriods(c echo.Context) error {
 // @Failure 404 {object} response.Response
 // @Failure 500 {object} response.Response
 // @Router /api/v1/analytics/organizations/{organizationId}/collect-metrics [post]
-func (h *TimeSeriesHandler) CollectMetrics(c echo.Context) error {
-	ctx := c.Request().Context()
+func (c *TimeSeriesController) CollectMetrics(ctx echo.Context) error {
+	requestCtx := ctx.Request().Context()
 	
-	organizationID, err := uuid.Parse(c.Param("organizationId"))
+	organizationID, err := uuid.Parse(ctx.Param("organizationId"))
 	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, "Invalid organization ID")
+		return echo.NewHTTPError(http.StatusBadRequest, analyticsconstants.ErrInvalidOrganizationID)
 	}
 
-	resourceAccountID := middleware.GetResourceAccountID(c)
+	resourceAccountID := middleware.GetResourceAccountID(ctx)
 
-	organization, err := h.organizationRepo.FindByID(ctx, organizationID)
+	organization, err := c.organizationRepo.FindByID(requestCtx, organizationID)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusNotFound, "Organization not found")
+		return echo.NewHTTPError(http.StatusNotFound, analyticsconstants.ErrOrganizationNotFound)
 	}
 	if organization.AccountID != resourceAccountID {
-		return echo.NewHTTPError(http.StatusForbidden, "Access denied")
+		return echo.NewHTTPError(http.StatusForbidden, analyticsconstants.ErrAccessDenied)
 	}
 
-	if err := h.timeSeriesService.CollectMetrics(ctx, organizationID); err != nil {
+	if err := c.timeSeriesService.CollectMetrics(requestCtx, organizationID); err != nil {
 		logger.Error("Failed to collect metrics", err, logrus.Fields{
 			"organization_id": organizationID,
 		})
-		return echo.NewHTTPError(http.StatusInternalServerError, "Failed to collect metrics")
+		return echo.NewHTTPError(http.StatusInternalServerError, analyticsconstants.ErrFailedToCollectMetrics)
 	}
 	
-	return c.JSON(http.StatusOK, map[string]interface{}{
+	return ctx.JSON(http.StatusOK, map[string]interface{}{
 		"success": true,
 		"message": "Metrics collected successfully",
 	})
