@@ -32,13 +32,11 @@
   let hoveredBar: number | null = null;
   let animationProgress = $state(0);
 
-  // Get analytics store from context
   const analytics = getContext<typeof AnalyticsStoreType>(
     ANALYTICS_CONTEXT_KEY
   );
   const { selection } = analytics;
 
-  // Track highlighted question
   let highlightedQuestionId = $derived($selection.highlightedQuestionId);
 
   const chartData = $derived(() => {
@@ -79,7 +77,6 @@
   }
 
   $effect(() => {
-    // Animate on mount or data change
     animationProgress = 0;
     const animate = () => {
       if (animationProgress < 1) {
@@ -115,7 +112,7 @@
       {/each}
     </div>
   {:else if chartData}
-    <!-- Summary Stats -->
+    
     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
       <div class="bg-blue-50 border border-blue-200 rounded-lg p-3">
         <div class="text-sm font-medium text-blue-900">Average Score</div>
@@ -139,7 +136,7 @@
       </div>
     </div>
 
-    <!-- Horizontal Bar Chart -->
+    
     <div class="space-y-3">
       {#each chartData.questions as question, index}
         {@const score = question.average_score || 0}
@@ -160,7 +157,7 @@
                 ? null
                 : question.question_id
             )}>
-          <!-- Question Text -->
+          
           <div class="flex items-center justify-between mb-1">
             <div class="flex items-center gap-2 flex-1">
               <span class="text-sm text-gray-700 font-medium">
@@ -179,7 +176,7 @@
             </span>
           </div>
 
-          <!-- Bar -->
+          
           <div class="relative">
             <div class="w-full bg-gray-100 rounded-full h-6 overflow-hidden">
               <div
@@ -188,7 +185,7 @@
                   score,
                   chartData.avgScore
                 )}">
-                <!-- Animated shine effect on hover -->
+                
                 {#if isHovered}
                   <div
                     class="absolute inset-0 bg-gradient-to-r from-transparent via-white to-transparent opacity-30 animate-shine">
@@ -197,7 +194,7 @@
               </div>
             </div>
 
-            <!-- Average line -->
+            
             <div
               class="absolute top-0 h-full w-0.5 bg-gray-600 opacity-50"
               style="left: {(chartData.avgScore / chartData.maxScore) * 100}%"
@@ -211,7 +208,7 @@
             </div>
           </div>
 
-          <!-- Additional Info on Hover -->
+          
           {#if isHovered}
             <div class="mt-1 text-xs text-gray-600 flex items-center gap-3">
               <span>{question.response_count} responses</span>
@@ -229,7 +226,7 @@
       {/each}
     </div>
 
-    <!-- Insights -->
+    
     {#if productInsights?.best_aspects?.length || productInsights?.areas_needing_attention?.length}
       <div class="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
         {#if productInsights.best_aspects?.length}

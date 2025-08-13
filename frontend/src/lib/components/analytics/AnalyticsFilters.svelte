@@ -36,7 +36,7 @@
   <div
     class="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
     <div class="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
-      <!-- Organization Selector -->
+      
       <div class="space-y-1">
         <label
           class="text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -49,7 +49,7 @@
           minWidth="min-w-[200px]" />
       </div>
 
-      <!-- Timeframe Selector -->
+      
       <div class="space-y-1">
         <label
           class="text-xs font-medium text-gray-500 uppercase tracking-wider">

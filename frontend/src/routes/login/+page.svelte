@@ -11,7 +11,6 @@
 
   let authState = $derived($auth);
 
-  // Redirect if already authenticated
   $effect(() => {
     if (authState.isAuthenticated) {
       goto('/dashboard');
@@ -29,7 +28,6 @@
     if (result.success) {
       goto('/dashboard');
     } else if (result.unverified) {
-      // Redirect to email verification page
       goto(`/email-verification?email=${encodeURIComponent(result.email)}`);
     }
 

@@ -31,13 +31,12 @@
     confirmEmail: '',
   });
 
-  // Check if user has pending deactivation
   $effect(() => {
     if (user?.deactivation_requested_at) {
       const requestedAt = new Date(user.deactivation_requested_at);
       deactivationDate = new Date(
         requestedAt.getTime() + 15 * 24 * 60 * 60 * 1000
-      ); // Add 15 days
+      );
     }
   });
 
@@ -60,20 +59,17 @@
   async function handleEmailChange(event: Event) {
     event.preventDefault();
 
-    // Validate emails match
     if (emailForm.newEmail !== emailForm.confirmEmail) {
       onError?.('Email addresses do not match');
       return;
     }
 
-    // Validate email format
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(emailForm.newEmail)) {
       onError?.('Please enter a valid email address');
       return;
     }
 
-    // Check if email is different from current
     if (emailForm.newEmail === user?.email) {
       onError?.('New email must be different from current email');
       return;
@@ -87,9 +83,7 @@
         new_email: emailForm.newEmail,
       });
 
-      // Check if we got a new token (dev mode)
       if (response.data.data?.token) {
-        // Update auth state with new token
         const { auth } = await import('$lib/stores/auth');
         auth.updateToken(response.data.data.token);
         onSuccess?.('Email changed successfully!');
@@ -116,11 +110,7 @@
     isLoading = true;
 
     try {
-      // TODO: Uncomment when API endpoints are available
-      // const api = getApiClient();
-      // const response = await api.api.v1AuthDeactivateCreate();
 
-      // Temporary: Show success message and trigger logout
       const futureDate = new Date();
       futureDate.setDate(futureDate.getDate() + 15);
       deactivationDate = futureDate;
@@ -129,11 +119,9 @@
         `Your account will be deactivated on ${deactivationDate.toLocaleDateString()}. You can cancel this request by logging in before this date.`
       );
 
-      // Show the deactivation info instead of logging out immediately
       showDeactivateConfirm = false;
       deactivateConfirmText = '';
 
-      // Call the onDeactivate callback to handle logout
       onDeactivate?.();
     } catch (error) {
       const errorMessage = handleApiError(error);
@@ -147,11 +135,7 @@
     isLoading = true;
 
     try {
-      // TODO: Uncomment when API endpoints are available
-      // const api = getApiClient();
-      // await api.api.v1AuthCancelDeactivationCreate();
 
-      // Temporary: Just clear the deactivation date
       deactivationDate = null;
       onSuccess?.('Account deactivation cancelled successfully.');
     } catch (error) {
@@ -181,7 +165,7 @@
   </div>
 
   <div class="space-y-8">
-    <!-- Email Display Section -->
+    
     <div>
       <div class="flex items-center gap-2 mb-4">
         <Mail class="h-5 w-5 text-gray-400" />
@@ -214,7 +198,7 @@
       </div>
     </div>
 
-    <!-- Account Deactivation Section -->
+    
     <div class="border-t pt-8">
       <div class="flex items-center gap-2 mb-4">
         <AlertTriangle class="h-5 w-5 text-red-500" />
@@ -227,7 +211,7 @@
         </h4>
 
         {#if deactivationDate}
-          <!-- Show pending deactivation status -->
+          
           <div
             class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4">
             <div class="flex items-start gap-3">
@@ -328,7 +312,7 @@
   </div>
 </div>
 
-<!-- Email Change Modal -->
+
 <Modal bind:open={showEmailModal} onClose={closeEmailModal}>
   <div class="w-full max-w-md">
     <div class="mb-6">

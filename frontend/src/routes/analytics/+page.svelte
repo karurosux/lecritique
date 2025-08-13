@@ -43,7 +43,7 @@
   let hasInitialized = $state(false);
 
   let filters = $state<{ productId: string; days: DaysFiltersType }>({
-    days: DaysFilters.WEEK, // 'all', '7', '30', '90'
+    days: DaysFilters.WEEK,
     productId: '',
   });
 
@@ -123,7 +123,6 @@
         chartParams.product_id = filters.productId;
       }
 
-      // For lazy loading, we only load summary data initially
       const [analyticsResponse, dashboardResponse] = await Promise.all([
         api.api.v1AnalyticsOrganizationsDetail(selectedOrganization),
         api.api.v1AnalyticsDashboardDetail(selectedOrganization),
@@ -143,8 +142,6 @@
         };
       }
 
-      // For lazy loading, don't load any chart data initially
-      // Set chartData to empty structure so component knows there are no sections to show
       chartData = {
         organization_id: selectedOrganization,
         charts: [],
@@ -174,8 +171,6 @@
       );
 
       if (response.data?.data) {
-        // Create a lightweight version with just product info and response counts
-        // Strip out all the detailed chart data, keeping only metadata
         chartData = {
           ...response.data.data,
           charts:
@@ -188,7 +183,6 @@
               product_name: chart.product_name,
               data: {
                 total: chart.data?.total || 0,
-                // Remove all other data fields for lazy loading
               },
             })) || [],
         };
@@ -240,7 +234,6 @@
 </svelte:head>
 
 <div class="analytics-page max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-  <!-- Analytics Header -->
   <div class="mb-8">
     <div
       class="flex flex-col lg:flex-row lg:justify-between lg:items-center gap-6">
@@ -276,15 +269,12 @@
     </div>
   </div>
 
-  <!-- Analytics Controls -->
   <div class="analytics-controls mb-6">
     <Card variant="elevated" padding={false}>
       <div class="divide-y divide-gray-200">
-        <!-- Primary Controls Row -->
         <div class="p-4">
           <div
             class="flex flex-col lg:flex-row items-start lg:items-center gap-4">
-            <!-- Left Side: Organization & Time -->
             <div class="flex flex-wrap items-center gap-3 flex-1">
               {#if organizations.length > 0}
                 <div class="flex items-center gap-2">
@@ -356,7 +346,6 @@
               </div>
             </div>
 
-            <!-- Right Side: Refresh -->
             <!-- svelte-ignore a11y_consider_explicit_label -->
             <button
               onclick={loadAnalytics}
@@ -371,11 +360,9 @@
           </div>
         </div>
 
-        <!-- Secondary Controls Row -->
         <div class="p-4 bg-gray-50">
           <div
             class="flex flex-col lg:flex-row items-start lg:items-center gap-4">
-            <!-- Left Side: Search & Product Filter -->
             <div class="flex flex-wrap items-center gap-3 flex-1">
               <div class="relative">
                 <Search
@@ -412,7 +399,6 @@
               </label>
             </div>
 
-            <!-- Right Side: View Mode -->
             <div
               class="flex items-center gap-1 bg-white border border-gray-300 rounded-lg p-1">
               <button
@@ -441,9 +427,7 @@
   </div>
 
   {#if loading}
-    <!-- Loading State -->
     <div class="space-y-8">
-      <!-- Summary Cards Loading -->
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {#each Array(4) as _}
           <Card variant="gradient">
@@ -459,7 +443,6 @@
         {/each}
       </div>
 
-      <!-- Charts Loading -->
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {#each Array(2) as _}
           <Card variant="elevated">
@@ -472,21 +455,17 @@
       </div>
     </div>
   {:else if error}
-    <!-- Error State -->
     <NoDataAvailable
       title="Failed to load analytics"
       description={error}
       icon={AlertTriangle} />
   {:else if organizations.length === 0}
-    <!-- No Organizations State -->
     <NoDataAvailable
       title="No Organizations Yet"
       description="Create your first organization to start collecting feedback and viewing analytics."
       icon={Building2} />
   {:else}
-    <!-- Analytics Content -->
     <div class="space-y-8">
-      <!-- Chart Analytics with Grouping -->
       <ChartDataWidgetGrouped
         {chartData}
         title=""

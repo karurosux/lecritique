@@ -62,7 +62,7 @@
       </Card>
     {/each}
   {:else if analyticsData}
-    <!-- Rating Distribution -->
+    
     <Card
       variant="default"
       hover
@@ -113,7 +113,7 @@
       </div>
     </Card>
 
-    <!-- Top Performing Products -->
+    
     <Card
       variant="default"
       hover

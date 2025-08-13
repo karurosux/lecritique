@@ -21,7 +21,6 @@
   let authState = $derived($auth);
 
   $effect(() => {
-    // Redirect authenticated users to dashboard
     if (authState.isAuthenticated) {
       goto('/dashboard');
     }
@@ -61,7 +60,6 @@
     },
   ];
 
-  // Handle plan selection - redirect to registration with plan code
   function handleSelectPlan(plan: any) {
     goto(`/register?plan=${plan.code}`);
   }

@@ -23,7 +23,7 @@
     last_scan?: string;
     is_active: boolean;
     average_rating?: number;
-    response_quality?: number; // percentage of responses with comments
+    response_quality?: number;
   }
 
   interface AnalyticsData {
@@ -45,7 +45,6 @@
     loading?: boolean;
   } = $props();
 
-  // Calculate QR code metrics with response quality focus
   const qrMetrics = $derived(() => {
     if (!analyticsData) return null;
 
@@ -63,7 +62,6 @@
       analyticsData.average_conversion_rate ||
       (totalScans > 0 ? (totalFeedback / totalScans) * 100 : 0);
 
-    // Calculate response quality metrics from feedbacks if available
     const qrDataEnhanced = qrData.map(qr => {
       const qrFeedbacks = feedbacks.filter(f => f.qr_code_id === qr.id);
       const ratings = qrFeedbacks
@@ -87,13 +85,11 @@
       };
     });
 
-    // Sort by response generation (feedback count)
     const sortedByResponses = [...qrDataEnhanced].sort(
       (a, b) => b.feedback_count - a.feedback_count
     );
     const topResponseGenerators = sortedByResponses.slice(0, 5);
 
-    // Find QR codes with quality issues
     const qualityIssues = qrDataEnhanced.filter(
       qr =>
         (qr.average_rating > 0 && qr.average_rating < 3) ||
@@ -144,7 +140,7 @@
 </script>
 
 <div class="space-y-6">
-  <!-- QR Code Response Analytics -->
+  
   <Card variant="elevated" padding={false}>
     <div class="p-6">
       <div class="mb-6">
@@ -205,7 +201,7 @@
                         </div>
                       {/if}
 
-                      <!-- Response Metrics -->
+                      
                       <div class="flex items-center gap-4 mt-3">
                         <div class="flex items-center gap-1">
                           <MessageSquare class="h-4 w-4 text-blue-500" />
@@ -230,7 +226,7 @@
                         {/if}
                       </div>
 
-                      <!-- Activity Info -->
+                      
                       <div
                         class="flex items-center gap-3 mt-2 text-xs text-gray-500">
                         <span>{qr.scans_count} total scans</span>
@@ -246,7 +242,7 @@
                   </div>
                 </div>
 
-                <!-- Response Quality Indicators -->
+                
                 <div class="text-right">
                   <div class="space-y-2">
                     <div>
@@ -280,7 +276,7 @@
                 </div>
               </div>
 
-              <!-- Response Quality Alerts -->
+              
               {#if qr.feedback_count > 5}
                 {#if qr.response_quality < 30}
                   <div class="mt-3 pt-3 border-t border-amber-200">
@@ -315,7 +311,7 @@
           {/each}
         </div>
 
-        <!-- Response Quality Insights -->
+        
         {#if qrMetrics().qualityIssues.length > 0}
           <div class="mt-6 p-4 bg-amber-50 border border-amber-200 rounded-lg">
             <div class="flex items-start gap-3">
@@ -348,7 +344,7 @@
           </div>
         {/if}
 
-        <!-- Top Response Generators -->
+        
         {#if qrMetrics().topResponseGenerators.length > 0}
           <div class="mt-6 p-4 bg-green-50 border border-green-200 rounded-lg">
             <div class="flex items-start gap-3">

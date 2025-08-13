@@ -10,17 +10,14 @@
     BarChart3Icon,
   } from 'lucide-svelte';
 
-  // Get analytics store from context
   const analytics = getContext<typeof AnalyticsStoreType>(
     ANALYTICS_CONTEXT_KEY
   );
   const { filters, selection } = analytics;
 
-  // Reactive values
   let currentFilters = $derived($filters);
   let currentSelection = $derived($selection);
 
-  // Filter options
   const timeframeOptions = [
     { value: '24h', label: 'Last 24 Hours' },
     { value: '7d', label: 'Last 7 Days' },
@@ -77,7 +74,6 @@
     analytics.setComparisonMode('none');
   }
 
-  // Check if any filters are active
   const hasActiveFilters = $derived(() => {
     return (
       currentFilters.timeframe !== '7d' ||
@@ -100,7 +96,7 @@
     </div>
 
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-      <!-- Timeframe -->
+      
       <div>
         <label
           class="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
@@ -117,7 +113,7 @@
         </Select>
       </div>
 
-      <!-- Time of Day -->
+      
       <div>
         <label
           class="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
@@ -134,7 +130,7 @@
         </Select>
       </div>
 
-      <!-- Day Type -->
+      
       <div>
         <label
           class="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
@@ -151,7 +147,7 @@
         </Select>
       </div>
 
-      <!-- Comparison Mode -->
+      
       <div>
         <label
           class="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
@@ -169,7 +165,7 @@
       </div>
     </div>
 
-    <!-- Active Filters Summary -->
+    
     {#if hasActiveFilters()}
       <div class="mt-4 p-3 bg-blue-50 rounded-lg">
         <div class="text-sm text-blue-900">

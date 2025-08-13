@@ -31,13 +31,11 @@
     loading?: boolean;
   } = $props();
 
-  // Get analytics store from context
   const analytics = getContext<typeof AnalyticsStoreType>(
     ANALYTICS_CONTEXT_KEY
   );
   const { selection } = analytics;
 
-  // Track highlighted question
   let highlightedQuestionId = $derived($selection.highlightedQuestionId);
 
   function getScoreTrend(score: number): { color: string; label: string } {
@@ -152,7 +150,7 @@
             </div>
           </div>
 
-          <!-- Progress bar for numeric questions -->
+          
           {#if metric.question_type === 'numeric' && metric.average_score !== undefined && metric.average_score !== null}
             <div class="w-full bg-gray-200 rounded-full h-2 mb-2">
               <div
@@ -166,7 +164,7 @@
             </div>
           {/if}
 
-          <!-- Sentiment indicators -->
+          
           {#if metric.positive_rate !== undefined && metric.negative_rate !== undefined}
             <div class="flex gap-2 mt-2">
               <span
@@ -181,7 +179,7 @@
             </div>
           {/if}
 
-          <!-- Option distribution for choice questions -->
+          
           {#if metric.question_type === 'choice' && metric.option_distribution}
             <div class="mt-3 space-y-1">
               {#each Object.entries(metric.option_distribution)

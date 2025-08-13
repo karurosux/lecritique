@@ -118,7 +118,6 @@
     try {
       const api = getApiClient();
 
-      // Create organization via API
       const response = await api.api.v1OrganizationsCreate({
         name: formData.name,
         description: formData.description || undefined,
@@ -128,7 +127,6 @@
       });
 
       if (response.data.success) {
-        // Redirect to organizations list on success
         goto('/organizations');
       } else {
         error = 'Failed to create organization';

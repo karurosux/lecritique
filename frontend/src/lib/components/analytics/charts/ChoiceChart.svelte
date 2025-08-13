@@ -61,7 +61,7 @@
       return {
         label: seriesData.metric_name,
         data: points,
-        borderColor: `hsl(${20 + index * 40}, 70%, 50%)`, // Orange/red tones for choices
+        borderColor: `hsl(${20 + index * 40}, 70%, 50%)`,
         backgroundColor: `hsl(${20 + index * 40}, 70%, 50%)20`,
         borderWidth: 3,
         pointRadius: 6,
@@ -154,12 +154,12 @@
       <p>No choice data available</p>
     </div>
   {:else}
-    <!-- Chart -->
+    
     <div class="chart-container mb-6">
       <canvas bind:this={chartCanvas} class="w-full h-80"></canvas>
     </div>
 
-    <!-- Statistics -->
+    
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
       {#each series as seriesData, index}
         {#if seriesData.statistics}

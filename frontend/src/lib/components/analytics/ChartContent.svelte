@@ -112,7 +112,7 @@
   }
 </script>
 
-<!-- Chart Header -->
+
 <div class="flex items-start justify-between mb-6">
   <div class="flex-1">
     <div class="flex items-center gap-3 mb-3">
@@ -145,7 +145,7 @@
     </div>
   </div>
 
-  <!-- Multi-choice toggle -->
+  
   {#if chart.data.is_multi_choice && chart.data.combinations}
     <button
       onclick={() => toggleViewMode(chart.question_id)}
@@ -164,14 +164,14 @@
   {/if}
 </div>
 
-<!-- Chart Content -->
+
 {#if chart.chart_type === 'rating'}
-  <!-- Rating Distribution Chart -->
+  
   <div class="space-y-4">
     {#if chart.data.average}
       <div
         class="text-center mb-6 p-5 bg-gradient-to-br from-amber-50 via-orange-50 to-red-50 rounded-2xl border border-amber-200 relative overflow-hidden">
-        <!-- Food pattern background -->
+        
         <div class="absolute inset-0 opacity-10">
           <div class="absolute top-2 right-4 text-2xl">🍽️</div>
           <div class="absolute bottom-2 left-4 text-xl">✨</div>
@@ -196,7 +196,7 @@
       </div>
     {/if}
 
-    <!-- Rating bars -->
+    
     {#if chart.data.distribution}
       <div class="space-y-3">
         {#each Object.entries(chart.data.distribution).sort(([a], [b]) => parseInt(b) - parseInt(a)) as [rating, count], index}
@@ -221,13 +221,13 @@
                   <div
                     class="h-full bg-gradient-to-r from-orange-400 via-orange-500 to-orange-600 transition-all duration-700 ease-out shadow-sm rounded-xl relative"
                     style="width: {percentage}%">
-                    <!-- Subtle shine effect -->
+                    
                     <div
                       class="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent rounded-xl">
                     </div>
                   </div>
                 </div>
-                <!-- Percentage overlay for larger bars -->
+                
                 {#if percentage > 20}
                   <div
                     class="absolute inset-0 flex items-center justify-center text-xs font-bold text-white pointer-events-none"
@@ -250,12 +250,12 @@
     {/if}
   </div>
 {:else if chart.chart_type === 'scale'}
-  <!-- Scale Distribution Chart -->
+  
   <div class="space-y-4">
     {#if chart.data.average}
       <div
         class="text-center mb-6 p-5 bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 rounded-2xl border border-blue-200 relative overflow-hidden">
-        <!-- Scale pattern background -->
+        
         <div class="absolute inset-0 opacity-10">
           <div class="absolute top-2 right-4 text-2xl">📊</div>
           <div class="absolute bottom-2 left-4 text-xl">⚖️</div>
@@ -277,7 +277,7 @@
       </div>
     {/if}
 
-    <!-- Scale bars -->
+    
     {#if chart.data.distribution}
       <div class="space-y-3">
         {#each Object.entries(chart.data.distribution).sort(([a], [b]) => parseInt(a) - parseInt(b)) as [value, count], index}
@@ -299,13 +299,13 @@
                   <div
                     class="h-full bg-gradient-to-r from-blue-400 via-blue-500 to-blue-600 transition-all duration-700 ease-out shadow-sm rounded-xl relative"
                     style="width: {percentage}%">
-                    <!-- Subtle shine effect -->
+                    
                     <div
                       class="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent rounded-xl">
                     </div>
                   </div>
                 </div>
-                <!-- Percentage overlay for larger bars -->
+                
                 {#if percentage > 20}
                   <div
                     class="absolute inset-0 flex items-center justify-center text-xs font-bold text-white pointer-events-none"
@@ -328,9 +328,9 @@
     {/if}
   </div>
 {:else if chart.chart_type === 'choice'}
-  <!-- Choice Distribution Chart -->
+  
   {#if chart.data.is_multi_choice && chart.data.combinations && chartViewModes.get(chart.question_id) === 'combinations'}
-    <!-- Combination view for multi-choice -->
+    
     <div class="space-y-3">
       {#each chart.data.combinations.slice(0, 8) as combo, index}
         <div
@@ -359,7 +359,7 @@
                       index
                     )} transition-all duration-700 ease-out rounded-xl relative shadow-sm"
                     style="width: {combo.percentage}%">
-                    <!-- Subtle shine effect -->
+                    
                     <div
                       class="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent rounded-xl">
                     </div>
@@ -386,7 +386,7 @@
       {/each}
     </div>
   {:else}
-    <!-- Individual options view -->
+    
     <div class="space-y-3">
       {#if chart.data.options}
         {#each Object.entries(chart.data.options).sort(([, a], [, b]) => b - a) as [option, count], index}
@@ -411,7 +411,7 @@
                         index
                       )} transition-all duration-700 ease-out rounded-xl relative shadow-sm"
                       style="width: {percentage}%">
-                      <!-- Subtle shine effect -->
+                      
                       <div
                         class="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent rounded-xl">
                       </div>
@@ -440,9 +440,9 @@
     </div>
   {/if}
 {:else if chart.chart_type === 'text_sentiment'}
-  <!-- Text Sentiment Analysis -->
+  
   <div class="space-y-4">
-    <!-- Sentiment overview -->
+    
     <div class="grid grid-cols-3 gap-3 mb-6">
       <div
         class="text-center p-4 bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl border border-green-200 relative overflow-hidden group hover:shadow-lg transition-all duration-200">
@@ -488,7 +488,7 @@
       </div>
     </div>
 
-    <!-- Sample responses -->
+    
     {#if chart.data.samples && chart.data.samples.length > 0}
       <div class="bg-blue-50 rounded-lg p-4 border border-blue-100">
         <div class="flex items-center gap-2 mb-3">
@@ -507,7 +507,7 @@
       </div>
     {/if}
 
-    <!-- Keywords -->
+    
     {#if chart.data.keywords && chart.data.keywords.length > 0}
       <div class="bg-purple-50 rounded-lg p-4 border border-purple-100">
         <div class="flex items-center gap-2 mb-3">

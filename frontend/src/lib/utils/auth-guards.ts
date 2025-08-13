@@ -132,3 +132,4 @@ export function canPerformAction(
   const permissions = rolePermissions[member.role.toString() as Role];
   return permissions.includes('*') || permissions.includes(action);
 }
+

@@ -81,7 +81,7 @@ function createAuthStore() {
   const { subscribe, set, update } = writable<AuthState>(initialState);
 
   const api = new Api({
-    baseURL: 'http://localhost:8080',
+    baseURL: APP_CONFIG.API_URL,
     securityWorker: securityData => {
       if (securityData) {
         return {

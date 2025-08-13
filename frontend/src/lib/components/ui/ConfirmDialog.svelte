@@ -8,7 +8,7 @@
     message = 'Are you sure you want to proceed?',
     confirmText = 'Confirm',
     cancelText = 'Cancel',
-    variant = 'danger', // 'danger' | 'warning' | 'info'
+    variant = 'danger',
     clickOrigin = null,
     onConfirm = () => {},
     onCancel = () => {},
@@ -35,7 +35,6 @@
 
 <Modal {isOpen} {title} {clickOrigin} size="sm" onclose={handleCancel}>
   <div class="space-y-4">
-    <!-- Icon and Message -->
     <div class="flex items-start gap-3">
       <div
         class="h-10 w-10 rounded-full flex items-center justify-center flex-shrink-0
@@ -59,7 +58,6 @@
       </div>
     </div>
 
-    <!-- Actions -->
     <div
       class="mt-6 pt-6 border-t border-gray-200 flex items-center justify-end space-x-3">
       <Button onclick={handleCancel} variant="outline">

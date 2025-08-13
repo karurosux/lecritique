@@ -20,9 +20,7 @@
   async function handleLogout() {
     closeMenu();
     await auth.logout();
-    // Small delay to ensure auth state is propagated
     await new Promise(resolve => setTimeout(resolve, 100));
-    // Use replace to ensure we don't keep the current page in history
     await goto('/login', { replaceState: true });
   }
 
@@ -31,7 +29,6 @@
     goto('/settings');
   }
 
-  // Generate avatar from email
   function getAvatarText(email: string): string {
     return email.charAt(0).toUpperCase();
   }
@@ -54,7 +51,6 @@
     return colors[Math.abs(hash) % colors.length];
   }
 
-  // Close menu when clicking outside
   function handleClickOutside(event: MouseEvent) {
     const target = event.target as Element;
     if (!target.closest('.user-menu-container')) {
@@ -67,14 +63,14 @@
 
 {#if user}
   <div class="relative user-menu-container z-[9999]">
-    <!-- User Menu Button -->
+    
     <button
       type="button"
       class="flex items-center space-x-3 p-2 rounded-xl hover:bg-white/10 transition-all duration-200 group cursor-pointer"
       onclick={toggleMenu}
       aria-expanded={showMenu}
       aria-haspopup="true">
-      <!-- Avatar -->
+      
       <div
         class="h-10 w-10 bg-gradient-to-br {getAvatarColor(
           user.email
@@ -84,7 +80,7 @@
         </span>
       </div>
 
-      <!-- User Info -->
+      
       <div class="hidden sm:block text-left">
         <p class="text-sm font-semibold text-gray-900 truncate max-w-32">
           {user.name || 'User'}
@@ -94,14 +90,14 @@
         </p>
       </div>
 
-      <!-- Chevron -->
+      
       <ChevronDown
         class="h-4 w-4 text-gray-600 transition-transform duration-200 {showMenu
           ? 'rotate-180'
           : ''}" />
     </button>
 
-    <!-- Dropdown Menu -->
+    
     {#if showMenu}
       <div
         class="absolute right-0 top-full mt-2 w-64 bg-white/95 backdrop-blur-xl rounded-2xl shadow-xl shadow-gray-900/10 border border-white/20 overflow-hidden z-[9999]">

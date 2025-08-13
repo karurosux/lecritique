@@ -25,7 +25,6 @@
   });
 
   async function handleSelectPlan(plan: ModelsSubscriptionPlan) {
-    // For pricing page, we redirect to registration with the plan
     goto(`/register?plan=${plan.code}`);
   }
 </script>

@@ -18,12 +18,10 @@
 
   const dispatch = createEventDispatcher();
 
-  // Local state for editing
   let localQuestion = { ...question };
   let options = [...(question.options || [])];
   let newOption = '';
 
-  // Question type definitions
   const questionTypes = [
     { value: 'rating', label: 'Star Rating (1-5 stars)' },
     { value: 'scale', label: 'Scale (1-10 with labels)' },
@@ -59,14 +57,12 @@
     const newType = 'target' in event ? (event.target as any).value : event;
     localQuestion.type = newType as Question['type'];
 
-    // Reset type-specific fields
     localQuestion.options = undefined;
     localQuestion.min_value = undefined;
     localQuestion.max_value = undefined;
     localQuestion.min_label = undefined;
     localQuestion.max_label = undefined;
 
-    // Set defaults for specific types
     if (newType === 'scale') {
       localQuestion.min_value = 1;
       localQuestion.max_value = 10;
@@ -85,13 +81,11 @@
       return;
     }
 
-    // Final validation and cleanup
     const finalQuestion: Question = {
       ...localQuestion,
       text: localQuestion.text.trim(),
     };
 
-    // Ensure options are set for choice types
     if (['multi_choice', 'single_choice'].includes(finalQuestion.type)) {
       finalQuestion.options = options.filter(opt => opt.trim());
     }
@@ -103,7 +97,6 @@
     dispatch('cancel');
   }
 
-  // Reactive updates
   $: if (localQuestion.type) {
     updateQuestion();
   }
@@ -115,7 +108,6 @@
   size="lg"
   onclose={cancel}>
   <div class="space-y-6">
-    <!-- Question Text -->
     <div>
       <label
         for="question-text"
@@ -131,7 +123,6 @@
         required></textarea>
     </div>
 
-    <!-- Question Type -->
     <div>
       <label
         for="question-type"
@@ -149,7 +140,6 @@
         placeholder="Select question type" />
     </div>
 
-    <!-- Required Toggle -->
     <div class="flex items-center space-x-2">
       <input
         type="checkbox"
@@ -160,7 +150,6 @@
         >Required question</label>
     </div>
 
-    <!-- Type-specific configuration -->
     {#if localQuestion.type === 'scale'}
       <Card variant="minimal">
         <div class="p-4 space-y-4">
@@ -228,7 +217,6 @@
               : 'Single Choice'} Options
           </h4>
 
-          <!-- Existing options -->
           <div class="space-y-2">
             {#each options as option, index}
               <div class="flex items-center gap-2">
@@ -246,7 +234,6 @@
             {/each}
           </div>
 
-          <!-- Add new option -->
           <div class="flex items-center gap-2">
             <Input
               bind:value={newOption}
@@ -270,7 +257,6 @@
       </Card>
     {/if}
 
-    <!-- Preview -->
     <Card>
       <div class="p-4 space-y-2">
         <h4 class="text-sm font-medium text-gray-900">Preview</h4>
@@ -338,7 +324,6 @@
     </Card>
   </div>
 
-  <!-- Actions -->
   <div
     class="mt-6 pt-6 border-t border-gray-200 flex items-center justify-end space-x-3">
     <Button onclick={cancel} variant="outline">Cancel</Button>

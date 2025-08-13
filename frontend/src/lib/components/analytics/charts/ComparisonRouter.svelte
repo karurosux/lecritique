@@ -7,7 +7,6 @@
 
   let { data }: Props = $props();
 
-  // Group comparisons by metric type for better visualization
   let groupedComparisons = $derived(() => {
     if (!data?.comparisons) return {};
 
@@ -45,7 +44,6 @@
         try {
           metadata = JSON.parse(metadata);
         } catch (e) {
-          // ignore parsing errors
         }
       }
       if (metadata?.question_type) {
@@ -64,6 +62,6 @@
 </script>
 
 <div class="comparison-router">
-  <!-- For now, use the existing ComparisonChart but with better grouping coming soon -->
+  
   <ComparisonChart {data} />
 </div>

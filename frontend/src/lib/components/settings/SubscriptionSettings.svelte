@@ -28,7 +28,6 @@
   async function loadData() {
     isLoading = true;
     try {
-      // Fetch subscription, plans, and usage data
       await Promise.all([
         subscription.fetchSubscription(),
         subscription.fetchPlans(),
@@ -69,7 +68,6 @@
     }
   }
 
-  // Format price display
   function formatPrice(price: number) {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
@@ -78,7 +76,6 @@
     }).format(price);
   }
 
-  // Format date
   function formatDate(dateString: string) {
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
@@ -93,7 +90,6 @@
   let plans = $derived(subscriptionData.plans || []);
   let usage = $derived(subscriptionData.usage);
 
-  // Use subscription data from API instead of JWT for plan details
   let currentSubscription = $derived(subscriptionData.subscription);
   let actualCurrentPlan = $derived(
     currentSubscription && plans.length > 0
@@ -101,7 +97,6 @@
       : null
   );
 
-  // Check if current plan is custom (not in visible plans list)
   let isCustomPlan = $derived(
     currentSubscription &&
       plans.length > 0 &&
@@ -122,7 +117,6 @@
       <Loader2 class="h-8 w-8 animate-spin text-gray-400" />
     </div>
   {:else if subscriptionData.subscription}
-    <!-- Custom Plan Notice -->
     {#if isCustomPlan}
       <div class="mb-6 bg-amber-50 border border-amber-200 rounded-lg p-4">
         <div class="flex">
@@ -145,7 +139,6 @@
       </div>
     {/if}
 
-    <!-- Current Plan -->
     <div class="mb-8">
       <div
         class="bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl p-6 text-white">
@@ -194,7 +187,6 @@
       </div>
     </div>
 
-    <!-- Available Plans -->
     {#if !isCustomPlan}
       <div class="space-y-4">
         <h3 class="text-lg font-medium text-gray-900">Available Plans</h3>
@@ -208,7 +200,6 @@
       </div>
     {/if}
   {:else}
-    <!-- No Subscription -->
     <Card variant="glass" class="p-8 text-center">
       <h3 class="text-lg font-semibold text-gray-900 mb-2">
         No Active Subscription

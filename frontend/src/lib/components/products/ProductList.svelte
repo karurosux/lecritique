@@ -46,17 +46,17 @@
 
 <div>
   {#if loading}
-    <!-- Loading State -->
+    
     <div class="space-y-8">
       {#each Array(3) as _}
         <div class="space-y-6">
-          <!-- Category Title Skeleton -->
+          
           <div class="flex items-center justify-between">
             <div class="h-7 bg-gray-200 rounded-lg w-48 animate-pulse"></div>
             <div class="h-5 bg-gray-200 rounded w-20 animate-pulse"></div>
           </div>
 
-          <!-- Product Cards Skeleton -->
+          
           <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {#each Array(3) as _}
               <Card class="p-6">
@@ -87,7 +87,7 @@
       {/each}
     </div>
   {:else if error}
-    <!-- Error State -->
+    
     <Card class="p-12">
       <div class="text-center">
         <div
@@ -105,7 +105,7 @@
       </div>
     </Card>
   {:else if products.length === 0}
-    <!-- Empty State -->
+    
     <Card class="p-16">
       <div class="text-center">
         <div
@@ -127,7 +127,7 @@
       </div>
     </Card>
   {:else}
-    <!-- Products Grid -->
+    
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       {#each products as product, productIndex}
         <div

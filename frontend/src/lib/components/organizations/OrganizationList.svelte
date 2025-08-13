@@ -47,7 +47,7 @@
 </script>
 
 {#if loading}
-  <!-- Loading State -->
+  
   <div
     class="grid {viewMode === 'grid'
       ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'
@@ -75,7 +75,7 @@
     {/each}
   </div>
 {:else if organizations.length === 0}
-  <!-- Empty State -->
+  
   <NoDataAvailable
     title="No organizations found"
     description="You haven't added any organizations yet, or no organizations match your current filters."
@@ -88,7 +88,7 @@
       onClick: () => dispatch('clearFilters'),
     }} />
 {:else}
-  <!-- Organization Cards -->
+  
   <div
     class="grid {viewMode === 'grid'
       ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'

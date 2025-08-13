@@ -4,7 +4,7 @@
 
   let {
     isOpen = $bindable(false),
-    open = $bindable(false), // Backward compatibility
+    open = $bindable(false),
     title = '',
     showClose = true,
     size = 'md',
@@ -22,7 +22,6 @@
     children?: any;
   } = $props();
 
-  // Support both isOpen and open props for compatibility
   let modalOpen = $derived(isOpen || open);
 
   const sizeClasses = {
@@ -55,15 +54,12 @@
     }
   }
 
-  // Move modal to document body when it opens and handle animation
   $effect(() => {
     if (modalOpen && modalElement) {
       document.body.appendChild(modalElement);
 
-      // Start all animations simultaneously
       animationPhase = 'expanding';
 
-      // Show modal content after a short delay
       setTimeout(() => {
         animationPhase = 'showing';
       }, 200);

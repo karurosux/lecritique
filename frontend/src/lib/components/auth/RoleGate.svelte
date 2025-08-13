@@ -3,11 +3,8 @@
   import type { Role } from '$lib/utils/auth-guards';
 
   interface Props {
-    // Allowed roles - if any match, content is shown
     roles?: Role[];
-    // If true, shows loading state while checking
     showLoading?: boolean;
-    // Custom fallback content
     fallback?: string;
     children?: any;
   }
@@ -19,12 +16,9 @@
     children,
   }: Props = $props();
 
-  // Get current user's role from auth store
   let currentUserRole = $derived($auth.user?.role || null);
 
-  // Determine if content should be shown
   let hasAccess = $derived.by(() => {
-    // Check if user has any of the allowed roles
     return currentUserRole && roles.includes(currentUserRole as any);
   });
 

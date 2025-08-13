@@ -14,7 +14,6 @@
 
   let { data, type }: Props = $props();
 
-  // Group series by metric type for better visualization
   let groupedSeries = $derived(() => {
     if (!data?.series) return {};
 
@@ -32,7 +31,6 @@
 
   function getMetricGroup(metricType: string): string {
     if (metricType.startsWith('question_')) {
-      // Extract question type from metadata or infer from metric name
       return 'question';
     }
 
@@ -43,11 +41,10 @@
     if (metricType.includes('choice')) return 'choice';
     if (metricType.includes('survey_responses')) return 'count';
 
-    return 'count'; // default
+    return 'count';
   }
 
   function getQuestionType(series: any): string {
-    // Try to get question type from metadata
     if (series.metadata) {
       let metadata = series.metadata;
       if (metadata?.question_type) {
@@ -55,7 +52,6 @@
       }
     }
 
-    // Fallback to inferring from metric_type
     if (series.metric_type.includes('rating')) return 'rating';
     if (series.metric_type.includes('scale')) return 'scale';
     if (series.metric_type.includes('yes_no')) return 'yes_no';
@@ -73,7 +69,7 @@
     {#each Object.entries(groupedSeries) as [metricGroup, seriesData]}
       <div class="metric-group mb-8">
         {#if metricGroup === 'question'}
-          <!-- Handle individual questions based on their type -->
+          
           {#each seriesData as series}
             {@const questionType = getQuestionType(series)}
             <div class="question-chart mb-6">

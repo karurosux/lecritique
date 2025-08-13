@@ -32,7 +32,6 @@
     navItems.find(item => currentPath === item.href) || navItems[0]
   );
 
-  // Fetch organization data on client if not available
   onMount(async () => {
     if (!organization && isAuthenticated()) {
       try {

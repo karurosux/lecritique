@@ -43,7 +43,6 @@
     loading?: boolean;
   } = $props();
 
-  // Compute display stats
   let displayStats = $derived(() => {
     if (analyticsData) {
       return {
@@ -131,7 +130,6 @@
     },
   ];
 
-  // Additional metrics if available
   const additionalMetrics = $derived(() => {
     const stats = displayStats();
     if (!stats) return [];
@@ -175,7 +173,7 @@
 </script>
 
 {#if loading}
-  <!-- Loading State -->
+  
   <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
     {#each Array(4) as _}
       <Card variant="gradient">
@@ -234,7 +232,7 @@
     {/each}
   </div>
 
-  <!-- Additional Metrics Row -->
+  
   {#if additionalMetrics().length > 0}
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-6">
       {#each additionalMetrics() as metric}

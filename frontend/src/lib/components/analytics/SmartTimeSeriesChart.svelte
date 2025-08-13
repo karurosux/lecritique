@@ -16,7 +16,6 @@
 
   let { data }: Props = $props();
 
-  // Group series by question type for separate visualization
   let groupedSeries = $derived(() => {
     if (!data?.series) {
       console.log('SmartTimeSeriesChart: No series data', data);
@@ -36,9 +35,7 @@
         series.metadata
       );
 
-      // Determine question type
       if (series.metric_type.startsWith('question_')) {
-        // Try to get question type from metadata
         if (series.metadata) {
           let metadata = series.metadata;
           if (metadata?.question_type) {
@@ -47,7 +44,6 @@
         }
       }
 
-      // Also check the metric_type itself for question types
       if (questionType === 'general') {
         if (series.metric_type.includes('rating_questions'))
           questionType = 'rating';
@@ -63,7 +59,6 @@
           questionType = 'choice';
         else if (series.metric_type === 'survey_responses')
           questionType = 'general';
-        // Check for any other patterns
         else if (series.metric_type.includes('rating')) questionType = 'rating';
         else if (series.metric_type.includes('scale')) questionType = 'scale';
         else if (series.metric_type.includes('yes_no')) questionType = 'yes_no';
@@ -159,7 +154,7 @@
       <p>No time series data available</p>
     </div>
   {:else if Object.keys(groupedSeries).length === 0}
-    <!-- Fallback: show original chart if grouping produces no results -->
+    
     <TimeSeriesChart {data} />
   {:else}
     {#each Object.entries(groupedSeries) as [questionType, seriesGroup]}

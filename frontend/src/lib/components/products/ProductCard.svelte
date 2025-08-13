@@ -89,7 +89,7 @@
   hover
   class="group relative transform transition-all duration-300 animate-fade-in-up !pb-3"
   style="animation-delay: {index * 100}ms">
-  <!-- Header Section -->
+  
   <div class="flex items-center space-x-4 mb-4">
     <div
       class="h-16 w-16 bg-gradient-to-br from-green-500 to-emerald-600 rounded-2xl flex items-center justify-center shadow-lg shadow-green-500/25 flex-shrink-0">
@@ -129,7 +129,7 @@
     </div>
   </div>
 
-  <!-- Description Section -->
+  
   <div class="mb-4 min-h-[2.5rem]">
     {#if product.description}
       <p class="text-gray-600 text-sm line-clamp-2 leading-relaxed">
@@ -138,7 +138,7 @@
     {/if}
   </div>
 
-  <!-- Product Information Section -->
+  
   {#if product.preparation_time || (product.allergens && product.allergens.length > 0)}
     <div class="space-y-2 mb-4">
       {#if product.preparation_time}
@@ -169,12 +169,12 @@
     </div>
   {/if}
 
-  <!-- Footer Section -->
+  
   <div class="flex items-center justify-between pt-4 border-t border-gray-200">
     <span class="text-xs text-gray-500">
       Created {formatDate(product.created_at)}
     </span>
-    <!-- Action Buttons -->
+    
     <RoleGate roles={['OWNER', 'ADMIN', 'MANAGER']}>
       <div
         class="flex items-center space-x-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">

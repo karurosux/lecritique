@@ -30,8 +30,8 @@
   let error = $state('');
   let organizations = $state<Organization[]>([]);
   let searchQuery = $state('');
-  let statusFilter = $state('all'); // 'all', 'active', 'inactive'
-  let sortBy = $state('name'); // 'name', 'created_at', 'status'
+  let statusFilter = $state('all');
+  let sortBy = $state('name');
   let viewMode = $state<'grid' | 'list'>('grid');
   let showCreateModal = $state(false);
   let showEditModal = $state(false);
@@ -107,7 +107,6 @@
     try {
       const api = getApiClient();
 
-      // Use actual API client to get organizations
       const response = await api.api.v1OrganizationsList();
 
       if (response.data.success && response.data.data) {
@@ -119,7 +118,7 @@
           phone: organization.phone || '',
           email: organization.email || '',
           website: organization.website || '',
-          cuisine_type: '', // Note: cuisine_type not in API model
+          cuisine_type: '',
           status: organization.is_active ? 'active' : 'inactive',
           created_at: organization.created_at || '',
           updated_at: organization.updated_at || '',
@@ -218,7 +217,7 @@
     showEditModal = false;
     editingOrganization = null;
     clickOrigin = null;
-    loadOrganizations(); // Refresh the organization list
+    loadOrganizations();
   }
 
   function handleDeleteConfirm() {
@@ -237,9 +236,7 @@
   }
 
   function handleOrganizationCreated(event: CustomEvent) {
-    // Reload the full list to ensure data consistency and get updated permissions
     loadOrganizations();
-    // Refresh permissions since organization count changed
     checkCreatePermission();
   }
 
@@ -255,12 +252,10 @@
       const newStatus =
         organization.status === 'active' ? 'inactive' : 'active';
 
-      // Update organization status via API
       await api.api.v1OrganizationsUpdate(organization.id, {
         is_active: newStatus === 'active',
       });
 
-      // Update local state
       organizations = organizations.map(r =>
         r.id === organization.id
           ? { ...r, status: newStatus, updated_at: new Date().toISOString() }
@@ -275,10 +270,8 @@
     try {
       const api = getApiClient();
 
-      // Delete organization via API
       await api.api.v1OrganizationsDelete(organization.id);
 
-      // Update local state
       organizations = organizations.filter(r => r.id !== organization.id);
     } catch (err) {
       error = handleApiError(err);

@@ -1,12 +1,10 @@
 <script lang="ts">
   import { goto } from '$app/navigation';
-  import { Api } from '$lib/api/api';
+  import { getPublicApiClient } from '$lib/api/client';
   import { Button, Card, Input, Logo } from '$lib/components/ui';
   import { Check, Mail, XCircle, Loader2, ArrowLeft } from 'lucide-svelte';
 
-  const api = new Api({
-    baseURL: import.meta.env.VITE_API_URL || 'http://localhost:8080',
-  });
+  const api = getPublicApiClient();
 
   let email = $state('');
   let loading = $state(false);

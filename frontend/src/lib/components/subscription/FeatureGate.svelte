@@ -21,7 +21,7 @@
 </script>
 
 {#if loading}
-  <!-- Loading state while checking features -->
+  
   <div class="animate-pulse">
     <div class="h-8 bg-gray-200 rounded"></div>
   </div>

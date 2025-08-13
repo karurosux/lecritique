@@ -61,7 +61,6 @@
   }
 
   function handleViewDetails() {
-    // Navigate to organization details/products page
     goto(`/organizations/${organization.id}/products`);
   }
 
@@ -86,13 +85,11 @@
 </script>
 
 {#if viewMode === 'grid'}
-  <!-- Grid View -->
   <Card
     variant="gradient"
     hover
     class="group relative transform transition-all duration-300 animate-fade-in-up !pb-3"
     style="animation-delay: {index * 100}ms">
-    <!-- Header Section -->
     <div class="flex items-center space-x-4 mb-4">
       <div
         class="h-16 w-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg shadow-blue-500/25">
@@ -120,7 +117,6 @@
       </div>
     </div>
 
-    <!-- Description Section -->
     {#if organization.description}
       <div class="mb-4">
         <p class="text-gray-600 text-sm line-clamp-2 leading-relaxed">
@@ -129,7 +125,6 @@
       </div>
     {/if}
 
-    <!-- Contact Information Section -->
     <div class="space-y-2 mb-4">
       {#if organization.email}
         <div class="flex items-center space-x-3">
@@ -166,7 +161,6 @@
           </a>
         </div>
       {/if}
-      <!-- Creation Date -->
       <div class="flex items-center space-x-3">
         <div
           class="h-8 w-8 bg-gray-100 rounded-lg flex items-center justify-center">
@@ -178,10 +172,8 @@
       </div>
     </div>
 
-    <!-- Footer Section -->
     <div
       class="flex items-center justify-between pt-4 border-t border-gray-200">
-      <!-- Action Buttons -->
       <RoleGate roles={['OWNER', 'ADMIN', 'MANAGER']}>
         <div
           class="flex items-center space-x-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
@@ -226,7 +218,6 @@
     </div>
   </Card>
 {:else}
-  <!-- List View -->
   <Card
     variant="gradient"
     hover
@@ -234,16 +225,13 @@
     style="animation-delay: {index * 50}ms">
     <div class="flex items-center justify-between">
       <div class="flex items-center space-x-4 flex-1 min-w-0">
-        <!-- Organization Icon -->
         <div
           class="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center text-white font-bold text-sm shadow-lg shadow-blue-500/25">
           {getInitials(organization.name)}
         </div>
 
-        <!-- Organization Info -->
         <div
           class="flex-1 min-w-0 grid grid-cols-1 md:grid-cols-5 gap-4 items-center">
-          <!-- Name & Status -->
           <div class="min-w-0">
             <p
               class="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1 whitespace-nowrap">
@@ -264,7 +252,6 @@
             </div>
           </div>
 
-          <!-- Contact Info -->
           <div class="min-w-0 space-y-1">
             {#if organization.email}
               <div class="flex items-center space-x-2">
@@ -288,7 +275,6 @@
             {/if}
           </div>
 
-          <!-- Description & Website -->
           <div class="min-w-0 space-y-1">
             {#if organization.description}
               <p class="text-xs text-gray-600 line-clamp-1 font-medium">
@@ -312,8 +298,7 @@
             {/if}
           </div>
 
-          <!-- Creation Date -->
-          <div class="min-w-0 flex items-center">
+              <div class="min-w-0 flex items-center">
             <div class="flex items-center space-x-2">
               <div
                 class="h-5 w-5 bg-gray-100 rounded flex items-center justify-center">
@@ -325,7 +310,6 @@
             </div>
           </div>
 
-          <!-- Actions -->
           <div class="flex items-center justify-end space-x-2">
             <RoleGate roles={['OWNER', 'ADMIN', 'MANAGER']}>
               <div

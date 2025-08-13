@@ -16,7 +16,6 @@
     }
   });
 
-  // Watch for auth state changes
   $effect(() => {
     if (
       !authState.isAuthenticated &&

@@ -32,7 +32,7 @@
       const payload = {
         label: label.trim(),
         organization_id: organizationId,
-        type: 'general' as const, // Default to general type
+        type: 'general' as const,
       };
 
       const api = getApiClient();

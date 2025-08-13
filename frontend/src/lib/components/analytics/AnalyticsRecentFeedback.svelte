@@ -25,7 +25,6 @@
     loading?: boolean;
   } = $props();
 
-  // Use analytics data if available, otherwise use feedbacks prop
   let displayFeedbacks = $derived(() => {
     if (analyticsData?.recent_feedback) {
       return analyticsData.recent_feedback;
@@ -77,7 +76,7 @@
 </script>
 
 <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-  <!-- Recent Feedback Activity -->
+  
   <Card
     variant="glass"
     class="lg:col-span-2 hover:shadow-lg transition-all duration-300">

@@ -74,7 +74,7 @@
     </div>
 
     <div class="flex items-center space-x-3">
-      <!-- Add Product Button -->
+      
       <Button
         variant="gradient"
         size="lg"

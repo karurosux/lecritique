@@ -43,7 +43,6 @@
     is_available: true,
   });
 
-  // Reset form when modal opens/closes or when editing product changes
   $effect(() => {
     if (isOpen) {
       if (editingProduct) {
@@ -100,7 +99,7 @@
   {clickOrigin}
   onclose={handleClose}>
   <form onsubmit={handleSubmit} class="space-y-6">
-    <!-- Error Message -->
+    
     {#if error}
       <Card variant="minimal" class="border-red-200 bg-red-50 p-4">
         <div class="flex items-center space-x-3">
@@ -111,7 +110,7 @@
     {/if}
 
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-      <!-- Product Name -->
+      
       <div class="md:col-span-2">
         <Input
           id="product-name"
@@ -124,7 +123,7 @@
           variant="default" />
       </div>
 
-      <!-- Description -->
+      
       <div class="md:col-span-2">
         <Input
           id="product-description"
@@ -136,7 +135,7 @@
           variant="default" />
       </div>
 
-      <!-- Price -->
+      
       <div>
         <Input
           id="product-price"
@@ -149,7 +148,7 @@
           variant="default" />
       </div>
 
-      <!-- Category -->
+      
       <div>
         <label
           for="product-category"
@@ -164,7 +163,7 @@
           ]} />
       </div>
 
-      <!-- Availability -->
+      
       <div>
         <label class="block text-sm font-semibold text-gray-700 mb-3">
           Availability
@@ -182,7 +181,7 @@
       </div>
     </div>
 
-    <!-- Form Actions -->
+    
     <div
       class="flex items-center justify-end space-x-4 pt-6 border-t border-gray-200">
       <Button

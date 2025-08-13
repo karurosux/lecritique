@@ -1,14 +1,9 @@
 import type { PageLoad } from './$types';
-import { Api } from '$lib/api/api';
-import { APP_CONFIG } from '$lib/constants/config';
+import { getServerSideApiClient } from '$lib/api/client';
 
 export const load: PageLoad = async ({ fetch }) => {
   try {
-    // Create an API instance without authentication for public endpoints
-    const api = new Api({
-      baseURL: APP_CONFIG.API_URL,
-      customFetch: fetch,
-    });
+    const api = getServerSideApiClient(fetch);
 
     const response = await api.api.v1PlansList();
 

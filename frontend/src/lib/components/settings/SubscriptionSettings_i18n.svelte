@@ -51,14 +51,12 @@
     }
   }
 
-  // Get translated feature text
   function getFeatureText(plan: ModelsSubscriptionPlan): string[] {
     const features = plan.features;
     if (!features) return [];
 
     const items = [];
 
-    // Use translation with pluralization
     items.push(
       $_('subscription.features.organizations', {
         values: { count: features.max_organizations },
@@ -80,7 +78,6 @@
       })
     );
 
-    // Additional features
     if (features.advanced_analytics) {
       items.push($_('subscription.features.advancedAnalytics'));
     }
@@ -97,13 +94,10 @@
     return items;
   }
 
-  // Get translated plan name and description
   function getPlanName(plan: ModelsSubscriptionPlan): string {
-    // Try to use translation key if it exists
     const translationKey = `subscription.plans.${plan.code}.name`;
     const translated = $_(translationKey);
 
-    // If no translation found (key is returned), use database value
     return translated === translationKey ? plan.name : translated;
   }
 
@@ -131,7 +125,7 @@
       <Loader2 class="h-8 w-8 animate-spin text-gray-400" />
     </div>
   {:else if subscriptionData.subscription}
-    <!-- Current Plan -->
+    
     <div class="mb-8">
       <div
         class="bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl p-6 text-white">
@@ -143,7 +137,7 @@
             <p class="mt-1 text-2xl font-bold">
               {getPlanName(current) || $_('subscription.unknown')}
             </p>
-            <!-- ... rest of the component ... -->
+            
           </div>
         </div>
       </div>

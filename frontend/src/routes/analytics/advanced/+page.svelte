@@ -33,18 +33,16 @@
   let comparisonData = $state<any>(null);
   let hasInitialized = $state(false);
 
-  // Time series filters
   let timeSeriesFilters = $state({
     startDate: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
       .toISOString()
       .split('T')[0],
     endDate: new Date().toISOString().split('T')[0],
     granularity: 'daily',
-    metricTypes: [], // Start empty, will be populated with questions
+    metricTypes: [],
     productId: '',
   });
 
-  // Comparison filters
   let comparisonFilters = $state({
     period1Start: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000)
       .toISOString()
@@ -62,12 +60,10 @@
   let availableProducts = $state<any[]>([]);
   let authState = $derived($auth);
 
-  // Start with basic metrics, we'll add questions dynamically
   let metricTypeOptions = $state([
     { value: 'survey_responses', label: 'Total Survey Responses' },
   ]);
 
-  // Store available questions from the API
   let availableQuestions = $state<any[]>([]);
   let availableProductGroups = $state<any>({});
 
@@ -90,9 +86,7 @@
     }
   });
 
-  // Reactive effect to reload data when time series filters change
   $effect(() => {
-    // Track specific filter changes
     timeSeriesFilters.startDate;
     timeSeriesFilters.endDate;
     timeSeriesFilters.granularity;
@@ -104,9 +98,7 @@
     }
   });
 
-  // Reactive effect to reload comparison data when filters change
   $effect(() => {
-    // Track comparison filter changes
     comparisonFilters.period1Start;
     comparisonFilters.period1End;
     comparisonFilters.period2Start;
@@ -149,24 +141,20 @@
 
       if (response.data.success && response.data.data) {
         availableProducts = response.data.data;
-        // Load questions for the first product if any
         if (availableProducts.length > 0) {
           await loadQuestionsForProducts();
         } else {
-          // Clear existing data when no products are available
           availableQuestions = [];
           availableProductGroups = {};
           metricTypeOptions = [
             { value: 'survey_responses', label: 'Total Survey Responses' },
           ];
-          // Reset filters to default
           timeSeriesFilters.metricTypes = ['survey_responses'];
           comparisonFilters.metricTypes = ['survey_responses'];
         }
       }
     } catch (err) {
       console.error('Error loading products:', err);
-      // Clear data on error as well
       availableProducts = [];
       availableQuestions = [];
       availableProductGroups = {};
@@ -185,7 +173,6 @@
       const api = getApiClient();
       const productIds = availableProducts.map(p => p.id);
 
-      // Load questions for all products in a single batch request
       const response = await api.api.v1OrganizationsQuestionsBatchCreate(
         selectedOrganization,
         {
@@ -195,7 +182,6 @@
 
       const allQuestions = [];
       if (response.data.success && response.data.data) {
-        // Create a map of product ID to product name for quick lookup
         const productMap = {};
         availableProducts.forEach(product => {
           productMap[product.id] = product.name;
@@ -211,7 +197,6 @@
 
       availableQuestions = allQuestions;
 
-      // Group questions by product for visual organization
       const productGroups = {};
       allQuestions.forEach(q => {
         if (!productGroups[q.productName]) {
@@ -220,7 +205,6 @@
           };
         }
 
-        // Add individual question
         productGroups[q.productName].individualQuestions.push({
           value: `question_${q.id}`,
           label: `${q.text}`,
@@ -229,10 +213,8 @@
         });
       });
 
-      // Create a flat list for the current implementation (only individual questions)
       const allMetrics = [];
 
-      // Add individual questions
       Object.values(productGroups).forEach(group => {
         allMetrics.push(...group.individualQuestions);
       });
@@ -242,7 +224,6 @@
         ...allMetrics,
       ];
 
-      // Store product groups for the UI
       availableProductGroups = productGroups;
 
       if (timeSeriesFilters.metricTypes.length === 0) {
@@ -258,7 +239,6 @@
   async function loadTimeSeriesData() {
     if (!selectedOrganization) return;
 
-    // Validate metric types
     if (
       !timeSeriesFilters.metricTypes ||
       timeSeriesFilters.metricTypes.length === 0
@@ -300,7 +280,6 @@
   async function loadComparisonData() {
     if (!selectedOrganization) return;
 
-    // Validate metric types
     if (
       !comparisonFilters.metricTypes ||
       comparisonFilters.metricTypes.length === 0
@@ -346,7 +325,6 @@
         selectedOrganization
       );
 
-      // Refresh data after collecting metrics
       await loadTimeSeriesData();
       await loadComparisonData();
     } catch (err) {

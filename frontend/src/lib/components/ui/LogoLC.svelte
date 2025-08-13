@@ -43,15 +43,15 @@
 </script>
 
 <div class="flex items-center gap-2 {className}">
-  <!-- Logo Icon -->
+  
   <div class="relative">
-    <!-- Main icon container with gradient -->
+    
     <div
       class="relative {currentSize.icon} bg-gradient-to-r from-purple-600 via-blue-600 to-blue-700 rounded-lg flex items-center justify-center p-1 shadow-md">
-      <!-- Inner background -->
+      
       <div class="absolute inset-1 bg-white rounded"></div>
 
-      <!-- QR Code icon -->
+      
       <QrCode
         size={currentSize.lucide}
         strokeWidth={2.5}
@@ -59,7 +59,7 @@
     </div>
   </div>
 
-  <!-- Logo Text -->
+  
   {#if showText}
     <div
       class="font-black bg-gradient-to-r from-purple-600 via-blue-600 to-blue-700 bg-clip-text text-transparent {currentSize.text} tracking-tight select-none">

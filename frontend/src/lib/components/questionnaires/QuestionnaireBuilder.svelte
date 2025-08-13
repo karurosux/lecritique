@@ -29,7 +29,6 @@
     productId: string;
   } = $props();
 
-  // State
   let questions = $state<Question[]>([]);
   let loading = $state(false);
   let error = $state('');
@@ -52,7 +51,6 @@
       loading = true;
       error = '';
 
-      // Load existing questions for this product directly
       const productQuestions = await QuestionApi.getQuestionsByProduct(
         organizationId,
         productId
@@ -90,7 +88,6 @@
       error = '';
 
       if (editingIndex === -1) {
-        // Create new question directly for the product
         const newQuestion = await QuestionApi.createQuestion(
           organizationId,
           productId,
@@ -108,7 +105,6 @@
         questions = [...questions, newQuestion];
         toast.success('Question added successfully');
       } else {
-        // Update existing question
         const updatedQuestion = await QuestionApi.updateQuestion(
           organizationId,
           productId,
@@ -185,7 +181,6 @@
       );
 
       if (generatedQuestions && generatedQuestions.length > 0) {
-        // Add generated questions directly to the product
         for (const genQuestion of generatedQuestions) {
           const newQuestion = await QuestionApi.createQuestion(
             organizationId,
@@ -238,7 +233,6 @@
     }
   }
 
-  // Drag and drop handlers
   function handleDragStart(e: DragEvent, index: number) {
     draggingIndex = index;
     if (e.dataTransfer) {
@@ -267,18 +261,15 @@
       return;
     }
 
-    // Reorder the questions array
     const newQuestions = [...questions];
     const [draggedQuestion] = newQuestions.splice(draggingIndex, 1);
     newQuestions.splice(dropIndex, 0, draggedQuestion);
 
     questions = newQuestions;
 
-    // Reset drag state
     draggingIndex = null;
     dragOverIndex = null;
 
-    // Save the new order to the backend
     await saveQuestionOrder();
   }
 
@@ -295,7 +286,6 @@
     } catch (err: any) {
       error = err.message || 'Failed to update question order';
       toast.error('Failed to update question order');
-      // Reload questions to restore original order
       await loadQuestionnaire();
     } finally {
       reordering = false;
@@ -304,7 +294,7 @@
 </script>
 
 <div class="question-builder space-y-6">
-  <!-- Error Display -->
+  
   {#if error}
     <NoDataAvailable
       title="Error Loading Questions"
@@ -312,7 +302,7 @@
       icon={AlertTriangle} />
   {/if}
 
-  <!-- Loading overlay for AI generation -->
+  
   {#if generatingQuestions}
     <div
       class="fixed inset-0 z-[50000] flex items-center justify-center transition-all duration-200"
@@ -322,7 +312,7 @@
       tabindex="-1">
       <div
         class="relative bg-white rounded-lg shadow-xl max-w-md w-full mx-4 p-8 text-center animate-modal-enter">
-        <!-- Animated AI Icon -->
+        
         <div class="relative mb-6">
           <div
             class="w-20 h-20 mx-auto bg-gradient-to-br from-purple-500 to-blue-600 rounded-full flex items-center justify-center shadow-lg shadow-purple-500/25">
@@ -335,19 +325,19 @@
           </div>
         </div>
 
-        <!-- Title with gradient -->
+        
         <h3
           class="text-xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent mb-3">
           Generating AI Questions...
         </h3>
 
-        <!-- Description -->
+        
         <p class="text-gray-600 mb-4 leading-relaxed">
           Our AI is analyzing your product and creating relevant feedback
           questions for your customers
         </p>
 
-        <!-- Progress dots -->
+        
         <div class="flex justify-center space-x-2">
           <div
             class="w-2 h-2 bg-purple-500 rounded-full animate-bounce"
@@ -363,7 +353,7 @@
           </div>
         </div>
 
-        <!-- Estimated time -->
+        
         <p class="text-xs text-gray-500 mt-4">
           This usually takes 5-10 seconds
         </p>
@@ -371,7 +361,7 @@
     </div>
   {/if}
 
-  <!-- Questions -->
+  
   <Card>
     <div class="p-6">
       <div class="flex items-center justify-between mb-4">
@@ -498,7 +488,7 @@
   </Card>
 </div>
 
-<!-- Question Editor Modal -->
+
 {#if showQuestionEditor && editingQuestion}
   <QuestionEditor
     bind:question={editingQuestion}
@@ -507,7 +497,7 @@
     on:cancel={cancelEdit} />
 {/if}
 
-<!-- Delete Confirmation Dialog -->
+
 <ConfirmDialog
   bind:isOpen={showDeleteConfirm}
   title="Delete Question?"

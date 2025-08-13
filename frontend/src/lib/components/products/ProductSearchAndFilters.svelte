@@ -82,25 +82,25 @@
 
 <Card variant="glass" class="mb-4">
   <div class="flex flex-col lg:flex-row gap-4">
-    <!-- Search Input -->
+    
     <SearchInput
       bind:value={searchQuery}
       placeholder="Search products by name or description..." />
 
-    <!-- Filters -->
+    
     <div class="flex items-center space-x-3">
-      <!-- Category Filter -->
+      
       <Select bind:value={categoryFilter} options={categoryOptions} />
 
-      <!-- Availability Filter -->
+      
       <Select bind:value={availabilityFilter} options={availabilityOptions} />
 
-      <!-- Sort Options -->
+      
       <Select bind:value={sortBy} options={sortOptions} />
     </div>
   </div>
 
-  <!-- Active Filters Display -->
+  
   {#if hasActiveFilters}
     <div
       class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mt-4 pt-4 border-t border-gray-100">

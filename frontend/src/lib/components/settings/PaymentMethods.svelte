@@ -65,7 +65,7 @@
     </p>
   </div>
 
-  <!-- Current Payment Method -->
+  
   <div class="space-y-4">
     <h3 class="text-lg font-medium text-gray-900">Current Payment Method</h3>
 
@@ -121,7 +121,7 @@
       </div>
     {/each}
 
-    <!-- Add New Payment Method -->
+    
     <div class="mt-8">
       <h3 class="text-lg font-medium text-gray-900 mb-4">Add Payment Method</h3>
 
@@ -146,7 +146,7 @@
       </div>
     </div>
 
-    <!-- Billing Address -->
+    
     <div class="mt-8 border-t pt-8">
       <h3 class="text-lg font-medium text-gray-900 mb-4">Billing Address</h3>
 
@@ -171,7 +171,7 @@
       </div>
     </div>
 
-    <!-- Security -->
+    
     <div class="mt-8 border-t pt-8">
       <h3 class="text-lg font-medium text-gray-900 mb-4">Security</h3>
 

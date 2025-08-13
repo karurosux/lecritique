@@ -68,7 +68,7 @@
     </div>
 
     <div class="flex items-center space-x-3">
-      <!-- View Mode Toggle -->
+      
       <div
         class="flex items-center bg-gradient-to-r from-gray-50 to-gray-100 rounded-xl border border-gray-200 p-1 shadow-lg">
         <button
@@ -92,7 +92,7 @@
       </div>
 
       {#if checkingPermissions}
-        <!-- Loading spinner while checking permissions -->
+        
         <Button
           variant="gradient"
           size="lg"
@@ -117,7 +117,7 @@
           <span class="relative z-10">Add Organization</span>
         </Button>
       {:else}
-        <!-- Disabled button with tooltip when can't create -->
+        
         <div class="relative group">
           <Button
             variant="outline"
@@ -127,7 +127,7 @@
             <Plus class="h-5 w-5 mr-2" />
             <span>Add Organization</span>
           </Button>
-          <!-- Tooltip -->
+          
           <div
             class="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 px-3 py-2 bg-gray-800 text-white text-sm rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap z-10">
             {permissionReason || 'Cannot create more organizations'}

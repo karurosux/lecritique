@@ -14,7 +14,6 @@
 
   let authState = $derived($auth);
 
-  // Redirect if already authenticated
   $effect(() => {
     if (authState.isAuthenticated) {
       goto('/dashboard');
@@ -64,7 +63,6 @@
     });
 
     if (result.success) {
-      // Registration successful, redirect to success page
       goto('/registration-success');
     }
 

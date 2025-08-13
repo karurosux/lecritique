@@ -112,7 +112,7 @@
   {/each}
 </div>
 
-<!-- Time-based Insights -->
+
 {#if data?.trends}
   <Card variant="default" class="analytics-trends-card">
     <div class="p-6">
@@ -121,7 +121,7 @@
       </h3>
 
       <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <!-- Peak Hours -->
+        
         <div class="bg-blue-50 rounded-lg p-4">
           <h4 class="text-sm font-medium text-blue-900 mb-2">Peak Hours</h4>
           <div class="space-y-1 text-sm text-blue-700">
@@ -130,7 +130,7 @@
           </div>
         </div>
 
-        <!-- Best Days -->
+        
         <div class="bg-green-50 rounded-lg p-4">
           <h4 class="text-sm font-medium text-green-900 mb-2">
             Best Performing Days
@@ -141,7 +141,7 @@
           </div>
         </div>
 
-        <!-- Areas of Concern -->
+        
         <div class="bg-amber-50 rounded-lg p-4">
           <h4 class="text-sm font-medium text-amber-900 mb-2">
             Attention Needed

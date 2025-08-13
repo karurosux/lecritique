@@ -89,7 +89,7 @@
 
   {#if loading}
     <div class="space-y-6">
-      <!-- Sentiment summary loading -->
+      
       <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
         {#each Array(3) as _}
           <div class="animate-pulse">
@@ -101,7 +101,7 @@
         {/each}
       </div>
 
-      <!-- Keywords loading -->
+      
       <div class="space-y-4">
         <div class="h-4 bg-gray-200 rounded w-32"></div>
         <div class="flex flex-wrap gap-2">
@@ -112,7 +112,7 @@
       </div>
     </div>
   {:else if textAnalysis}
-    <!-- Sentiment Summary -->
+    
     {#if textAnalysis.sentiment_summary}
       <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
         <div class="bg-green-50 border border-green-200 rounded-lg p-4">
@@ -158,7 +158,7 @@
     {/if}
 
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-      <!-- Frequent Keywords -->
+      
       <div>
         <h4 class="font-medium text-gray-900 mb-3 flex items-center gap-2">
           <HashIcon class="w-4 h-4" />
@@ -179,7 +179,7 @@
         {/if}
       </div>
 
-      <!-- Positive Mentions -->
+      
       <div>
         <h4 class="font-medium text-gray-900 mb-3 flex items-center gap-2">
           <ThumbsUpIcon class="w-4 h-4 text-green-600" />
@@ -205,7 +205,7 @@
       </div>
     </div>
 
-    <!-- Negative Mentions -->
+    
     {#if topNegative.length > 0}
       <div class="mt-6">
         <h4 class="font-medium text-gray-900 mb-3 flex items-center gap-2">
@@ -224,7 +224,7 @@
       </div>
     {/if}
 
-    <!-- Recent Feedback -->
+    
     {#if recentComments.length > 0}
       <div class="mt-6">
         <h4 class="font-medium text-gray-900 mb-3">Recent Feedback</h4>

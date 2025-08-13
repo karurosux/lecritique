@@ -80,7 +80,6 @@
     try {
       const api = getApiClient();
 
-      // Get organization details via API
       const response = await api.api.v1OrganizationsDetail(organizationId);
 
       if (response.data.success && response.data.data) {
@@ -155,7 +154,6 @@
     try {
       const api = getApiClient();
 
-      // Update organization via API
       const response = await api.api.v1OrganizationsUpdate(organizationId, {
         name: formData.name,
         description: formData.description || undefined,
@@ -166,7 +164,6 @@
       });
 
       if (response.data.success) {
-        // Redirect to organizations list on success
         goto('/organizations');
       } else {
         error = 'Failed to update organization';

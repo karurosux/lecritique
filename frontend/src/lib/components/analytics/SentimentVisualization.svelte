@@ -82,7 +82,6 @@
 
     const words: WordCloudItem[] = [];
 
-    // Add positive mentions
     textAnalysis.positive_mentions?.forEach(mention => {
       words.push({
         text: mention.text,
@@ -91,7 +90,6 @@
       });
     });
 
-    // Add negative mentions
     textAnalysis.negative_mentions?.forEach(mention => {
       words.push({
         text: mention.text,
@@ -100,7 +98,6 @@
       });
     });
 
-    // Add frequent keywords as neutral
     textAnalysis.frequent_keywords?.forEach(keyword => {
       if (
         !words.find(w => w.text.toLowerCase() === keyword.keyword.toLowerCase())
@@ -134,7 +131,6 @@
   }
 
   onMount(() => {
-    // Animate progress
     const animate = () => {
       if (animationProgress < 1) {
         animationProgress = Math.min(animationProgress + 0.02, 1);
@@ -166,7 +162,7 @@
       </div>
     </div>
   {:else if sentimentData}
-    <!-- Sentiment Gauges -->
+    
     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
       {#each sentimentData as sentiment}
         {@const Icon = sentiment.icon}
@@ -190,7 +186,7 @@
               </span>
             </div>
 
-            <!-- Progress bar -->
+            
             <div class="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
               <div
                 class="h-full rounded-full transition-all duration-1000 ease-out"
@@ -200,7 +196,7 @@
             </div>
           </div>
 
-          <!-- Animated background effect -->
+          
           <div
             class="absolute inset-0 opacity-10 pointer-events-none"
             style="background: radial-gradient(circle at {hoveredSentiment ===
@@ -212,7 +208,7 @@
       {/each}
     </div>
 
-    <!-- Word Cloud -->
+    
     {#if wordCloud.length > 0}
       <div class="mt-8">
         <h4 class="font-medium text-gray-900 mb-4 flex items-center gap-2">
@@ -242,7 +238,7 @@
       </div>
     {/if}
 
-    <!-- Sentiment Score -->
+    
     {#if sentimentData && sentimentData.length >= 3}
       {@const score =
         (sentimentData[0].percentage - sentimentData[2].percentage + 100) / 2}

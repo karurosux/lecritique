@@ -73,21 +73,21 @@
 
 <Card variant="gradient" class="mb-4">
   <div class="flex flex-col lg:flex-row gap-4">
-    <!-- Search Input -->
+    
     <SearchInput
       bind:value={searchQuery}
       placeholder="Search organizations by name, description, or email..."
       on:input={handleSearchInput} />
 
-    <!-- Filters -->
+    
     <div class="flex items-center space-x-3">
-      <!-- Status Filter -->
+      
       <Select
         bind:value={statusFilter}
         options={statusOptions}
         on:change={handleStatusChange} />
 
-      <!-- Sort Options -->
+      
       <Select
         bind:value={sortBy}
         options={sortOptions}
@@ -95,7 +95,7 @@
     </div>
   </div>
 
-  <!-- Active Filters Display -->
+  
   {#if hasActiveFilters}
     <div
       class="flex items-center justify-between mt-4 pt-4 border-t border-gray-200">

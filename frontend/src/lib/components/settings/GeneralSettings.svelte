@@ -12,20 +12,16 @@
 
   let loading = $state(false);
 
-  // Form fields
   let name = $state('');
 
-  // Subscribe to auth store
   let user = $derived($auth.user);
 
-  // Initialize form values when user data is available
   $effect(() => {
     if (user) {
       name = user.name || '';
     }
   });
 
-  // Check if form has changes
   let hasChanges = $derived(user && name !== (user.name || ''));
 
   async function handleSubmit(event: Event) {
@@ -42,7 +38,6 @@
       });
 
       if (response.data.success && response.data.data) {
-        // Update local auth state with the updated account data
         auth.updateUser({
           ...user,
           name: response.data.data.name || name,
@@ -88,7 +83,7 @@
           disabled={loading} />
       </div>
 
-      <!-- Email (Read-only with note) -->
+      
       <div class="space-y-2">
         <label for="email" class="block text-sm font-medium text-gray-700"
           >Email Address</label>
@@ -103,7 +98,7 @@
         </p>
       </div>
 
-      <!-- Form Actions -->
+      
       <div class="flex justify-end gap-2">
         <Button
           type="button"

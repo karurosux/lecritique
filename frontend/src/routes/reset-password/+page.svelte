@@ -1,13 +1,11 @@
 <script lang="ts">
   import { goto } from '$app/navigation';
   import { page } from '$app/stores';
-  import { Api } from '$lib/api/api';
+  import { getPublicApiClient } from '$lib/api/client';
   import { Button, Card, Input, Logo } from '$lib/components/ui';
   import { Check, Lock, XCircle, Loader2, Key, LogIn } from 'lucide-svelte';
 
-  const api = new Api({
-    baseURL: import.meta.env.VITE_API_URL || 'http://localhost:8080',
-  });
+  const api = getPublicApiClient();
 
   let newPassword = $state('');
   let confirmPassword = $state('');

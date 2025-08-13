@@ -66,7 +66,6 @@
     return 'text-gray-600';
   }
 
-  // Process products from analytics data or feedbacks
   const processedProducts = $derived(() => {
     if (analyticsData?.top_products || analyticsData?.top_rated_products) {
       const products =
@@ -77,7 +76,6 @@
       };
     }
 
-    // Process from feedbacks if no analytics data
     if (feedbacks.length > 0) {
       const productStats = feedbacks.reduce(
         (acc, f) => {
@@ -143,7 +141,7 @@
 </script>
 
 <div class="space-y-6">
-  <!-- Overall Performance Summary -->
+  
   <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
     <Card variant="gradient" hover interactive>
       <div class="flex items-center justify-between">
@@ -233,7 +231,7 @@
     </Card>
   </div>
 
-  <!-- Product Rankings -->
+  
   <Card variant="elevated" padding={false}>
     <div class="p-6">
       <div class="mb-6">
@@ -248,7 +246,7 @@
 
       {#if loading}
         <div class="space-y-6">
-          <!-- Products loading -->
+          
           <div class="space-y-4">
             {#each Array(5) as _}
               <div class="animate-pulse">
@@ -263,7 +261,7 @@
           </div>
         </div>
       {:else if processedProducts().top.length > 0 || processedProducts().bottom.length > 0}
-        <!-- Top Performing Products -->
+        
         {#if processedProducts().top.length > 0}
           <div class="mb-6">
             <h4 class="font-medium text-gray-900 mb-3">
@@ -334,7 +332,7 @@
           </div>
         {/if}
 
-        <!-- Bottom Performing Products -->
+        
         {#if processedProducts().bottom.length > 0}
           <div>
             <h4 class="font-medium text-gray-900 mb-3">

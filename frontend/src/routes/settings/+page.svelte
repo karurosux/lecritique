@@ -3,7 +3,6 @@
   import { Card } from '$lib/components/ui';
   import { goto } from '$app/navigation';
 
-  // Import icons from lucide-svelte
   import {
     User,
     Users,
@@ -15,7 +14,6 @@
     XCircle,
   } from 'lucide-svelte';
 
-  // Import settings components
   import {
     GeneralSettings,
     AccountSettings,
@@ -32,10 +30,8 @@
   let authState = $derived($auth);
   let user = $derived(authState.user);
 
-  // Tab state
   let activeTab = $state('general');
 
-  // Message states
   let successMessage = $state('');
   let errorMessage = $state('');
 
@@ -61,14 +57,11 @@
       'Account deactivation scheduled. Your account will be deactivated in 15 days. You can cancel this anytime by logging in or from your account settings.'
     );
 
-    // Log the user out after scheduling deactivation
     setTimeout(async () => {
       await auth.logout();
-      // Small delay to ensure auth state is propagated
       await new Promise(resolve => setTimeout(resolve, 100));
-      // Redirect to login page
       await goto('/login', { replaceState: true });
-    }, 3000); // Give user time to read the message
+    }, 3000);
   }
 
   const allowedRoles: Record<string, Role[]> = {

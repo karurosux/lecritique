@@ -23,7 +23,6 @@
     columns = 3,
   }: Props = $props();
 
-  // Format price display
   function formatPrice(price: number) {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
@@ -32,11 +31,9 @@
     }).format(price);
   }
 
-  // Get plan features
   function getPlanFeatures(plan: ModelsSubscriptionPlan): string[] {
     const features = [];
 
-    // Add limits
     if (plan.max_organizations === -1) {
       features.push('Unlimited organizations');
     } else {
@@ -63,7 +60,6 @@
       features.push(`Up to ${plan.max_team_members} team members`);
     }
 
-    // Add feature flags
     if (plan.has_basic_analytics) features.push('Basic analytics dashboard');
     if (plan.has_advanced_analytics)
       features.push('Advanced analytics & insights');
@@ -101,7 +97,7 @@
           ? 'ring-2 ring-blue-500 ring-offset-2'
           : ''}">
         <div class="h-full flex flex-col">
-          <!-- Header Section -->
+          
           <div class="mb-6">
             <h4 class="text-lg font-semibold text-gray-900">{plan.name}</h4>
             {#if plan.description}
@@ -114,7 +110,7 @@
             </p>
           </div>
 
-          <!-- Features Section (grows to fill space) -->
+          
           <div class="flex-1 mb-6 min-h-0">
             <ul class="space-y-3 text-sm text-gray-600">
               {#each getPlanFeatures(plan) as feature}
@@ -126,7 +122,7 @@
             </ul>
           </div>
 
-          <!-- Button Section (always at bottom) -->
+          
           <div class="pt-6 border-t border-gray-100">
             {#if isCurrent}
               <button

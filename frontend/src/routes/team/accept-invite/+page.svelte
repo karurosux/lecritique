@@ -3,7 +3,7 @@
   import { page } from '$app/stores';
   import { goto } from '$app/navigation';
   import { auth } from '$lib/stores/auth';
-  import { Api } from '$lib/api/api';
+  import { getPublicApiClient } from '$lib/api/client';
   import { Button, Card } from '$lib/components/ui';
   import { Loader2, UserPlus, CheckCircle, XCircle } from 'lucide-svelte';
 
@@ -22,26 +22,17 @@
     }
 
     try {
-      console.log('Accepting invitation with token:', token);
-      console.log('Is authenticated:', $auth.isAuthenticated);
-
-      // Get API instance - will include auth token if user is logged in
       const api = $auth.isAuthenticated
         ? auth.getApi()
-        : new Api({
-            baseURL: 'http://localhost:8080',
-          });
+        : getPublicApiClient();
 
-      console.log('Calling API endpoint...');
       const response = await api.api.v1TeamAcceptInviteCreate({ token });
-      console.log('API response:', response.data);
 
       if (response.data.success && response.data.data) {
         const data = response.data.data as any;
         invitationStatus = data.status;
 
         if (data.status === 'accepted') {
-          // Invitation was accepted (user was authenticated)
           success = true;
           setTimeout(() => {
             goto('/login');
@@ -50,8 +41,7 @@
           data.status === 'needs_registration' ||
           data.status === 'pending'
         ) {
-          // User needs to login or register
-          invitationStatus = 'pending'; // Normalize status for UI
+          invitationStatus = 'pending';
           success = true;
           setTimeout(() => {
             goto('/login');

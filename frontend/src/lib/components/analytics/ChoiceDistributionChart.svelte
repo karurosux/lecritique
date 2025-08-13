@@ -24,7 +24,6 @@
   let chart: Chart | null = null;
   let mounted = $state(false);
 
-  // Chart customization options
   let showDataPoints = $state(true);
   let lineSmooth = $state(true);
   let gridLines = $state(true);
@@ -35,28 +34,25 @@
   let enablePan = $state(true);
   let showZoomControls = $state(true);
 
-  // Zoom plugin will be loaded dynamically
   let zoomPlugin: any = null;
 
   Chart.register(...registerables);
 
-  // Color palette for choice options
   const choiceColors = [
-    '#3B82F6', // blue
-    '#10B981', // green
-    '#F59E0B', // amber
-    '#EF4444', // red
-    '#8B5CF6', // purple
-    '#F97316', // orange
-    '#06B6D4', // cyan
-    '#84CC16', // lime
-    '#EC4899', // pink
-    '#6366F1', // indigo
-    '#14B8A6', // teal
-    '#F43F5E', // rose
+    '#3B82F6',
+    '#10B981',
+    '#F59E0B',
+    '#EF4444',
+    '#8B5CF6',
+    '#F97316',
+    '#06B6D4',
+    '#84CC16',
+    '#EC4899',
+    '#6366F1',
+    '#14B8A6',
+    '#F43F5E',
   ];
 
-  // Use choice_series if available (new structure), otherwise fall back to series (old structure)
   let series = $derived(data?.choice_series || data?.series || []);
 
   function formatChoiceValue(value: number): string {
@@ -114,7 +110,6 @@
     }
   }
 
-  // Extract choice option from metadata or metric name
   function getChoiceLabel(seriesData: any): string {
     if (seriesData.metadata) {
       const metadata = seriesData.metadata;
@@ -123,7 +118,6 @@
       }
     }
 
-    // Fallback: extract from metric name (format: "Product - Question: Choice")
     const parts = seriesData.metric_name?.split(': ');
     if (parts && parts.length > 1) {
       return parts[parts.length - 1];
@@ -140,10 +134,8 @@
       chart.destroy();
     }
 
-    // Use choice_series if available (new structure), otherwise fall back to series (old structure)
     const dataSource = data.choice_series || data.series;
 
-    // Parse choice distribution data
     const datasets = dataSource.map((seriesData: any, index: number) => {
       const points = (seriesData.points || []).map((point: any) => ({
         x: new Date(point.timestamp),
@@ -151,7 +143,6 @@
       }));
 
       const color = choiceColors[index % choiceColors.length];
-      // For new structure, use choice field directly, otherwise use getChoiceLabel
       const choiceLabel = seriesData.choice || getChoiceLabel(seriesData);
 
       return {
@@ -185,7 +176,7 @@
             color: '#1f2937',
           },
           legend: {
-            display: false, // We'll create custom legend
+            display: false,
           },
           tooltip: {
             enabled: showTooltips,
@@ -293,7 +284,6 @@
   });
 
   onMount(async () => {
-    // Dynamically import zoom plugin on client side only
     if (typeof window !== 'undefined') {
       try {
         const zoomModule = await import('chartjs-plugin-zoom');
@@ -322,10 +312,10 @@
       <p>No choice distribution data available</p>
     </div>
   {:else}
-    <!-- Chart Controls -->
+    
     <div class="bg-white border border-gray-200 rounded-xl p-4 mb-6 shadow-sm">
       <div class="flex flex-wrap items-center justify-between gap-4">
-        <!-- Zoom Controls -->
+        
         {#if showZoomControls}
           <div class="flex items-center gap-1">
             <span class="text-sm font-medium text-gray-700 mr-2">Zoom:</span>
@@ -350,7 +340,7 @@
           </div>
         {/if}
 
-        <!-- Settings -->
+        
         <div class="flex items-center gap-4 text-sm">
           <label class="flex items-center gap-2 cursor-pointer">
             <input
@@ -370,7 +360,7 @@
       </div>
     </div>
 
-    <!-- Interactive Legend -->
+    
     {#if series.length > 0}
       <div
         class="bg-white border border-gray-200 rounded-xl p-4 mb-6 shadow-sm">
@@ -405,13 +395,13 @@
       </div>
     {/if}
 
-    <!-- Chart Container -->
+    
     <div class="bg-white rounded-lg p-6 mb-6 shadow-sm">
       <div class="chart-container">
         <canvas bind:this={chartCanvas} class="w-full h-96"></canvas>
       </div>
 
-      <!-- Interactive hints -->
+      
       <div class="mt-4 pt-4 border-t border-gray-100">
         <div class="flex flex-wrap gap-4 text-xs text-gray-500">
           <span class="flex items-center gap-1">
@@ -422,7 +412,7 @@
       </div>
     </div>
 
-    <!-- Statistics Cards -->
+    
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-6">
       {#each series as seriesData, index}
         {#if seriesData.statistics}

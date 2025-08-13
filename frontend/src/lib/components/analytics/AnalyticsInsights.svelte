@@ -31,7 +31,6 @@
     const highRatingPercentage = getPercentage(highRatings, totalFeedback);
     const avgRating = analyticsData.average_rating || 0;
 
-    // Calculate product-specific insights
     const topProducts =
       analyticsData.top_rated_products || analyticsData.top_products || [];
     const bestProduct = topProducts[0];
@@ -40,7 +39,6 @@
 
     const insights = [];
 
-    // Best performing product
     if (bestProduct) {
       insights.push({
         id: 'best-product',
@@ -55,7 +53,6 @@
       });
     }
 
-    // Customer satisfaction
     insights.push({
       id: 'satisfaction',
       title: `${highRatingPercentage.toFixed(0)}% Love It`,
@@ -68,7 +65,6 @@
       subtitleClass: 'text-pink-600',
     });
 
-    // Areas of concern
     if (worstRatingPercentage > 10) {
       insights.push({
         id: 'concern',

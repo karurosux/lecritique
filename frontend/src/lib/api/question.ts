@@ -1,4 +1,5 @@
 import { getApiClient, handleApiError, getAuthToken } from './client';
+import { APP_CONFIG } from '$lib/constants/config';
 import type {
   ModelsQuestion,
   ModelsCreateQuestionRequest,
@@ -155,7 +156,7 @@ export class QuestionApi {
       }
 
       const response = await fetch(
-        `http://localhost:8080/api/v1/organizations/${organizationId}/products/${productId}/ai/generate-questions`,
+        `${APP_CONFIG.API_URL}/api/v1/organizations/${organizationId}/products/${productId}/ai/generate-questions`,
         {
           method: 'POST',
           headers: {

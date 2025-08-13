@@ -10,7 +10,6 @@
     ChevronUp,
   } from 'lucide-svelte';
 
-  // State for collapsible sections - all collapsed by default
   let expandedSections = $state({
     general: false,
     individual: false,
@@ -22,7 +21,6 @@
 
   let { data }: Props = $props();
 
-  // Only general metrics and individual questions
   let generalMetrics = $derived(
     data?.series?.filter(
       (s: any) =>
@@ -32,7 +30,6 @@
     ) || []
   );
 
-  // For individual questions (question_xxx format) - include ALL question types
   let individualQuestions = $derived(
     data?.series?.filter((s: any) => s.metric_type.startsWith('question_')) ||
       []
@@ -51,7 +48,7 @@
       icon={BarChart3}
       variant="inline" />
   {:else}
-    <!-- General Metrics -->
+    
     {#if generalMetrics.length > 0}
       <Card
         variant="minimal"
@@ -93,7 +90,7 @@
       </Card>
     {/if}
 
-    <!-- Individual Questions - Separated by question -->
+    
     {#if individualQuestions.length > 0}
       <Card
         variant="minimal"

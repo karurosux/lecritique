@@ -1,9 +1,26 @@
 import { auth } from '$lib/stores/auth';
 import { get } from 'svelte/store';
+import { Api } from '$lib/api/api';
+import { APP_CONFIG } from '$lib/constants/config';
 
 // Export the API client from auth store for easy access
 export function getApiClient() {
   return auth.getApi();
+}
+
+// Export a public API client for unauthenticated requests
+export function getPublicApiClient() {
+  return new Api({
+    baseURL: APP_CONFIG.API_URL,
+  });
+}
+
+// Export a public API client for server-side load functions
+export function getServerSideApiClient(fetch?: typeof globalThis.fetch) {
+  return new Api({
+    baseURL: APP_CONFIG.API_URL,
+    customFetch: fetch,
+  });
 }
 
 // Helper function to handle API errors consistently

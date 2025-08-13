@@ -16,7 +16,6 @@
 
   let { data }: Props = $props();
 
-  // Group comparisons by question type for separate visualization
   let groupedComparisons = $derived(() => {
     if (!data?.comparisons) return {};
 
@@ -25,16 +24,13 @@
     data.comparisons.forEach((comparison: any) => {
       let questionType = 'general';
 
-      // Determine question type
       if (comparison.metric_type.startsWith('question_')) {
-        // Try to get question type from metadata
         if (comparison.metadata) {
           let metadata = comparison.metadata;
           if (typeof metadata === 'string') {
             try {
               metadata = JSON.parse(metadata);
             } catch (e) {
-              // ignore parsing errors
             }
           }
           if (metadata?.question_type) {
@@ -42,7 +38,6 @@
           }
         }
       } else {
-        // Infer from metric_type
         if (comparison.metric_type.includes('rating')) questionType = 'rating';
         else if (comparison.metric_type.includes('scale'))
           questionType = 'scale';
@@ -129,7 +124,7 @@
       <p>No comparison data available</p>
     </div>
   {:else if Object.keys(groupedComparisons).length === 0}
-    <!-- Fallback: show original chart if grouping produces no results -->
+    
     <ComparisonChart {data} />
   {:else}
     {#each Object.entries(groupedComparisons) as [questionType, comparisonGroup]}

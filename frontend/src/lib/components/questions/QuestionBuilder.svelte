@@ -1,7 +1,6 @@
 <script lang="ts">
   import { createEventDispatcher, onMount } from 'svelte';
-  // import { questionStore, type Question } from '$lib/stores/questions'; // TODO: Fix questions store
-  type Question = any; // Temporary placeholder
+  type Question = any;
   import { Button, Input, Card, ConfirmDialog } from '$lib/components/ui';
   import {
     Plus,
@@ -25,7 +24,6 @@
 
   const dispatch = createEventDispatcher();
 
-  // State
   let questions = $state<Question[]>([]);
   let loading = $state(false);
   let error = $state('');
@@ -39,9 +37,6 @@
   let dragOverIndex = $state<number | null>(null);
   let reordering = $state(false);
 
-  // Subscribe to store - TODO: Fix questions store
-  // let storeError = $derived($questionStore?.error);
-  // let storeLoading = $derived($questionStore?.loading);
 
   onMount(async () => {
     await loadQuestions();
@@ -49,10 +44,7 @@
 
   async function loadQuestions() {
     try {
-      // questions = await // questionStore. // TODO: Fix questions store
-      console.log('Placeholder for questionStore.');
-      loadQuestions(organizationId, productId); // TODO: Fix questions store
-      questions = []; // Temporary placeholder
+      questions = [];
     } catch (err) {
       error = err.message;
     }
@@ -79,9 +71,6 @@
   async function saveQuestion(questionData: Question) {
     try {
       if (editingIndex === -1) {
-        // Create new question
-        const newQuestion = await // questionStore. // TODO: Fix questions store
-        console.log('Placeholder for questionStore.');
         createQuestion(organizationId, productId, {
           text: questionData.text!,
           type: questionData.type!,
@@ -96,10 +85,7 @@
           (a, b) => (a.display_order || 0) - (b.display_order || 0)
         );
       } else {
-        // Update existing question
         const updatedQuestion =
-          await // questionStore. // TODO: Fix questions store
-          console.log('Placeholder for questionStore.');
         updateQuestion(organizationId, productId, questionData.id!, {
           text: questionData.text!,
           type: questionData.type!,
@@ -130,8 +116,6 @@
     if (!questionToDelete) return;
 
     try {
-      await // questionStore. // TODO: Fix questions store
-      console.log('Placeholder for questionStore.');
       deleteQuestion(organizationId, productId, questionToDelete.id!);
       questions = questions.filter(q => q.id !== questionToDelete.id);
       toast.success('Question deleted successfully');
@@ -158,11 +142,8 @@
       const generatedQuestions = await QuestionApi.generateQuestions(productId);
 
       if (generatedQuestions && generatedQuestions.length > 0) {
-        // Add generated questions to existing list
         for (const genQuestion of generatedQuestions) {
           const newQuestion =
-            await // questionStore. // TODO: Fix questions store
-            console.log('Placeholder for questionStore.');
           createQuestion(organizationId, productId, {
             text: genQuestion.text,
             type: genQuestion.type,
@@ -176,7 +157,6 @@
           questions = [...questions, newQuestion];
         }
 
-        // Sort by display order
         questions = questions.sort(
           (a, b) => (a.display_order || 0) - (b.display_order || 0)
         );
@@ -215,7 +195,6 @@
     }
   }
 
-  // Drag and drop handlers
   function handleDragStart(e: DragEvent, index: number) {
     draggingIndex = index;
     if (e.dataTransfer) {
@@ -244,18 +223,15 @@
       return;
     }
 
-    // Reorder the questions array
     const newQuestions = [...questions];
     const [draggedQuestion] = newQuestions.splice(draggingIndex, 1);
     newQuestions.splice(dropIndex, 0, draggedQuestion);
 
     questions = newQuestions;
 
-    // Reset drag state
     draggingIndex = null;
     dragOverIndex = null;
 
-    // Save the new order to the backend
     await saveQuestionOrder();
   }
 
@@ -263,14 +239,11 @@
     try {
       reordering = true;
       const questionIds = questions.map(q => q.id!);
-      await // questionStore. // TODO: Fix questions store
-      console.log('Placeholder for questionStore.');
       reorderQuestions(organizationId, productId, questionIds);
       toast.success('Question order updated');
     } catch (err) {
       error = err.message;
       toast.error('Failed to update question order');
-      // Reload questions to restore original order
       await loadQuestions();
     } finally {
       reordering = false;
@@ -279,14 +252,12 @@
 </script>
 
 <div class="question-builder space-y-6">
-  <!-- Error Display -->
   {#if error || storeError}
     <div class="bg-red-50 border border-red-200 rounded-md p-4">
       <p class="text-sm text-red-800">{error || storeError}</p>
     </div>
   {/if}
 
-  <!-- Questions -->
   <Card>
     <div class="p-6 relative">
       {#if aiGenerating}
@@ -418,7 +389,6 @@
   </Card>
 </div>
 
-<!-- Question Editor Modal -->
 {#if showQuestionEditor && editingQuestion}
   <QuestionEditor
     bind:question={editingQuestion}
@@ -426,7 +396,6 @@
     on:cancel={cancelEdit} />
 {/if}
 
-<!-- Delete Confirmation Dialog -->
 <ConfirmDialog
   bind:isOpen={showDeleteConfirm}
   title="Delete Question?"

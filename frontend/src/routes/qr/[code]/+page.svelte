@@ -2,7 +2,7 @@
   import { page } from '$app/stores';
   import { goto } from '$app/navigation';
   import { Card, Button, Input, Rating } from '$lib/components/ui';
-  import { getApiClient, handleApiError } from '$lib/api/client';
+  import { getApiClient, getPublicApiClient, handleApiError } from '$lib/api/client';
   import { Api } from '$lib/api/api';
   import {
     Loader2,
@@ -82,13 +82,11 @@
   let productsWithQuestions = $state<Product[]>([]);
   let loadingProducts = $state(false);
 
-  // Questionnaire state
   let selectedProduct = $state<Product | null>(null);
   let questions = $state<Question[]>([]);
   let loadingQuestions = $state(false);
   let submitting = $state(false);
 
-  // Form data
   let overallRating = $state(0);
   let responses = $state<Record<string, any>>({});
   let comment = $state('');
@@ -112,9 +110,7 @@
 
     try {
       loadingProducts = true;
-      const publicApi = new Api({
-        baseURL: 'http://localhost:8080',
-      });
+      const publicApi = getPublicApiClient();
       const response =
         await publicApi.api.v1PublicOrganizationQuestionsProductsWithQuestionsList(
           qrData.organization.id
@@ -217,9 +213,7 @@
       loadingQuestions = true;
       error = '';
 
-      const publicApi = new Api({
-        baseURL: 'http://localhost:8080',
-      });
+      const publicApi = getPublicApiClient();
 
       const response =
         await publicApi.api.v1PublicOrganizationProductsQuestionsList(

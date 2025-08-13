@@ -25,7 +25,6 @@
       if (response.data.success) {
         verified = true;
 
-        // Redirect to login after 3 seconds
         setTimeout(() => {
           goto('/login');
         }, 3000);

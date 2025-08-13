@@ -34,18 +34,15 @@
 
   let isLandingPage = $derived($page.route?.id === '/');
 
-  // Show navbar on all non-auth, non-public, non-legal, and non-landing pages (independent of auth loading state)
   let showNavbar = $derived(
     !isAuthPage && !isPublicPage && !isLegalPage && !isLandingPage
   );
 
   let authState = $derived($auth);
 
-  // Define routes where animated background should appear
   let routesWithAnimatedBg = [
-    '/', // Landing page
-    '/pricing', // Pricing page
-    // Add more routes as needed
+    '/',
+    '/pricing',
   ];
 
   let showAnimatedBackground = $derived(

@@ -14,7 +14,6 @@
 
 	let { onSuccess, onError }: Props = $props();
 
-	// Component state
 	let loading = $state(false);
 	let teamMembers = $state<ModelsTeamMember[]>([]);
 	let showInviteModal = $state(false);
@@ -24,7 +23,6 @@
 	let removingMemberId = $state<string | null>(null);
 	let resendingInvitationId = $state<string | null>(null);
 
-	// Load team members when component mounts and user is authenticated
 	$effect(() => {
 		if ($auth.isAuthenticated) {
 			loadTeamMembers();
@@ -34,7 +32,6 @@
 	async function loadTeamMembers() {
 		loading = true;
 		try {
-			// Get API instance from auth store
 			const api = auth.getApi();
 
 			const response = await api.api.v1TeamMembersList();
@@ -57,7 +54,6 @@
 
 		inviting = true;
 		try {
-			// Get API instance from auth store
 			const api = auth.getApi();
 
 			const response = await api.api.v1TeamMembersInviteCreate({
@@ -71,7 +67,6 @@
 				inviteEmail = '';
 				inviteRole = 'VIEWER';
 
-				// Reload team members
 				await loadTeamMembers();
 			} else {
 				throw new Error('Failed to send invitation');
@@ -89,7 +84,6 @@
 
 		resendingInvitationId = invitationId;
 		try {
-			// Get API instance from auth store
 			const api = auth.getApi();
 
 			const response = await api.api.v1TeamMembersResendInvitationCreate(invitationId);
@@ -112,7 +106,6 @@
 
 		removingMemberId = memberId;
 		try {
-			// Get API instance from auth store
 			const api = auth.getApi();
 
 			const response = await api.api.v1TeamMembersDelete(memberId);
@@ -120,7 +113,6 @@
 			if (response.data.success) {
 				onSuccess?.('Team member removed successfully');
 
-				// Reload team members
 				await loadTeamMembers();
 			} else {
 				throw new Error('Failed to remove team member');
@@ -135,7 +127,6 @@
 
 	async function updateRole(memberId: string, newRole: Role) {
 		try {
-			// Get API instance from auth store
 			const api = auth.getApi();
 
 			const response = await api.api.v1TeamMembersRoleUpdate(memberId, {
@@ -145,7 +136,6 @@
 			if (response.data.success) {
 				onSuccess?.('Role updated successfully');
 
-				// Reload team members
 				await loadTeamMembers();
 			} else {
 				throw new Error('Failed to update role');
@@ -156,7 +146,6 @@
 		}
 	}
 
-	// Get role badge color
 	function getRoleBadgeClass(role: string) {
 		switch (role) {
 			case ROLES.owner:
@@ -172,7 +161,6 @@
 		}
 	}
 
-	// Get role icon
 	function getRoleIcon(role: string) {
 		switch (role) {
 			case ROLES.owner:
@@ -325,7 +313,7 @@
 			{/each}
 		</div>
 
-		<!-- Role Descriptions -->
+		
 		<div class="mt-8 rounded-lg bg-gray-50 p-6">
 			<h3 class="mb-4 text-sm font-semibold text-gray-900">Role Permissions</h3>
 			<div class="space-y-3 text-sm">
@@ -361,7 +349,7 @@
 		</div>
 	{/if}
 
-	<!-- Invite Modal -->
+	
 	<Modal bind:open={showInviteModal} title="Invite Team Member">
 		<form
 			onsubmit={(e) => {

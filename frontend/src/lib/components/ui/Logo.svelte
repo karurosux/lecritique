@@ -42,10 +42,10 @@
 
 <div class="flex items-center gap-2 {className}">
   <div class="relative">
-    <!-- Main icon container with gradient -->
+    
     <div
       class="relative {containerSize} bg-gradient-to-r from-purple-600 via-blue-600 to-blue-700 rounded-lg flex items-center justify-center shadow-md">
-      <!-- QR Code icon -->
+      
       <QrCode size={iconSize} strokeWidth={2.5} class="text-white" />
     </div>
   </div>

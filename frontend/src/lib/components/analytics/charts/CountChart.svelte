@@ -61,7 +61,7 @@
       return {
         label: seriesData.metric_name,
         data: points,
-        borderColor: `hsl(${220 + index * 30}, 70%, 50%)`, // Blue tones for counts
+        borderColor: `hsl(${220 + index * 30}, 70%, 50%)`,
         backgroundColor: `hsl(${220 + index * 30}, 70%, 50%)20`,
         borderWidth: 3,
         pointRadius: 6,
@@ -152,12 +152,12 @@
       <p>No count data available</p>
     </div>
   {:else}
-    <!-- Chart -->
+    
     <div class="chart-container mb-6">
       <canvas bind:this={chartCanvas} class="w-full h-80"></canvas>
     </div>
 
-    <!-- Statistics -->
+    
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
       {#each series as seriesData, index}
         {#if seriesData.statistics}

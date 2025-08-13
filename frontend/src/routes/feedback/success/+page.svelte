@@ -8,7 +8,6 @@
   let showButton = false;
 
   onMount(() => {
-    // Show button after balloons finish (around 8 seconds)
     setTimeout(() => {
       showButton = true;
     }, 8000);

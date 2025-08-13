@@ -19,7 +19,6 @@
 
   let className = restProps.class || '';
 
-  // Extract class from restProps to avoid duplication
   const { class: _, bodyClass = '', ...forwardedProps } = restProps;
 
   const baseClasses =

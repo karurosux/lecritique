@@ -2,7 +2,6 @@
   import type { PageData } from './$types';
   import { Button, Card, QRCode } from '$lib/components/ui';
   import { Plus, QrCode, Download, Trash2, Eye, EyeOff } from 'lucide-svelte';
-  // Badge component not available, will use span with styling
   import CreateQRCodeModal from '$lib/components/qr-codes/CreateQRCodeModal.svelte';
   import QRCodeDisplay from '$lib/components/qr-codes/QRCodeDisplay.svelte';
   import { RoleGate } from '$lib/components/auth';
@@ -22,11 +21,9 @@
   let loading = $state(false);
   let clickOrigin = $state<{ x: number; y: number } | null>(null);
 
-  // Get organization from parent layout
   let organization = $derived(data.organization);
   let organizationId = $derived($page.params.id);
 
-  // Fetch QR codes when component mounts and organization is available
   onMount(async () => {
     if (organization) {
       await fetchQRCodes();
@@ -96,9 +93,8 @@
         format: 'json',
       });
 
-      // Update local state
       qrCode.is_active = !qrCode.is_active;
-      qrCodes = [...qrCodes]; // Trigger reactivity
+      qrCodes = [...qrCodes];
 
       toast.success(
         `QR code ${qrCode.is_active ? 'activated' : 'deactivated'}`
@@ -123,7 +119,6 @@
   }
 
   function getFeedbackUrl(qrCode: (typeof qrCodes)[0]) {
-    // TODO: Update with actual domain
     const baseUrl = 'https://kyooar.com';
     return `${baseUrl}/feedback/${qrCode.code}`;
   }

@@ -41,7 +41,7 @@
     )
       return null;
 
-    const data = productInsights.rating_trend.slice(-30); // Last 30 data points
+    const data = productInsights.rating_trend.slice(-30);
     return {
       labels: data.map(d => {
         const date = new Date(d.date);
@@ -64,14 +64,11 @@
     const chartWidth = canvas.width - padding.left - padding.right;
     const chartHeight = canvas.height - padding.top - padding.bottom;
 
-    // Clear canvas
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    // Draw grid lines
     ctx.strokeStyle = '#e5e7eb';
     ctx.lineWidth = 1;
 
-    // Y-axis grid lines
     for (let i = 0; i <= 5; i++) {
       const y = padding.top + (chartHeight / 5) * (5 - i);
       ctx.beginPath();
@@ -79,7 +76,6 @@
       ctx.lineTo(canvas.width - padding.right, y);
       ctx.stroke();
 
-      // Y-axis labels
       ctx.fillStyle = '#6b7280';
       ctx.font = '11px system-ui, -apple-system, sans-serif';
       ctx.textAlign = 'right';
@@ -87,10 +83,8 @@
       ctx.fillText(i.toString(), padding.left - 10, y);
     }
 
-    // Draw data line
     const xStep = chartWidth / (chartData.labels.length - 1);
 
-    // Gradient fill
     const gradient = ctx.createLinearGradient(
       0,
       padding.top,
@@ -100,7 +94,6 @@
     gradient.addColorStop(0, 'rgba(59, 130, 246, 0.3)');
     gradient.addColorStop(1, 'rgba(59, 130, 246, 0.0)');
 
-    // Draw filled area
     ctx.beginPath();
     ctx.fillStyle = gradient;
 
@@ -118,7 +111,6 @@
       }
     });
 
-    // Complete the fill
     ctx.lineTo(
       padding.left + (chartData.ratings.length - 1) * xStep,
       canvas.height - padding.bottom
@@ -127,7 +119,6 @@
     ctx.closePath();
     ctx.fill();
 
-    // Draw line
     ctx.beginPath();
     ctx.strokeStyle = '#3b82f6';
     ctx.lineWidth = 2;
@@ -148,7 +139,6 @@
 
     ctx.stroke();
 
-    // Draw data points
     chartData.ratings.forEach((rating, index) => {
       const x = padding.left + index * xStep;
       const progress =
@@ -161,7 +151,6 @@
       ctx.arc(x, y, hoveredPoint === index ? 6 : 4, 0, Math.PI * 2);
       ctx.fill();
 
-      // Draw hover tooltip
       if (hoveredPoint === index) {
         const tooltipWidth = 120;
         const tooltipHeight = 50;
@@ -171,7 +160,6 @@
         );
         const tooltipY = y - tooltipHeight - 10;
 
-        // Tooltip background
         ctx.fillStyle = 'rgba(31, 41, 55, 0.9)';
         ctx.beginPath();
         ctx.moveTo(tooltipX + 4, tooltipY);
@@ -201,7 +189,6 @@
         ctx.closePath();
         ctx.fill();
 
-        // Tooltip text
         ctx.fillStyle = 'white';
         ctx.font = 'bold 12px system-ui, -apple-system, sans-serif';
         ctx.textAlign = 'center';
@@ -226,7 +213,6 @@
       }
     });
 
-    // Draw x-axis labels
     ctx.fillStyle = '#6b7280';
     ctx.font = '10px system-ui, -apple-system, sans-serif';
     ctx.textAlign = 'center';
@@ -273,7 +259,6 @@
   onMount(() => {
     ctx = canvas?.getContext('2d');
 
-    // Animate chart
     const animate = () => {
       if (animationProgress < 1) {
         animationProgress = Math.min(animationProgress + 0.02, 1);

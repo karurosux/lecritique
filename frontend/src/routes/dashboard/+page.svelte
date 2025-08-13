@@ -82,7 +82,6 @@
   let authState = $derived($auth);
 
   $effect(() => {
-    // Check if user is authenticated
     if (authState.isAuthenticated && !hasInitialized) {
       hasInitialized = true;
       loadDashboardData();
@@ -98,7 +97,6 @@
     try {
       const api = getApiClient();
 
-      // Get all organizations for the account
       const organizationsResponse = await api.api.v1OrganizationsList();
 
       if (
@@ -107,18 +105,14 @@
       ) {
         const organizations = organizationsResponse.data.data;
 
-        // For now, using the first organization for demo purposes
-        // In a real app, you'd either aggregate across all organizations or let user select
         if (organizations.length > 0) {
           const firstOrganization = organizations[0];
 
-          // Get QR codes and analytics for the first organization
           const [qrCodesResponse, analyticsResponse] = await Promise.all([
             api.api.v1OrganizationsQrCodesList(firstOrganization.id!),
             api.api.v1AnalyticsOrganizationsDetail(firstOrganization.id!),
           ]);
 
-          // Try to get new dashboard metrics (might not exist yet)
           try {
             const dashboardResponse = await api.api.v1AnalyticsDashboardDetail(
               firstOrganization.id!
@@ -127,16 +121,13 @@
               dashboardMetrics = dashboardResponse.data.data;
             }
           } catch (err) {
-            // Dashboard metrics not available yet, using legacy analytics
           }
 
-          // Calculate stats
           const activeQRCodes =
             qrCodesResponse.data.success && qrCodesResponse.data.data
               ? qrCodesResponse.data.data.filter(qr => qr.is_active).length
               : 0;
 
-          // Parse analytics data (legacy)
           const analyticsData = analyticsResponse.data?.data || {};
           const totalFeedback = analyticsData?.total_feedback || 0;
           const averageRating = analyticsData?.average_rating || 0;
@@ -144,11 +135,9 @@
           const topProduct = analyticsData?.top_rated_products?.[0];
           const recentFeedbackData = analyticsData?.recent_feedback || [];
 
-          // Both endpoints now return 1-5 scale for ratings
           let displayRating =
             dashboardMetrics?.overall_satisfaction || averageRating;
 
-          // Clamp rating to valid 1-5 range and log if out of bounds
           if (displayRating > 5) {
             console.warn('Rating out of bounds (too high):', displayRating);
             displayRating = 5;
@@ -173,7 +162,6 @@
               recentFeedbackData.length,
           };
 
-          // Map recent feedback - prefer new dashboard metrics
           const feedbackSource =
             dashboardMetrics?.recent_feedback || recentFeedbackData;
           recentFeedback = feedbackSource.slice(0, 5).map((fb: any) => ({
@@ -186,7 +174,6 @@
             created_at: fb.created_at,
           }));
         } else {
-          // No organizations yet
           stats = {
             totalFeedback: 0,
             averageRating: 0,
@@ -197,7 +184,6 @@
           recentFeedback = [];
         }
       } else {
-        // Fallback to zero stats
         stats = {
           totalFeedback: 0,
           averageRating: 0,

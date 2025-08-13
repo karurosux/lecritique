@@ -24,7 +24,6 @@
   let chart: Chart | null = null;
   let mounted = $state(false);
 
-  // Chart customization options
   let chartType = $state<'line' | 'bar'>('line');
   let showFill = $state(false);
   let showDataPoints = $state(true);
@@ -39,48 +38,45 @@
   let showTooltips = $state(true);
   let chartTheme = $state<'default' | 'dark' | 'colorful'>('default');
 
-  // Interactive features
   let enableZoom = $state(true);
   let enablePan = $state(true);
   let showZoomControls = $state(true);
   let selectedDataSeries = $state<string[]>([]);
 
-  // Zoom plugin will be loaded dynamically
   let zoomPlugin: any = null;
 
-  // Register Chart.js components
   Chart.register(...registerables);
 
   const colorThemes = {
     default: [
-      '#3B82F6', // blue
-      '#10B981', // green
-      '#F59E0B', // amber
-      '#EF4444', // red
-      '#8B5CF6', // purple
-      '#F97316', // orange
-      '#06B6D4', // cyan
-      '#84CC16', // lime
+      '#3B82F6',
+      '#10B981',
+      '#F59E0B',
+      '#EF4444',
+      '#8B5CF6',
+      '#F97316',
+      '#06B6D4',
+      '#84CC16',
     ],
     dark: [
-      '#60A5FA', // lighter blue
-      '#34D399', // lighter green
-      '#FBBF24', // lighter amber
-      '#F87171', // lighter red
-      '#A78BFA', // lighter purple
-      '#FB923C', // lighter orange
-      '#22D3EE', // lighter cyan
-      '#A3E635', // lighter lime
+      '#60A5FA',
+      '#34D399',
+      '#FBBF24',
+      '#F87171',
+      '#A78BFA',
+      '#FB923C',
+      '#22D3EE',
+      '#A3E635',
     ],
     colorful: [
-      '#FF6B6B', // bright red
-      '#4ECDC4', // teal
-      '#45B7D1', // bright blue
-      '#96CEB4', // mint
-      '#FFEAA7', // light yellow
-      '#DDA0DD', // plum
-      '#98D8C8', // mint green
-      '#F7DC6F', // light gold
+      '#FF6B6B',
+      '#4ECDC4',
+      '#45B7D1',
+      '#96CEB4',
+      '#FFEAA7',
+      '#DDA0DD',
+      '#98D8C8',
+      '#F7DC6F',
     ],
   };
 
@@ -89,29 +85,23 @@
   let series = $derived(data?.series || []);
 
   function cleanMetricName(metricName: string): string {
-    // Remove UUID patterns (8-4-4-4-12 hex characters)
     let cleaned = metricName.replace(
       /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/gi,
       ''
     );
 
-    // Remove "product_" prefix
     cleaned = cleaned.replace(/product_/gi, '');
 
-    // Remove double underscores or dashes
     cleaned = cleaned.replace(/[_-]{2,}/g, '_');
 
-    // Remove leading/trailing underscores or dashes
     cleaned = cleaned.replace(/^[_-]+|[_-]+$/g, '');
 
-    // Convert underscores to spaces and capitalize words
     cleaned = cleaned
       .replace(/_/g, ' ')
       .split(' ')
       .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
       .join(' ');
 
-    // Special cases for known metric types
     if (cleaned.toLowerCase().includes('rating questions'))
       return 'Rating Questions';
     if (cleaned.toLowerCase().includes('scale questions'))
@@ -127,7 +117,6 @@
     if (cleaned.toLowerCase().includes('survey responses'))
       return 'Survey Responses';
 
-    // If it's a question ID, try to extract just the question part
     if (cleaned.toLowerCase().startsWith('question ')) {
       return 'Question Response';
     }
@@ -140,9 +129,7 @@
     metricType: string,
     seriesData?: any
   ): string {
-    // Check if this is a question metric
     if (metricType.startsWith('question_')) {
-      // Try to get question type and labels from metadata
       let metadata = seriesData?.metadata;
       let questionType = metadata?.question_type;
       let minLabel = metadata?.min_label;
@@ -150,7 +137,6 @@
       let minValue = metadata?.min_value;
       let maxValue = metadata?.max_value;
 
-      // If metadata is a string, try to parse it as JSON
       if (seriesData?.metadata) {
         const parsed = seriesData.metadata;
         questionType = parsed.question_type;
@@ -189,7 +175,6 @@
       }
     }
 
-    // Handle non-question metrics
     switch (metricType) {
       case 'survey_responses':
         return Math.round(value).toLocaleString() + ' responses';
@@ -220,7 +205,6 @@
     }
   }
 
-  // Interactive functions
   function resetZoom() {
     if (chart) {
       chart.resetZoom();
@@ -251,11 +235,9 @@
   }
 
   function getYAxisConfig(seriesData: any[]) {
-    // Analyze the data to determine appropriate Y-axis configuration
     for (const series of seriesData) {
       const metricType = series.metric_type;
 
-      // Check if this is a question metric
       if (metricType.startsWith('question_')) {
         let metadata = series.metadata;
         let questionType = metadata?.question_type;
@@ -273,7 +255,6 @@
           maxValue = parsed.max_value;
         }
 
-        // If we have explicit question type, use it
         switch (questionType) {
           case 'rating':
             const ratingMin = minValue || 1;
@@ -314,7 +295,6 @@
             };
 
           case 'text':
-            // Check if values are sentiment scores (-1 to 1) or counts
             const hasNegativeValues = series.points?.some(
               (p: any) => p.value < 0
             );
@@ -334,15 +314,11 @@
             break;
         }
 
-        // If no metadata available, try to infer from question text and values
         const questionText = series.metric_name?.toLowerCase() || '';
         const sampleValue = series.points?.[0]?.value;
 
-        // Infer question type based on patterns
         if (sampleValue !== undefined) {
-          // If value is between 0-100 and looks like a percentage
           if (sampleValue >= 0 && sampleValue <= 100 && sampleValue % 1 !== 0) {
-            // Check if question suggests yes/no
             if (
               questionText.includes('is ') ||
               questionText.includes('do ') ||
@@ -359,7 +335,6 @@
             }
           }
 
-          // If value is between 1-5, likely a rating
           if (sampleValue >= 1 && sampleValue <= 5) {
             return {
               min: 1,
@@ -370,9 +345,7 @@
             };
           }
 
-          // If value is between 1-10, likely a scale
           if (sampleValue >= 1 && sampleValue <= 10) {
-            // Try to infer scale meaning from question text
             let scaleLabel = 'Average Scale';
             let lowLabel = '1';
             let highLabel = '10';
@@ -418,7 +391,6 @@
           }
         }
 
-        // Default for individual questions
         return {
           beginAtZero: true,
           label: 'Response Value',
@@ -426,7 +398,6 @@
         };
       }
 
-      // Check for percentage-based metrics
       if (metricType.includes('rate') || metricType.includes('completion')) {
         return {
           min: 0,
@@ -438,7 +409,6 @@
       }
     }
 
-    // Default configuration for count-based metrics
     return {
       beginAtZero: true,
       label: 'Value',
@@ -449,12 +419,10 @@
   function createChart() {
     if (!mounted || !chartCanvas || !data?.series) return;
 
-    // Destroy existing chart
     if (chart) {
       chart.destroy();
     }
 
-    // Get appropriate Y-axis configuration
     const yAxisConfig = getYAxisConfig(data.series);
     console.log('Y-axis config:', yAxisConfig);
     console.log(
@@ -467,38 +435,35 @@
       }))
     );
 
-    // Prepare datasets
     const datasets = data.series.map((seriesData: any, index: number) => {
       const points = (seriesData.points || [])
         .map((point: any) => {
           const timestamp = new Date(point.timestamp);
 
-          // Validate the timestamp is a valid date
           if (isNaN(timestamp.getTime())) {
             console.warn('Invalid timestamp:', point.timestamp);
             return null;
           }
 
           return {
-            x: timestamp, // Use Date object directly
+            x: timestamp,
             y: point.value,
           };
         })
-        .filter(Boolean); // Remove any null entries
+        .filter(Boolean);
 
-      // Use different colors based on question type for better visual distinction
-      let colorHue = 220 + index * 40; // default blue range
+      let colorHue = 220 + index * 40;
       const metricType = seriesData.metric_type;
 
       if (metricType.includes('rating'))
-        colorHue = 45; // orange for ratings
+        colorHue = 45;
       else if (metricType.includes('scale'))
-        colorHue = 260; // purple for scales
+        colorHue = 260;
       else if (metricType.includes('yes_no'))
-        colorHue = 140; // green for yes/no
+        colorHue = 140;
       else if (metricType.includes('text'))
-        colorHue = 200; // blue for sentiment
-      else if (metricType.includes('choice')) colorHue = 20; // red for choices
+        colorHue = 200;
+      else if (metricType.includes('choice')) colorHue = 20;
 
       const color = `hsl(${colorHue + index * 20}, 70%, 50%)`;
 
@@ -534,7 +499,7 @@
             display: false,
           },
           legend: {
-            display: false, // We'll create custom interactive legend
+            display: false,
             position: 'top' as const,
             align: 'center' as const,
             labels: {
@@ -599,7 +564,6 @@
                         ];
                       }
                     } catch (e) {
-                      // ignore
                     }
                   }
                 }
@@ -627,7 +591,6 @@
                     },
                     mode: 'xy' as const,
                     onZoomComplete: function ({ chart }: any) {
-                      // Optional: emit zoom event
                       const customEvent = new CustomEvent('chartZoom', {
                         detail: { chart },
                       });
@@ -647,18 +610,17 @@
               },
               tooltipFormat: 'MMM dd, yyyy',
             },
-            // Force a time range when we have limited data points
             min:
               datasets.length > 0 && datasets[0].data.length === 1
                 ? new Date(
                     datasets[0].data[0].x.getTime() - 24 * 60 * 60 * 1000
-                  ) // 1 day before
+                  )
                 : undefined,
             max:
               datasets.length > 0 && datasets[0].data.length === 1
                 ? new Date(
                     datasets[0].data[0].x.getTime() + 24 * 60 * 60 * 1000
-                  ) // 1 day after
+                  )
                 : undefined,
             title: {
               display: true,
@@ -735,7 +697,6 @@
     chart = new Chart(chartCanvas, config);
   }
 
-  // Re-render when data changes
   $effect(() => {
     if (mounted && data) {
       createChart();
@@ -743,7 +704,6 @@
   });
 
   onMount(async () => {
-    // Dynamically import zoom plugin on client side only
     if (typeof window !== 'undefined') {
       const zoomModule = await import('chartjs-plugin-zoom');
       zoomPlugin = zoomModule.default;
@@ -768,11 +728,11 @@
         <p>No data available for the selected time period</p>
       </div>
     {:else}
-      <!-- Enhanced Chart Controls -->
+      
       <div
         class="bg-white border border-gray-200 rounded-xl p-4 mb-6 shadow-sm">
         <div class="flex flex-wrap items-center justify-between gap-4">
-          <!-- Chart Type Controls -->
+          
           <div class="flex items-center gap-2">
             <span class="text-sm font-medium text-gray-700">Type:</span>
             <div class="flex bg-gray-100 rounded-lg p-1">
@@ -795,7 +755,7 @@
             </div>
           </div>
 
-          <!-- Zoom Controls -->
+          
           {#if showZoomControls}
             <div class="flex items-center gap-1">
               <span class="text-sm font-medium text-gray-700 mr-2">Zoom:</span>
@@ -821,7 +781,7 @@
           {/if}
         </div>
 
-        <!-- Interactive Settings -->
+        
         <div class="mt-4 pt-4 border-t border-gray-100">
           <div class="flex flex-wrap items-center gap-6 text-sm">
             <label class="flex items-center gap-2 cursor-pointer">
@@ -856,7 +816,7 @@
         </div>
       </div>
 
-      <!-- Interactive Legend -->
+      
       {#if series.length > 0}
         <div
           class="bg-white border border-gray-200 rounded-xl p-4 mb-6 shadow-sm">
@@ -891,13 +851,13 @@
         </div>
       {/if}
 
-      <!-- Chart Container -->
+      
       <div class="bg-white rounded-lg p-6 mb-6 shadow-sm">
         <div class="chart-container">
           <canvas bind:this={chartCanvas} class="w-full h-96"></canvas>
         </div>
 
-        <!-- Interactive hints -->
+        
         <div class="mt-4 pt-4 border-t border-gray-100">
           <div class="flex flex-wrap gap-4 text-xs text-gray-500">
             <span class="flex items-center gap-1">
@@ -912,7 +872,7 @@
         </div>
       </div>
 
-      <!-- Statistics Cards -->
+      
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-6">
         {#each series as seriesData, index}
           {#if seriesData.statistics}

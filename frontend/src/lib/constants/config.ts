@@ -4,6 +4,9 @@
  */
 
 export const APP_CONFIG = {
+  // API Configuration
+  API_URL: import.meta.env.VITE_API_URL || 'http://localhost:8080',
+  
   // Company Information
   company: {
     name: 'Kyooar',

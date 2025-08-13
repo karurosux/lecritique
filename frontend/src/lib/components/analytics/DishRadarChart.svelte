@@ -52,10 +52,8 @@
     const radius = Math.min(centerX, centerY) - 60;
     const angleStep = (Math.PI * 2) / chartData.labels.length;
 
-    // Clear canvas
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    // Draw grid circles
     for (let i = 1; i <= 5; i++) {
       ctx.beginPath();
       ctx.strokeStyle = '#e5e7eb';
@@ -76,7 +74,6 @@
       ctx.stroke();
     }
 
-    // Draw axes
     chartData.labels.forEach((_, index) => {
       const angle = index * angleStep - Math.PI / 2;
       ctx.beginPath();
@@ -90,7 +87,6 @@
       ctx.stroke();
     });
 
-    // Draw data polygon with animation
     ctx.beginPath();
     ctx.fillStyle = 'rgba(59, 130, 246, 0.2)';
     ctx.strokeStyle = '#3b82f6';
@@ -114,7 +110,6 @@
     ctx.fill();
     ctx.stroke();
 
-    // Draw data points
     chartData.scores.forEach((score, index) => {
       const angle = index * angleStep - Math.PI / 2;
       const distance =
@@ -128,7 +123,6 @@
       ctx.fill();
     });
 
-    // Draw labels
     ctx.font = '12px system-ui, -apple-system, sans-serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
@@ -142,7 +136,6 @@
       ctx.fillStyle = '#374151';
       ctx.fillText(label, x, y);
 
-      // Draw score value
       const score = chartData.scores[index];
       const scoreDistance =
         (score / chartData.maxScore) * radius * animationProgress + 15;
@@ -158,7 +151,6 @@
   onMount(() => {
     ctx = canvas?.getContext('2d');
 
-    // Animate chart
     const animate = () => {
       if (animationProgress < 1) {
         animationProgress = Math.min(animationProgress + 0.02, 1);

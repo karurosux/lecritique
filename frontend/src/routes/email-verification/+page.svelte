@@ -32,7 +32,6 @@
       if (response.data.success) {
         resendSuccess = true;
 
-        // Reset success message after 5 seconds
         setTimeout(() => {
           resendSuccess = false;
         }, 5000);
@@ -42,7 +41,6 @@
         error.response?.data?.error?.message ||
         'Failed to send verification email';
 
-      // Reset error message after 5 seconds
       setTimeout(() => {
         resendError = '';
       }, 5000);

@@ -37,11 +37,9 @@
   let deletingProduct = $state<any>(null);
   let clickOrigin = $state<{ x: number; y: number } | null>(null);
 
-  // Get organization from layout/page data
   let organization = $derived(data.organization);
   let organizationId = $derived($page.params.id);
 
-  // Fetch products when organization becomes available
   onMount(async () => {
     if (organization) {
       await fetchProducts();
@@ -75,7 +73,6 @@
     }
   }
 
-  // Enhance products with questions information
   let productsWithQuestionnaires = $derived(
     products.map(product => {
       const hasQuestions = productsWithQuestions.includes(product.id);
@@ -86,10 +83,8 @@
     })
   );
 
-  // Static categories to match the modal
   const categories = APP_CONFIG.productCategories;
 
-  // Filter and sort products
   let filteredProducts = $derived(
     productsWithQuestionnaires
       .filter((product: any) => {
@@ -189,7 +184,6 @@
   }
 
   async function handleManageQuestionnaire(product: any) {
-    // Navigate to questionnaire page
     goto(`/organizations/${organizationId}/questionnaire/${product.id}`);
   }
 
@@ -388,14 +382,12 @@
       try {
         const api = getApiClient();
         if (editingProduct) {
-          // Update existing product
           await api.api.v1OrganizationsProductsUpdate(organizationId, editingProduct.id, {
             ...productData,
             organization_id: organizationId,
           });
           toast.success('Product updated successfully');
         } else {
-          // Create new product using the correct nested endpoint
           await api.api.v1OrganizationsProductsCreate(organizationId, {
             ...productData,
             organization_id: organizationId,
