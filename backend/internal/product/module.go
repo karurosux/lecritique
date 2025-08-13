@@ -3,6 +3,8 @@ package product
 import (
 	"github.com/labstack/echo/v4"
 	"kyooar/internal/product/handlers"
+	"kyooar/internal/product/repositories"
+	"kyooar/internal/product/services"
 	sharedMiddleware "kyooar/internal/shared/middleware"
 	"github.com/samber/do"
 )
@@ -28,4 +30,11 @@ func (m *Module) RegisterRoutes(v1 *echo.Group) {
 	products.GET("/:id", productHandler.GetByID)
 	products.PUT("/:id", productHandler.Update)
 	products.DELETE("/:id", productHandler.Delete)
+}
+
+func RegisterNewModule(container *do.Injector) {
+	do.Provide(container, repositories.NewProductRepository)
+	do.Provide(container, services.NewProductService)
+	do.Provide(container, handlers.NewProductHandler)
+	do.Provide(container, handlers.NewProductPublicHandler)
 }

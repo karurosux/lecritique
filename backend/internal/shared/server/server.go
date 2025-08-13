@@ -21,6 +21,7 @@ import (
 	qrcodeModule "kyooar/internal/qrcode"
 	analyticsModule "kyooar/internal/analytics"
 	subscriptionModule "kyooar/internal/subscription"
+	aiModule "kyooar/internal/ai"
 	
 	authinterface "kyooar/internal/auth/interface"
 	
@@ -88,6 +89,7 @@ func (s *Server) setupRoutes() {
 	v1 := s.echo.Group("/api/v1")
 	v1.Use(rateLimiter.Middleware())
 
+	aiModule.RegisterNewModule(s.injector)
 	authModule.RegisterNewModule(s.injector)
 	subscriptionModule.RegisterNewModule(s.injector)
 	qrcodeModule.RegisterNewModule(s.injector)
@@ -109,6 +111,9 @@ func (s *Server) setupRoutes() {
 	
 	feedbackMod := feedbackModule.NewFeedbackModule(s.injector)
 	feedbackMod.RegisterRoutes(v1)
+	
+	productMod := productModule.NewModule(s.injector)
+	productMod.RegisterRoutes(v1)
 	
 	analyticsMod := analyticsModule.NewAnalyticsModule(s.injector)
 	analyticsMod.RegisterRoutes(v1)

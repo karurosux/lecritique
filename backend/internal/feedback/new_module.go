@@ -5,6 +5,7 @@ import (
 	"github.com/samber/do"
 	"gorm.io/gorm"
 
+	aiservices "kyooar/internal/ai/services"
 	feedbackcontroller "kyooar/internal/feedback/controller"
 	feedbackinterface "kyooar/internal/feedback/interface"
 	feedbackmiddleware "kyooar/internal/feedback/middleware"
@@ -14,7 +15,6 @@ import (
 	productServices "kyooar/internal/product/services"
 	organizationinterface "kyooar/internal/organization/interface"
 	qrcodeinterface "kyooar/internal/qrcode/interface"
-	"kyooar/internal/shared/config"
 )
 
 func ProvideFeedbackRepository(i *do.Injector) (feedbackinterface.FeedbackRepository, error) {
@@ -58,11 +58,11 @@ func ProvideQuestionService(i *do.Injector) (feedbackinterface.QuestionService, 
 
 func ProvideQuestionnaireService(i *do.Injector) (feedbackinterface.QuestionnaireService, error) {
 	questionnaireRepo := do.MustInvoke[feedbackinterface.QuestionnaireRepository](i)
-	config := do.MustInvoke[*config.Config](i)
+	questionGenerator := do.MustInvoke[*aiservices.QuestionGenerator](i)
 
 	return feedbackservice.NewQuestionnaireService(
 		questionnaireRepo,
-		config,
+		questionGenerator,
 	), nil
 }
 

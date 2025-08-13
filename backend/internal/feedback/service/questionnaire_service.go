@@ -9,7 +9,6 @@ import (
 	feedbackinterface "kyooar/internal/feedback/interface"
 	feedbackmodel "kyooar/internal/feedback/model"
 	productModels "kyooar/internal/product/models"
-	"kyooar/internal/shared/config"
 )
 
 type questionnaireService struct {
@@ -19,13 +18,8 @@ type questionnaireService struct {
 
 func NewQuestionnaireService(
 	repo feedbackinterface.QuestionnaireRepository,
-	cfg *config.Config,
+	generator *aiServices.QuestionGenerator,
 ) feedbackinterface.QuestionnaireService {
-	var generator *aiServices.QuestionGenerator
-	if g, err := aiServices.NewQuestionGenerator(cfg); err == nil {
-		generator = g
-	}
-
 	return &questionnaireService{
 		repo:              repo,
 		questionGenerator: generator,
