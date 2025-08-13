@@ -13,7 +13,8 @@
 		"format": "prettier --write .",
 		"lint": "prettier --check . && eslint .",
 		"test:e2e": "playwright test",
-		"test": "npm run test:e2e"
+		"test": "npm run test:e2e",
+		"generate-api": "swagger-typescript-api generate -p ../backend/docs/swagger.json -o src/lib/api -n api.ts --modular false"
 	},
 	"devDependencies": {
 		"@eslint/compat": "^1.2.5",
@@ -33,6 +34,7 @@
 		"prettier-plugin-tailwindcss": "^0.6.11",
 		"svelte": "^5.0.0",
 		"svelte-check": "^4.0.0",
+		"swagger-typescript-api": "^13.0.22",
 		"tailwindcss": "^4.0.0",
 		"typescript": "^5.0.0",
 		"typescript-eslint": "^8.20.0",

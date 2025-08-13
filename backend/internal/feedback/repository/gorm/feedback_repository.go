@@ -203,6 +203,7 @@ func (r *feedbackRepository) FindByOrganizationIDForAnalytics(ctx context.Contex
 	var feedbacks []feedbackmodel.Feedback
 	
 	query := r.DB.WithContext(ctx).
+		Preload("Product").
 		Where("organization_id = ?", organizationID).
 		Order("created_at DESC")
 

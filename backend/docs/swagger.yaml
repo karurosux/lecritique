@@ -1,4 +1,241 @@
 definitions:
+  analyticsmodel.ChoiceInfo:
+    properties:
+      choice:
+        type: string
+      count:
+        type: integer
+    type: object
+  analyticsmodel.ChoiceSeriesData:
+    properties:
+      choice:
+        type: string
+      points:
+        items:
+          $ref: '#/definitions/analyticsmodel.TimeSeriesPoint'
+        type: array
+      statistics:
+        $ref: '#/definitions/analyticsmodel.TimeSeriesStats'
+    type: object
+  analyticsmodel.ComparisonInsight:
+    properties:
+      change:
+        type: number
+      message:
+        type: string
+      metric_type:
+        type: string
+      recommendation:
+        type: string
+      severity:
+        type: string
+      type:
+        type: string
+    type: object
+  analyticsmodel.ComparisonRequest:
+    properties:
+      metric_types:
+        items:
+          type: string
+        minItems: 1
+        type: array
+      organization_id:
+        type: string
+      period1_end:
+        type: string
+      period1_start:
+        type: string
+      period2_end:
+        type: string
+      period2_start:
+        type: string
+      product_id:
+        type: string
+      question_id:
+        type: string
+    required:
+    - metric_types
+    - organization_id
+    - period1_end
+    - period1_start
+    - period2_end
+    - period2_start
+    type: object
+  analyticsmodel.ComparisonResponse:
+    properties:
+      comparisons:
+        items:
+          $ref: '#/definitions/analyticsmodel.TimeSeriesComparison'
+        type: array
+      insights:
+        items:
+          $ref: '#/definitions/analyticsmodel.ComparisonInsight'
+        type: array
+      request:
+        $ref: '#/definitions/analyticsmodel.ComparisonRequest'
+    type: object
+  analyticsmodel.DateRange:
+    properties:
+      end:
+        type: string
+      start:
+        type: string
+    type: object
+  analyticsmodel.TimePeriodMetrics:
+    properties:
+      average:
+        type: number
+      choice_distribution:
+        additionalProperties:
+          format: int64
+          type: integer
+        type: object
+      count:
+        type: integer
+      data_points:
+        items:
+          $ref: '#/definitions/analyticsmodel.TimeSeriesPoint'
+        type: array
+      end_date:
+        type: string
+      max:
+        type: number
+      min:
+        type: number
+      most_popular_choice:
+        $ref: '#/definitions/analyticsmodel.ChoiceInfo'
+      start_date:
+        type: string
+      top_choices:
+        items:
+          $ref: '#/definitions/analyticsmodel.ChoiceInfo'
+        type: array
+      value:
+        type: number
+    type: object
+  analyticsmodel.TimeSeriesComparison:
+    properties:
+      change:
+        type: number
+      change_percent:
+        type: number
+      metadata:
+        type: string
+      metric_name:
+        type: string
+      metric_type:
+        type: string
+      period1:
+        $ref: '#/definitions/analyticsmodel.TimePeriodMetrics'
+      period2:
+        $ref: '#/definitions/analyticsmodel.TimePeriodMetrics'
+      trend:
+        type: string
+    type: object
+  analyticsmodel.TimeSeriesData:
+    properties:
+      choice_series:
+        items:
+          $ref: '#/definitions/analyticsmodel.ChoiceSeriesData'
+        type: array
+      metadata:
+        additionalProperties: {}
+        type: object
+      metric_name:
+        type: string
+      metric_type:
+        type: string
+      points:
+        items:
+          $ref: '#/definitions/analyticsmodel.TimeSeriesPoint'
+        type: array
+      product_id:
+        type: string
+      product_name:
+        type: string
+      statistics:
+        $ref: '#/definitions/analyticsmodel.TimeSeriesStats'
+    type: object
+  analyticsmodel.TimeSeriesPoint:
+    properties:
+      count:
+        type: integer
+      timestamp:
+        type: string
+      value:
+        type: number
+    type: object
+  analyticsmodel.TimeSeriesRequest:
+    properties:
+      end_date:
+        type: string
+      granularity:
+        enum:
+        - hourly
+        - daily
+        - weekly
+        - monthly
+        type: string
+      metric_types:
+        items:
+          type: string
+        minItems: 1
+        type: array
+      organization_id:
+        type: string
+      product_id:
+        type: string
+      question_id:
+        type: string
+      start_date:
+        type: string
+    required:
+    - end_date
+    - granularity
+    - metric_types
+    - organization_id
+    - start_date
+    type: object
+  analyticsmodel.TimeSeriesResponse:
+    properties:
+      request:
+        $ref: '#/definitions/analyticsmodel.TimeSeriesRequest'
+      series:
+        items:
+          $ref: '#/definitions/analyticsmodel.TimeSeriesData'
+        type: array
+      summary:
+        $ref: '#/definitions/analyticsmodel.TimeSeriesSummary'
+    type: object
+  analyticsmodel.TimeSeriesStats:
+    properties:
+      average:
+        type: number
+      count:
+        type: integer
+      max:
+        type: number
+      min:
+        type: number
+      total:
+        type: number
+      trend_direction:
+        type: string
+      trend_strength:
+        type: number
+    type: object
+  analyticsmodel.TimeSeriesSummary:
+    properties:
+      date_range:
+        $ref: '#/definitions/analyticsmodel.DateRange'
+      granularity:
+        type: string
+      metrics_summary:
+        additionalProperties: true
+        type: object
+      total_data_points:
+        type: integer
+    type: object
   authmodel.AcceptInvitationRequest:
     properties:
       token:
@@ -61,7 +298,8 @@ definitions:
   authmodel.MemberListResponse:
     properties:
       members:
-        items: {}
+        items:
+          $ref: '#/definitions/models.TeamMember'
         type: array
     type: object
   authmodel.PasswordResetRequest:
@@ -133,54 +371,238 @@ definitions:
     required:
     - role
     type: object
-  handlers.CardDetailsResponse:
+  feedbackmodel.BatchQuestionsRequest:
     properties:
-      brand:
-        type: string
-      exp_month:
-        type: integer
-      exp_year:
-        type: integer
-      last4:
-        type: string
-    type: object
-  handlers.CheckoutResponse:
-    properties:
-      checkout_url:
-        type: string
-      session_id:
-        type: string
-    type: object
-  handlers.CompleteCheckoutRequest:
-    properties:
-      session_id:
-        type: string
+      product_ids:
+        items:
+          type: string
+        type: array
     required:
-    - session_id
+    - product_ids
     type: object
-  handlers.CreateCheckoutRequest:
+  feedbackmodel.CreateQuestionRequest:
     properties:
-      plan_id:
+      is_required:
+        type: boolean
+      max_label:
         type: string
+      max_value:
+        type: integer
+      min_label:
+        type: string
+      min_value:
+        type: integer
+      options:
+        items:
+          type: string
+        type: array
+      text:
+        type: string
+      type:
+        $ref: '#/definitions/feedbackmodel.QuestionType'
     required:
-    - plan_id
+    - text
+    - type
     type: object
-  handlers.CreateOrganizationRequest:
+  feedbackmodel.CreateQuestionnaireRequest:
     properties:
-      address:
-        type: string
       description:
         type: string
-      email:
-        type: string
+      is_default:
+        type: boolean
       name:
         type: string
-      phone:
-        type: string
-      website:
+      product_id:
         type: string
     required:
     - name
+    type: object
+  feedbackmodel.DeviceInfo:
+    properties:
+      browser:
+        type: string
+      ip:
+        type: string
+      platform:
+        type: string
+      user_agent:
+        type: string
+    type: object
+  feedbackmodel.Feedback:
+    properties:
+      created_at:
+        type: string
+      customer_email:
+        type: string
+      customer_name:
+        type: string
+      customer_phone:
+        type: string
+      device_info:
+        $ref: '#/definitions/feedbackmodel.DeviceInfo'
+      id:
+        type: string
+      is_complete:
+        type: boolean
+      organization:
+        $ref: '#/definitions/organizationmodel.Organization'
+      organization_id:
+        type: string
+      overall_rating:
+        type: integer
+      product:
+        $ref: '#/definitions/models.Product'
+      product_id:
+        type: string
+      qr_code:
+        $ref: '#/definitions/qrcodemodel.QRCode'
+      qr_code_id:
+        type: string
+      responses:
+        items:
+          $ref: '#/definitions/feedbackmodel.Response'
+        type: array
+      updated_at:
+        type: string
+    type: object
+  feedbackmodel.GenerateQuestionnaireRequest:
+    properties:
+      description:
+        type: string
+      is_default:
+        type: boolean
+      name:
+        type: string
+    required:
+    - name
+    type: object
+  feedbackmodel.GeneratedQuestion:
+    properties:
+      max_label:
+        type: string
+      max_value:
+        type: integer
+      min_label:
+        type: string
+      min_value:
+        type: integer
+      options:
+        items:
+          type: string
+        type: array
+      text:
+        type: string
+      type:
+        $ref: '#/definitions/feedbackmodel.QuestionType'
+    type: object
+  feedbackmodel.Question:
+    properties:
+      created_at:
+        type: string
+      display_order:
+        type: integer
+      id:
+        type: string
+      is_required:
+        type: boolean
+      max_label:
+        type: string
+      max_value:
+        type: integer
+      min_label:
+        type: string
+      min_value:
+        type: integer
+      options:
+        items:
+          type: string
+        type: array
+      product:
+        $ref: '#/definitions/models.Product'
+      product_id:
+        type: string
+      text:
+        type: string
+      type:
+        $ref: '#/definitions/feedbackmodel.QuestionType'
+      updated_at:
+        type: string
+    type: object
+  feedbackmodel.QuestionType:
+    enum:
+    - rating
+    - scale
+    - multi_choice
+    - single_choice
+    - text
+    - yes_no
+    type: string
+    x-enum-varnames:
+    - QuestionTypeRating
+    - QuestionTypeScale
+    - QuestionTypeMultiChoice
+    - QuestionTypeSingleChoice
+    - QuestionTypeText
+    - QuestionTypeYesNo
+  feedbackmodel.Questionnaire:
+    properties:
+      created_at:
+        type: string
+      description:
+        type: string
+      id:
+        type: string
+      is_active:
+        type: boolean
+      is_default:
+        type: boolean
+      name:
+        type: string
+      organization:
+        $ref: '#/definitions/organizationmodel.Organization'
+      organization_id:
+        type: string
+      product:
+        $ref: '#/definitions/models.Product'
+      product_id:
+        type: string
+      questions:
+        items:
+          $ref: '#/definitions/feedbackmodel.Question'
+        type: array
+      updated_at:
+        type: string
+    type: object
+  feedbackmodel.Response:
+    properties:
+      answer: {}
+      question_id:
+        type: string
+      question_text:
+        type: string
+      question_type:
+        $ref: '#/definitions/feedbackmodel.QuestionType'
+    type: object
+  feedbackmodel.UpdateQuestionRequest:
+    properties:
+      is_required:
+        type: boolean
+      max_label:
+        type: string
+      max_value:
+        type: integer
+      min_label:
+        type: string
+      min_value:
+        type: integer
+      options:
+        items:
+          type: string
+        type: array
+      text:
+        type: string
+      type:
+        $ref: '#/definitions/feedbackmodel.QuestionType'
     type: object
   handlers.CreateProductRequest:
     properties:
@@ -200,152 +622,6 @@ definitions:
     required:
     - name
     - organization_id
-    type: object
-  handlers.CreateSubscriptionRequest:
-    properties:
-      plan_id:
-        type: string
-    required:
-    - plan_id
-    type: object
-  handlers.GenerateQRCodeRequest:
-    properties:
-      label:
-        maxLength: 100
-        minLength: 1
-        type: string
-      location:
-        maxLength: 200
-        type: string
-      organization_id:
-        type: string
-      type:
-        allOf:
-        - $ref: '#/definitions/models.QRCodeType'
-        enum:
-        - table
-        - location
-        - takeaway
-        - delivery
-        - general
-    required:
-    - label
-    - organization_id
-    - type
-    type: object
-  handlers.GenerateQRCodeResponse:
-    properties:
-      data:
-        $ref: '#/definitions/models.QRCode'
-      success:
-        type: boolean
-    type: object
-  handlers.InvoiceResponse:
-    properties:
-      amount_due:
-        type: integer
-      amount_paid:
-        type: integer
-      created_at:
-        type: string
-      currency:
-        type: string
-      hosted_invoice_url:
-        type: string
-      id:
-        type: string
-      invoice_pdf:
-        type: string
-      number:
-        type: string
-      paid_at:
-        type: string
-      status:
-        type: string
-    type: object
-  handlers.PaymentMethodResponse:
-    properties:
-      card:
-        $ref: '#/definitions/handlers.CardDetailsResponse'
-      id:
-        type: string
-      is_default:
-        type: boolean
-      type:
-        type: string
-    type: object
-  handlers.PortalResponse:
-    properties:
-      portal_url:
-        type: string
-    type: object
-  handlers.QRCodeListResponse:
-    properties:
-      data:
-        items:
-          $ref: '#/definitions/models.QRCode'
-        type: array
-      success:
-        type: boolean
-    type: object
-  handlers.SetDefaultPaymentRequest:
-    properties:
-      payment_method_id:
-        type: string
-    required:
-    - payment_method_id
-    type: object
-  handlers.UpdateQRCodeRequest:
-    properties:
-      is_active:
-        type: boolean
-      label:
-        maxLength: 100
-        minLength: 1
-        type: string
-      location:
-        maxLength: 200
-        type: string
-    type: object
-  handlers.UpdateQRCodeResponse:
-    properties:
-      data:
-        $ref: '#/definitions/models.QRCode'
-      success:
-        type: boolean
-    type: object
-  kyooar_internal_menu_models.Product:
-    properties:
-      category:
-        type: string
-      created_at:
-        type: string
-      currency:
-        type: string
-      description:
-        type: string
-      display_order:
-        type: integer
-      id:
-        type: string
-      image:
-        type: string
-      is_active:
-        type: boolean
-      is_available:
-        type: boolean
-      name:
-        type: string
-      organization_id:
-        type: string
-      price:
-        type: number
-      tags:
-        items:
-          type: string
-        type: array
-      updated_at:
-        type: string
     type: object
   models.Account:
     properties:
@@ -381,204 +657,6 @@ definitions:
       updated_at:
         type: string
     type: object
-  models.BatchQuestionsRequest:
-    properties:
-      product_ids:
-        items:
-          type: string
-        type: array
-    required:
-    - product_ids
-    type: object
-  models.ChoiceInfo:
-    properties:
-      choice:
-        type: string
-      count:
-        type: integer
-    type: object
-  models.ChoiceSeriesData:
-    properties:
-      choice:
-        type: string
-      points:
-        items:
-          $ref: '#/definitions/models.TimeSeriesPoint'
-        type: array
-      statistics:
-        $ref: '#/definitions/models.TimeSeriesStats'
-    type: object
-  models.ComparisonInsight:
-    properties:
-      change:
-        type: number
-      message:
-        type: string
-      metric_type:
-        type: string
-      recommendation:
-        type: string
-      severity:
-        type: string
-      type:
-        type: string
-    type: object
-  models.ComparisonRequest:
-    properties:
-      metric_types:
-        items:
-          type: string
-        type: array
-      organization_id:
-        type: string
-      period1_end:
-        type: string
-      period1_start:
-        type: string
-      period2_end:
-        type: string
-      period2_start:
-        type: string
-      product_id:
-        type: string
-      question_id:
-        type: string
-    type: object
-  models.ComparisonResponse:
-    properties:
-      comparisons:
-        items:
-          $ref: '#/definitions/models.TimeSeriesComparison'
-        type: array
-      insights:
-        items:
-          $ref: '#/definitions/models.ComparisonInsight'
-        type: array
-      request:
-        $ref: '#/definitions/models.ComparisonRequest'
-    type: object
-  models.CreateQuestionRequest:
-    properties:
-      is_required:
-        type: boolean
-      max_label:
-        type: string
-      max_value:
-        type: integer
-      min_label:
-        type: string
-      min_value:
-        type: integer
-      options:
-        items:
-          type: string
-        type: array
-      text:
-        type: string
-      type:
-        $ref: '#/definitions/models.QuestionType'
-    required:
-    - text
-    - type
-    type: object
-  models.CreateQuestionnaireRequest:
-    properties:
-      description:
-        type: string
-      is_default:
-        type: boolean
-      name:
-        type: string
-      product_id:
-        type: string
-    required:
-    - name
-    type: object
-  models.DateRange:
-    properties:
-      end:
-        type: string
-      start:
-        type: string
-    type: object
-  models.DeviceInfo:
-    properties:
-      browser:
-        type: string
-      ip:
-        type: string
-      platform:
-        type: string
-      user_agent:
-        type: string
-    type: object
-  models.Feedback:
-    properties:
-      created_at:
-        type: string
-      customer_email:
-        type: string
-      customer_name:
-        type: string
-      customer_phone:
-        type: string
-      device_info:
-        $ref: '#/definitions/models.DeviceInfo'
-      id:
-        type: string
-      is_complete:
-        type: boolean
-      organization:
-        $ref: '#/definitions/models.Organization'
-      organization_id:
-        type: string
-      overall_rating:
-        type: integer
-      product:
-        $ref: '#/definitions/kyooar_internal_menu_models.Product'
-      product_id:
-        type: string
-      qr_code:
-        $ref: '#/definitions/models.QRCode'
-      qr_code_id:
-        type: string
-      responses:
-        items:
-          $ref: '#/definitions/models.Response'
-        type: array
-      updated_at:
-        type: string
-    type: object
-  models.GenerateQuestionnaireRequest:
-    properties:
-      description:
-        type: string
-      is_default:
-        type: boolean
-      name:
-        type: string
-    required:
-    - name
-    type: object
-  models.GeneratedQuestion:
-    properties:
-      max_label:
-        type: string
-      max_value:
-        type: integer
-      min_label:
-        type: string
-      min_value:
-        type: integer
-      options:
-        items:
-          type: string
-        type: array
-      text:
-        type: string
-      type:
-        $ref: '#/definitions/models.QuestionType'
-    type: object
   models.MemberRole:
     enum:
     - OWNER
@@ -591,7 +669,82 @@ definitions:
     - RoleAdmin
     - RoleManager
     - RoleViewer
-  models.Organization:
+  models.Product:
+    properties:
+      category:
+        type: string
+      created_at:
+        type: string
+      currency:
+        type: string
+      description:
+        type: string
+      display_order:
+        type: integer
+      id:
+        type: string
+      image:
+        type: string
+      is_active:
+        type: boolean
+      is_available:
+        type: boolean
+      name:
+        type: string
+      organization_id:
+        type: string
+      price:
+        type: number
+      tags:
+        items:
+          type: string
+        type: array
+      updated_at:
+        type: string
+    type: object
+  models.TeamMember:
+    properties:
+      accepted_at:
+        type: string
+      account:
+        $ref: '#/definitions/models.Account'
+      account_id:
+        type: string
+      created_at:
+        type: string
+      id:
+        type: string
+      invited_at:
+        type: string
+      invited_by:
+        type: string
+      member:
+        $ref: '#/definitions/models.Account'
+      member_id:
+        type: string
+      role:
+        $ref: '#/definitions/models.MemberRole'
+      updated_at:
+        type: string
+    type: object
+  organizationmodel.CreateOrganizationRequest:
+    properties:
+      address:
+        type: string
+      description:
+        type: string
+      email:
+        type: string
+      name:
+        type: string
+      phone:
+        type: string
+      website:
+        type: string
+    required:
+    - name
+    type: object
+  organizationmodel.Organization:
     properties:
       account_id:
         type: string
@@ -614,13 +767,61 @@ definitions:
       phone:
         type: string
       settings:
-        $ref: '#/definitions/models.Settings'
+        $ref: '#/definitions/organizationmodel.Settings'
       updated_at:
         type: string
       website:
         type: string
     type: object
-  models.QRCode:
+  organizationmodel.Settings:
+    properties:
+      feedback_notification:
+        type: boolean
+      language:
+        type: string
+      low_rating_threshold:
+        type: integer
+      timezone:
+        type: string
+    type: object
+  qrcodecontroller.GenerateQRCodeRequest:
+    properties:
+      label:
+        maxLength: 100
+        minLength: 1
+        type: string
+      location:
+        maxLength: 200
+        type: string
+      organization_id:
+        type: string
+      type:
+        allOf:
+        - $ref: '#/definitions/qrcodemodel.QRCodeType'
+        enum:
+        - table
+        - location
+        - takeaway
+        - delivery
+        - general
+    required:
+    - label
+    - organization_id
+    - type
+    type: object
+  qrcodecontroller.UpdateQRCodeRequest:
+    properties:
+      is_active:
+        type: boolean
+      label:
+        maxLength: 100
+        minLength: 1
+        type: string
+      location:
+        maxLength: 200
+        type: string
+    type: object
+  qrcodemodel.QRCode:
     properties:
       code:
         type: string
@@ -639,17 +840,17 @@ definitions:
       location:
         type: string
       organization:
-        $ref: '#/definitions/models.Organization'
+        $ref: '#/definitions/organizationmodel.Organization'
       organization_id:
         type: string
       scans_count:
         type: integer
       type:
-        $ref: '#/definitions/models.QRCodeType'
+        $ref: '#/definitions/qrcodemodel.QRCodeType'
       updated_at:
         type: string
     type: object
-  models.QRCodeType:
+  qrcodemodel.QRCodeType:
     enum:
     - table
     - location
@@ -663,106 +864,145 @@ definitions:
     - QRCodeTypeTakeaway
     - QRCodeTypeDelivery
     - QRCodeTypeGeneral
-  models.Question:
+  response.ErrorData:
     properties:
-      created_at:
+      code:
         type: string
-      display_order:
-        type: integer
-      id:
-        type: string
-      is_required:
-        type: boolean
-      max_label:
-        type: string
-      max_value:
-        type: integer
-      min_label:
-        type: string
-      min_value:
-        type: integer
-      options:
-        items:
-          type: string
-        type: array
-      product:
-        $ref: '#/definitions/kyooar_internal_menu_models.Product'
-      product_id:
-        type: string
-      text:
-        type: string
-      type:
-        $ref: '#/definitions/models.QuestionType'
-      updated_at:
+      details: {}
+      message:
         type: string
     type: object
-  models.QuestionType:
-    enum:
-    - rating
-    - scale
-    - multi_choice
-    - single_choice
-    - text
-    - yes_no
-    type: string
-    x-enum-varnames:
-    - QuestionTypeRating
-    - QuestionTypeScale
-    - QuestionTypeMultiChoice
-    - QuestionTypeSingleChoice
-    - QuestionTypeText
-    - QuestionTypeYesNo
-  models.Questionnaire:
+  response.Meta:
     properties:
+      pagination:
+        $ref: '#/definitions/response.Pagination'
+      request_id:
+        type: string
+      timestamp:
+        type: string
+      version:
+        type: string
+    type: object
+  response.Pagination:
+    properties:
+      limit:
+        type: integer
+      page:
+        type: integer
+      pages:
+        type: integer
+      total:
+        type: integer
+    type: object
+  response.Response:
+    properties:
+      data: {}
+      error:
+        $ref: '#/definitions/response.ErrorData'
+      meta:
+        $ref: '#/definitions/response.Meta'
+      success:
+        type: boolean
+    type: object
+  subscriptioncontroller.CardDetailsResponse:
+    properties:
+      brand:
+        type: string
+      exp_month:
+        type: integer
+      exp_year:
+        type: integer
+      last4:
+        type: string
+    type: object
+  subscriptioncontroller.CheckoutResponse:
+    properties:
+      checkout_url:
+        type: string
+      session_id:
+        type: string
+    type: object
+  subscriptioncontroller.CompleteCheckoutRequest:
+    properties:
+      session_id:
+        type: string
+    required:
+    - session_id
+    type: object
+  subscriptioncontroller.CreateCheckoutRequest:
+    properties:
+      plan_id:
+        type: string
+    required:
+    - plan_id
+    type: object
+  subscriptioncontroller.CreateSubscriptionRequest:
+    properties:
+      plan_id:
+        type: string
+    required:
+    - plan_id
+    type: object
+  subscriptioncontroller.InvoiceResponse:
+    properties:
+      amount_due:
+        type: integer
+      amount_paid:
+        type: integer
       created_at:
         type: string
-      description:
+      currency:
+        type: string
+      hosted_invoice_url:
         type: string
       id:
         type: string
-      is_active:
-        type: boolean
+      invoice_pdf:
+        type: string
+      number:
+        type: string
+      paid_at:
+        type: string
+      status:
+        type: string
+    type: object
+  subscriptioncontroller.PaymentMethodResponse:
+    properties:
+      card:
+        $ref: '#/definitions/subscriptioncontroller.CardDetailsResponse'
+      id:
+        type: string
       is_default:
         type: boolean
-      name:
-        type: string
-      organization:
-        $ref: '#/definitions/models.Organization'
-      organization_id:
-        type: string
-      product:
-        $ref: '#/definitions/kyooar_internal_menu_models.Product'
-      product_id:
-        type: string
-      questions:
-        items:
-          $ref: '#/definitions/models.Question'
-        type: array
-      updated_at:
+      type:
         type: string
     type: object
-  models.Response:
+  subscriptioncontroller.PortalResponse:
     properties:
-      answer: {}
-      question_id:
+      portal_url:
         type: string
-      question_text:
-        type: string
-      question_type:
-        $ref: '#/definitions/models.QuestionType'
     type: object
-  models.Settings:
+  subscriptioncontroller.SetDefaultPaymentRequest:
     properties:
-      feedback_notification:
+      payment_method_id:
+        type: string
+    required:
+    - payment_method_id
+    type: object
+  subscriptioninterface.PermissionResponse:
+    properties:
+      can_create:
         type: boolean
-      language:
-        type: string
-      low_rating_threshold:
+      current_count:
         type: integer
-      timezone:
+      max_allowed:
+        type: integer
+      reason:
+        type: string
+      subscription_status:
         type: string
     type: object
-  models.Subscription:
+  subscriptionmodel.Subscription:
     properties:
       account:
         $ref: '#/definitions/models.Account'
@@ -781,15 +1021,15 @@ definitions:
       id:
         type: string
       plan:
-        $ref: '#/definitions/models.SubscriptionPlan'
+        $ref: '#/definitions/subscriptionmodel.SubscriptionPlan'
       plan_id:
         type: string
       status:
-        $ref: '#/definitions/models.SubscriptionStatus'
+        $ref: '#/definitions/subscriptionmodel.SubscriptionStatus'
       updated_at:
         type: string
     type: object
-  models.SubscriptionPlan:
+  subscriptionmodel.SubscriptionPlan:
     properties:
       code:
         type: string
@@ -834,7 +1074,7 @@ definitions:
       updated_at:
         type: string
     type: object
-  models.SubscriptionStatus:
+  subscriptionmodel.SubscriptionStatus:
     enum:
     - active
     - pending
@@ -846,7 +1086,7 @@ definitions:
     - SubscriptionPending
     - SubscriptionCanceled
     - SubscriptionExpired
-  models.SubscriptionUsage:
+  subscriptionmodel.SubscriptionUsage:
     properties:
       created_at:
         type: string
@@ -867,258 +1107,12 @@ definitions:
       qr_codes_count:
         type: integer
       subscription:
-        $ref: '#/definitions/models.Subscription'
+        $ref: '#/definitions/subscriptionmodel.Subscription'
       subscription_id:
         type: string
       team_members_count:
         type: integer
       updated_at:
-        type: string
-    type: object
-  models.TeamMember:
-    properties:
-      accepted_at:
-        type: string
-      account:
-        $ref: '#/definitions/models.Account'
-      account_id:
-        type: string
-      created_at:
-        type: string
-      id:
-        type: string
-      invited_at:
-        type: string
-      invited_by:
-        type: string
-      member:
-        $ref: '#/definitions/models.Account'
-      member_id:
-        type: string
-      role:
-        $ref: '#/definitions/models.MemberRole'
-      updated_at:
-        type: string
-    type: object
-  models.TimePeriodMetrics:
-    properties:
-      average:
-        type: number
-      choice_distribution:
-        additionalProperties:
-          format: int64
-          type: integer
-        type: object
-      count:
-        type: integer
-      data_points:
-        items:
-          $ref: '#/definitions/models.TimeSeriesPoint'
-        type: array
-      end_date:
-        type: string
-      max:
-        type: number
-      min:
-        type: number
-      most_popular_choice:
-        $ref: '#/definitions/models.ChoiceInfo'
-      start_date:
-        type: string
-      top_choices:
-        items:
-          $ref: '#/definitions/models.ChoiceInfo'
-        type: array
-      value:
-        type: number
-    type: object
-  models.TimeSeriesComparison:
-    properties:
-      change:
-        type: number
-      change_percent:
-        type: number
-      metadata:
-        type: string
-      metric_name:
-        type: string
-      metric_type:
-        type: string
-      period1:
-        $ref: '#/definitions/models.TimePeriodMetrics'
-      period2:
-        $ref: '#/definitions/models.TimePeriodMetrics'
-      trend:
-        type: string
-    type: object
-  models.TimeSeriesData:
-    properties:
-      choice_series:
-        items:
-          $ref: '#/definitions/models.ChoiceSeriesData'
-        type: array
-      metadata:
-        additionalProperties: {}
-        type: object
-      metric_name:
-        type: string
-      metric_type:
-        type: string
-      points:
-        items:
-          $ref: '#/definitions/models.TimeSeriesPoint'
-        type: array
-      product_id:
-        type: string
-      product_name:
-        type: string
-      statistics:
-        $ref: '#/definitions/models.TimeSeriesStats'
-    type: object
-  models.TimeSeriesPoint:
-    properties:
-      count:
-        type: integer
-      timestamp:
-        type: string
-      value:
-        type: number
-    type: object
-  models.TimeSeriesRequest:
-    properties:
-      end_date:
-        type: string
-      granularity:
-        type: string
-      group_by:
-        items:
-          type: string
-        type: array
-      metric_types:
-        items:
-          type: string
-        type: array
-      organization_id:
-        type: string
-      product_id:
-        type: string
-      question_id:
-        type: string
-      start_date:
-        type: string
-    type: object
-  models.TimeSeriesResponse:
-    properties:
-      request:
-        $ref: '#/definitions/models.TimeSeriesRequest'
-      series:
-        items:
-          $ref: '#/definitions/models.TimeSeriesData'
-        type: array
-      summary:
-        $ref: '#/definitions/models.TimeSeriesSummary'
-    type: object
-  models.TimeSeriesStats:
-    properties:
-      average:
-        type: number
-      count:
-        type: integer
-      max:
-        type: number
-      min:
-        type: number
-      total:
-        type: number
-      trend_direction:
-        type: string
-      trend_strength:
-        type: number
-    type: object
-  models.TimeSeriesSummary:
-    properties:
-      date_range:
-        $ref: '#/definitions/models.DateRange'
-      granularity:
-        type: string
-      metrics_summary:
-        additionalProperties: true
-        type: object
-      total_data_points:
-        type: integer
-    type: object
-  models.UpdateQuestionRequest:
-    properties:
-      is_required:
-        type: boolean
-      max_label:
-        type: string
-      max_value:
-        type: integer
-      min_label:
-        type: string
-      min_value:
-        type: integer
-      options:
-        items:
-          type: string
-        type: array
-      text:
-        type: string
-      type:
-        $ref: '#/definitions/models.QuestionType'
-    type: object
-  response.ErrorData:
-    properties:
-      code:
-        type: string
-      details: {}
-      message:
-        type: string
-    type: object
-  response.Meta:
-    properties:
-      pagination:
-        $ref: '#/definitions/response.Pagination'
-      request_id:
-        type: string
-      timestamp:
-        type: string
-      version:
-        type: string
-    type: object
-  response.Pagination:
-    properties:
-      limit:
-        type: integer
-      page:
-        type: integer
-      pages:
-        type: integer
-      total:
-        type: integer
-    type: object
-  response.Response:
-    properties:
-      data: {}
-      error:
-        $ref: '#/definitions/response.ErrorData'
-      meta:
-        $ref: '#/definitions/response.Meta'
-      success:
-        type: boolean
-    type: object
-  services.PermissionResponse:
-    properties:
-      can_create:
-        type: boolean
-      current_count:
-        type: integer
-      max_allowed:
-        type: integer
-      reason:
-        type: string
-      subscription_status:
         type: string
     type: object
 host: localhost:8080
@@ -1148,7 +1142,7 @@ paths:
         name: questionnaire
         required: true
         schema:
-          $ref: '#/definitions/models.GenerateQuestionnaireRequest'
+          $ref: '#/definitions/feedbackmodel.GenerateQuestionnaireRequest'
       produces:
       - application/json
       responses:
@@ -1159,7 +1153,7 @@ paths:
             - $ref: '#/definitions/response.Response'
             - properties:
                 data:
-                  $ref: '#/definitions/models.Questionnaire'
+                  $ref: '#/definitions/feedbackmodel.Questionnaire'
               type: object
         "400":
           description: Bad Request
@@ -1205,7 +1199,7 @@ paths:
             - properties:
                 data:
                   items:
-                    $ref: '#/definitions/models.GeneratedQuestion'
+                    $ref: '#/definitions/feedbackmodel.GeneratedQuestion'
                   type: array
               type: object
         "400":
@@ -1437,14 +1431,14 @@ paths:
         name: body
         required: true
         schema:
-          $ref: '#/definitions/models.ComparisonRequest'
+          $ref: '#/definitions/analyticsmodel.ComparisonRequest'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/models.ComparisonResponse'
+            $ref: '#/definitions/analyticsmodel.ComparisonResponse'
         "400":
           description: Bad Request
           schema:
@@ -1519,7 +1513,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/models.TimeSeriesResponse'
+            $ref: '#/definitions/analyticsmodel.TimeSeriesResponse'
         "400":
           description: Bad Request
           schema:
@@ -2087,7 +2081,7 @@ paths:
             - properties:
                 data:
                   items:
-                    $ref: '#/definitions/models.Organization'
+                    $ref: '#/definitions/organizationmodel.Organization'
                   type: array
               type: object
         "401":
@@ -2109,7 +2103,7 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/handlers.CreateOrganizationRequest'
+          $ref: '#/definitions/organizationmodel.CreateOrganizationRequest'
       produces:
       - application/json
       responses:
@@ -2120,7 +2114,7 @@ paths:
             - $ref: '#/definitions/response.Response'
             - properties:
                 data:
-                  $ref: '#/definitions/models.Organization'
+                  $ref: '#/definitions/organizationmodel.Organization'
               type: object
         "400":
           description: Bad Request
@@ -2197,7 +2191,7 @@ paths:
             - $ref: '#/definitions/response.Response'
             - properties:
                 data:
-                  $ref: '#/definitions/models.Organization'
+                  $ref: '#/definitions/organizationmodel.Organization'
               type: object
         "400":
           description: Bad Request
@@ -2395,7 +2389,7 @@ paths:
             - properties:
                 data:
                   items:
-                    $ref: '#/definitions/kyooar_internal_menu_models.Product'
+                    $ref: '#/definitions/models.Product'
                   type: array
               type: object
         "400":
@@ -2445,7 +2439,7 @@ paths:
             - $ref: '#/definitions/response.Response'
             - properties:
                 data:
-                  $ref: '#/definitions/kyooar_internal_menu_models.Product'
+                  $ref: '#/definitions/models.Product'
               type: object
         "400":
           description: Bad Request
@@ -2462,6 +2456,162 @@ paths:
       security:
       - ApiKeyAuth: []
       summary: Create a new product
+      tags:
+      - products
+  /api/v1/organizations/{organizationId}/products/{productId}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete a product from the system
+      parameters:
+      - description: Organization ID
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      - description: Product ID
+        in: path
+        name: productId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  additionalProperties:
+                    type: string
+                  type: object
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - ApiKeyAuth: []
+      summary: Delete a product
+      tags:
+      - products
+    get:
+      consumes:
+      - application/json
+      description: Get a specific product by its ID
+      parameters:
+      - description: Organization ID
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      - description: Product ID
+        in: path
+        name: productId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/models.Product'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - ApiKeyAuth: []
+      summary: Get product by ID
+      tags:
+      - products
+    put:
+      consumes:
+      - application/json
+      description: Update a product's information
+      parameters:
+      - description: Organization ID
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      - description: Product ID
+        in: path
+        name: productId
+        required: true
+        type: string
+      - description: Fields to update
+        in: body
+        name: updates
+        required: true
+        schema:
+          additionalProperties: true
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  additionalProperties:
+                    type: string
+                  type: object
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - ApiKeyAuth: []
+      summary: Update a product
       tags:
       - products
   /api/v1/organizations/{organizationId}/products/{productId}/questions:
@@ -2536,7 +2686,7 @@ paths:
         name: question
         required: true
         schema:
-          $ref: '#/definitions/models.CreateQuestionRequest'
+          $ref: '#/definitions/feedbackmodel.CreateQuestionRequest'
       produces:
       - application/json
       responses:
@@ -2713,7 +2863,7 @@ paths:
         name: question
         required: true
         schema:
-          $ref: '#/definitions/models.UpdateQuestionRequest'
+          $ref: '#/definitions/feedbackmodel.UpdateQuestionRequest'
       produces:
       - application/json
       responses:
@@ -2831,7 +2981,14 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/handlers.QRCodeListResponse'
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/qrcodemodel.QRCode'
+                  type: array
+              type: object
         "400":
           description: Bad Request
           schema:
@@ -2859,14 +3016,19 @@ paths:
         name: qr_code
         required: true
         schema:
-          $ref: '#/definitions/handlers.GenerateQRCodeRequest'
+          $ref: '#/definitions/qrcodecontroller.GenerateQRCodeRequest'
       produces:
       - application/json
       responses:
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/handlers.GenerateQRCodeResponse'
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/qrcodemodel.QRCode'
+              type: object
         "400":
           description: Bad Request
           schema:
@@ -2906,7 +3068,7 @@ paths:
             - properties:
                 data:
                   items:
-                    $ref: '#/definitions/models.Questionnaire'
+                    $ref: '#/definitions/feedbackmodel.Questionnaire'
                   type: array
               type: object
         "400":
@@ -2937,7 +3099,7 @@ paths:
         name: questionnaire
         required: true
         schema:
-          $ref: '#/definitions/models.CreateQuestionnaireRequest'
+          $ref: '#/definitions/feedbackmodel.CreateQuestionnaireRequest'
       produces:
       - application/json
       responses:
@@ -2948,7 +3110,7 @@ paths:
             - $ref: '#/definitions/response.Response'
             - properties:
                 data:
-                  $ref: '#/definitions/models.Questionnaire'
+                  $ref: '#/definitions/feedbackmodel.Questionnaire'
               type: object
         "400":
           description: Bad Request
@@ -3032,7 +3194,7 @@ paths:
             - $ref: '#/definitions/response.Response'
             - properties:
                 data:
-                  $ref: '#/definitions/models.Questionnaire'
+                  $ref: '#/definitions/feedbackmodel.Questionnaire'
               type: object
         "400":
           description: Bad Request
@@ -3071,7 +3233,7 @@ paths:
         name: questionnaire
         required: true
         schema:
-          $ref: '#/definitions/models.Questionnaire'
+          $ref: '#/definitions/feedbackmodel.Questionnaire'
       produces:
       - application/json
       responses:
@@ -3082,7 +3244,7 @@ paths:
             - $ref: '#/definitions/response.Response'
             - properties:
                 data:
-                  $ref: '#/definitions/models.Questionnaire'
+                  $ref: '#/definitions/feedbackmodel.Questionnaire'
               type: object
         "400":
           description: Bad Request
@@ -3118,7 +3280,7 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/models.BatchQuestionsRequest'
+          $ref: '#/definitions/feedbackmodel.BatchQuestionsRequest'
       produces:
       - application/json
       responses:
@@ -3210,7 +3372,7 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/handlers.CreateCheckoutRequest'
+          $ref: '#/definitions/subscriptioncontroller.CreateCheckoutRequest'
       produces:
       - application/json
       responses:
@@ -3221,7 +3383,7 @@ paths:
             - $ref: '#/definitions/response.Response'
             - properties:
                 data:
-                  $ref: '#/definitions/handlers.CheckoutResponse'
+                  $ref: '#/definitions/subscriptioncontroller.CheckoutResponse'
               type: object
         "400":
           description: Bad Request
@@ -3247,7 +3409,7 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/handlers.CompleteCheckoutRequest'
+          $ref: '#/definitions/subscriptioncontroller.CompleteCheckoutRequest'
       produces:
       - application/json
       responses:
@@ -3282,7 +3444,7 @@ paths:
             - properties:
                 data:
                   items:
-                    $ref: '#/definitions/handlers.InvoiceResponse'
+                    $ref: '#/definitions/subscriptioncontroller.InvoiceResponse'
                   type: array
               type: object
         "401":
@@ -3308,7 +3470,7 @@ paths:
             - properties:
                 data:
                   items:
-                    $ref: '#/definitions/handlers.PaymentMethodResponse'
+                    $ref: '#/definitions/subscriptioncontroller.PaymentMethodResponse'
                   type: array
               type: object
         "401":
@@ -3331,7 +3493,7 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/handlers.SetDefaultPaymentRequest'
+          $ref: '#/definitions/subscriptioncontroller.SetDefaultPaymentRequest'
       produces:
       - application/json
       responses:
@@ -3366,7 +3528,7 @@ paths:
             - $ref: '#/definitions/response.Response'
             - properties:
                 data:
-                  $ref: '#/definitions/handlers.PortalResponse'
+                  $ref: '#/definitions/subscriptioncontroller.PortalResponse'
               type: object
         "401":
           description: Unauthorized
@@ -3413,7 +3575,7 @@ paths:
             - properties:
                 data:
                   items:
-                    $ref: '#/definitions/models.SubscriptionPlan'
+                    $ref: '#/definitions/subscriptionmodel.SubscriptionPlan'
                   type: array
               type: object
         "500":
@@ -3423,147 +3585,6 @@ paths:
       summary: Get available subscription plans
       tags:
       - subscription
-  /api/v1/products/{id}:
-    delete:
-      consumes:
-      - application/json
-      description: Delete a product from the system
-      parameters:
-      - description: Product ID
-        in: path
-        name: id
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            allOf:
-            - $ref: '#/definitions/response.Response'
-            - properties:
-                data:
-                  additionalProperties:
-                    type: string
-                  type: object
-              type: object
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/response.Response'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/response.Response'
-        "404":
-          description: Not Found
-          schema:
-            $ref: '#/definitions/response.Response'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/response.Response'
-      security:
-      - ApiKeyAuth: []
-      summary: Delete a product
-      tags:
-      - products
-    get:
-      consumes:
-      - application/json
-      description: Get a specific product by its ID
-      parameters:
-      - description: Product ID
-        in: path
-        name: id
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            allOf:
-            - $ref: '#/definitions/response.Response'
-            - properties:
-                data:
-                  $ref: '#/definitions/kyooar_internal_menu_models.Product'
-              type: object
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/response.Response'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/response.Response'
-        "404":
-          description: Not Found
-          schema:
-            $ref: '#/definitions/response.Response'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/response.Response'
-      security:
-      - ApiKeyAuth: []
-      summary: Get product by ID
-      tags:
-      - products
-    put:
-      consumes:
-      - application/json
-      description: Update a product's information
-      parameters:
-      - description: Product ID
-        in: path
-        name: id
-        required: true
-        type: string
-      - description: Fields to update
-        in: body
-        name: updates
-        required: true
-        schema:
-          additionalProperties: true
-          type: object
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            allOf:
-            - $ref: '#/definitions/response.Response'
-            - properties:
-                data:
-                  additionalProperties:
-                    type: string
-                  type: object
-              type: object
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/response.Response'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/response.Response'
-        "404":
-          description: Not Found
-          schema:
-            $ref: '#/definitions/response.Response'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/response.Response'
-      security:
-      - ApiKeyAuth: []
-      summary: Update a product
-      tags:
-      - products
   /api/v1/public/feedback:
     post:
       consumes:
@@ -3575,7 +3596,7 @@ paths:
         name: feedback
         required: true
         schema:
-          $ref: '#/definitions/models.Feedback'
+          $ref: '#/definitions/feedbackmodel.Feedback'
       produces:
       - application/json
       responses:
@@ -3595,11 +3616,11 @@ paths:
       summary: Submit feedback
       tags:
       - public
-  /api/v1/public/organization/{id}/menu:
+  /api/v1/public/organization/{id}/products:
     get:
       consumes:
       - application/json
-      description: Get public menu for a organization
+      description: Get public products for a organization
       parameters:
       - description: Organization ID
         in: path
@@ -3622,7 +3643,7 @@ paths:
           description: Not Found
           schema:
             $ref: '#/definitions/response.Response'
-      summary: Get organization menu
+      summary: Get organization products
       tags:
       - public
   /api/v1/public/organization/{organizationId}/products/{productId}/questions:
@@ -3713,8 +3734,12 @@ paths:
         "200":
           description: OK
           schema:
-            additionalProperties: true
-            type: object
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/qrcodemodel.QRCode'
+              type: object
         "400":
           description: Bad Request
           schema:
@@ -3778,8 +3803,14 @@ paths:
         "200":
           description: OK
           schema:
-            additionalProperties: true
-            type: object
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  additionalProperties:
+                    type: string
+                  type: object
+              type: object
         "400":
           description: Bad Request
           schema:
@@ -3812,14 +3843,19 @@ paths:
         name: qr_code
         required: true
         schema:
-          $ref: '#/definitions/handlers.UpdateQRCodeRequest'
+          $ref: '#/definitions/qrcodecontroller.UpdateQRCodeRequest'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/handlers.UpdateQRCodeResponse'
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/qrcodemodel.QRCode'
+              type: object
         "400":
           description: Bad Request
           schema:
@@ -4070,7 +4106,7 @@ paths:
             - $ref: '#/definitions/response.Response'
             - properties:
                 data:
-                  $ref: '#/definitions/services.PermissionResponse'
+                  $ref: '#/definitions/subscriptioninterface.PermissionResponse'
               type: object
         "401":
           description: Unauthorized
@@ -4129,7 +4165,7 @@ paths:
             - $ref: '#/definitions/response.Response'
             - properties:
                 data:
-                  $ref: '#/definitions/models.Subscription'
+                  $ref: '#/definitions/subscriptionmodel.Subscription'
               type: object
         "401":
           description: Unauthorized
@@ -4158,7 +4194,7 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/handlers.CreateSubscriptionRequest'
+          $ref: '#/definitions/subscriptioncontroller.CreateSubscriptionRequest'
       produces:
       - application/json
       responses:
@@ -4169,7 +4205,7 @@ paths:
             - $ref: '#/definitions/response.Response'
             - properties:
                 data:
-                  $ref: '#/definitions/models.Subscription'
+                  $ref: '#/definitions/subscriptionmodel.Subscription'
               type: object
         "400":
           description: Bad Request
@@ -4204,7 +4240,7 @@ paths:
             - $ref: '#/definitions/response.Response'
             - properties:
                 data:
-                  $ref: '#/definitions/models.SubscriptionUsage'
+                  $ref: '#/definitions/subscriptionmodel.SubscriptionUsage'
               type: object
         "401":
           description: Unauthorized
@@ -4239,7 +4275,7 @@ paths:
         name: question
         required: true
         schema:
-          $ref: '#/definitions/models.Question'
+          $ref: '#/definitions/feedbackmodel.Question'
       produces:
       - application/json
       responses:
@@ -4332,7 +4368,7 @@ paths:
         name: question
         required: true
         schema:
-          $ref: '#/definitions/models.Question'
+          $ref: '#/definitions/feedbackmodel.Question'
       produces:
       - application/json
       responses:

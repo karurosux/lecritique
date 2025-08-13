@@ -36,6 +36,21 @@ func ProvideTeamInvitationRepository(i *do.Injector) (authinterface.TeamInvitati
 	return gormrepo.NewTeamInvitationRepository(db), nil
 }
 
+func ProvideTeamMemberService(i *do.Injector) (authinterface.TeamMemberService, error) {
+	teamMemberRepo := do.MustInvoke[authinterface.TeamMemberRepository](i)
+	invitationRepo := do.MustInvoke[authinterface.TeamInvitationRepository](i)
+	accountRepo := do.MustInvoke[authinterface.AccountRepository](i)
+	tokenGenerator := do.MustInvoke[authinterface.TokenGenerator](i)
+
+	return authservice.NewTeamMemberService(
+		teamMemberRepo,
+		invitationRepo,
+		accountRepo,
+		tokenGenerator,
+		nil,
+	), nil
+}
+
 func ProvidePasswordHasher(i *do.Injector) (authinterface.PasswordHasher, error) {
 	return authservice.NewBcryptPasswordHasher(12), nil
 }
@@ -49,8 +64,13 @@ func ProvideAuthService(i *do.Injector) (authinterface.AuthService, error) {
 	tokenRepo := do.MustInvoke[authinterface.TokenRepository](i)
 	emailService := do.MustInvoke[services.EmailService](i)
 	teamService := do.MustInvoke[authinterface.TeamMemberService](i)
-	subscriptionService := do.MustInvoke[subscriptioninterface.SubscriptionService](i)
 	config := do.MustInvoke[*config.Config](i)
+
+	// Try to get subscription service, but it's optional to avoid circular dependency
+	var subscriptionService subscriptioninterface.SubscriptionService
+	if s, err := do.Invoke[subscriptioninterface.SubscriptionService](i); err == nil {
+		subscriptionService = s
+	}
 
 	return authservice.NewAuthService(
 		accountRepo,
@@ -116,6 +136,7 @@ func RegisterNewModule(container *do.Injector) error {
 	do.Provide(container, ProvideTeamInvitationRepository)
 	do.Provide(container, ProvidePasswordHasher)
 	do.Provide(container, ProvideTokenGenerator)
+	do.Provide(container, ProvideTeamMemberService)
 	do.Provide(container, ProvideAuthService)
 	do.Provide(container, ProvideAuthMiddleware)
 	do.Provide(container, ProvideAuthController)

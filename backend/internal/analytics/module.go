@@ -10,7 +10,7 @@ import (
 	gormrepo "kyooar/internal/analytics/repository/gorm"
 	analyticsservice "kyooar/internal/analytics/services"
 	feedbackinterface "kyooar/internal/feedback/interface"
-	menuRepos "kyooar/internal/product/repositories"
+	productRepos "kyooar/internal/product/repositories"
 	organizationinterface "kyooar/internal/organization/interface"
 	qrcodeinterface "kyooar/internal/qrcode/interface"
 	sharedMiddleware "kyooar/internal/shared/middleware"
@@ -29,7 +29,7 @@ func ProvideTimeSeriesRepository(i *do.Injector) (analyticsinterface.TimeSeriesR
 func ProvideAnalyticsService(i *do.Injector) (analyticsinterface.AnalyticsService, error) {
 	analyticsRepo := do.MustInvoke[analyticsinterface.AnalyticsRepository](i)
 	feedbackRepo := do.MustInvoke[feedbackinterface.FeedbackRepository](i)
-	productRepo := do.MustInvoke[menuRepos.ProductRepository](i)
+	productRepo := do.MustInvoke[productRepos.ProductRepository](i)
 	qrCodeRepo := do.MustInvoke[qrcodeinterface.QRCodeRepository](i)
 	organizationRepo := do.MustInvoke[organizationinterface.OrganizationRepository](i)
 
@@ -60,7 +60,7 @@ func ProvideTimeSeriesService(i *do.Injector) (analyticsinterface.TimeSeriesServ
 
 func ProvideAnalyticsController(i *do.Injector) (*analyticscontroller.AnalyticsController, error) {
 	feedbackRepo := do.MustInvoke[feedbackinterface.FeedbackRepository](i)
-	productRepo := do.MustInvoke[menuRepos.ProductRepository](i)
+	productRepo := do.MustInvoke[productRepos.ProductRepository](i)
 	organizationRepo := do.MustInvoke[organizationinterface.OrganizationRepository](i)
 	analyticsService := do.MustInvoke[analyticsinterface.AnalyticsService](i)
 
@@ -82,15 +82,15 @@ func ProvideTimeSeriesController(i *do.Injector) (*analyticscontroller.TimeSerie
 	), nil
 }
 
-type Module struct {
+type AnalyticsModule struct {
 	injector *do.Injector
 }
 
-func NewModule(i *do.Injector) *Module {
-	return &Module{injector: i}
+func NewAnalyticsModule(i *do.Injector) *AnalyticsModule {
+	return &AnalyticsModule{injector: i}
 }
 
-func (m *Module) RegisterRoutes(v1 *echo.Group) {
+func (m *AnalyticsModule) RegisterRoutes(v1 *echo.Group) {
 	analyticsController := do.MustInvoke[*analyticscontroller.AnalyticsController](m.injector)
 	timeSeriesController := do.MustInvoke[*analyticscontroller.TimeSeriesController](m.injector)
 	
@@ -108,13 +108,11 @@ func (m *Module) RegisterRoutes(v1 *echo.Group) {
 	analytics.POST("/organizations/:organizationId/collect-metrics", timeSeriesController.CollectMetrics)
 }
 
-func RegisterModule(container *do.Injector) error {
+func RegisterNewModule(container *do.Injector) {
 	do.Provide(container, ProvideAnalyticsRepository)
 	do.Provide(container, ProvideTimeSeriesRepository)
 	do.Provide(container, ProvideAnalyticsService)
 	do.Provide(container, ProvideTimeSeriesService)
 	do.Provide(container, ProvideAnalyticsController)
 	do.Provide(container, ProvideTimeSeriesController)
-
-	return nil
 }

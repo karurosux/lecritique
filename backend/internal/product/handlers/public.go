@@ -8,15 +8,15 @@ import (
 	"github.com/samber/do"
 )
 
-type MenuPublicHandler struct {
+type ProductPublicHandler struct {
 }
 
-func NewMenuPublicHandler(i *do.Injector) (*MenuPublicHandler, error) {
-	return &MenuPublicHandler{}, nil
+func NewProductPublicHandler(i *do.Injector) (*ProductPublicHandler, error) {
+	return &ProductPublicHandler{}, nil
 }
 
-// @Summary Get organization menu
-// @Description Get public menu for a organization
+// @Summary Get organization products
+// @Description Get public products for a organization
 // @Tags public
 // @Accept json
 // @Produce json
@@ -24,8 +24,8 @@ func NewMenuPublicHandler(i *do.Injector) (*MenuPublicHandler, error) {
 // @Success 200 {object} map[string]interface{}
 // @Failure 400 {object} response.Response
 // @Failure 404 {object} response.Response
-// @Router /api/v1/public/organization/{id}/menu [get]
-func (h *MenuPublicHandler) GetOrganizationMenu(c echo.Context) error {
+// @Router /api/v1/public/organization/{id}/products [get]
+func (h *ProductPublicHandler) GetOrganizationProducts(c echo.Context) error {
 	idStr := c.Param("id")
 	id, err := uuid.Parse(idStr)
 	if err != nil {
@@ -34,6 +34,6 @@ func (h *MenuPublicHandler) GetOrganizationMenu(c echo.Context) error {
 
 	return response.Success(c, map[string]interface{}{
 		"organization_id": id,
-		"message":       "Menu endpoint - to be implemented",
+		"message":       "Products endpoint - to be implemented",
 	})
 }

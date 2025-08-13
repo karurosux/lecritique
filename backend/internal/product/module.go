@@ -1,4 +1,4 @@
-package menu
+package product
 
 import (
 	"github.com/labstack/echo/v4"
@@ -17,10 +17,10 @@ func NewModule(i *do.Injector) *Module {
 
 func (m *Module) RegisterRoutes(v1 *echo.Group) {
 	productHandler := do.MustInvoke[*handlers.ProductHandler](m.injector)
-	publicHandler := do.MustInvoke[*handlers.MenuPublicHandler](m.injector)
+	publicHandler := do.MustInvoke[*handlers.ProductPublicHandler](m.injector)
 	
 	middlewareProvider := do.MustInvoke[*sharedMiddleware.MiddlewareProvider](m.injector)
-	v1.GET("/organization/:id/menu", publicHandler.GetOrganizationMenu)
+	v1.GET("/public/organization/:id/products", publicHandler.GetOrganizationProducts)
 	
 	products := v1.Group("/products")
 	products.Use(middlewareProvider.AuthMiddleware())

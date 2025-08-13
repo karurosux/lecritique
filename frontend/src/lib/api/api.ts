@@ -10,80 +10,342 @@
  * ---------------------------------------------------------------
  */
 
-export enum ModelsSubscriptionStatus {
-  SubscriptionActive = 'SubscriptionActive',
-  SubscriptionPending = 'SubscriptionPending',
-  SubscriptionCanceled = 'SubscriptionCanceled',
-  SubscriptionExpired = 'SubscriptionExpired',
+export enum SubscriptionmodelSubscriptionStatus {
+  SubscriptionActive = "active",
+  SubscriptionPending = "pending",
+  SubscriptionCanceled = "canceled",
+  SubscriptionExpired = "expired",
 }
 
-export enum ModelsQuestionType {
-  QuestionTypeRating = 'QuestionTypeRating',
-  QuestionTypeScale = 'QuestionTypeScale',
-  QuestionTypeMultiChoice = 'QuestionTypeMultiChoice',
-  QuestionTypeSingleChoice = 'QuestionTypeSingleChoice',
-  QuestionTypeText = 'QuestionTypeText',
-  QuestionTypeYesNo = 'QuestionTypeYesNo',
-}
-
-export enum ModelsQRCodeType {
-  QRCodeTypeTable = 'QRCodeTypeTable',
-  QRCodeTypeLocation = 'QRCodeTypeLocation',
-  QRCodeTypeTakeaway = 'QRCodeTypeTakeaway',
-  QRCodeTypeDelivery = 'QRCodeTypeDelivery',
-  QRCodeTypeGeneral = 'QRCodeTypeGeneral',
+export enum QrcodemodelQRCodeType {
+  QRCodeTypeTable = "table",
+  QRCodeTypeLocation = "location",
+  QRCodeTypeTakeaway = "takeaway",
+  QRCodeTypeDelivery = "delivery",
+  QRCodeTypeGeneral = "general",
 }
 
 export enum ModelsMemberRole {
-  RoleOwner = 'RoleOwner',
-  RoleAdmin = 'RoleAdmin',
-  RoleManager = 'RoleManager',
-  RoleViewer = 'RoleViewer',
+  RoleOwner = "OWNER",
+  RoleAdmin = "ADMIN",
+  RoleManager = "MANAGER",
+  RoleViewer = "VIEWER",
 }
 
-export interface HandlersAcceptInviteRequest {
+export enum FeedbackmodelQuestionType {
+  QuestionTypeRating = "rating",
+  QuestionTypeScale = "scale",
+  QuestionTypeMultiChoice = "multi_choice",
+  QuestionTypeSingleChoice = "single_choice",
+  QuestionTypeText = "text",
+  QuestionTypeYesNo = "yes_no",
+}
+
+export interface AnalyticsmodelChoiceInfo {
+  choice?: string;
+  count?: number;
+}
+
+export interface AnalyticsmodelChoiceSeriesData {
+  choice?: string;
+  points?: AnalyticsmodelTimeSeriesPoint[];
+  statistics?: AnalyticsmodelTimeSeriesStats;
+}
+
+export interface AnalyticsmodelComparisonInsight {
+  change?: number;
+  message?: string;
+  metric_type?: string;
+  recommendation?: string;
+  severity?: string;
+  type?: string;
+}
+
+export interface AnalyticsmodelComparisonRequest {
+  /** @minItems 1 */
+  metric_types: string[];
+  organization_id: string;
+  period1_end: string;
+  period1_start: string;
+  period2_end: string;
+  period2_start: string;
+  product_id?: string;
+  question_id?: string;
+}
+
+export interface AnalyticsmodelComparisonResponse {
+  comparisons?: AnalyticsmodelTimeSeriesComparison[];
+  insights?: AnalyticsmodelComparisonInsight[];
+  request?: AnalyticsmodelComparisonRequest;
+}
+
+export interface AnalyticsmodelDateRange {
+  end?: string;
+  start?: string;
+}
+
+export interface AnalyticsmodelTimePeriodMetrics {
+  average?: number;
+  choice_distribution?: Record<string, number>;
+  count?: number;
+  data_points?: AnalyticsmodelTimeSeriesPoint[];
+  end_date?: string;
+  max?: number;
+  min?: number;
+  most_popular_choice?: AnalyticsmodelChoiceInfo;
+  start_date?: string;
+  top_choices?: AnalyticsmodelChoiceInfo[];
+  value?: number;
+}
+
+export interface AnalyticsmodelTimeSeriesComparison {
+  change?: number;
+  change_percent?: number;
+  metadata?: string;
+  metric_name?: string;
+  metric_type?: string;
+  period1?: AnalyticsmodelTimePeriodMetrics;
+  period2?: AnalyticsmodelTimePeriodMetrics;
+  trend?: string;
+}
+
+export interface AnalyticsmodelTimeSeriesData {
+  choice_series?: AnalyticsmodelChoiceSeriesData[];
+  metadata?: Record<string, any>;
+  metric_name?: string;
+  metric_type?: string;
+  points?: AnalyticsmodelTimeSeriesPoint[];
+  product_id?: string;
+  product_name?: string;
+  statistics?: AnalyticsmodelTimeSeriesStats;
+}
+
+export interface AnalyticsmodelTimeSeriesPoint {
+  count?: number;
+  timestamp?: string;
+  value?: number;
+}
+
+export interface AnalyticsmodelTimeSeriesRequest {
+  end_date: string;
+  granularity: "hourly" | "daily" | "weekly" | "monthly";
+  /** @minItems 1 */
+  metric_types: string[];
+  organization_id: string;
+  product_id?: string;
+  question_id?: string;
+  start_date: string;
+}
+
+export interface AnalyticsmodelTimeSeriesResponse {
+  request?: AnalyticsmodelTimeSeriesRequest;
+  series?: AnalyticsmodelTimeSeriesData[];
+  summary?: AnalyticsmodelTimeSeriesSummary;
+}
+
+export interface AnalyticsmodelTimeSeriesStats {
+  average?: number;
+  count?: number;
+  max?: number;
+  min?: number;
+  total?: number;
+  trend_direction?: string;
+  trend_strength?: number;
+}
+
+export interface AnalyticsmodelTimeSeriesSummary {
+  date_range?: AnalyticsmodelDateRange;
+  granularity?: string;
+  metrics_summary?: Record<string, any>;
+  total_data_points?: number;
+}
+
+export interface AuthmodelAcceptInvitationRequest {
   token: string;
 }
 
-export interface HandlersAuthResponse {
-  account?: any;
-  token?: string;
-}
-
-export interface HandlersCardDetailsResponse {
-  brand?: string;
-  exp_month?: number;
-  exp_year?: number;
-  last4?: string;
-}
-
-export interface HandlersChangeEmailRequest {
+export interface AuthmodelChangeEmailRequest {
   new_email: string;
 }
 
-export interface HandlersCheckoutResponse {
-  checkout_url?: string;
-  session_id?: string;
-}
-
-export interface HandlersCompleteCheckoutRequest {
-  session_id: string;
-}
-
-export interface HandlersConfirmEmailChangeRequest {
+export interface AuthmodelConfirmEmailChangeRequest {
   token: string;
 }
 
-export interface HandlersCreateCheckoutRequest {
-  plan_id: string;
+export interface AuthmodelDeactivationResponse {
+  deactivation_date?: string;
+  message?: string;
 }
 
-export interface HandlersCreateOrganizationRequest {
-  description?: string;
-  email?: string;
-  name: string;
+export interface AuthmodelInvitationResponse {
+  invitation?: any;
+  message?: string;
+}
+
+export interface AuthmodelInviteMemberRequest {
+  email: string;
+  role: "OWNER" | "ADMIN" | "MANAGER" | "VIEWER";
+}
+
+export interface AuthmodelLoginRequest {
+  email: string;
+  password: string;
+}
+
+export interface AuthmodelMemberListResponse {
+  members?: ModelsTeamMember[];
+}
+
+export interface AuthmodelPasswordResetRequest {
+  email: string;
+}
+
+export interface AuthmodelRegisterRequest {
+  email: string;
+  first_name?: string;
+  invitation_token?: string;
+  last_name?: string;
+  name?: string;
+  /** @minLength 8 */
+  password: string;
+}
+
+export interface AuthmodelResendVerificationRequest {
+  email: string;
+}
+
+export interface AuthmodelResetPasswordRequest {
+  /** @minLength 8 */
+  new_password: string;
+  token: string;
+}
+
+export interface AuthmodelTokenResponse {
+  token?: string;
+}
+
+export interface AuthmodelUpdateProfileRequest {
+  /** @minLength 1 */
+  name?: string;
   phone?: string;
-  website?: string;
+}
+
+export interface AuthmodelUpdateRoleRequest {
+  role: "OWNER" | "ADMIN" | "MANAGER" | "VIEWER";
+}
+
+export interface FeedbackmodelBatchQuestionsRequest {
+  product_ids: string[];
+}
+
+export interface FeedbackmodelCreateQuestionRequest {
+  is_required?: boolean;
+  max_label?: string;
+  max_value?: number;
+  min_label?: string;
+  min_value?: number;
+  options?: string[];
+  text: string;
+  type: FeedbackmodelQuestionType;
+}
+
+export interface FeedbackmodelCreateQuestionnaireRequest {
+  description?: string;
+  is_default?: boolean;
+  name: string;
+  product_id?: string;
+}
+
+export interface FeedbackmodelDeviceInfo {
+  browser?: string;
+  ip?: string;
+  platform?: string;
+  user_agent?: string;
+}
+
+export interface FeedbackmodelFeedback {
+  created_at?: string;
+  customer_email?: string;
+  customer_name?: string;
+  customer_phone?: string;
+  device_info?: FeedbackmodelDeviceInfo;
+  id?: string;
+  is_complete?: boolean;
+  organization?: OrganizationmodelOrganization;
+  organization_id?: string;
+  overall_rating?: number;
+  product?: ModelsProduct;
+  product_id?: string;
+  qr_code?: QrcodemodelQRCode;
+  qr_code_id?: string;
+  responses?: FeedbackmodelResponse[];
+  updated_at?: string;
+}
+
+export interface FeedbackmodelGenerateQuestionnaireRequest {
+  description?: string;
+  is_default?: boolean;
+  name: string;
+}
+
+export interface FeedbackmodelGeneratedQuestion {
+  max_label?: string;
+  max_value?: number;
+  min_label?: string;
+  min_value?: number;
+  options?: string[];
+  text?: string;
+  type?: FeedbackmodelQuestionType;
+}
+
+export interface FeedbackmodelQuestion {
+  created_at?: string;
+  display_order?: number;
+  id?: string;
+  is_required?: boolean;
+  max_label?: string;
+  max_value?: number;
+  min_label?: string;
+  min_value?: number;
+  options?: string[];
+  product?: ModelsProduct;
+  product_id?: string;
+  text?: string;
+  type?: FeedbackmodelQuestionType;
+  updated_at?: string;
+}
+
+export interface FeedbackmodelQuestionnaire {
+  created_at?: string;
+  description?: string;
+  id?: string;
+  is_active?: boolean;
+  is_default?: boolean;
+  name?: string;
+  organization?: OrganizationmodelOrganization;
+  organization_id?: string;
+  product?: ModelsProduct;
+  product_id?: string;
+  questions?: FeedbackmodelQuestion[];
+  updated_at?: string;
+}
+
+export interface FeedbackmodelResponse {
+  answer?: any;
+  question_id?: string;
+  question_text?: string;
+  question_type?: FeedbackmodelQuestionType;
+}
+
+export interface FeedbackmodelUpdateQuestionRequest {
+  is_required?: boolean;
+  max_label?: string;
+  max_value?: number;
+  min_label?: string;
+  min_value?: number;
+  options?: string[];
+  text?: string;
+  type?: FeedbackmodelQuestionType;
 }
 
 export interface HandlersCreateProductRequest {
@@ -96,122 +358,25 @@ export interface HandlersCreateProductRequest {
   price?: number;
 }
 
-export interface HandlersCreateSubscriptionRequest {
-  plan_id: string;
-}
-
-export interface HandlersGenerateQRCodeRequest {
-  /**
-   * @minLength 1
-   * @maxLength 100
-   */
-  label: string;
-  /** @maxLength 200 */
-  location?: string;
-  organization_id: string;
-  type: 'table' | 'location' | 'takeaway' | 'delivery' | 'general';
-}
-
-export interface HandlersGenerateQRCodeResponse {
-  data?: ModelsQRCode;
-  success?: boolean;
-}
-
-export interface HandlersInviteMemberRequest {
-  email: string;
-  role: 'ADMIN' | 'MANAGER' | 'VIEWER';
-}
-
-export interface HandlersInvoiceResponse {
-  amount_due?: number;
-  amount_paid?: number;
+export interface ModelsAccount {
   created_at?: string;
-  currency?: string;
-  hosted_invoice_url?: string;
-  id?: string;
-  invoice_pdf?: string;
-  number?: string;
-  paid_at?: string;
-  status?: string;
-}
-
-export interface HandlersLoginRequest {
-  email: string;
-  password: string;
-}
-
-export interface HandlersPasswordResetRequest {
-  email: string;
-}
-
-export interface HandlersPaymentMethodResponse {
-  card?: HandlersCardDetailsResponse;
-  id?: string;
-  is_default?: boolean;
-  type?: string;
-}
-
-export interface HandlersPortalResponse {
-  portal_url?: string;
-}
-
-export interface HandlersQRCodeListResponse {
-  data?: ModelsQRCode[];
-  success?: boolean;
-}
-
-export interface HandlersRegisterRequest {
-  email: string;
+  deactivation_requested_at?: string;
+  email?: string;
+  email_verified?: boolean;
+  email_verified_at?: string;
   first_name?: string;
-  /** Optional invitation token */
-  invitation_token?: string;
+  id?: string;
+  is_active?: boolean;
   last_name?: string;
   name?: string;
-  /** @minLength 8 */
-  password: string;
-}
-
-export interface HandlersResendVerificationRequest {
-  email: string;
-}
-
-export interface HandlersResetPasswordRequest {
-  /** @minLength 8 */
-  new_password: string;
-  token: string;
-}
-
-export interface HandlersSetDefaultPaymentRequest {
-  payment_method_id: string;
-}
-
-export interface HandlersUpdateProfileRequest {
-  /** @minLength 1 */
-  name?: string;
   phone?: string;
+  subscription?: any;
+  subscription_id?: string;
+  team_members?: ModelsTeamMember[];
+  updated_at?: string;
 }
 
-export interface HandlersUpdateQRCodeRequest {
-  is_active?: boolean;
-  /**
-   * @minLength 1
-   * @maxLength 100
-   */
-  label?: string;
-  /** @maxLength 200 */
-  location?: string;
-}
-
-export interface HandlersUpdateQRCodeResponse {
-  data?: ModelsQRCode;
-  success?: boolean;
-}
-
-export interface HandlersUpdateRoleRequest {
-  role: 'ADMIN' | 'MANAGER' | 'VIEWER';
-}
-
-export interface KyooarInternalMenuModelsProduct {
+export interface ModelsProduct {
   category?: string;
   created_at?: string;
   currency?: string;
@@ -228,381 +393,89 @@ export interface KyooarInternalMenuModelsProduct {
   updated_at?: string;
 }
 
-export interface ModelsAccount {
-  created_at?: string;
-  deactivation_requested_at?: string;
-  email?: string;
-  email_verified?: boolean;
-  email_verified_at?: string;
-  first_name?: string;
-  id?: string;
-  is_active?: boolean;
-  last_name?: string;
-  name?: string;
-  phone?: string;
-  /** Populated when needed */
-  subscription?: any;
-  subscription_id?: string;
-  /** Organizations      []Organization  `json:"organizations,omitempty"`  // TODO: Add when organization domain is ready */
-  team_members?: ModelsTeamMember[];
-  updated_at?: string;
-}
-
-export interface ModelsBatchQuestionsRequest {
-  product_ids: string[];
-}
-
-export interface ModelsChoiceInfo {
-  choice?: string;
-  count?: number;
-}
-
-export interface ModelsComparisonInsight {
-  change?: number;
-  message?: string;
-  metric_type?: string;
-  recommendation?: string;
-  severity?: string;
-  type?: string;
-}
-
-export interface ModelsComparisonRequest {
-  metric_types?: string[];
-  organization_id?: string;
-  period1_end?: string;
-  period1_start?: string;
-  period2_end?: string;
-  period2_start?: string;
-  product_id?: string;
-  question_id?: string;
-}
-
-export interface ModelsComparisonResponse {
-  comparisons?: ModelsTimeSeriesComparison[];
-  insights?: ModelsComparisonInsight[];
-  request?: ModelsComparisonRequest;
-}
-
-export interface ModelsCreateQuestionRequest {
-  is_required?: boolean;
-  max_label?: string;
-  max_value?: number;
-  min_label?: string;
-  min_value?: number;
-  options?: string[];
-  text: string;
-  type: ModelsQuestionType;
-}
-
-export interface ModelsCreateQuestionnaireRequest {
-  description?: string;
-  is_default?: boolean;
-  name: string;
-  product_id?: string;
-}
-
-export interface ModelsDateRange {
-  end?: string;
-  start?: string;
-}
-
-export interface ModelsDeviceInfo {
-  browser?: string;
-  ip?: string;
-  platform?: string;
-  user_agent?: string;
-}
-
-export interface ModelsFeedback {
-  created_at?: string;
-  customer_email?: string;
-  customer_name?: string;
-  customer_phone?: string;
-  device_info?: ModelsDeviceInfo;
-  id?: string;
-  is_complete?: boolean;
-  organization?: ModelsOrganization;
-  organization_id?: string;
-  overall_rating?: number;
-  product?: KyooarInternalMenuModelsProduct;
-  product_id?: string;
-  qr_code?: ModelsQRCode;
-  qr_code_id?: string;
-  responses?: ModelsResponse[];
-  updated_at?: string;
-}
-
-export interface ModelsGenerateQuestionnaireRequest {
-  description?: string;
-  is_default?: boolean;
-  name: string;
-}
-
-export interface ModelsGeneratedQuestion {
-  max_label?: string;
-  max_value?: number;
-  min_label?: string;
-  min_value?: number;
-  options?: string[];
-  text?: string;
-  type?: ModelsQuestionType;
-}
-
-export interface ModelsLocation {
-  address?: string;
-  city?: string;
-  country?: string;
-  created_at?: string;
-  id?: string;
-  is_active?: boolean;
-  latitude?: number;
-  longitude?: number;
-  name?: string;
-  organization?: ModelsOrganization;
-  organization_id?: string;
-  postal_code?: string;
-  state?: string;
-  updated_at?: string;
-}
-
-export interface ModelsOrganization {
-  account_id?: string;
-  created_at?: string;
-  description?: string;
-  email?: string;
-  id?: string;
-  is_active?: boolean;
-  locations?: ModelsLocation[];
-  logo?: string;
-  /** Account     Account        `json:"account,omitempty"` // TODO: Add when cross-domain refs are ready */
-  name?: string;
-  phone?: string;
-  settings?: ModelsSettings;
-  updated_at?: string;
-  website?: string;
-}
-
-export interface ModelsQRCode {
-  code?: string;
-  created_at?: string;
-  expires_at?: string;
-  id?: string;
-  is_active?: boolean;
-  /** e.g., "Table 1", "Entrance", etc. */
-  label?: string;
-  last_scanned_at?: string;
-  /** Free text location description */
-  location?: string;
-  organization?: ModelsOrganization;
-  organization_id?: string;
-  scans_count?: number;
-  type?: ModelsQRCodeType;
-  updated_at?: string;
-}
-
-export interface ModelsQuestion {
-  created_at?: string;
-  display_order?: number;
-  id?: string;
-  is_required?: boolean;
-  max_label?: string;
-  max_value?: number;
-  min_label?: string;
-  min_value?: number;
-  options?: string[];
-  product?: KyooarInternalMenuModelsProduct;
-  product_id?: string;
-  text?: string;
-  type?: ModelsQuestionType;
-  updated_at?: string;
-}
-
-export interface ModelsQuestionnaire {
-  created_at?: string;
-  description?: string;
-  id?: string;
-  is_active?: boolean;
-  is_default?: boolean;
-  name?: string;
-  organization?: ModelsOrganization;
-  organization_id?: string;
-  product?: KyooarInternalMenuModelsProduct;
-  product_id?: string;
-  questions?: ModelsQuestion[];
-  updated_at?: string;
-}
-
-export interface ModelsResponse {
-  answer?: any;
-  question_id?: string;
-  question_text?: string;
-  question_type?: ModelsQuestionType;
-}
-
-export interface ModelsSettings {
-  feedback_notification?: boolean;
-  language?: string;
-  low_rating_threshold?: number;
-  timezone?: string;
-}
-
-export interface ModelsSubscription {
-  account?: ModelsAccount;
-  account_id?: string;
-  cancel_at?: string;
-  cancelled_at?: string;
-  created_at?: string;
-  current_period_end?: string;
-  current_period_start?: string;
-  id?: string;
-  plan?: ModelsSubscriptionPlan;
-  plan_id?: string;
-  status?: ModelsSubscriptionStatus;
-  updated_at?: string;
-}
-
-export interface ModelsSubscriptionPlan {
-  code?: string;
-  created_at?: string;
-  currency?: string;
-  description?: string;
-  has_advanced_analytics?: boolean;
-  /** Feature flags (as columns) */
-  has_basic_analytics?: boolean;
-  has_custom_branding?: boolean;
-  has_feedback_explorer?: boolean;
-  has_priority_support?: boolean;
-  id?: string;
-  interval?: string;
-  is_active?: boolean;
-  is_visible?: boolean;
-  max_feedbacks_per_month?: number;
-  /** Limits (as columns) */
-  max_organizations?: number;
-  max_qr_codes?: number;
-  max_team_members?: number;
-  name?: string;
-  price?: number;
-  trial_days?: number;
-  updated_at?: string;
-}
-
-export interface ModelsSubscriptionUsage {
-  created_at?: string;
-  feedbacks_count?: number;
-  id?: string;
-  last_updated_at?: string;
-  locations_count?: number;
-  organizations_count?: number;
-  period_end?: string;
-  period_start?: string;
-  qr_codes_count?: number;
-  subscription?: ModelsSubscription;
-  subscription_id?: string;
-  team_members_count?: number;
-  updated_at?: string;
-}
-
 export interface ModelsTeamMember {
   accepted_at?: string;
   account?: ModelsAccount;
-  /** The organization account */
   account_id?: string;
   created_at?: string;
   id?: string;
   invited_at?: string;
   invited_by?: string;
   member?: ModelsAccount;
-  /** The member's account ID */
   member_id?: string;
   role?: ModelsMemberRole;
   updated_at?: string;
 }
 
-export interface ModelsTimePeriodMetrics {
-  average?: number;
-  choice_distribution?: Record<string, number>;
-  count?: number;
-  data_points?: ModelsTimeSeriesPoint[];
-  end_date?: string;
-  max?: number;
-  min?: number;
-  most_popular_choice?: ModelsChoiceInfo;
-  start_date?: string;
-  top_choices?: ModelsChoiceInfo[];
-  value?: number;
+export interface OrganizationmodelCreateOrganizationRequest {
+  address?: string;
+  description?: string;
+  email?: string;
+  name: string;
+  phone?: string;
+  website?: string;
 }
 
-export interface ModelsTimeSeriesComparison {
-  change?: number;
-  change_percent?: number;
-  metadata?: string;
-  metric_name?: string;
-  metric_type?: string;
-  period1?: ModelsTimePeriodMetrics;
-  period2?: ModelsTimePeriodMetrics;
-  trend?: string;
+export interface OrganizationmodelOrganization {
+  account_id?: string;
+  address?: string;
+  created_at?: string;
+  description?: string;
+  email?: string;
+  id?: string;
+  is_active?: boolean;
+  logo?: string;
+  name?: string;
+  phone?: string;
+  settings?: OrganizationmodelSettings;
+  updated_at?: string;
+  website?: string;
 }
 
-export interface ModelsTimeSeriesData {
-  metadata?: string;
-  metric_name?: string;
-  metric_type?: string;
-  points?: ModelsTimeSeriesPoint[];
-  product_id?: string;
-  product_name?: string;
-  statistics?: ModelsTimeSeriesStats;
+export interface OrganizationmodelSettings {
+  feedback_notification?: boolean;
+  language?: string;
+  low_rating_threshold?: number;
+  timezone?: string;
 }
 
-export interface ModelsTimeSeriesPoint {
-  count?: number;
-  timestamp?: string;
-  value?: number;
+export interface QrcodecontrollerGenerateQRCodeRequest {
+  /**
+   * @minLength 1
+   * @maxLength 100
+   */
+  label: string;
+  /** @maxLength 200 */
+  location?: string;
+  organization_id: string;
+  type: "table" | "location" | "takeaway" | "delivery" | "general";
 }
 
-export interface ModelsTimeSeriesRequest {
-  end_date?: string;
-  granularity?: string;
-  group_by?: string[];
-  metric_types?: string[];
+export interface QrcodecontrollerUpdateQRCodeRequest {
+  is_active?: boolean;
+  /**
+   * @minLength 1
+   * @maxLength 100
+   */
+  label?: string;
+  /** @maxLength 200 */
+  location?: string;
+}
+
+export interface QrcodemodelQRCode {
+  code?: string;
+  created_at?: string;
+  expires_at?: string;
+  id?: string;
+  is_active?: boolean;
+  label?: string;
+  last_scanned_at?: string;
+  location?: string;
+  organization?: OrganizationmodelOrganization;
   organization_id?: string;
-  product_id?: string;
-  question_id?: string;
-  start_date?: string;
-}
-
-export interface ModelsTimeSeriesResponse {
-  request?: ModelsTimeSeriesRequest;
-  series?: ModelsTimeSeriesData[];
-  summary?: ModelsTimeSeriesSummary;
-}
-
-export interface ModelsTimeSeriesStats {
-  average?: number;
-  count?: number;
-  max?: number;
-  min?: number;
-  total?: number;
-  trend_direction?: string;
-  trend_strength?: number;
-}
-
-export interface ModelsTimeSeriesSummary {
-  date_range?: ModelsDateRange;
-  granularity?: string;
-  metrics_summary?: Record<string, any>;
-  total_data_points?: number;
-}
-
-export interface ModelsUpdateQuestionRequest {
-  is_required?: boolean;
-  max_label?: string;
-  max_value?: number;
-  min_label?: string;
-  min_value?: number;
-  options?: string[];
-  text?: string;
-  type?: ModelsQuestionType;
+  scans_count?: number;
+  type?: QrcodemodelQRCodeType;
+  updated_at?: string;
 }
 
 export interface ResponseErrorData {
@@ -632,7 +505,59 @@ export interface ResponseResponse {
   success?: boolean;
 }
 
-export interface ServicesPermissionResponse {
+export interface SubscriptioncontrollerCardDetailsResponse {
+  brand?: string;
+  exp_month?: number;
+  exp_year?: number;
+  last4?: string;
+}
+
+export interface SubscriptioncontrollerCheckoutResponse {
+  checkout_url?: string;
+  session_id?: string;
+}
+
+export interface SubscriptioncontrollerCompleteCheckoutRequest {
+  session_id: string;
+}
+
+export interface SubscriptioncontrollerCreateCheckoutRequest {
+  plan_id: string;
+}
+
+export interface SubscriptioncontrollerCreateSubscriptionRequest {
+  plan_id: string;
+}
+
+export interface SubscriptioncontrollerInvoiceResponse {
+  amount_due?: number;
+  amount_paid?: number;
+  created_at?: string;
+  currency?: string;
+  hosted_invoice_url?: string;
+  id?: string;
+  invoice_pdf?: string;
+  number?: string;
+  paid_at?: string;
+  status?: string;
+}
+
+export interface SubscriptioncontrollerPaymentMethodResponse {
+  card?: SubscriptioncontrollerCardDetailsResponse;
+  id?: string;
+  is_default?: boolean;
+  type?: string;
+}
+
+export interface SubscriptioncontrollerPortalResponse {
+  portal_url?: string;
+}
+
+export interface SubscriptioncontrollerSetDefaultPaymentRequest {
+  payment_method_id: string;
+}
+
+export interface SubscriptioninterfacePermissionResponse {
   can_create?: boolean;
   current_count?: number;
   max_allowed?: number;
@@ -640,19 +565,65 @@ export interface ServicesPermissionResponse {
   subscription_status?: string;
 }
 
-import type {
-  AxiosInstance,
-  AxiosRequestConfig,
-  AxiosResponse,
-  HeadersDefaults,
-  ResponseType,
-} from 'axios';
-import axios from 'axios';
+export interface SubscriptionmodelSubscription {
+  account?: ModelsAccount;
+  account_id?: string;
+  cancel_at?: string;
+  cancelled_at?: string;
+  created_at?: string;
+  current_period_end?: string;
+  current_period_start?: string;
+  id?: string;
+  plan?: SubscriptionmodelSubscriptionPlan;
+  plan_id?: string;
+  status?: SubscriptionmodelSubscriptionStatus;
+  updated_at?: string;
+}
+
+export interface SubscriptionmodelSubscriptionPlan {
+  code?: string;
+  created_at?: string;
+  currency?: string;
+  description?: string;
+  has_advanced_analytics?: boolean;
+  has_basic_analytics?: boolean;
+  has_custom_branding?: boolean;
+  has_feedback_explorer?: boolean;
+  has_priority_support?: boolean;
+  id?: string;
+  interval?: string;
+  is_active?: boolean;
+  is_visible?: boolean;
+  max_feedbacks_per_month?: number;
+  max_organizations?: number;
+  max_qr_codes?: number;
+  max_team_members?: number;
+  name?: string;
+  price?: number;
+  trial_days?: number;
+  updated_at?: string;
+}
+
+export interface SubscriptionmodelSubscriptionUsage {
+  created_at?: string;
+  feedbacks_count?: number;
+  id?: string;
+  last_updated_at?: string;
+  locations_count?: number;
+  organizations_count?: number;
+  period_end?: string;
+  period_start?: string;
+  qr_codes_count?: number;
+  subscription?: SubscriptionmodelSubscription;
+  subscription_id?: string;
+  team_members_count?: number;
+  updated_at?: string;
+}
 
 export type QueryParamsType = Record<string | number, any>;
+export type ResponseFormat = keyof Omit<Body, "body" | "bodyUsed">;
 
-export interface FullRequestParams
-  extends Omit<AxiosRequestConfig, 'data' | 'params' | 'url' | 'responseType'> {
+export interface FullRequestParams extends Omit<RequestInit, "body"> {
   /** set parameter to `true` for call `securityWorker` for this request */
   secure?: boolean;
   /** request path */
@@ -662,155 +633,243 @@ export interface FullRequestParams
   /** query params */
   query?: QueryParamsType;
   /** format of response (i.e. response.json() -> format: "json") */
-  format?: ResponseType;
+  format?: ResponseFormat;
   /** request body */
   body?: unknown;
+  /** base url */
+  baseUrl?: string;
+  /** request cancellation token */
+  cancelToken?: CancelToken;
 }
 
 export type RequestParams = Omit<
   FullRequestParams,
-  'body' | 'method' | 'query' | 'path'
+  "body" | "method" | "query" | "path"
 >;
 
-export interface ApiConfig<SecurityDataType = unknown>
-  extends Omit<AxiosRequestConfig, 'data' | 'cancelToken'> {
+export interface ApiConfig<SecurityDataType = unknown> {
+  baseUrl?: string;
+  baseApiParams?: Omit<RequestParams, "baseUrl" | "cancelToken" | "signal">;
   securityWorker?: (
-    securityData: SecurityDataType | null
-  ) => Promise<AxiosRequestConfig | void> | AxiosRequestConfig | void;
-  secure?: boolean;
-  format?: ResponseType;
+    securityData: SecurityDataType | null,
+  ) => Promise<RequestParams | void> | RequestParams | void;
+  customFetch?: typeof fetch;
 }
 
+export interface HttpResponse<D extends unknown, E extends unknown = unknown>
+  extends Response {
+  data: D;
+  error: E;
+}
+
+type CancelToken = Symbol | string | number;
+
 export enum ContentType {
-  Json = 'application/json',
-  JsonApi = 'application/vnd.api+json',
-  FormData = 'multipart/form-data',
-  UrlEncoded = 'application/x-www-form-urlencoded',
-  Text = 'text/plain',
+  Json = "application/json",
+  JsonApi = "application/vnd.api+json",
+  FormData = "multipart/form-data",
+  UrlEncoded = "application/x-www-form-urlencoded",
+  Text = "text/plain",
 }
 
 export class HttpClient<SecurityDataType = unknown> {
-  public instance: AxiosInstance;
+  public baseUrl: string = "//localhost:8080";
   private securityData: SecurityDataType | null = null;
-  private securityWorker?: ApiConfig<SecurityDataType>['securityWorker'];
-  private secure?: boolean;
-  private format?: ResponseType;
+  private securityWorker?: ApiConfig<SecurityDataType>["securityWorker"];
+  private abortControllers = new Map<CancelToken, AbortController>();
+  private customFetch = (...fetchParams: Parameters<typeof fetch>) =>
+    fetch(...fetchParams);
 
-  constructor({
-    securityWorker,
-    secure,
-    format,
-    ...axiosConfig
-  }: ApiConfig<SecurityDataType> = {}) {
-    this.instance = axios.create({
-      ...axiosConfig,
-      baseURL: axiosConfig.baseURL || '//localhost:8080',
-    });
-    this.secure = secure;
-    this.format = format;
-    this.securityWorker = securityWorker;
+  private baseApiParams: RequestParams = {
+    credentials: "same-origin",
+    headers: {},
+    redirect: "follow",
+    referrerPolicy: "no-referrer",
+  };
+
+  constructor(apiConfig: ApiConfig<SecurityDataType> = {}) {
+    Object.assign(this, apiConfig);
   }
 
   public setSecurityData = (data: SecurityDataType | null) => {
     this.securityData = data;
   };
 
-  protected mergeRequestParams(
-    params1: AxiosRequestConfig,
-    params2?: AxiosRequestConfig
-  ): AxiosRequestConfig {
-    const method = params1.method || (params2 && params2.method);
+  protected encodeQueryParam(key: string, value: any) {
+    const encodedKey = encodeURIComponent(key);
+    return `${encodedKey}=${encodeURIComponent(typeof value === "number" ? value : `${value}`)}`;
+  }
 
+  protected addQueryParam(query: QueryParamsType, key: string) {
+    return this.encodeQueryParam(key, query[key]);
+  }
+
+  protected addArrayQueryParam(query: QueryParamsType, key: string) {
+    const value = query[key];
+    return value.map((v: any) => this.encodeQueryParam(key, v)).join("&");
+  }
+
+  protected toQueryString(rawQuery?: QueryParamsType): string {
+    const query = rawQuery || {};
+    const keys = Object.keys(query).filter(
+      (key) => "undefined" !== typeof query[key],
+    );
+    return keys
+      .map((key) =>
+        Array.isArray(query[key])
+          ? this.addArrayQueryParam(query, key)
+          : this.addQueryParam(query, key),
+      )
+      .join("&");
+  }
+
+  protected addQueryParams(rawQuery?: QueryParamsType): string {
+    const queryString = this.toQueryString(rawQuery);
+    return queryString ? `?${queryString}` : "";
+  }
+
+  private contentFormatters: Record<ContentType, (input: any) => any> = {
+    [ContentType.Json]: (input: any) =>
+      input !== null && (typeof input === "object" || typeof input === "string")
+        ? JSON.stringify(input)
+        : input,
+    [ContentType.JsonApi]: (input: any) =>
+      input !== null && (typeof input === "object" || typeof input === "string")
+        ? JSON.stringify(input)
+        : input,
+    [ContentType.Text]: (input: any) =>
+      input !== null && typeof input !== "string"
+        ? JSON.stringify(input)
+        : input,
+    [ContentType.FormData]: (input: any) => {
+      if (input instanceof FormData) {
+        return input;
+      }
+
+      return Object.keys(input || {}).reduce((formData, key) => {
+        const property = input[key];
+        formData.append(
+          key,
+          property instanceof Blob
+            ? property
+            : typeof property === "object" && property !== null
+              ? JSON.stringify(property)
+              : `${property}`,
+        );
+        return formData;
+      }, new FormData());
+    },
+    [ContentType.UrlEncoded]: (input: any) => this.toQueryString(input),
+  };
+
+  protected mergeRequestParams(
+    params1: RequestParams,
+    params2?: RequestParams,
+  ): RequestParams {
     return {
-      ...this.instance.defaults,
+      ...this.baseApiParams,
       ...params1,
       ...(params2 || {}),
       headers: {
-        ...((method &&
-          this.instance.defaults.headers[
-            method.toLowerCase() as keyof HeadersDefaults
-          ]) ||
-          {}),
+        ...(this.baseApiParams.headers || {}),
         ...(params1.headers || {}),
         ...((params2 && params2.headers) || {}),
       },
     };
   }
 
-  protected stringifyFormItem(formItem: unknown) {
-    if (typeof formItem === 'object' && formItem !== null) {
-      return JSON.stringify(formItem);
-    } else {
-      return `${formItem}`;
-    }
-  }
-
-  protected createFormData(input: Record<string, unknown>): FormData {
-    if (input instanceof FormData) {
-      return input;
-    }
-    return Object.keys(input || {}).reduce((formData, key) => {
-      const property = input[key];
-      const propertyContent: any[] =
-        property instanceof Array ? property : [property];
-
-      for (const formItem of propertyContent) {
-        const isFileType = formItem instanceof Blob || formItem instanceof File;
-        formData.append(
-          key,
-          isFileType ? formItem : this.stringifyFormItem(formItem)
-        );
+  protected createAbortSignal = (
+    cancelToken: CancelToken,
+  ): AbortSignal | undefined => {
+    if (this.abortControllers.has(cancelToken)) {
+      const abortController = this.abortControllers.get(cancelToken);
+      if (abortController) {
+        return abortController.signal;
       }
+      return void 0;
+    }
 
-      return formData;
-    }, new FormData());
-  }
+    const abortController = new AbortController();
+    this.abortControllers.set(cancelToken, abortController);
+    return abortController.signal;
+  };
 
-  public request = async <T = any, _E = any>({
+  public abortRequest = (cancelToken: CancelToken) => {
+    const abortController = this.abortControllers.get(cancelToken);
+
+    if (abortController) {
+      abortController.abort();
+      this.abortControllers.delete(cancelToken);
+    }
+  };
+
+  public request = async <T = any, E = any>({
+    body,
     secure,
     path,
     type,
     query,
     format,
-    body,
+    baseUrl,
+    cancelToken,
     ...params
-  }: FullRequestParams): Promise<AxiosResponse<T>> => {
+  }: FullRequestParams): Promise<HttpResponse<T, E>> => {
     const secureParams =
-      ((typeof secure === 'boolean' ? secure : this.secure) &&
+      ((typeof secure === "boolean" ? secure : this.baseApiParams.secure) &&
         this.securityWorker &&
         (await this.securityWorker(this.securityData))) ||
       {};
     const requestParams = this.mergeRequestParams(params, secureParams);
-    const responseFormat = format || this.format || undefined;
+    const queryString = query && this.toQueryString(query);
+    const payloadFormatter = this.contentFormatters[type || ContentType.Json];
+    const responseFormat = format || requestParams.format;
 
-    if (
-      type === ContentType.FormData &&
-      body &&
-      body !== null &&
-      typeof body === 'object'
-    ) {
-      body = this.createFormData(body as Record<string, unknown>);
-    }
-
-    if (
-      type === ContentType.Text &&
-      body &&
-      body !== null &&
-      typeof body !== 'string'
-    ) {
-      body = JSON.stringify(body);
-    }
-
-    return this.instance.request({
-      ...requestParams,
-      headers: {
-        ...(requestParams.headers || {}),
-        ...(type ? { 'Content-Type': type } : {}),
+    return this.customFetch(
+      `${baseUrl || this.baseUrl || ""}${path}${queryString ? `?${queryString}` : ""}`,
+      {
+        ...requestParams,
+        headers: {
+          ...(requestParams.headers || {}),
+          ...(type && type !== ContentType.FormData
+            ? { "Content-Type": type }
+            : {}),
+        },
+        signal:
+          (cancelToken
+            ? this.createAbortSignal(cancelToken)
+            : requestParams.signal) || null,
+        body:
+          typeof body === "undefined" || body === null
+            ? null
+            : payloadFormatter(body),
       },
-      params: query,
-      responseType: responseFormat,
-      data: body,
-      url: path,
+    ).then(async (response) => {
+      const r = response.clone() as HttpResponse<T, E>;
+      r.data = null as unknown as T;
+      r.error = null as unknown as E;
+
+      const data = !responseFormat
+        ? r
+        : await response[responseFormat]()
+            .then((data) => {
+              if (r.ok) {
+                r.data = data;
+              } else {
+                r.error = data;
+              }
+              return r;
+            })
+            .catch((e) => {
+              r.error = e;
+              return r;
+            });
+
+      if (cancelToken) {
+        this.abortControllers.delete(cancelToken);
+      }
+
+      if (!response.ok) throw data;
+      return data;
     });
   };
 }
@@ -839,21 +898,21 @@ export class Api<
      */
     v1AiGenerateQuestionnaireCreate: (
       productId: string,
-      questionnaire: ModelsGenerateQuestionnaireRequest,
-      params: RequestParams = {}
+      questionnaire: FeedbackmodelGenerateQuestionnaireRequest,
+      params: RequestParams = {},
     ) =>
       this.request<
         ResponseResponse & {
-          data?: ModelsQuestionnaire;
+          data?: FeedbackmodelQuestionnaire;
         },
         ResponseResponse
       >({
         path: `/api/v1/ai/generate-questionnaire/${productId}`,
-        method: 'POST',
+        method: "POST",
         body: questionnaire,
         secure: true,
         type: ContentType.Json,
-        format: 'json',
+        format: "json",
         ...params,
       }),
 
@@ -868,19 +927,19 @@ export class Api<
      */
     v1AiGenerateQuestionsCreate: (
       productId: string,
-      params: RequestParams = {}
+      params: RequestParams = {},
     ) =>
       this.request<
         ResponseResponse & {
-          data?: ModelsGeneratedQuestion[];
+          data?: FeedbackmodelGeneratedQuestion[];
         },
         ResponseResponse
       >({
         path: `/api/v1/ai/generate-questions/${productId}`,
-        method: 'POST',
+        method: "POST",
         secure: true,
         type: ContentType.Json,
-        format: 'json',
+        format: "json",
         ...params,
       }),
 
@@ -895,14 +954,14 @@ export class Api<
      */
     v1AnalyticsDashboardDetail: (
       organizationId: string,
-      params: RequestParams = {}
+      params: RequestParams = {},
     ) =>
       this.request<Record<string, any>, ResponseResponse>({
         path: `/api/v1/analytics/dashboard/${organizationId}`,
-        method: 'GET',
+        method: "GET",
         secure: true,
         type: ContentType.Json,
-        format: 'json',
+        format: "json",
         ...params,
       }),
 
@@ -917,14 +976,14 @@ export class Api<
      */
     v1AnalyticsOrganizationsDetail: (
       organizationId: string,
-      params: RequestParams = {}
+      params: RequestParams = {},
     ) =>
       this.request<Record<string, any>, ResponseResponse>({
         path: `/api/v1/analytics/organizations/${organizationId}`,
-        method: 'GET',
+        method: "GET",
         secure: true,
         type: ContentType.Json,
-        format: 'json',
+        format: "json",
         ...params,
       }),
 
@@ -947,15 +1006,15 @@ export class Api<
         /** Filter by specific product ID */
         product_id?: string;
       },
-      params: RequestParams = {}
+      params: RequestParams = {},
     ) =>
       this.request<Record<string, any>, ResponseResponse>({
         path: `/api/v1/analytics/organizations/${organizationId}/charts`,
-        method: 'GET',
+        method: "GET",
         query: query,
         secure: true,
         type: ContentType.Json,
-        format: 'json',
+        format: "json",
         ...params,
       }),
 
@@ -970,14 +1029,14 @@ export class Api<
      */
     v1AnalyticsOrganizationsCollectMetricsCreate: (
       organizationId: string,
-      params: RequestParams = {}
+      params: RequestParams = {},
     ) =>
       this.request<ResponseResponse, ResponseResponse>({
         path: `/api/v1/analytics/organizations/${organizationId}/collect-metrics`,
-        method: 'POST',
+        method: "POST",
         secure: true,
         type: ContentType.Json,
-        format: 'json',
+        format: "json",
         ...params,
       }),
 
@@ -992,16 +1051,16 @@ export class Api<
      */
     v1AnalyticsOrganizationsCompareCreate: (
       organizationId: string,
-      body: ModelsComparisonRequest,
-      params: RequestParams = {}
+      body: AnalyticsmodelComparisonRequest,
+      params: RequestParams = {},
     ) =>
-      this.request<ModelsComparisonResponse, ResponseResponse>({
+      this.request<AnalyticsmodelComparisonResponse, ResponseResponse>({
         path: `/api/v1/analytics/organizations/${organizationId}/compare`,
-        method: 'POST',
+        method: "POST",
         body: body,
         secure: true,
         type: ContentType.Json,
-        format: 'json',
+        format: "json",
         ...params,
       }),
 
@@ -1030,15 +1089,15 @@ export class Api<
         /** Filter by question ID */
         question_id?: string;
       },
-      params: RequestParams = {}
+      params: RequestParams = {},
     ) =>
-      this.request<ModelsTimeSeriesResponse, ResponseResponse>({
+      this.request<AnalyticsmodelTimeSeriesResponse, ResponseResponse>({
         path: `/api/v1/analytics/organizations/${organizationId}/time-series`,
-        method: 'GET',
+        method: "GET",
         query: query,
         secure: true,
         type: ContentType.Json,
-        format: 'json',
+        format: "json",
         ...params,
       }),
 
@@ -1053,14 +1112,14 @@ export class Api<
      */
     v1AnalyticsProductsDetail: (
       productId: string,
-      params: RequestParams = {}
+      params: RequestParams = {},
     ) =>
       this.request<Record<string, any>, ResponseResponse>({
         path: `/api/v1/analytics/products/${productId}`,
-        method: 'GET',
+        method: "GET",
         secure: true,
         type: ContentType.Json,
-        format: 'json',
+        format: "json",
         ...params,
       }),
 
@@ -1075,92 +1134,14 @@ export class Api<
      */
     v1AnalyticsProductsInsightsList: (
       productId: string,
-      params: RequestParams = {}
+      params: RequestParams = {},
     ) =>
       this.request<Record<string, any>, ResponseResponse>({
         path: `/api/v1/analytics/products/${productId}/insights`,
-        method: 'GET',
+        method: "GET",
         secure: true,
         type: ContentType.Json,
-        format: 'json',
-        ...params,
-      }),
-
-    /**
-     * @description Cancel a pending account deactivation request
-     *
-     * @tags auth
-     * @name V1AuthCancelDeactivationCreate
-     * @summary Cancel account deactivation
-     * @request POST:/api/v1/auth/cancel-deactivation
-     * @secure
-     */
-    v1AuthCancelDeactivationCreate: (params: RequestParams = {}) =>
-      this.request<
-        ResponseResponse & {
-          data?: Record<string, string>;
-        },
-        ResponseResponse
-      >({
-        path: `/api/v1/auth/cancel-deactivation`,
-        method: 'POST',
-        secure: true,
-        type: ContentType.Json,
-        format: 'json',
-        ...params,
-      }),
-
-    /**
-     * @description Request to change the account email address
-     *
-     * @tags auth
-     * @name V1AuthChangeEmailCreate
-     * @summary Request email change
-     * @request POST:/api/v1/auth/change-email
-     * @secure
-     */
-    v1AuthChangeEmailCreate: (
-      request: HandlersChangeEmailRequest,
-      params: RequestParams = {}
-    ) =>
-      this.request<
-        ResponseResponse & {
-          data?: Record<string, string>;
-        },
-        ResponseResponse
-      >({
-        path: `/api/v1/auth/change-email`,
-        method: 'POST',
-        body: request,
-        secure: true,
-        type: ContentType.Json,
-        format: 'json',
-        ...params,
-      }),
-
-    /**
-     * @description Confirm email change using the token sent to the new email
-     *
-     * @tags auth
-     * @name V1AuthConfirmEmailChangeCreate
-     * @summary Confirm email change
-     * @request POST:/api/v1/auth/confirm-email-change
-     */
-    v1AuthConfirmEmailChangeCreate: (
-      request: HandlersConfirmEmailChangeRequest,
-      params: RequestParams = {}
-    ) =>
-      this.request<
-        ResponseResponse & {
-          data?: Record<string, string>;
-        },
-        ResponseResponse
-      >({
-        path: `/api/v1/auth/confirm-email-change`,
-        method: 'POST',
-        body: request,
-        type: ContentType.Json,
-        format: 'json',
+        format: "json",
         ...params,
       }),
 
@@ -1176,15 +1157,93 @@ export class Api<
     v1AuthDeactivateCreate: (params: RequestParams = {}) =>
       this.request<
         ResponseResponse & {
-          data?: Record<string, any>;
+          data?: AuthmodelDeactivationResponse;
         },
         ResponseResponse
       >({
         path: `/api/v1/auth/deactivate`,
-        method: 'POST',
+        method: "POST",
         secure: true,
         type: ContentType.Json,
-        format: 'json',
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description Cancel a pending account deactivation request
+     *
+     * @tags auth
+     * @name V1AuthDeactivateCancelCreate
+     * @summary Cancel account deactivation
+     * @request POST:/api/v1/auth/deactivate/cancel
+     * @secure
+     */
+    v1AuthDeactivateCancelCreate: (params: RequestParams = {}) =>
+      this.request<
+        ResponseResponse & {
+          data?: Record<string, string>;
+        },
+        ResponseResponse
+      >({
+        path: `/api/v1/auth/deactivate/cancel`,
+        method: "POST",
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description Request to change the account email address
+     *
+     * @tags auth
+     * @name V1AuthEmailChangeCreate
+     * @summary Request email change
+     * @request POST:/api/v1/auth/email-change
+     * @secure
+     */
+    v1AuthEmailChangeCreate: (
+      request: AuthmodelChangeEmailRequest,
+      params: RequestParams = {},
+    ) =>
+      this.request<
+        ResponseResponse & {
+          data?: Record<string, string>;
+        },
+        ResponseResponse
+      >({
+        path: `/api/v1/auth/email-change`,
+        method: "POST",
+        body: request,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description Confirm email change using the token sent to the new email
+     *
+     * @tags auth
+     * @name V1AuthEmailChangeConfirmCreate
+     * @summary Confirm email change
+     * @request POST:/api/v1/auth/email-change/confirm
+     */
+    v1AuthEmailChangeConfirmCreate: (
+      request: AuthmodelConfirmEmailChangeRequest,
+      params: RequestParams = {},
+    ) =>
+      this.request<
+        ResponseResponse & {
+          data?: Record<string, string>;
+        },
+        ResponseResponse
+      >({
+        path: `/api/v1/auth/email-change/confirm`,
+        method: "POST",
+        body: request,
+        type: ContentType.Json,
+        format: "json",
         ...params,
       }),
 
@@ -1197,8 +1256,8 @@ export class Api<
      * @request POST:/api/v1/auth/forgot-password
      */
     v1AuthForgotPasswordCreate: (
-      request: HandlersPasswordResetRequest,
-      params: RequestParams = {}
+      request: AuthmodelPasswordResetRequest,
+      params: RequestParams = {},
     ) =>
       this.request<
         ResponseResponse & {
@@ -1207,10 +1266,10 @@ export class Api<
         ResponseResponse
       >({
         path: `/api/v1/auth/forgot-password`,
-        method: 'POST',
+        method: "POST",
         body: request,
         type: ContentType.Json,
-        format: 'json',
+        format: "json",
         ...params,
       }),
 
@@ -1223,20 +1282,20 @@ export class Api<
      * @request POST:/api/v1/auth/login
      */
     v1AuthLoginCreate: (
-      request: HandlersLoginRequest,
-      params: RequestParams = {}
+      request: AuthmodelLoginRequest,
+      params: RequestParams = {},
     ) =>
       this.request<
         ResponseResponse & {
-          data?: HandlersAuthResponse;
+          data?: AuthmodelTokenResponse;
         },
         ResponseResponse
       >({
         path: `/api/v1/auth/login`,
-        method: 'POST',
+        method: "POST",
         body: request,
         type: ContentType.Json,
-        format: 'json',
+        format: "json",
         ...params,
       }),
 
@@ -1250,8 +1309,8 @@ export class Api<
      * @secure
      */
     v1AuthProfileUpdate: (
-      request: HandlersUpdateProfileRequest,
-      params: RequestParams = {}
+      request: AuthmodelUpdateProfileRequest,
+      params: RequestParams = {},
     ) =>
       this.request<
         ResponseResponse & {
@@ -1260,11 +1319,11 @@ export class Api<
         ResponseResponse
       >({
         path: `/api/v1/auth/profile`,
-        method: 'PUT',
+        method: "PUT",
         body: request,
         secure: true,
         type: ContentType.Json,
-        format: 'json',
+        format: "json",
         ...params,
       }),
 
@@ -1280,15 +1339,15 @@ export class Api<
     v1AuthRefreshCreate: (params: RequestParams = {}) =>
       this.request<
         ResponseResponse & {
-          data?: Record<string, string>;
+          data?: AuthmodelTokenResponse;
         },
         ResponseResponse
       >({
         path: `/api/v1/auth/refresh`,
-        method: 'POST',
+        method: "POST",
         secure: true,
         type: ContentType.Json,
-        format: 'json',
+        format: "json",
         ...params,
       }),
 
@@ -1301,8 +1360,8 @@ export class Api<
      * @request POST:/api/v1/auth/register
      */
     v1AuthRegisterCreate: (
-      request: HandlersRegisterRequest,
-      params: RequestParams = {}
+      request: AuthmodelRegisterRequest,
+      params: RequestParams = {},
     ) =>
       this.request<
         ResponseResponse & {
@@ -1311,10 +1370,10 @@ export class Api<
         ResponseResponse
       >({
         path: `/api/v1/auth/register`,
-        method: 'POST',
+        method: "POST",
         body: request,
         type: ContentType.Json,
-        format: 'json',
+        format: "json",
         ...params,
       }),
 
@@ -1327,8 +1386,8 @@ export class Api<
      * @request POST:/api/v1/auth/resend-verification
      */
     v1AuthResendVerificationCreate: (
-      request: HandlersResendVerificationRequest,
-      params: RequestParams = {}
+      request: AuthmodelResendVerificationRequest,
+      params: RequestParams = {},
     ) =>
       this.request<
         ResponseResponse & {
@@ -1337,10 +1396,10 @@ export class Api<
         ResponseResponse
       >({
         path: `/api/v1/auth/resend-verification`,
-        method: 'POST',
+        method: "POST",
         body: request,
         type: ContentType.Json,
-        format: 'json',
+        format: "json",
         ...params,
       }),
 
@@ -1353,8 +1412,8 @@ export class Api<
      * @request POST:/api/v1/auth/reset-password
      */
     v1AuthResetPasswordCreate: (
-      request: HandlersResetPasswordRequest,
-      params: RequestParams = {}
+      request: AuthmodelResetPasswordRequest,
+      params: RequestParams = {},
     ) =>
       this.request<
         ResponseResponse & {
@@ -1363,10 +1422,10 @@ export class Api<
         ResponseResponse
       >({
         path: `/api/v1/auth/reset-password`,
-        method: 'POST',
+        method: "POST",
         body: request,
         type: ContentType.Json,
-        format: 'json',
+        format: "json",
         ...params,
       }),
 
@@ -1387,10 +1446,10 @@ export class Api<
         ResponseResponse
       >({
         path: `/api/v1/auth/send-verification`,
-        method: 'POST',
+        method: "POST",
         secure: true,
         type: ContentType.Json,
-        format: 'json',
+        format: "json",
         ...params,
       }),
 
@@ -1407,7 +1466,7 @@ export class Api<
         /** Verification token */
         token: string;
       },
-      params: RequestParams = {}
+      params: RequestParams = {},
     ) =>
       this.request<
         ResponseResponse & {
@@ -1416,10 +1475,10 @@ export class Api<
         ResponseResponse
       >({
         path: `/api/v1/auth/verify-email`,
-        method: 'GET',
+        method: "GET",
         query: query,
         type: ContentType.Json,
-        format: 'json',
+        format: "json",
         ...params,
       }),
 
@@ -1435,14 +1494,14 @@ export class Api<
     v1OrganizationsList: (params: RequestParams = {}) =>
       this.request<
         ResponseResponse & {
-          data?: ModelsOrganization[];
+          data?: OrganizationmodelOrganization[];
         },
         ResponseResponse
       >({
         path: `/api/v1/organizations`,
-        method: 'GET',
+        method: "GET",
         secure: true,
-        format: 'json',
+        format: "json",
         ...params,
       }),
 
@@ -1456,21 +1515,21 @@ export class Api<
      * @secure
      */
     v1OrganizationsCreate: (
-      request: HandlersCreateOrganizationRequest,
-      params: RequestParams = {}
+      request: OrganizationmodelCreateOrganizationRequest,
+      params: RequestParams = {},
     ) =>
       this.request<
         ResponseResponse & {
-          data?: ModelsOrganization;
+          data?: OrganizationmodelOrganization;
         },
         ResponseResponse
       >({
         path: `/api/v1/organizations`,
-        method: 'POST',
+        method: "POST",
         body: request,
         secure: true,
         type: ContentType.Json,
-        format: 'json',
+        format: "json",
         ...params,
       }),
 
@@ -1486,15 +1545,15 @@ export class Api<
     v1OrganizationsDetail: (id: string, params: RequestParams = {}) =>
       this.request<
         ResponseResponse & {
-          data?: ModelsOrganization;
+          data?: OrganizationmodelOrganization;
         },
         ResponseResponse
       >({
         path: `/api/v1/organizations/${id}`,
-        method: 'GET',
+        method: "GET",
         secure: true,
         type: ContentType.Json,
-        format: 'json',
+        format: "json",
         ...params,
       }),
 
@@ -1510,7 +1569,7 @@ export class Api<
     v1OrganizationsUpdate: (
       id: string,
       updates: Record<string, any>,
-      params: RequestParams = {}
+      params: RequestParams = {},
     ) =>
       this.request<
         ResponseResponse & {
@@ -1519,11 +1578,11 @@ export class Api<
         ResponseResponse
       >({
         path: `/api/v1/organizations/${id}`,
-        method: 'PUT',
+        method: "PUT",
         body: updates,
         secure: true,
         type: ContentType.Json,
-        format: 'json',
+        format: "json",
         ...params,
       }),
 
@@ -1544,10 +1603,10 @@ export class Api<
         ResponseResponse
       >({
         path: `/api/v1/organizations/${id}`,
-        method: 'DELETE',
+        method: "DELETE",
         secure: true,
         type: ContentType.Json,
-        format: 'json',
+        format: "json",
         ...params,
       }),
 
@@ -1562,14 +1621,14 @@ export class Api<
      */
     v1OrganizationsAnalyticsList: (
       organizationId: string,
-      params: RequestParams = {}
+      params: RequestParams = {},
     ) =>
       this.request<Record<string, any>, ResponseResponse>({
         path: `/api/v1/organizations/${organizationId}/analytics`,
-        method: 'GET',
+        method: "GET",
         secure: true,
         type: ContentType.Json,
-        format: 'json',
+        format: "json",
         ...params,
       }),
 
@@ -1604,15 +1663,15 @@ export class Api<
         /** Filter by completion status */
         is_complete?: boolean;
       },
-      params: RequestParams = {}
+      params: RequestParams = {},
     ) =>
       this.request<Record<string, any>, ResponseResponse>({
         path: `/api/v1/organizations/${organizationId}/feedback`,
-        method: 'GET',
+        method: "GET",
         query: query,
         secure: true,
         type: ContentType.Json,
-        format: 'json',
+        format: "json",
         ...params,
       }),
 
@@ -1627,19 +1686,19 @@ export class Api<
      */
     v1OrganizationsProductsList: (
       organizationId: string,
-      params: RequestParams = {}
+      params: RequestParams = {},
     ) =>
       this.request<
         ResponseResponse & {
-          data?: KyooarInternalMenuModelsProduct[];
+          data?: ModelsProduct[];
         },
         ResponseResponse
       >({
         path: `/api/v1/organizations/${organizationId}/products`,
-        method: 'GET',
+        method: "GET",
         secure: true,
         type: ContentType.Json,
-        format: 'json',
+        format: "json",
         ...params,
       }),
 
@@ -1655,20 +1714,106 @@ export class Api<
     v1OrganizationsProductsCreate: (
       organizationId: string,
       product: HandlersCreateProductRequest,
-      params: RequestParams = {}
+      params: RequestParams = {},
     ) =>
       this.request<
         ResponseResponse & {
-          data?: KyooarInternalMenuModelsProduct;
+          data?: ModelsProduct;
         },
         ResponseResponse
       >({
         path: `/api/v1/organizations/${organizationId}/products`,
-        method: 'POST',
+        method: "POST",
         body: product,
         secure: true,
         type: ContentType.Json,
-        format: 'json',
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description Get a specific product by its ID
+     *
+     * @tags products
+     * @name V1OrganizationsProductsDetail
+     * @summary Get product by ID
+     * @request GET:/api/v1/organizations/{organizationId}/products/{productId}
+     * @secure
+     */
+    v1OrganizationsProductsDetail: (
+      organizationId: string,
+      productId: string,
+      params: RequestParams = {},
+    ) =>
+      this.request<
+        ResponseResponse & {
+          data?: ModelsProduct;
+        },
+        ResponseResponse
+      >({
+        path: `/api/v1/organizations/${organizationId}/products/${productId}`,
+        method: "GET",
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description Update a product's information
+     *
+     * @tags products
+     * @name V1OrganizationsProductsUpdate
+     * @summary Update a product
+     * @request PUT:/api/v1/organizations/{organizationId}/products/{productId}
+     * @secure
+     */
+    v1OrganizationsProductsUpdate: (
+      organizationId: string,
+      productId: string,
+      updates: Record<string, any>,
+      params: RequestParams = {},
+    ) =>
+      this.request<
+        ResponseResponse & {
+          data?: Record<string, string>;
+        },
+        ResponseResponse
+      >({
+        path: `/api/v1/organizations/${organizationId}/products/${productId}`,
+        method: "PUT",
+        body: updates,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description Delete a product from the system
+     *
+     * @tags products
+     * @name V1OrganizationsProductsDelete
+     * @summary Delete a product
+     * @request DELETE:/api/v1/organizations/{organizationId}/products/{productId}
+     * @secure
+     */
+    v1OrganizationsProductsDelete: (
+      organizationId: string,
+      productId: string,
+      params: RequestParams = {},
+    ) =>
+      this.request<
+        ResponseResponse & {
+          data?: Record<string, string>;
+        },
+        ResponseResponse
+      >({
+        path: `/api/v1/organizations/${organizationId}/products/${productId}`,
+        method: "DELETE",
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
         ...params,
       }),
 
@@ -1684,13 +1829,13 @@ export class Api<
     v1OrganizationsProductsQuestionsList: (
       organizationId: string,
       productId: string,
-      params: RequestParams = {}
+      params: RequestParams = {},
     ) =>
       this.request<Record<string, any>, Record<string, any>>({
         path: `/api/v1/organizations/${organizationId}/products/${productId}/questions`,
-        method: 'GET',
+        method: "GET",
         secure: true,
-        format: 'json',
+        format: "json",
         ...params,
       }),
 
@@ -1706,16 +1851,16 @@ export class Api<
     v1OrganizationsProductsQuestionsCreate: (
       organizationId: string,
       productId: string,
-      question: ModelsCreateQuestionRequest,
-      params: RequestParams = {}
+      question: FeedbackmodelCreateQuestionRequest,
+      params: RequestParams = {},
     ) =>
       this.request<Record<string, any>, Record<string, any>>({
         path: `/api/v1/organizations/${organizationId}/products/${productId}/questions`,
-        method: 'POST',
+        method: "POST",
         body: question,
         secure: true,
         type: ContentType.Json,
-        format: 'json',
+        format: "json",
         ...params,
       }),
 
@@ -1732,15 +1877,15 @@ export class Api<
       organizationId: string,
       productId: string,
       order: string[],
-      params: RequestParams = {}
+      params: RequestParams = {},
     ) =>
       this.request<Record<string, any>, Record<string, any>>({
         path: `/api/v1/organizations/${organizationId}/products/${productId}/questions/reorder`,
-        method: 'POST',
+        method: "POST",
         body: order,
         secure: true,
         type: ContentType.Json,
-        format: 'json',
+        format: "json",
         ...params,
       }),
 
@@ -1757,13 +1902,13 @@ export class Api<
       organizationId: string,
       productId: string,
       questionId: string,
-      params: RequestParams = {}
+      params: RequestParams = {},
     ) =>
       this.request<Record<string, any>, Record<string, any>>({
         path: `/api/v1/organizations/${organizationId}/products/${productId}/questions/${questionId}`,
-        method: 'GET',
+        method: "GET",
         secure: true,
-        format: 'json',
+        format: "json",
         ...params,
       }),
 
@@ -1780,16 +1925,16 @@ export class Api<
       organizationId: string,
       productId: string,
       questionId: string,
-      question: ModelsUpdateQuestionRequest,
-      params: RequestParams = {}
+      question: FeedbackmodelUpdateQuestionRequest,
+      params: RequestParams = {},
     ) =>
       this.request<Record<string, any>, Record<string, any>>({
         path: `/api/v1/organizations/${organizationId}/products/${productId}/questions/${questionId}`,
-        method: 'PUT',
+        method: "PUT",
         body: question,
         secure: true,
         type: ContentType.Json,
-        format: 'json',
+        format: "json",
         ...params,
       }),
 
@@ -1806,13 +1951,13 @@ export class Api<
       organizationId: string,
       productId: string,
       questionId: string,
-      params: RequestParams = {}
+      params: RequestParams = {},
     ) =>
       this.request<Record<string, any>, Record<string, any>>({
         path: `/api/v1/organizations/${organizationId}/products/${productId}/questions/${questionId}`,
-        method: 'DELETE',
+        method: "DELETE",
         secure: true,
-        format: 'json',
+        format: "json",
         ...params,
       }),
 
@@ -1827,14 +1972,19 @@ export class Api<
      */
     v1OrganizationsQrCodesList: (
       organizationId: string,
-      params: RequestParams = {}
+      params: RequestParams = {},
     ) =>
-      this.request<HandlersQRCodeListResponse, ResponseResponse>({
+      this.request<
+        ResponseResponse & {
+          data?: QrcodemodelQRCode[];
+        },
+        ResponseResponse
+      >({
         path: `/api/v1/organizations/${organizationId}/qr-codes`,
-        method: 'GET',
+        method: "GET",
         secure: true,
         type: ContentType.Json,
-        format: 'json',
+        format: "json",
         ...params,
       }),
 
@@ -1849,16 +1999,21 @@ export class Api<
      */
     v1OrganizationsQrCodesCreate: (
       organizationId: string,
-      qr_code: HandlersGenerateQRCodeRequest,
-      params: RequestParams = {}
+      qr_code: QrcodecontrollerGenerateQRCodeRequest,
+      params: RequestParams = {},
     ) =>
-      this.request<HandlersGenerateQRCodeResponse, ResponseResponse>({
+      this.request<
+        ResponseResponse & {
+          data?: QrcodemodelQRCode;
+        },
+        ResponseResponse
+      >({
         path: `/api/v1/organizations/${organizationId}/qr-codes`,
-        method: 'POST',
+        method: "POST",
         body: qr_code,
         secure: true,
         type: ContentType.Json,
-        format: 'json',
+        format: "json",
         ...params,
       }),
 
@@ -1873,19 +2028,19 @@ export class Api<
      */
     v1OrganizationsQuestionnairesList: (
       organizationId: string,
-      params: RequestParams = {}
+      params: RequestParams = {},
     ) =>
       this.request<
         ResponseResponse & {
-          data?: ModelsQuestionnaire[];
+          data?: FeedbackmodelQuestionnaire[];
         },
         ResponseResponse
       >({
         path: `/api/v1/organizations/${organizationId}/questionnaires`,
-        method: 'GET',
+        method: "GET",
         secure: true,
         type: ContentType.Json,
-        format: 'json',
+        format: "json",
         ...params,
       }),
 
@@ -1900,21 +2055,21 @@ export class Api<
      */
     v1OrganizationsQuestionnairesCreate: (
       organizationId: string,
-      questionnaire: ModelsCreateQuestionnaireRequest,
-      params: RequestParams = {}
+      questionnaire: FeedbackmodelCreateQuestionnaireRequest,
+      params: RequestParams = {},
     ) =>
       this.request<
         ResponseResponse & {
-          data?: ModelsQuestionnaire;
+          data?: FeedbackmodelQuestionnaire;
         },
         ResponseResponse
       >({
         path: `/api/v1/organizations/${organizationId}/questionnaires`,
-        method: 'POST',
+        method: "POST",
         body: questionnaire,
         secure: true,
         type: ContentType.Json,
-        format: 'json',
+        format: "json",
         ...params,
       }),
 
@@ -1930,19 +2085,19 @@ export class Api<
     v1OrganizationsQuestionnairesDetail: (
       organizationId: string,
       id: string,
-      params: RequestParams = {}
+      params: RequestParams = {},
     ) =>
       this.request<
         ResponseResponse & {
-          data?: ModelsQuestionnaire;
+          data?: FeedbackmodelQuestionnaire;
         },
         ResponseResponse
       >({
         path: `/api/v1/organizations/${organizationId}/questionnaires/${id}`,
-        method: 'GET',
+        method: "GET",
         secure: true,
         type: ContentType.Json,
-        format: 'json',
+        format: "json",
         ...params,
       }),
 
@@ -1958,21 +2113,21 @@ export class Api<
     v1OrganizationsQuestionnairesUpdate: (
       organizationId: string,
       id: string,
-      questionnaire: ModelsQuestionnaire,
-      params: RequestParams = {}
+      questionnaire: FeedbackmodelQuestionnaire,
+      params: RequestParams = {},
     ) =>
       this.request<
         ResponseResponse & {
-          data?: ModelsQuestionnaire;
+          data?: FeedbackmodelQuestionnaire;
         },
         ResponseResponse
       >({
         path: `/api/v1/organizations/${organizationId}/questionnaires/${id}`,
-        method: 'PUT',
+        method: "PUT",
         body: questionnaire,
         secure: true,
         type: ContentType.Json,
-        format: 'json',
+        format: "json",
         ...params,
       }),
 
@@ -1988,14 +2143,14 @@ export class Api<
     v1OrganizationsQuestionnairesDelete: (
       organizationId: string,
       id: string,
-      params: RequestParams = {}
+      params: RequestParams = {},
     ) =>
       this.request<ResponseResponse, ResponseResponse>({
         path: `/api/v1/organizations/${organizationId}/questionnaires/${id}`,
-        method: 'DELETE',
+        method: "DELETE",
         secure: true,
         type: ContentType.Json,
-        format: 'json',
+        format: "json",
         ...params,
       }),
 
@@ -2010,16 +2165,16 @@ export class Api<
      */
     v1OrganizationsQuestionsBatchCreate: (
       organizationId: string,
-      request: ModelsBatchQuestionsRequest,
-      params: RequestParams = {}
+      request: FeedbackmodelBatchQuestionsRequest,
+      params: RequestParams = {},
     ) =>
       this.request<Record<string, any>, Record<string, any>>({
         path: `/api/v1/organizations/${organizationId}/questions/batch`,
-        method: 'POST',
+        method: "POST",
         body: request,
         secure: true,
         type: ContentType.Json,
-        format: 'json',
+        format: "json",
         ...params,
       }),
 
@@ -2034,13 +2189,13 @@ export class Api<
      */
     v1OrganizationsQuestionsProductsWithQuestionsList: (
       organizationId: string,
-      params: RequestParams = {}
+      params: RequestParams = {},
     ) =>
       this.request<Record<string, any>, Record<string, any>>({
         path: `/api/v1/organizations/${organizationId}/questions/products-with-questions`,
-        method: 'GET',
+        method: "GET",
         secure: true,
-        format: 'json',
+        format: "json",
         ...params,
       }),
 
@@ -2054,21 +2209,21 @@ export class Api<
      * @secure
      */
     v1PaymentCheckoutCreate: (
-      request: HandlersCreateCheckoutRequest,
-      params: RequestParams = {}
+      request: SubscriptioncontrollerCreateCheckoutRequest,
+      params: RequestParams = {},
     ) =>
       this.request<
         ResponseResponse & {
-          data?: HandlersCheckoutResponse;
+          data?: SubscriptioncontrollerCheckoutResponse;
         },
         ResponseResponse
       >({
         path: `/api/v1/payment/checkout`,
-        method: 'POST',
+        method: "POST",
         body: request,
         secure: true,
         type: ContentType.Json,
-        format: 'json',
+        format: "json",
         ...params,
       }),
 
@@ -2081,15 +2236,15 @@ export class Api<
      * @request POST:/api/v1/payment/checkout/complete
      */
     v1PaymentCheckoutCompleteCreate: (
-      request: HandlersCompleteCheckoutRequest,
-      params: RequestParams = {}
+      request: SubscriptioncontrollerCompleteCheckoutRequest,
+      params: RequestParams = {},
     ) =>
       this.request<ResponseResponse, ResponseResponse>({
         path: `/api/v1/payment/checkout/complete`,
-        method: 'POST',
+        method: "POST",
         body: request,
         type: ContentType.Json,
-        format: 'json',
+        format: "json",
         ...params,
       }),
 
@@ -2110,19 +2265,19 @@ export class Api<
          */
         limit?: number;
       },
-      params: RequestParams = {}
+      params: RequestParams = {},
     ) =>
       this.request<
         ResponseResponse & {
-          data?: HandlersInvoiceResponse[];
+          data?: SubscriptioncontrollerInvoiceResponse[];
         },
         ResponseResponse
       >({
         path: `/api/v1/payment/invoices`,
-        method: 'GET',
+        method: "GET",
         query: query,
         secure: true,
-        format: 'json',
+        format: "json",
         ...params,
       }),
 
@@ -2138,14 +2293,14 @@ export class Api<
     v1PaymentMethodsList: (params: RequestParams = {}) =>
       this.request<
         ResponseResponse & {
-          data?: HandlersPaymentMethodResponse[];
+          data?: SubscriptioncontrollerPaymentMethodResponse[];
         },
         ResponseResponse
       >({
         path: `/api/v1/payment/methods`,
-        method: 'GET',
+        method: "GET",
         secure: true,
-        format: 'json',
+        format: "json",
         ...params,
       }),
 
@@ -2159,16 +2314,16 @@ export class Api<
      * @secure
      */
     v1PaymentMethodsDefaultCreate: (
-      request: HandlersSetDefaultPaymentRequest,
-      params: RequestParams = {}
+      request: SubscriptioncontrollerSetDefaultPaymentRequest,
+      params: RequestParams = {},
     ) =>
       this.request<ResponseResponse, ResponseResponse>({
         path: `/api/v1/payment/methods/default`,
-        method: 'POST',
+        method: "POST",
         body: request,
         secure: true,
         type: ContentType.Json,
-        format: 'json',
+        format: "json",
         ...params,
       }),
 
@@ -2184,14 +2339,14 @@ export class Api<
     v1PaymentPortalCreate: (params: RequestParams = {}) =>
       this.request<
         ResponseResponse & {
-          data?: HandlersPortalResponse;
+          data?: SubscriptioncontrollerPortalResponse;
         },
         ResponseResponse
       >({
         path: `/api/v1/payment/portal`,
-        method: 'POST',
+        method: "POST",
         secure: true,
-        format: 'json',
+        format: "json",
         ...params,
       }),
 
@@ -2206,9 +2361,9 @@ export class Api<
     v1PaymentWebhookCreate: (params: RequestParams = {}) =>
       this.request<ResponseResponse, ResponseResponse>({
         path: `/api/v1/payment/webhook`,
-        method: 'POST',
+        method: "POST",
         type: ContentType.Json,
-        format: 'json',
+        format: "json",
         ...params,
       }),
 
@@ -2223,91 +2378,14 @@ export class Api<
     v1PlansList: (params: RequestParams = {}) =>
       this.request<
         ResponseResponse & {
-          data?: ModelsSubscriptionPlan[];
+          data?: SubscriptionmodelSubscriptionPlan[];
         },
         ResponseResponse
       >({
         path: `/api/v1/plans`,
-        method: 'GET',
+        method: "GET",
         type: ContentType.Json,
-        format: 'json',
-        ...params,
-      }),
-
-    /**
-     * @description Get a specific product by its ID
-     *
-     * @tags products
-     * @name V1ProductsDetail
-     * @summary Get product by ID
-     * @request GET:/api/v1/products/{id}
-     * @secure
-     */
-    v1ProductsDetail: (id: string, params: RequestParams = {}) =>
-      this.request<
-        ResponseResponse & {
-          data?: KyooarInternalMenuModelsProduct;
-        },
-        ResponseResponse
-      >({
-        path: `/api/v1/products/${id}`,
-        method: 'GET',
-        secure: true,
-        type: ContentType.Json,
-        format: 'json',
-        ...params,
-      }),
-
-    /**
-     * @description Update a product's information
-     *
-     * @tags products
-     * @name V1ProductsUpdate
-     * @summary Update a product
-     * @request PUT:/api/v1/products/{id}
-     * @secure
-     */
-    v1ProductsUpdate: (
-      id: string,
-      updates: Record<string, any>,
-      params: RequestParams = {}
-    ) =>
-      this.request<
-        ResponseResponse & {
-          data?: Record<string, string>;
-        },
-        ResponseResponse
-      >({
-        path: `/api/v1/products/${id}`,
-        method: 'PUT',
-        body: updates,
-        secure: true,
-        type: ContentType.Json,
-        format: 'json',
-        ...params,
-      }),
-
-    /**
-     * @description Delete a product from the system
-     *
-     * @tags products
-     * @name V1ProductsDelete
-     * @summary Delete a product
-     * @request DELETE:/api/v1/products/{id}
-     * @secure
-     */
-    v1ProductsDelete: (id: string, params: RequestParams = {}) =>
-      this.request<
-        ResponseResponse & {
-          data?: Record<string, string>;
-        },
-        ResponseResponse
-      >({
-        path: `/api/v1/products/${id}`,
-        method: 'DELETE',
-        secure: true,
-        type: ContentType.Json,
-        format: 'json',
+        format: "json",
         ...params,
       }),
 
@@ -2320,32 +2398,35 @@ export class Api<
      * @request POST:/api/v1/public/feedback
      */
     v1PublicFeedbackCreate: (
-      feedback: ModelsFeedback,
-      params: RequestParams = {}
+      feedback: FeedbackmodelFeedback,
+      params: RequestParams = {},
     ) =>
       this.request<Record<string, any>, ResponseResponse>({
         path: `/api/v1/public/feedback`,
-        method: 'POST',
+        method: "POST",
         body: feedback,
         type: ContentType.Json,
-        format: 'json',
+        format: "json",
         ...params,
       }),
 
     /**
-     * @description Get public menu for a organization
+     * @description Get public products for a organization
      *
      * @tags public
-     * @name V1PublicOrganizationMenuList
-     * @summary Get organization menu
-     * @request GET:/api/v1/public/organization/{id}/menu
+     * @name V1PublicOrganizationProductsList
+     * @summary Get organization products
+     * @request GET:/api/v1/public/organization/{id}/products
      */
-    v1PublicOrganizationMenuList: (id: string, params: RequestParams = {}) =>
+    v1PublicOrganizationProductsList: (
+      id: string,
+      params: RequestParams = {},
+    ) =>
       this.request<Record<string, any>, ResponseResponse>({
-        path: `/api/v1/public/organization/${id}/menu`,
-        method: 'GET',
+        path: `/api/v1/public/organization/${id}/products`,
+        method: "GET",
         type: ContentType.Json,
-        format: 'json',
+        format: "json",
         ...params,
       }),
 
@@ -2360,12 +2441,12 @@ export class Api<
     v1PublicOrganizationProductsQuestionsList: (
       organizationId: string,
       productId: string,
-      params: RequestParams = {}
+      params: RequestParams = {},
     ) =>
       this.request<Record<string, any>, ResponseResponse>({
         path: `/api/v1/public/organization/${organizationId}/products/${productId}/questions`,
-        method: 'GET',
-        format: 'json',
+        method: "GET",
+        format: "json",
         ...params,
       }),
 
@@ -2379,12 +2460,12 @@ export class Api<
      */
     v1PublicOrganizationQuestionsProductsWithQuestionsList: (
       organizationId: string,
-      params: RequestParams = {}
+      params: RequestParams = {},
     ) =>
       this.request<Record<string, any>, ResponseResponse>({
         path: `/api/v1/public/organization/${organizationId}/questions/products-with-questions`,
-        method: 'GET',
-        format: 'json',
+        method: "GET",
+        format: "json",
         ...params,
       }),
 
@@ -2397,11 +2478,16 @@ export class Api<
      * @request GET:/api/v1/public/qr/{code}
      */
     v1PublicQrDetail: (code: string, params: RequestParams = {}) =>
-      this.request<Record<string, any>, ResponseResponse>({
+      this.request<
+        ResponseResponse & {
+          data?: QrcodemodelQRCode;
+        },
+        ResponseResponse
+      >({
         path: `/api/v1/public/qr/${code}`,
-        method: 'GET',
+        method: "GET",
         type: ContentType.Json,
-        format: 'json',
+        format: "json",
         ...params,
       }),
 
@@ -2416,13 +2502,13 @@ export class Api<
     v1PublicQuestionnaireDetail: (
       organizationId: string,
       productId: string,
-      params: RequestParams = {}
+      params: RequestParams = {},
     ) =>
       this.request<Record<string, any>, ResponseResponse>({
         path: `/api/v1/public/questionnaire/${organizationId}/${productId}`,
-        method: 'GET',
+        method: "GET",
         type: ContentType.Json,
-        format: 'json',
+        format: "json",
         ...params,
       }),
 
@@ -2436,12 +2522,17 @@ export class Api<
      * @secure
      */
     v1QrCodesDelete: (id: string, params: RequestParams = {}) =>
-      this.request<Record<string, any>, ResponseResponse>({
+      this.request<
+        ResponseResponse & {
+          data?: Record<string, string>;
+        },
+        ResponseResponse
+      >({
         path: `/api/v1/qr-codes/${id}`,
-        method: 'DELETE',
+        method: "DELETE",
         secure: true,
         type: ContentType.Json,
-        format: 'json',
+        format: "json",
         ...params,
       }),
 
@@ -2456,16 +2547,21 @@ export class Api<
      */
     v1QrCodesPartialUpdate: (
       id: string,
-      qr_code: HandlersUpdateQRCodeRequest,
-      params: RequestParams = {}
+      qr_code: QrcodecontrollerUpdateQRCodeRequest,
+      params: RequestParams = {},
     ) =>
-      this.request<HandlersUpdateQRCodeResponse, ResponseResponse>({
+      this.request<
+        ResponseResponse & {
+          data?: QrcodemodelQRCode;
+        },
+        ResponseResponse
+      >({
         path: `/api/v1/qr-codes/${id}`,
-        method: 'PATCH',
+        method: "PATCH",
         body: qr_code,
         secure: true,
         type: ContentType.Json,
-        format: 'json',
+        format: "json",
         ...params,
       }),
 
@@ -2473,30 +2569,30 @@ export class Api<
      * @description Accept a team invitation using the invitation token
      *
      * @tags team
-     * @name V1TeamAcceptInviteCreate
+     * @name V1TeamAcceptInvitationCreate
      * @summary Accept team invitation
-     * @request POST:/api/v1/team/accept-invite
+     * @request POST:/api/v1/team/accept-invitation
      */
-    v1TeamAcceptInviteCreate: (
-      request: HandlersAcceptInviteRequest,
-      params: RequestParams = {}
+    v1TeamAcceptInvitationCreate: (
+      request: AuthmodelAcceptInvitationRequest,
+      params: RequestParams = {},
     ) =>
       this.request<
         ResponseResponse & {
-          data?: Record<string, string>;
+          data?: any;
         },
         ResponseResponse
       >({
-        path: `/api/v1/team/accept-invite`,
-        method: 'POST',
+        path: `/api/v1/team/accept-invitation`,
+        method: "POST",
         body: request,
         type: ContentType.Json,
-        format: 'json',
+        format: "json",
         ...params,
       }),
 
     /**
-     * @description Get all team members for the account
+     * @description Get list of team members for the authenticated account
      *
      * @tags team
      * @name V1TeamMembersList
@@ -2507,20 +2603,20 @@ export class Api<
     v1TeamMembersList: (params: RequestParams = {}) =>
       this.request<
         ResponseResponse & {
-          data?: ModelsTeamMember[];
+          data?: AuthmodelMemberListResponse;
         },
         ResponseResponse
       >({
         path: `/api/v1/team/members`,
-        method: 'GET',
+        method: "GET",
         secure: true,
         type: ContentType.Json,
-        format: 'json',
+        format: "json",
         ...params,
       }),
 
     /**
-     * @description Invite a new team member to the account
+     * @description Invite a new member to the team
      *
      * @tags team
      * @name V1TeamMembersInviteCreate
@@ -2529,26 +2625,26 @@ export class Api<
      * @secure
      */
     v1TeamMembersInviteCreate: (
-      request: HandlersInviteMemberRequest,
-      params: RequestParams = {}
+      request: AuthmodelInviteMemberRequest,
+      params: RequestParams = {},
     ) =>
       this.request<
         ResponseResponse & {
-          data?: ModelsTeamMember;
+          data?: AuthmodelInvitationResponse;
         },
         ResponseResponse
       >({
         path: `/api/v1/team/members/invite`,
-        method: 'POST',
+        method: "POST",
         body: request,
         secure: true,
         type: ContentType.Json,
-        format: 'json',
+        format: "json",
         ...params,
       }),
 
     /**
-     * @description Remove a team member from the account
+     * @description Remove a member from the team
      *
      * @tags team
      * @name V1TeamMembersDelete
@@ -2564,25 +2660,25 @@ export class Api<
         ResponseResponse
       >({
         path: `/api/v1/team/members/${id}`,
-        method: 'DELETE',
+        method: "DELETE",
         secure: true,
         type: ContentType.Json,
-        format: 'json',
+        format: "json",
         ...params,
       }),
 
     /**
-     * @description Resend an invitation email to a pending team member
+     * @description Resend invitation to a team member
      *
      * @tags team
      * @name V1TeamMembersResendInvitationCreate
-     * @summary Resend team invitation
+     * @summary Resend invitation
      * @request POST:/api/v1/team/members/{id}/resend-invitation
      * @secure
      */
     v1TeamMembersResendInvitationCreate: (
       id: string,
-      params: RequestParams = {}
+      params: RequestParams = {},
     ) =>
       this.request<
         ResponseResponse & {
@@ -2591,10 +2687,10 @@ export class Api<
         ResponseResponse
       >({
         path: `/api/v1/team/members/${id}/resend-invitation`,
-        method: 'POST',
+        method: "POST",
         secure: true,
         type: ContentType.Json,
-        format: 'json',
+        format: "json",
         ...params,
       }),
 
@@ -2603,14 +2699,14 @@ export class Api<
      *
      * @tags team
      * @name V1TeamMembersRoleUpdate
-     * @summary Update team member role
+     * @summary Update member role
      * @request PUT:/api/v1/team/members/{id}/role
      * @secure
      */
     v1TeamMembersRoleUpdate: (
       id: string,
-      request: HandlersUpdateRoleRequest,
-      params: RequestParams = {}
+      request: AuthmodelUpdateRoleRequest,
+      params: RequestParams = {},
     ) =>
       this.request<
         ResponseResponse & {
@@ -2619,11 +2715,11 @@ export class Api<
         ResponseResponse
       >({
         path: `/api/v1/team/members/${id}/role`,
-        method: 'PUT',
+        method: "PUT",
         body: request,
         secure: true,
         type: ContentType.Json,
-        format: 'json',
+        format: "json",
         ...params,
       }),
 
@@ -2639,15 +2735,15 @@ export class Api<
     v1UserCanCreateOrganizationList: (params: RequestParams = {}) =>
       this.request<
         ResponseResponse & {
-          data?: ServicesPermissionResponse;
+          data?: SubscriptioninterfacePermissionResponse;
         },
         ResponseResponse
       >({
         path: `/api/v1/user/can-create-organization`,
-        method: 'GET',
+        method: "GET",
         secure: true,
         type: ContentType.Json,
-        format: 'json',
+        format: "json",
         ...params,
       }),
 
@@ -2663,15 +2759,15 @@ export class Api<
     v1UserSubscriptionList: (params: RequestParams = {}) =>
       this.request<
         ResponseResponse & {
-          data?: ModelsSubscription;
+          data?: SubscriptionmodelSubscription;
         },
         ResponseResponse
       >({
         path: `/api/v1/user/subscription`,
-        method: 'GET',
+        method: "GET",
         secure: true,
         type: ContentType.Json,
-        format: 'json',
+        format: "json",
         ...params,
       }),
 
@@ -2685,21 +2781,21 @@ export class Api<
      * @secure
      */
     v1UserSubscriptionCreate: (
-      request: HandlersCreateSubscriptionRequest,
-      params: RequestParams = {}
+      request: SubscriptioncontrollerCreateSubscriptionRequest,
+      params: RequestParams = {},
     ) =>
       this.request<
         ResponseResponse & {
-          data?: ModelsSubscription;
+          data?: SubscriptionmodelSubscription;
         },
         ResponseResponse
       >({
         path: `/api/v1/user/subscription`,
-        method: 'POST',
+        method: "POST",
         body: request,
         secure: true,
         type: ContentType.Json,
-        format: 'json',
+        format: "json",
         ...params,
       }),
 
@@ -2715,10 +2811,10 @@ export class Api<
     v1UserSubscriptionDelete: (params: RequestParams = {}) =>
       this.request<ResponseResponse, ResponseResponse>({
         path: `/api/v1/user/subscription`,
-        method: 'DELETE',
+        method: "DELETE",
         secure: true,
         type: ContentType.Json,
-        format: 'json',
+        format: "json",
         ...params,
       }),
 
@@ -2734,15 +2830,15 @@ export class Api<
     v1UserSubscriptionUsageList: (params: RequestParams = {}) =>
       this.request<
         ResponseResponse & {
-          data?: ModelsSubscriptionUsage;
+          data?: SubscriptionmodelSubscriptionUsage;
         },
         ResponseResponse
       >({
         path: `/api/v1/user/subscription/usage`,
-        method: 'GET',
+        method: "GET",
         secure: true,
         type: ContentType.Json,
-        format: 'json',
+        format: "json",
         ...params,
       }),
   };
@@ -2759,16 +2855,16 @@ export class Api<
     questionnairesQuestionsCreate: (
       id: string,
       organizationId: string,
-      question: ModelsQuestion,
-      params: RequestParams = {}
+      question: FeedbackmodelQuestion,
+      params: RequestParams = {},
     ) =>
       this.request<Record<string, any>, Record<string, any>>({
         path: `/organizations/${organizationId}/questionnaires/${id}/questions`,
-        method: 'POST',
+        method: "POST",
         body: question,
         secure: true,
         type: ContentType.Json,
-        format: 'json',
+        format: "json",
         ...params,
       }),
 
@@ -2785,16 +2881,16 @@ export class Api<
       id: string,
       questionId: string,
       organizationId: string,
-      question: ModelsQuestion,
-      params: RequestParams = {}
+      question: FeedbackmodelQuestion,
+      params: RequestParams = {},
     ) =>
       this.request<Record<string, any>, Record<string, any>>({
         path: `/organizations/${organizationId}/questionnaires/${id}/questions/${questionId}`,
-        method: 'PUT',
+        method: "PUT",
         body: question,
         secure: true,
         type: ContentType.Json,
-        format: 'json',
+        format: "json",
         ...params,
       }),
 
@@ -2811,14 +2907,14 @@ export class Api<
       id: string,
       questionId: string,
       organizationId: string,
-      params: RequestParams = {}
+      params: RequestParams = {},
     ) =>
       this.request<Record<string, any>, Record<string, any>>({
         path: `/organizations/${organizationId}/questionnaires/${id}/questions/${questionId}`,
-        method: 'DELETE',
+        method: "DELETE",
         secure: true,
         type: ContentType.Json,
-        format: 'json',
+        format: "json",
         ...params,
       }),
 
@@ -2835,15 +2931,15 @@ export class Api<
       id: string,
       organizationId: string,
       order: string[],
-      params: RequestParams = {}
+      params: RequestParams = {},
     ) =>
       this.request<Record<string, any>, Record<string, any>>({
         path: `/organizations/${organizationId}/questionnaires/${id}/reorder`,
-        method: 'POST',
+        method: "POST",
         body: order,
         secure: true,
         type: ContentType.Json,
-        format: 'json',
+        format: "json",
         ...params,
       }),
   };

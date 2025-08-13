@@ -6,7 +6,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	feedbackcontroller "kyooar/internal/feedback/controller"
-	menuHandlers "kyooar/internal/product/handlers"
+	productHandlers "kyooar/internal/product/handlers"
 	organizationinterface "kyooar/internal/organization/interface"
 	organizationmodel "kyooar/internal/organization/model"
 	qrcodecontroller "kyooar/internal/qrcode/controller"
@@ -20,7 +20,7 @@ import (
 
 type OrganizationController struct {
 	organizationService     organizationinterface.OrganizationService
-	productHandler         *menuHandlers.ProductHandler
+	productHandler         *productHandlers.ProductHandler
 	qrCodeHandler          *qrcodecontroller.QRCodeController
 	feedbackController     *feedbackcontroller.FeedbackController
 	questionnaireController *feedbackcontroller.QuestionnaireController
@@ -30,7 +30,7 @@ type OrganizationController struct {
 
 func NewOrganizationController(
 	organizationService organizationinterface.OrganizationService,
-	productHandler *menuHandlers.ProductHandler,
+	productHandler *productHandlers.ProductHandler,
 	qrCodeHandler *qrcodecontroller.QRCodeController,
 	feedbackController *feedbackcontroller.FeedbackController,
 	questionnaireController *feedbackcontroller.QuestionnaireController,
@@ -65,6 +65,9 @@ func (c *OrganizationController) RegisterRoutes(v1 *echo.Group, middlewareProvid
 	// Organization-scoped product routes
 	organizations.GET("/:organizationId/products", c.productHandler.GetByOrganization)
 	organizations.POST("/:organizationId/products", c.productHandler.Create)
+	organizations.GET("/:organizationId/products/:productId", c.productHandler.GetByID)
+	organizations.PUT("/:organizationId/products/:productId", c.productHandler.Update)
+	organizations.DELETE("/:organizationId/products/:productId", c.productHandler.Delete)
 	
 	// Organization-scoped QR code routes
 	organizations.POST("/:organizationId/qr-codes", c.qrCodeHandler.Generate)
@@ -88,7 +91,7 @@ func (c *OrganizationController) RegisterRoutes(v1 *echo.Group, middlewareProvid
 	// Organization-scoped question routes
 	organizations.POST("/:organizationId/products/:productId/questions", c.questionController.CreateQuestion)
 	organizations.GET("/:organizationId/products/:productId/questions", c.questionController.GetQuestionsByProduct)
-	organizations.GET("/:organizationId/questions/batch", c.questionController.GetQuestionsByProducts)
+	organizations.POST("/:organizationId/questions/batch", c.questionController.GetQuestionsByProducts)
 	organizations.GET("/:organizationId/products/:productId/questions/:questionId", c.questionController.GetQuestion)
 	organizations.PUT("/:organizationId/products/:productId/questions/:questionId", c.questionController.UpdateQuestion)
 	organizations.DELETE("/:organizationId/products/:productId/questions/:questionId", c.questionController.DeleteQuestion)

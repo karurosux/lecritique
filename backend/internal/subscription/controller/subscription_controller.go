@@ -43,7 +43,7 @@ func NewSubscriptionController(
 // @Tags subscription
 // @Accept json
 // @Produce json
-// @Success 200 {object} response.Response{data=[]models.SubscriptionPlan}
+// @Success 200 {object} response.Response{data=[]subscriptionmodel.SubscriptionPlan}
 // @Failure 500 {object} response.Response
 // @Router /api/v1/plans [get]
 func (h *SubscriptionController) GetAvailablePlans(c echo.Context) error {
@@ -63,7 +63,7 @@ func (h *SubscriptionController) GetAvailablePlans(c echo.Context) error {
 // @Accept json
 // @Produce json
 // @Security BearerAuth
-// @Success 200 {object} response.Response{data=models.Subscription}
+// @Success 200 {object} response.Response{data=subscriptionmodel.Subscription}
 // @Failure 401 {object} response.Response
 // @Failure 404 {object} response.Response
 // @Failure 500 {object} response.Response
@@ -120,7 +120,7 @@ func (h *SubscriptionController) GetUserSubscription(c echo.Context) error {
 // @Accept json
 // @Produce json
 // @Security BearerAuth
-// @Success 200 {object} response.Response{data=models.SubscriptionUsage}
+// @Success 200 {object} response.Response{data=subscriptionmodel.SubscriptionUsage}
 // @Failure 401 {object} response.Response
 // @Failure 404 {object} response.Response
 // @Failure 500 {object} response.Response
@@ -170,7 +170,7 @@ func (h *SubscriptionController) GetUserUsage(c echo.Context) error {
 // @Accept json
 // @Produce json
 // @Security BearerAuth
-// @Success 200 {object} response.Response{data=services.PermissionResponse}
+// @Success 200 {object} response.Response{data=subscriptioninterface.PermissionResponse}
 // @Failure 401 {object} response.Response
 // @Failure 500 {object} response.Response
 // @Router /api/v1/user/can-create-organization [get]
@@ -207,7 +207,7 @@ func (h *SubscriptionController) CanUserCreateOrganization(c echo.Context) error
 // @Produce json
 // @Security BearerAuth
 // @Param request body CreateSubscriptionRequest true "Subscription details"
-// @Success 201 {object} response.Response{data=models.Subscription}
+// @Success 201 {object} response.Response{data=subscriptionmodel.Subscription}
 // @Failure 400 {object} response.Response
 // @Failure 401 {object} response.Response
 // @Failure 500 {object} response.Response

@@ -52,7 +52,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/models.GenerateQuestionnaireRequest"
+                            "$ref": "#/definitions/feedbackmodel.GenerateQuestionnaireRequest"
                         }
                     }
                 ],
@@ -68,7 +68,7 @@ const docTemplate = `{
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/models.Questionnaire"
+                                            "$ref": "#/definitions/feedbackmodel.Questionnaire"
                                         }
                                     }
                                 }
@@ -144,7 +144,7 @@ const docTemplate = `{
                                         "data": {
                                             "type": "array",
                                             "items": {
-                                                "$ref": "#/definitions/models.GeneratedQuestion"
+                                                "$ref": "#/definitions/feedbackmodel.GeneratedQuestion"
                                             }
                                         }
                                     }
@@ -500,7 +500,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/models.ComparisonRequest"
+                            "$ref": "#/definitions/analyticsmodel.ComparisonRequest"
                         }
                     }
                 ],
@@ -508,7 +508,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/models.ComparisonResponse"
+                            "$ref": "#/definitions/analyticsmodel.ComparisonResponse"
                         }
                     },
                     "400": {
@@ -619,7 +619,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/models.TimeSeriesResponse"
+                            "$ref": "#/definitions/analyticsmodel.TimeSeriesResponse"
                         }
                     },
                     "400": {
@@ -1554,7 +1554,7 @@ const docTemplate = `{
                                         "data": {
                                             "type": "array",
                                             "items": {
-                                                "$ref": "#/definitions/models.Organization"
+                                                "$ref": "#/definitions/organizationmodel.Organization"
                                             }
                                         }
                                     }
@@ -1594,7 +1594,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/handlers.CreateOrganizationRequest"
+                            "$ref": "#/definitions/organizationmodel.CreateOrganizationRequest"
                         }
                     }
                 ],
@@ -1610,7 +1610,7 @@ const docTemplate = `{
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/models.Organization"
+                                            "$ref": "#/definitions/organizationmodel.Organization"
                                         }
                                     }
                                 }
@@ -1671,7 +1671,7 @@ const docTemplate = `{
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/models.Organization"
+                                            "$ref": "#/definitions/organizationmodel.Organization"
                                         }
                                     }
                                 }
@@ -2052,7 +2052,7 @@ const docTemplate = `{
                                         "data": {
                                             "type": "array",
                                             "items": {
-                                                "$ref": "#/definitions/kyooar_internal_menu_models.Product"
+                                                "$ref": "#/definitions/models.Product"
                                             }
                                         }
                                     }
@@ -2133,7 +2133,7 @@ const docTemplate = `{
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/kyooar_internal_menu_models.Product"
+                                            "$ref": "#/definitions/models.Product"
                                         }
                                     }
                                 }
@@ -2148,6 +2148,258 @@ const docTemplate = `{
                     },
                     "401": {
                         "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/organizations/{organizationId}/products/{productId}": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Get a specific product by its ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "products"
+                ],
+                "summary": "Get product by ID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Organization ID",
+                        "name": "organizationId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Product ID",
+                        "name": "productId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/models.Product"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Update a product's information",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "products"
+                ],
+                "summary": "Update a product",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Organization ID",
+                        "name": "organizationId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Product ID",
+                        "name": "productId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Fields to update",
+                        "name": "updates",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "additionalProperties": {
+                                                "type": "string"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Delete a product from the system",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "products"
+                ],
+                "summary": "Delete a product",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Organization ID",
+                        "name": "organizationId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Product ID",
+                        "name": "productId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "additionalProperties": {
+                                                "type": "string"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
                         "schema": {
                             "$ref": "#/definitions/response.Response"
                         }
@@ -2275,7 +2527,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/models.CreateQuestionRequest"
+                            "$ref": "#/definitions/feedbackmodel.CreateQuestionRequest"
                         }
                     }
                 ],
@@ -2545,7 +2797,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/models.UpdateQuestionRequest"
+                            "$ref": "#/definitions/feedbackmodel.UpdateQuestionRequest"
                         }
                     }
                 ],
@@ -2708,7 +2960,22 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/handlers.QRCodeListResponse"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/qrcodemodel.QRCode"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     },
                     "400": {
@@ -2755,7 +3022,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/handlers.GenerateQRCodeRequest"
+                            "$ref": "#/definitions/qrcodecontroller.GenerateQRCodeRequest"
                         }
                     }
                 ],
@@ -2763,7 +3030,19 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/handlers.GenerateQRCodeResponse"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/qrcodemodel.QRCode"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     },
                     "400": {
@@ -2828,7 +3107,7 @@ const docTemplate = `{
                                         "data": {
                                             "type": "array",
                                             "items": {
-                                                "$ref": "#/definitions/models.Questionnaire"
+                                                "$ref": "#/definitions/feedbackmodel.Questionnaire"
                                             }
                                         }
                                     }
@@ -2881,7 +3160,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/models.CreateQuestionnaireRequest"
+                            "$ref": "#/definitions/feedbackmodel.CreateQuestionnaireRequest"
                         }
                     }
                 ],
@@ -2897,7 +3176,7 @@ const docTemplate = `{
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/models.Questionnaire"
+                                            "$ref": "#/definitions/feedbackmodel.Questionnaire"
                                         }
                                     }
                                 }
@@ -2971,7 +3250,7 @@ const docTemplate = `{
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/models.Questionnaire"
+                                            "$ref": "#/definitions/feedbackmodel.Questionnaire"
                                         }
                                     }
                                 }
@@ -3036,7 +3315,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/models.Questionnaire"
+                            "$ref": "#/definitions/feedbackmodel.Questionnaire"
                         }
                     }
                 ],
@@ -3052,7 +3331,7 @@ const docTemplate = `{
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/models.Questionnaire"
+                                            "$ref": "#/definitions/feedbackmodel.Questionnaire"
                                         }
                                     }
                                 }
@@ -3172,7 +3451,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/models.BatchQuestionsRequest"
+                            "$ref": "#/definitions/feedbackmodel.BatchQuestionsRequest"
                         }
                     }
                 ],
@@ -3310,7 +3589,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/handlers.CreateCheckoutRequest"
+                            "$ref": "#/definitions/subscriptioncontroller.CreateCheckoutRequest"
                         }
                     }
                 ],
@@ -3326,7 +3605,7 @@ const docTemplate = `{
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/handlers.CheckoutResponse"
+                                            "$ref": "#/definitions/subscriptioncontroller.CheckoutResponse"
                                         }
                                     }
                                 }
@@ -3368,7 +3647,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/handlers.CompleteCheckoutRequest"
+                            "$ref": "#/definitions/subscriptioncontroller.CompleteCheckoutRequest"
                         }
                     }
                 ],
@@ -3426,7 +3705,7 @@ const docTemplate = `{
                                         "data": {
                                             "type": "array",
                                             "items": {
-                                                "$ref": "#/definitions/handlers.InvoiceResponse"
+                                                "$ref": "#/definitions/subscriptioncontroller.InvoiceResponse"
                                             }
                                         }
                                     }
@@ -3472,7 +3751,7 @@ const docTemplate = `{
                                         "data": {
                                             "type": "array",
                                             "items": {
-                                                "$ref": "#/definitions/handlers.PaymentMethodResponse"
+                                                "$ref": "#/definitions/subscriptioncontroller.PaymentMethodResponse"
                                             }
                                         }
                                     }
@@ -3514,7 +3793,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/handlers.SetDefaultPaymentRequest"
+                            "$ref": "#/definitions/subscriptioncontroller.SetDefaultPaymentRequest"
                         }
                     }
                 ],
@@ -3567,7 +3846,7 @@ const docTemplate = `{
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/handlers.PortalResponse"
+                                            "$ref": "#/definitions/subscriptioncontroller.PortalResponse"
                                         }
                                     }
                                 }
@@ -3639,243 +3918,12 @@ const docTemplate = `{
                                         "data": {
                                             "type": "array",
                                             "items": {
-                                                "$ref": "#/definitions/models.SubscriptionPlan"
+                                                "$ref": "#/definitions/subscriptionmodel.SubscriptionPlan"
                                             }
                                         }
                                     }
                                 }
                             ]
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/response.Response"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/v1/products/{id}": {
-            "get": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "description": "Get a specific product by its ID",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "products"
-                ],
-                "summary": "Get product by ID",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Product ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/response.Response"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/kyooar_internal_menu_models.Product"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/response.Response"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/response.Response"
-                        }
-                    },
-                    "404": {
-                        "description": "Not Found",
-                        "schema": {
-                            "$ref": "#/definitions/response.Response"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/response.Response"
-                        }
-                    }
-                }
-            },
-            "put": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "description": "Update a product's information",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "products"
-                ],
-                "summary": "Update a product",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Product ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "description": "Fields to update",
-                        "name": "updates",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/response.Response"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object",
-                                            "additionalProperties": {
-                                                "type": "string"
-                                            }
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/response.Response"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/response.Response"
-                        }
-                    },
-                    "404": {
-                        "description": "Not Found",
-                        "schema": {
-                            "$ref": "#/definitions/response.Response"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/response.Response"
-                        }
-                    }
-                }
-            },
-            "delete": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "description": "Delete a product from the system",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "products"
-                ],
-                "summary": "Delete a product",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Product ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/response.Response"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object",
-                                            "additionalProperties": {
-                                                "type": "string"
-                                            }
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/response.Response"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/response.Response"
-                        }
-                    },
-                    "404": {
-                        "description": "Not Found",
-                        "schema": {
-                            "$ref": "#/definitions/response.Response"
                         }
                     },
                     "500": {
@@ -3907,7 +3955,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/models.Feedback"
+                            "$ref": "#/definitions/feedbackmodel.Feedback"
                         }
                     }
                 ],
@@ -3934,9 +3982,9 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/public/organization/{id}/menu": {
+        "/api/v1/public/organization/{id}/products": {
             "get": {
-                "description": "Get public menu for a organization",
+                "description": "Get public products for a organization",
                 "consumes": [
                     "application/json"
                 ],
@@ -3946,7 +3994,7 @@ const docTemplate = `{
                 "tags": [
                     "public"
                 ],
-                "summary": "Get organization menu",
+                "summary": "Get organization products",
                 "parameters": [
                     {
                         "type": "string",
@@ -4108,8 +4156,19 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/qrcodemodel.QRCode"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     },
                     "400": {
@@ -4210,8 +4269,22 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "additionalProperties": {
+                                                "type": "string"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     },
                     "400": {
@@ -4265,7 +4338,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/handlers.UpdateQRCodeRequest"
+                            "$ref": "#/definitions/qrcodecontroller.UpdateQRCodeRequest"
                         }
                     }
                 ],
@@ -4273,7 +4346,19 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/handlers.UpdateQRCodeResponse"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/qrcodemodel.QRCode"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     },
                     "400": {
@@ -4693,7 +4778,7 @@ const docTemplate = `{
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/services.PermissionResponse"
+                                            "$ref": "#/definitions/subscriptioninterface.PermissionResponse"
                                         }
                                     }
                                 }
@@ -4745,7 +4830,7 @@ const docTemplate = `{
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/models.Subscription"
+                                            "$ref": "#/definitions/subscriptionmodel.Subscription"
                                         }
                                     }
                                 }
@@ -4796,7 +4881,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/handlers.CreateSubscriptionRequest"
+                            "$ref": "#/definitions/subscriptioncontroller.CreateSubscriptionRequest"
                         }
                     }
                 ],
@@ -4812,7 +4897,7 @@ const docTemplate = `{
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/models.Subscription"
+                                            "$ref": "#/definitions/subscriptionmodel.Subscription"
                                         }
                                     }
                                 }
@@ -4914,7 +4999,7 @@ const docTemplate = `{
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/models.SubscriptionUsage"
+                                            "$ref": "#/definitions/subscriptionmodel.SubscriptionUsage"
                                         }
                                     }
                                 }
@@ -4974,7 +5059,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/models.Question"
+                            "$ref": "#/definitions/feedbackmodel.Question"
                         }
                     }
                 ],
@@ -5049,7 +5134,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/models.Question"
+                            "$ref": "#/definitions/feedbackmodel.Question"
                         }
                     }
                 ],
@@ -5222,6 +5307,360 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "analyticsmodel.ChoiceInfo": {
+            "type": "object",
+            "properties": {
+                "choice": {
+                    "type": "string"
+                },
+                "count": {
+                    "type": "integer"
+                }
+            }
+        },
+        "analyticsmodel.ChoiceSeriesData": {
+            "type": "object",
+            "properties": {
+                "choice": {
+                    "type": "string"
+                },
+                "points": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/analyticsmodel.TimeSeriesPoint"
+                    }
+                },
+                "statistics": {
+                    "$ref": "#/definitions/analyticsmodel.TimeSeriesStats"
+                }
+            }
+        },
+        "analyticsmodel.ComparisonInsight": {
+            "type": "object",
+            "properties": {
+                "change": {
+                    "type": "number"
+                },
+                "message": {
+                    "type": "string"
+                },
+                "metric_type": {
+                    "type": "string"
+                },
+                "recommendation": {
+                    "type": "string"
+                },
+                "severity": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "string"
+                }
+            }
+        },
+        "analyticsmodel.ComparisonRequest": {
+            "type": "object",
+            "required": [
+                "metric_types",
+                "organization_id",
+                "period1_end",
+                "period1_start",
+                "period2_end",
+                "period2_start"
+            ],
+            "properties": {
+                "metric_types": {
+                    "type": "array",
+                    "minItems": 1,
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "organization_id": {
+                    "type": "string"
+                },
+                "period1_end": {
+                    "type": "string"
+                },
+                "period1_start": {
+                    "type": "string"
+                },
+                "period2_end": {
+                    "type": "string"
+                },
+                "period2_start": {
+                    "type": "string"
+                },
+                "product_id": {
+                    "type": "string"
+                },
+                "question_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "analyticsmodel.ComparisonResponse": {
+            "type": "object",
+            "properties": {
+                "comparisons": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/analyticsmodel.TimeSeriesComparison"
+                    }
+                },
+                "insights": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/analyticsmodel.ComparisonInsight"
+                    }
+                },
+                "request": {
+                    "$ref": "#/definitions/analyticsmodel.ComparisonRequest"
+                }
+            }
+        },
+        "analyticsmodel.DateRange": {
+            "type": "object",
+            "properties": {
+                "end": {
+                    "type": "string"
+                },
+                "start": {
+                    "type": "string"
+                }
+            }
+        },
+        "analyticsmodel.TimePeriodMetrics": {
+            "type": "object",
+            "properties": {
+                "average": {
+                    "type": "number"
+                },
+                "choice_distribution": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "integer",
+                        "format": "int64"
+                    }
+                },
+                "count": {
+                    "type": "integer"
+                },
+                "data_points": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/analyticsmodel.TimeSeriesPoint"
+                    }
+                },
+                "end_date": {
+                    "type": "string"
+                },
+                "max": {
+                    "type": "number"
+                },
+                "min": {
+                    "type": "number"
+                },
+                "most_popular_choice": {
+                    "$ref": "#/definitions/analyticsmodel.ChoiceInfo"
+                },
+                "start_date": {
+                    "type": "string"
+                },
+                "top_choices": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/analyticsmodel.ChoiceInfo"
+                    }
+                },
+                "value": {
+                    "type": "number"
+                }
+            }
+        },
+        "analyticsmodel.TimeSeriesComparison": {
+            "type": "object",
+            "properties": {
+                "change": {
+                    "type": "number"
+                },
+                "change_percent": {
+                    "type": "number"
+                },
+                "metadata": {
+                    "type": "string"
+                },
+                "metric_name": {
+                    "type": "string"
+                },
+                "metric_type": {
+                    "type": "string"
+                },
+                "period1": {
+                    "$ref": "#/definitions/analyticsmodel.TimePeriodMetrics"
+                },
+                "period2": {
+                    "$ref": "#/definitions/analyticsmodel.TimePeriodMetrics"
+                },
+                "trend": {
+                    "type": "string"
+                }
+            }
+        },
+        "analyticsmodel.TimeSeriesData": {
+            "type": "object",
+            "properties": {
+                "choice_series": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/analyticsmodel.ChoiceSeriesData"
+                    }
+                },
+                "metadata": {
+                    "type": "object",
+                    "additionalProperties": {}
+                },
+                "metric_name": {
+                    "type": "string"
+                },
+                "metric_type": {
+                    "type": "string"
+                },
+                "points": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/analyticsmodel.TimeSeriesPoint"
+                    }
+                },
+                "product_id": {
+                    "type": "string"
+                },
+                "product_name": {
+                    "type": "string"
+                },
+                "statistics": {
+                    "$ref": "#/definitions/analyticsmodel.TimeSeriesStats"
+                }
+            }
+        },
+        "analyticsmodel.TimeSeriesPoint": {
+            "type": "object",
+            "properties": {
+                "count": {
+                    "type": "integer"
+                },
+                "timestamp": {
+                    "type": "string"
+                },
+                "value": {
+                    "type": "number"
+                }
+            }
+        },
+        "analyticsmodel.TimeSeriesRequest": {
+            "type": "object",
+            "required": [
+                "end_date",
+                "granularity",
+                "metric_types",
+                "organization_id",
+                "start_date"
+            ],
+            "properties": {
+                "end_date": {
+                    "type": "string"
+                },
+                "granularity": {
+                    "type": "string",
+                    "enum": [
+                        "hourly",
+                        "daily",
+                        "weekly",
+                        "monthly"
+                    ]
+                },
+                "metric_types": {
+                    "type": "array",
+                    "minItems": 1,
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "organization_id": {
+                    "type": "string"
+                },
+                "product_id": {
+                    "type": "string"
+                },
+                "question_id": {
+                    "type": "string"
+                },
+                "start_date": {
+                    "type": "string"
+                }
+            }
+        },
+        "analyticsmodel.TimeSeriesResponse": {
+            "type": "object",
+            "properties": {
+                "request": {
+                    "$ref": "#/definitions/analyticsmodel.TimeSeriesRequest"
+                },
+                "series": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/analyticsmodel.TimeSeriesData"
+                    }
+                },
+                "summary": {
+                    "$ref": "#/definitions/analyticsmodel.TimeSeriesSummary"
+                }
+            }
+        },
+        "analyticsmodel.TimeSeriesStats": {
+            "type": "object",
+            "properties": {
+                "average": {
+                    "type": "number"
+                },
+                "count": {
+                    "type": "integer"
+                },
+                "max": {
+                    "type": "number"
+                },
+                "min": {
+                    "type": "number"
+                },
+                "total": {
+                    "type": "number"
+                },
+                "trend_direction": {
+                    "type": "string"
+                },
+                "trend_strength": {
+                    "type": "number"
+                }
+            }
+        },
+        "analyticsmodel.TimeSeriesSummary": {
+            "type": "object",
+            "properties": {
+                "date_range": {
+                    "$ref": "#/definitions/analyticsmodel.DateRange"
+                },
+                "granularity": {
+                    "type": "string"
+                },
+                "metrics_summary": {
+                    "type": "object",
+                    "additionalProperties": true
+                },
+                "total_data_points": {
+                    "type": "integer"
+                }
+            }
+        },
         "authmodel.AcceptInvitationRequest": {
             "type": "object",
             "required": [
@@ -5316,7 +5755,9 @@ const docTemplate = `{
             "properties": {
                 "members": {
                     "type": "array",
-                    "items": {}
+                    "items": {
+                        "$ref": "#/definitions/models.TeamMember"
+                    }
                 }
             }
         },
@@ -5423,79 +5864,352 @@ const docTemplate = `{
                 }
             }
         },
-        "handlers.CardDetailsResponse": {
-            "type": "object",
-            "properties": {
-                "brand": {
-                    "type": "string"
-                },
-                "exp_month": {
-                    "type": "integer"
-                },
-                "exp_year": {
-                    "type": "integer"
-                },
-                "last4": {
-                    "type": "string"
-                }
-            }
-        },
-        "handlers.CheckoutResponse": {
-            "type": "object",
-            "properties": {
-                "checkout_url": {
-                    "type": "string"
-                },
-                "session_id": {
-                    "type": "string"
-                }
-            }
-        },
-        "handlers.CompleteCheckoutRequest": {
+        "feedbackmodel.BatchQuestionsRequest": {
             "type": "object",
             "required": [
-                "session_id"
+                "product_ids"
             ],
             "properties": {
-                "session_id": {
-                    "type": "string"
+                "product_ids": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
                 }
             }
         },
-        "handlers.CreateCheckoutRequest": {
+        "feedbackmodel.CreateQuestionRequest": {
             "type": "object",
             "required": [
-                "plan_id"
+                "text",
+                "type"
             ],
             "properties": {
-                "plan_id": {
+                "is_required": {
+                    "type": "boolean"
+                },
+                "max_label": {
                     "type": "string"
+                },
+                "max_value": {
+                    "type": "integer"
+                },
+                "min_label": {
+                    "type": "string"
+                },
+                "min_value": {
+                    "type": "integer"
+                },
+                "options": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "text": {
+                    "type": "string"
+                },
+                "type": {
+                    "$ref": "#/definitions/feedbackmodel.QuestionType"
                 }
             }
         },
-        "handlers.CreateOrganizationRequest": {
+        "feedbackmodel.CreateQuestionnaireRequest": {
             "type": "object",
             "required": [
                 "name"
             ],
             "properties": {
-                "address": {
+                "description": {
+                    "type": "string"
+                },
+                "is_default": {
+                    "type": "boolean"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "product_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "feedbackmodel.DeviceInfo": {
+            "type": "object",
+            "properties": {
+                "browser": {
+                    "type": "string"
+                },
+                "ip": {
+                    "type": "string"
+                },
+                "platform": {
+                    "type": "string"
+                },
+                "user_agent": {
+                    "type": "string"
+                }
+            }
+        },
+        "feedbackmodel.Feedback": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "customer_email": {
+                    "type": "string"
+                },
+                "customer_name": {
+                    "type": "string"
+                },
+                "customer_phone": {
+                    "type": "string"
+                },
+                "device_info": {
+                    "$ref": "#/definitions/feedbackmodel.DeviceInfo"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "is_complete": {
+                    "type": "boolean"
+                },
+                "organization": {
+                    "$ref": "#/definitions/organizationmodel.Organization"
+                },
+                "organization_id": {
+                    "type": "string"
+                },
+                "overall_rating": {
+                    "type": "integer"
+                },
+                "product": {
+                    "$ref": "#/definitions/models.Product"
+                },
+                "product_id": {
+                    "type": "string"
+                },
+                "qr_code": {
+                    "$ref": "#/definitions/qrcodemodel.QRCode"
+                },
+                "qr_code_id": {
+                    "type": "string"
+                },
+                "responses": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/feedbackmodel.Response"
+                    }
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "feedbackmodel.GenerateQuestionnaireRequest": {
+            "type": "object",
+            "required": [
+                "name"
+            ],
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "is_default": {
+                    "type": "boolean"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "feedbackmodel.GeneratedQuestion": {
+            "type": "object",
+            "properties": {
+                "max_label": {
+                    "type": "string"
+                },
+                "max_value": {
+                    "type": "integer"
+                },
+                "min_label": {
+                    "type": "string"
+                },
+                "min_value": {
+                    "type": "integer"
+                },
+                "options": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "text": {
+                    "type": "string"
+                },
+                "type": {
+                    "$ref": "#/definitions/feedbackmodel.QuestionType"
+                }
+            }
+        },
+        "feedbackmodel.Question": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "display_order": {
+                    "type": "integer"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "is_required": {
+                    "type": "boolean"
+                },
+                "max_label": {
+                    "type": "string"
+                },
+                "max_value": {
+                    "type": "integer"
+                },
+                "min_label": {
+                    "type": "string"
+                },
+                "min_value": {
+                    "type": "integer"
+                },
+                "options": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "product": {
+                    "$ref": "#/definitions/models.Product"
+                },
+                "product_id": {
+                    "type": "string"
+                },
+                "text": {
+                    "type": "string"
+                },
+                "type": {
+                    "$ref": "#/definitions/feedbackmodel.QuestionType"
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "feedbackmodel.QuestionType": {
+            "type": "string",
+            "enum": [
+                "rating",
+                "scale",
+                "multi_choice",
+                "single_choice",
+                "text",
+                "yes_no"
+            ],
+            "x-enum-varnames": [
+                "QuestionTypeRating",
+                "QuestionTypeScale",
+                "QuestionTypeMultiChoice",
+                "QuestionTypeSingleChoice",
+                "QuestionTypeText",
+                "QuestionTypeYesNo"
+            ]
+        },
+        "feedbackmodel.Questionnaire": {
+            "type": "object",
+            "properties": {
+                "created_at": {
                     "type": "string"
                 },
                 "description": {
                     "type": "string"
                 },
-                "email": {
+                "id": {
                     "type": "string"
+                },
+                "is_active": {
+                    "type": "boolean"
+                },
+                "is_default": {
+                    "type": "boolean"
                 },
                 "name": {
                     "type": "string"
                 },
-                "phone": {
+                "organization": {
+                    "$ref": "#/definitions/organizationmodel.Organization"
+                },
+                "organization_id": {
                     "type": "string"
                 },
-                "website": {
+                "product": {
+                    "$ref": "#/definitions/models.Product"
+                },
+                "product_id": {
                     "type": "string"
+                },
+                "questions": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/feedbackmodel.Question"
+                    }
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "feedbackmodel.Response": {
+            "type": "object",
+            "properties": {
+                "answer": {},
+                "question_id": {
+                    "type": "string"
+                },
+                "question_text": {
+                    "type": "string"
+                },
+                "question_type": {
+                    "$ref": "#/definitions/feedbackmodel.QuestionType"
+                }
+            }
+        },
+        "feedbackmodel.UpdateQuestionRequest": {
+            "type": "object",
+            "properties": {
+                "is_required": {
+                    "type": "boolean"
+                },
+                "max_label": {
+                    "type": "string"
+                },
+                "max_value": {
+                    "type": "integer"
+                },
+                "min_label": {
+                    "type": "string"
+                },
+                "min_value": {
+                    "type": "integer"
+                },
+                "options": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "text": {
+                    "type": "string"
+                },
+                "type": {
+                    "$ref": "#/definitions/feedbackmodel.QuestionType"
                 }
             }
         },
@@ -5524,227 +6238,6 @@ const docTemplate = `{
                 "price": {
                     "type": "number",
                     "minimum": 0
-                }
-            }
-        },
-        "handlers.CreateSubscriptionRequest": {
-            "type": "object",
-            "required": [
-                "plan_id"
-            ],
-            "properties": {
-                "plan_id": {
-                    "type": "string"
-                }
-            }
-        },
-        "handlers.GenerateQRCodeRequest": {
-            "type": "object",
-            "required": [
-                "label",
-                "organization_id",
-                "type"
-            ],
-            "properties": {
-                "label": {
-                    "type": "string",
-                    "maxLength": 100,
-                    "minLength": 1
-                },
-                "location": {
-                    "type": "string",
-                    "maxLength": 200
-                },
-                "organization_id": {
-                    "type": "string"
-                },
-                "type": {
-                    "enum": [
-                        "table",
-                        "location",
-                        "takeaway",
-                        "delivery",
-                        "general"
-                    ],
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/models.QRCodeType"
-                        }
-                    ]
-                }
-            }
-        },
-        "handlers.GenerateQRCodeResponse": {
-            "type": "object",
-            "properties": {
-                "data": {
-                    "$ref": "#/definitions/models.QRCode"
-                },
-                "success": {
-                    "type": "boolean"
-                }
-            }
-        },
-        "handlers.InvoiceResponse": {
-            "type": "object",
-            "properties": {
-                "amount_due": {
-                    "type": "integer"
-                },
-                "amount_paid": {
-                    "type": "integer"
-                },
-                "created_at": {
-                    "type": "string"
-                },
-                "currency": {
-                    "type": "string"
-                },
-                "hosted_invoice_url": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "string"
-                },
-                "invoice_pdf": {
-                    "type": "string"
-                },
-                "number": {
-                    "type": "string"
-                },
-                "paid_at": {
-                    "type": "string"
-                },
-                "status": {
-                    "type": "string"
-                }
-            }
-        },
-        "handlers.PaymentMethodResponse": {
-            "type": "object",
-            "properties": {
-                "card": {
-                    "$ref": "#/definitions/handlers.CardDetailsResponse"
-                },
-                "id": {
-                    "type": "string"
-                },
-                "is_default": {
-                    "type": "boolean"
-                },
-                "type": {
-                    "type": "string"
-                }
-            }
-        },
-        "handlers.PortalResponse": {
-            "type": "object",
-            "properties": {
-                "portal_url": {
-                    "type": "string"
-                }
-            }
-        },
-        "handlers.QRCodeListResponse": {
-            "type": "object",
-            "properties": {
-                "data": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/models.QRCode"
-                    }
-                },
-                "success": {
-                    "type": "boolean"
-                }
-            }
-        },
-        "handlers.SetDefaultPaymentRequest": {
-            "type": "object",
-            "required": [
-                "payment_method_id"
-            ],
-            "properties": {
-                "payment_method_id": {
-                    "type": "string"
-                }
-            }
-        },
-        "handlers.UpdateQRCodeRequest": {
-            "type": "object",
-            "properties": {
-                "is_active": {
-                    "type": "boolean"
-                },
-                "label": {
-                    "type": "string",
-                    "maxLength": 100,
-                    "minLength": 1
-                },
-                "location": {
-                    "type": "string",
-                    "maxLength": 200
-                }
-            }
-        },
-        "handlers.UpdateQRCodeResponse": {
-            "type": "object",
-            "properties": {
-                "data": {
-                    "$ref": "#/definitions/models.QRCode"
-                },
-                "success": {
-                    "type": "boolean"
-                }
-            }
-        },
-        "kyooar_internal_menu_models.Product": {
-            "type": "object",
-            "properties": {
-                "category": {
-                    "type": "string"
-                },
-                "created_at": {
-                    "type": "string"
-                },
-                "currency": {
-                    "type": "string"
-                },
-                "description": {
-                    "type": "string"
-                },
-                "display_order": {
-                    "type": "integer"
-                },
-                "id": {
-                    "type": "string"
-                },
-                "image": {
-                    "type": "string"
-                },
-                "is_active": {
-                    "type": "boolean"
-                },
-                "is_available": {
-                    "type": "boolean"
-                },
-                "name": {
-                    "type": "string"
-                },
-                "organization_id": {
-                    "type": "string"
-                },
-                "price": {
-                    "type": "number"
-                },
-                "tags": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                },
-                "updated_at": {
-                    "type": "string"
                 }
             }
         },
@@ -5799,309 +6292,6 @@ const docTemplate = `{
                 }
             }
         },
-        "models.BatchQuestionsRequest": {
-            "type": "object",
-            "required": [
-                "product_ids"
-            ],
-            "properties": {
-                "product_ids": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                }
-            }
-        },
-        "models.ChoiceInfo": {
-            "type": "object",
-            "properties": {
-                "choice": {
-                    "type": "string"
-                },
-                "count": {
-                    "type": "integer"
-                }
-            }
-        },
-        "models.ChoiceSeriesData": {
-            "type": "object",
-            "properties": {
-                "choice": {
-                    "type": "string"
-                },
-                "points": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/models.TimeSeriesPoint"
-                    }
-                },
-                "statistics": {
-                    "$ref": "#/definitions/models.TimeSeriesStats"
-                }
-            }
-        },
-        "models.ComparisonInsight": {
-            "type": "object",
-            "properties": {
-                "change": {
-                    "type": "number"
-                },
-                "message": {
-                    "type": "string"
-                },
-                "metric_type": {
-                    "type": "string"
-                },
-                "recommendation": {
-                    "type": "string"
-                },
-                "severity": {
-                    "type": "string"
-                },
-                "type": {
-                    "type": "string"
-                }
-            }
-        },
-        "models.ComparisonRequest": {
-            "type": "object",
-            "properties": {
-                "metric_types": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                },
-                "organization_id": {
-                    "type": "string"
-                },
-                "period1_end": {
-                    "type": "string"
-                },
-                "period1_start": {
-                    "type": "string"
-                },
-                "period2_end": {
-                    "type": "string"
-                },
-                "period2_start": {
-                    "type": "string"
-                },
-                "product_id": {
-                    "type": "string"
-                },
-                "question_id": {
-                    "type": "string"
-                }
-            }
-        },
-        "models.ComparisonResponse": {
-            "type": "object",
-            "properties": {
-                "comparisons": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/models.TimeSeriesComparison"
-                    }
-                },
-                "insights": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/models.ComparisonInsight"
-                    }
-                },
-                "request": {
-                    "$ref": "#/definitions/models.ComparisonRequest"
-                }
-            }
-        },
-        "models.CreateQuestionRequest": {
-            "type": "object",
-            "required": [
-                "text",
-                "type"
-            ],
-            "properties": {
-                "is_required": {
-                    "type": "boolean"
-                },
-                "max_label": {
-                    "type": "string"
-                },
-                "max_value": {
-                    "type": "integer"
-                },
-                "min_label": {
-                    "type": "string"
-                },
-                "min_value": {
-                    "type": "integer"
-                },
-                "options": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                },
-                "text": {
-                    "type": "string"
-                },
-                "type": {
-                    "$ref": "#/definitions/models.QuestionType"
-                }
-            }
-        },
-        "models.CreateQuestionnaireRequest": {
-            "type": "object",
-            "required": [
-                "name"
-            ],
-            "properties": {
-                "description": {
-                    "type": "string"
-                },
-                "is_default": {
-                    "type": "boolean"
-                },
-                "name": {
-                    "type": "string"
-                },
-                "product_id": {
-                    "type": "string"
-                }
-            }
-        },
-        "models.DateRange": {
-            "type": "object",
-            "properties": {
-                "end": {
-                    "type": "string"
-                },
-                "start": {
-                    "type": "string"
-                }
-            }
-        },
-        "models.DeviceInfo": {
-            "type": "object",
-            "properties": {
-                "browser": {
-                    "type": "string"
-                },
-                "ip": {
-                    "type": "string"
-                },
-                "platform": {
-                    "type": "string"
-                },
-                "user_agent": {
-                    "type": "string"
-                }
-            }
-        },
-        "models.Feedback": {
-            "type": "object",
-            "properties": {
-                "created_at": {
-                    "type": "string"
-                },
-                "customer_email": {
-                    "type": "string"
-                },
-                "customer_name": {
-                    "type": "string"
-                },
-                "customer_phone": {
-                    "type": "string"
-                },
-                "device_info": {
-                    "$ref": "#/definitions/models.DeviceInfo"
-                },
-                "id": {
-                    "type": "string"
-                },
-                "is_complete": {
-                    "type": "boolean"
-                },
-                "organization": {
-                    "$ref": "#/definitions/models.Organization"
-                },
-                "organization_id": {
-                    "type": "string"
-                },
-                "overall_rating": {
-                    "type": "integer"
-                },
-                "product": {
-                    "$ref": "#/definitions/kyooar_internal_menu_models.Product"
-                },
-                "product_id": {
-                    "type": "string"
-                },
-                "qr_code": {
-                    "$ref": "#/definitions/models.QRCode"
-                },
-                "qr_code_id": {
-                    "type": "string"
-                },
-                "responses": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/models.Response"
-                    }
-                },
-                "updated_at": {
-                    "type": "string"
-                }
-            }
-        },
-        "models.GenerateQuestionnaireRequest": {
-            "type": "object",
-            "required": [
-                "name"
-            ],
-            "properties": {
-                "description": {
-                    "type": "string"
-                },
-                "is_default": {
-                    "type": "boolean"
-                },
-                "name": {
-                    "type": "string"
-                }
-            }
-        },
-        "models.GeneratedQuestion": {
-            "type": "object",
-            "properties": {
-                "max_label": {
-                    "type": "string"
-                },
-                "max_value": {
-                    "type": "integer"
-                },
-                "min_label": {
-                    "type": "string"
-                },
-                "min_value": {
-                    "type": "integer"
-                },
-                "options": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                },
-                "text": {
-                    "type": "string"
-                },
-                "type": {
-                    "$ref": "#/definitions/models.QuestionType"
-                }
-            }
-        },
         "models.MemberRole": {
             "type": "string",
             "enum": [
@@ -6117,7 +6307,121 @@ const docTemplate = `{
                 "RoleViewer"
             ]
         },
-        "models.Organization": {
+        "models.Product": {
+            "type": "object",
+            "properties": {
+                "category": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "currency": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "display_order": {
+                    "type": "integer"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "image": {
+                    "type": "string"
+                },
+                "is_active": {
+                    "type": "boolean"
+                },
+                "is_available": {
+                    "type": "boolean"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "organization_id": {
+                    "type": "string"
+                },
+                "price": {
+                    "type": "number"
+                },
+                "tags": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.TeamMember": {
+            "type": "object",
+            "properties": {
+                "accepted_at": {
+                    "type": "string"
+                },
+                "account": {
+                    "$ref": "#/definitions/models.Account"
+                },
+                "account_id": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "invited_at": {
+                    "type": "string"
+                },
+                "invited_by": {
+                    "type": "string"
+                },
+                "member": {
+                    "$ref": "#/definitions/models.Account"
+                },
+                "member_id": {
+                    "type": "string"
+                },
+                "role": {
+                    "$ref": "#/definitions/models.MemberRole"
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "organizationmodel.CreateOrganizationRequest": {
+            "type": "object",
+            "required": [
+                "name"
+            ],
+            "properties": {
+                "address": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "phone": {
+                    "type": "string"
+                },
+                "website": {
+                    "type": "string"
+                }
+            }
+        },
+        "organizationmodel.Organization": {
             "type": "object",
             "properties": {
                 "account_id": {
@@ -6151,7 +6455,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "settings": {
-                    "$ref": "#/definitions/models.Settings"
+                    "$ref": "#/definitions/organizationmodel.Settings"
                 },
                 "updated_at": {
                     "type": "string"
@@ -6161,7 +6465,77 @@ const docTemplate = `{
                 }
             }
         },
-        "models.QRCode": {
+        "organizationmodel.Settings": {
+            "type": "object",
+            "properties": {
+                "feedback_notification": {
+                    "type": "boolean"
+                },
+                "language": {
+                    "type": "string"
+                },
+                "low_rating_threshold": {
+                    "type": "integer"
+                },
+                "timezone": {
+                    "type": "string"
+                }
+            }
+        },
+        "qrcodecontroller.GenerateQRCodeRequest": {
+            "type": "object",
+            "required": [
+                "label",
+                "organization_id",
+                "type"
+            ],
+            "properties": {
+                "label": {
+                    "type": "string",
+                    "maxLength": 100,
+                    "minLength": 1
+                },
+                "location": {
+                    "type": "string",
+                    "maxLength": 200
+                },
+                "organization_id": {
+                    "type": "string"
+                },
+                "type": {
+                    "enum": [
+                        "table",
+                        "location",
+                        "takeaway",
+                        "delivery",
+                        "general"
+                    ],
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/qrcodemodel.QRCodeType"
+                        }
+                    ]
+                }
+            }
+        },
+        "qrcodecontroller.UpdateQRCodeRequest": {
+            "type": "object",
+            "properties": {
+                "is_active": {
+                    "type": "boolean"
+                },
+                "label": {
+                    "type": "string",
+                    "maxLength": 100,
+                    "minLength": 1
+                },
+                "location": {
+                    "type": "string",
+                    "maxLength": 200
+                }
+            }
+        },
+        "qrcodemodel.QRCode": {
             "type": "object",
             "properties": {
                 "code": {
@@ -6189,7 +6563,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "organization": {
-                    "$ref": "#/definitions/models.Organization"
+                    "$ref": "#/definitions/organizationmodel.Organization"
                 },
                 "organization_id": {
                     "type": "string"
@@ -6198,14 +6572,14 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "type": {
-                    "$ref": "#/definitions/models.QRCodeType"
+                    "$ref": "#/definitions/qrcodemodel.QRCodeType"
                 },
                 "updated_at": {
                     "type": "string"
                 }
             }
         },
-        "models.QRCodeType": {
+        "qrcodemodel.QRCodeType": {
             "type": "string",
             "enum": [
                 "table",
@@ -6222,152 +6596,220 @@ const docTemplate = `{
                 "QRCodeTypeGeneral"
             ]
         },
-        "models.Question": {
+        "response.ErrorData": {
             "type": "object",
             "properties": {
-                "created_at": {
+                "code": {
                     "type": "string"
                 },
-                "display_order": {
-                    "type": "integer"
-                },
-                "id": {
-                    "type": "string"
-                },
-                "is_required": {
-                    "type": "boolean"
-                },
-                "max_label": {
-                    "type": "string"
-                },
-                "max_value": {
-                    "type": "integer"
-                },
-                "min_label": {
-                    "type": "string"
-                },
-                "min_value": {
-                    "type": "integer"
-                },
-                "options": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                },
-                "product": {
-                    "$ref": "#/definitions/kyooar_internal_menu_models.Product"
-                },
-                "product_id": {
-                    "type": "string"
-                },
-                "text": {
-                    "type": "string"
-                },
-                "type": {
-                    "$ref": "#/definitions/models.QuestionType"
-                },
-                "updated_at": {
+                "details": {},
+                "message": {
                     "type": "string"
                 }
             }
         },
-        "models.QuestionType": {
-            "type": "string",
-            "enum": [
-                "rating",
-                "scale",
-                "multi_choice",
-                "single_choice",
-                "text",
-                "yes_no"
-            ],
-            "x-enum-varnames": [
-                "QuestionTypeRating",
-                "QuestionTypeScale",
-                "QuestionTypeMultiChoice",
-                "QuestionTypeSingleChoice",
-                "QuestionTypeText",
-                "QuestionTypeYesNo"
-            ]
-        },
-        "models.Questionnaire": {
+        "response.Meta": {
             "type": "object",
             "properties": {
+                "pagination": {
+                    "$ref": "#/definitions/response.Pagination"
+                },
+                "request_id": {
+                    "type": "string"
+                },
+                "timestamp": {
+                    "type": "string"
+                },
+                "version": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.Pagination": {
+            "type": "object",
+            "properties": {
+                "limit": {
+                    "type": "integer"
+                },
+                "page": {
+                    "type": "integer"
+                },
+                "pages": {
+                    "type": "integer"
+                },
+                "total": {
+                    "type": "integer"
+                }
+            }
+        },
+        "response.Response": {
+            "type": "object",
+            "properties": {
+                "data": {},
+                "error": {
+                    "$ref": "#/definitions/response.ErrorData"
+                },
+                "meta": {
+                    "$ref": "#/definitions/response.Meta"
+                },
+                "success": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "subscriptioncontroller.CardDetailsResponse": {
+            "type": "object",
+            "properties": {
+                "brand": {
+                    "type": "string"
+                },
+                "exp_month": {
+                    "type": "integer"
+                },
+                "exp_year": {
+                    "type": "integer"
+                },
+                "last4": {
+                    "type": "string"
+                }
+            }
+        },
+        "subscriptioncontroller.CheckoutResponse": {
+            "type": "object",
+            "properties": {
+                "checkout_url": {
+                    "type": "string"
+                },
+                "session_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "subscriptioncontroller.CompleteCheckoutRequest": {
+            "type": "object",
+            "required": [
+                "session_id"
+            ],
+            "properties": {
+                "session_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "subscriptioncontroller.CreateCheckoutRequest": {
+            "type": "object",
+            "required": [
+                "plan_id"
+            ],
+            "properties": {
+                "plan_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "subscriptioncontroller.CreateSubscriptionRequest": {
+            "type": "object",
+            "required": [
+                "plan_id"
+            ],
+            "properties": {
+                "plan_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "subscriptioncontroller.InvoiceResponse": {
+            "type": "object",
+            "properties": {
+                "amount_due": {
+                    "type": "integer"
+                },
+                "amount_paid": {
+                    "type": "integer"
+                },
                 "created_at": {
                     "type": "string"
                 },
-                "description": {
+                "currency": {
+                    "type": "string"
+                },
+                "hosted_invoice_url": {
                     "type": "string"
                 },
                 "id": {
                     "type": "string"
                 },
-                "is_active": {
-                    "type": "boolean"
+                "invoice_pdf": {
+                    "type": "string"
+                },
+                "number": {
+                    "type": "string"
+                },
+                "paid_at": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "subscriptioncontroller.PaymentMethodResponse": {
+            "type": "object",
+            "properties": {
+                "card": {
+                    "$ref": "#/definitions/subscriptioncontroller.CardDetailsResponse"
+                },
+                "id": {
+                    "type": "string"
                 },
                 "is_default": {
                     "type": "boolean"
                 },
-                "name": {
-                    "type": "string"
-                },
-                "organization": {
-                    "$ref": "#/definitions/models.Organization"
-                },
-                "organization_id": {
-                    "type": "string"
-                },
-                "product": {
-                    "$ref": "#/definitions/kyooar_internal_menu_models.Product"
-                },
-                "product_id": {
-                    "type": "string"
-                },
-                "questions": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/models.Question"
-                    }
-                },
-                "updated_at": {
+                "type": {
                     "type": "string"
                 }
             }
         },
-        "models.Response": {
+        "subscriptioncontroller.PortalResponse": {
             "type": "object",
             "properties": {
-                "answer": {},
-                "question_id": {
+                "portal_url": {
                     "type": "string"
-                },
-                "question_text": {
-                    "type": "string"
-                },
-                "question_type": {
-                    "$ref": "#/definitions/models.QuestionType"
                 }
             }
         },
-        "models.Settings": {
+        "subscriptioncontroller.SetDefaultPaymentRequest": {
+            "type": "object",
+            "required": [
+                "payment_method_id"
+            ],
+            "properties": {
+                "payment_method_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "subscriptioninterface.PermissionResponse": {
             "type": "object",
             "properties": {
-                "feedback_notification": {
+                "can_create": {
                     "type": "boolean"
                 },
-                "language": {
-                    "type": "string"
-                },
-                "low_rating_threshold": {
+                "current_count": {
                     "type": "integer"
                 },
-                "timezone": {
+                "max_allowed": {
+                    "type": "integer"
+                },
+                "reason": {
+                    "type": "string"
+                },
+                "subscription_status": {
                     "type": "string"
                 }
             }
         },
-        "models.Subscription": {
+        "subscriptionmodel.Subscription": {
             "type": "object",
             "properties": {
                 "account": {
@@ -6395,20 +6837,20 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "plan": {
-                    "$ref": "#/definitions/models.SubscriptionPlan"
+                    "$ref": "#/definitions/subscriptionmodel.SubscriptionPlan"
                 },
                 "plan_id": {
                     "type": "string"
                 },
                 "status": {
-                    "$ref": "#/definitions/models.SubscriptionStatus"
+                    "$ref": "#/definitions/subscriptionmodel.SubscriptionStatus"
                 },
                 "updated_at": {
                     "type": "string"
                 }
             }
         },
-        "models.SubscriptionPlan": {
+        "subscriptionmodel.SubscriptionPlan": {
             "type": "object",
             "properties": {
                 "code": {
@@ -6476,7 +6918,7 @@ const docTemplate = `{
                 }
             }
         },
-        "models.SubscriptionStatus": {
+        "subscriptionmodel.SubscriptionStatus": {
             "type": "string",
             "enum": [
                 "active",
@@ -6491,7 +6933,7 @@ const docTemplate = `{
                 "SubscriptionExpired"
             ]
         },
-        "models.SubscriptionUsage": {
+        "subscriptionmodel.SubscriptionUsage": {
             "type": "object",
             "properties": {
                 "created_at": {
@@ -6522,7 +6964,7 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "subscription": {
-                    "$ref": "#/definitions/models.Subscription"
+                    "$ref": "#/definitions/subscriptionmodel.Subscription"
                 },
                 "subscription_id": {
                     "type": "string"
@@ -6531,380 +6973,6 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "updated_at": {
-                    "type": "string"
-                }
-            }
-        },
-        "models.TeamMember": {
-            "type": "object",
-            "properties": {
-                "accepted_at": {
-                    "type": "string"
-                },
-                "account": {
-                    "$ref": "#/definitions/models.Account"
-                },
-                "account_id": {
-                    "type": "string"
-                },
-                "created_at": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "string"
-                },
-                "invited_at": {
-                    "type": "string"
-                },
-                "invited_by": {
-                    "type": "string"
-                },
-                "member": {
-                    "$ref": "#/definitions/models.Account"
-                },
-                "member_id": {
-                    "type": "string"
-                },
-                "role": {
-                    "$ref": "#/definitions/models.MemberRole"
-                },
-                "updated_at": {
-                    "type": "string"
-                }
-            }
-        },
-        "models.TimePeriodMetrics": {
-            "type": "object",
-            "properties": {
-                "average": {
-                    "type": "number"
-                },
-                "choice_distribution": {
-                    "type": "object",
-                    "additionalProperties": {
-                        "type": "integer",
-                        "format": "int64"
-                    }
-                },
-                "count": {
-                    "type": "integer"
-                },
-                "data_points": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/models.TimeSeriesPoint"
-                    }
-                },
-                "end_date": {
-                    "type": "string"
-                },
-                "max": {
-                    "type": "number"
-                },
-                "min": {
-                    "type": "number"
-                },
-                "most_popular_choice": {
-                    "$ref": "#/definitions/models.ChoiceInfo"
-                },
-                "start_date": {
-                    "type": "string"
-                },
-                "top_choices": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/models.ChoiceInfo"
-                    }
-                },
-                "value": {
-                    "type": "number"
-                }
-            }
-        },
-        "models.TimeSeriesComparison": {
-            "type": "object",
-            "properties": {
-                "change": {
-                    "type": "number"
-                },
-                "change_percent": {
-                    "type": "number"
-                },
-                "metadata": {
-                    "type": "string"
-                },
-                "metric_name": {
-                    "type": "string"
-                },
-                "metric_type": {
-                    "type": "string"
-                },
-                "period1": {
-                    "$ref": "#/definitions/models.TimePeriodMetrics"
-                },
-                "period2": {
-                    "$ref": "#/definitions/models.TimePeriodMetrics"
-                },
-                "trend": {
-                    "type": "string"
-                }
-            }
-        },
-        "models.TimeSeriesData": {
-            "type": "object",
-            "properties": {
-                "choice_series": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/models.ChoiceSeriesData"
-                    }
-                },
-                "metadata": {
-                    "type": "object",
-                    "additionalProperties": {}
-                },
-                "metric_name": {
-                    "type": "string"
-                },
-                "metric_type": {
-                    "type": "string"
-                },
-                "points": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/models.TimeSeriesPoint"
-                    }
-                },
-                "product_id": {
-                    "type": "string"
-                },
-                "product_name": {
-                    "type": "string"
-                },
-                "statistics": {
-                    "$ref": "#/definitions/models.TimeSeriesStats"
-                }
-            }
-        },
-        "models.TimeSeriesPoint": {
-            "type": "object",
-            "properties": {
-                "count": {
-                    "type": "integer"
-                },
-                "timestamp": {
-                    "type": "string"
-                },
-                "value": {
-                    "type": "number"
-                }
-            }
-        },
-        "models.TimeSeriesRequest": {
-            "type": "object",
-            "properties": {
-                "end_date": {
-                    "type": "string"
-                },
-                "granularity": {
-                    "type": "string"
-                },
-                "group_by": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                },
-                "metric_types": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                },
-                "organization_id": {
-                    "type": "string"
-                },
-                "product_id": {
-                    "type": "string"
-                },
-                "question_id": {
-                    "type": "string"
-                },
-                "start_date": {
-                    "type": "string"
-                }
-            }
-        },
-        "models.TimeSeriesResponse": {
-            "type": "object",
-            "properties": {
-                "request": {
-                    "$ref": "#/definitions/models.TimeSeriesRequest"
-                },
-                "series": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/models.TimeSeriesData"
-                    }
-                },
-                "summary": {
-                    "$ref": "#/definitions/models.TimeSeriesSummary"
-                }
-            }
-        },
-        "models.TimeSeriesStats": {
-            "type": "object",
-            "properties": {
-                "average": {
-                    "type": "number"
-                },
-                "count": {
-                    "type": "integer"
-                },
-                "max": {
-                    "type": "number"
-                },
-                "min": {
-                    "type": "number"
-                },
-                "total": {
-                    "type": "number"
-                },
-                "trend_direction": {
-                    "type": "string"
-                },
-                "trend_strength": {
-                    "type": "number"
-                }
-            }
-        },
-        "models.TimeSeriesSummary": {
-            "type": "object",
-            "properties": {
-                "date_range": {
-                    "$ref": "#/definitions/models.DateRange"
-                },
-                "granularity": {
-                    "type": "string"
-                },
-                "metrics_summary": {
-                    "type": "object",
-                    "additionalProperties": true
-                },
-                "total_data_points": {
-                    "type": "integer"
-                }
-            }
-        },
-        "models.UpdateQuestionRequest": {
-            "type": "object",
-            "properties": {
-                "is_required": {
-                    "type": "boolean"
-                },
-                "max_label": {
-                    "type": "string"
-                },
-                "max_value": {
-                    "type": "integer"
-                },
-                "min_label": {
-                    "type": "string"
-                },
-                "min_value": {
-                    "type": "integer"
-                },
-                "options": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                },
-                "text": {
-                    "type": "string"
-                },
-                "type": {
-                    "$ref": "#/definitions/models.QuestionType"
-                }
-            }
-        },
-        "response.ErrorData": {
-            "type": "object",
-            "properties": {
-                "code": {
-                    "type": "string"
-                },
-                "details": {},
-                "message": {
-                    "type": "string"
-                }
-            }
-        },
-        "response.Meta": {
-            "type": "object",
-            "properties": {
-                "pagination": {
-                    "$ref": "#/definitions/response.Pagination"
-                },
-                "request_id": {
-                    "type": "string"
-                },
-                "timestamp": {
-                    "type": "string"
-                },
-                "version": {
-                    "type": "string"
-                }
-            }
-        },
-        "response.Pagination": {
-            "type": "object",
-            "properties": {
-                "limit": {
-                    "type": "integer"
-                },
-                "page": {
-                    "type": "integer"
-                },
-                "pages": {
-                    "type": "integer"
-                },
-                "total": {
-                    "type": "integer"
-                }
-            }
-        },
-        "response.Response": {
-            "type": "object",
-            "properties": {
-                "data": {},
-                "error": {
-                    "$ref": "#/definitions/response.ErrorData"
-                },
-                "meta": {
-                    "$ref": "#/definitions/response.Meta"
-                },
-                "success": {
-                    "type": "boolean"
-                }
-            }
-        },
-        "services.PermissionResponse": {
-            "type": "object",
-            "properties": {
-                "can_create": {
-                    "type": "boolean"
-                },
-                "current_count": {
-                    "type": "integer"
-                },
-                "max_allowed": {
-                    "type": "integer"
-                },
-                "reason": {
-                    "type": "string"
-                },
-                "subscription_status": {
                     "type": "string"
                 }
             }

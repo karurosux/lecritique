@@ -116,7 +116,7 @@ func (s *TimeSeriesService) collectOrganizationMetrics(ctx context.Context, orga
 		}
 	}
 
-	timeSeriesData, individualQuestionData, surveyResponsesByDate := s.processFeedbackData(feedbacks)
+	timeSeriesData, individualQuestionData, surveyResponsesByDate := s.processFeedbackData(feedbacks, questionMap)
 
 	for key, questionData := range timeSeriesData {
 		parts := strings.Split(key, "_")
@@ -155,7 +155,7 @@ func (s *TimeSeriesService) collectOrganizationMetrics(ctx context.Context, orga
 			Count:          int64(count),
 			Timestamp:      date,
 			Granularity:    models.GranularityDaily,
-			Metadata:       s.createMetadataWithProduct(questionData.QuestionType, questionData.ProductName),
+			Metadata:       s.createMetadataWithQuestions(questionData.QuestionType, questionData.ProductName, questionData.QuestionTexts),
 		})
 	}
 
@@ -261,6 +261,15 @@ func (s *TimeSeriesService) createMetadataWithProduct(questionType string, produ
 	return &metadata
 }
 
+func (s *TimeSeriesService) createMetadataWithQuestions(questionType string, productName string, questionTexts []string) *string {
+	questionText := ""
+	if len(questionTexts) > 0 {
+		questionText = questionTexts[0]
+	}
+	metadata := fmt.Sprintf(`{"question_type": "%s", "question_text": "%s"}`, questionType, questionText)
+	return &metadata
+}
+
 func (s *TimeSeriesService) createMetadataWithQuestion(questionType string, productName string, questionText string, question *feedbackmodel.Question) *string {
 	metadataMap := map[string]interface{}{
 		"question_type": questionType,
@@ -336,6 +345,12 @@ func (s *TimeSeriesService) analyzeSentiment(text string) float64 {
 }
 
 func (s *TimeSeriesService) getMetricName(questionType string, questionTexts []string) string {
+	// If we have question texts, use the first one (most common question)
+	if len(questionTexts) > 0 && questionTexts[0] != "" {
+		return questionTexts[0]
+	}
+	
+	// Fallback to generic names based on question type
 	switch questionType {
 	case string(feedbackmodel.QuestionTypeRating):
 		return "Rating Questions"
@@ -355,7 +370,11 @@ func (s *TimeSeriesService) getMetricName(questionType string, questionTexts []s
 }
 
 func (s *TimeSeriesService) getMetricNameWithProduct(questionType string, productName string, questionTexts []string) string {
-	return s.getMetricName(questionType, questionTexts)
+	baseName := s.getMetricName(questionType, questionTexts)
+	if productName != "" {
+		return fmt.Sprintf("%s - %s", productName, baseName)
+	}
+	return baseName
 }
 
 func (s *TimeSeriesService) GetTimeSeries(ctx context.Context, request models.TimeSeriesRequest) (*models.TimeSeriesResponse, error) {
@@ -851,7 +870,7 @@ func (s *TimeSeriesService) processTextQuestion(responses []any) float64 {
 	return 0
 }
 
-func (s *TimeSeriesService) processFeedbackData(feedbacks []feedbackmodel.Feedback) (
+func (s *TimeSeriesService) processFeedbackData(feedbacks []feedbackmodel.Feedback, questionMap map[uuid.UUID]*feedbackmodel.Question) (
 	map[string]*ResponseData,
 	map[string]*QuestionData,
 	map[string]int,
@@ -877,12 +896,20 @@ func (s *TimeSeriesService) processFeedbackData(feedbacks []feedbackmodel.Feedba
 		}
 
 		for _, response := range feedback.Responses {
-			questionTypeKey := fmt.Sprintf("%s_%s_%s", dateKey, productKey, string(response.QuestionType))
+			// Get question type from response or question map
+			questionType := string(response.QuestionType)
+			if questionType == "" && response.QuestionID != uuid.Nil {
+				if question, exists := questionMap[response.QuestionID]; exists {
+					questionType = string(question.Type)
+				}
+			}
+			
+			questionTypeKey := fmt.Sprintf("%s_%s_%s", dateKey, productKey, questionType)
 
 			if _, exists := timeSeriesData[questionTypeKey]; !exists {
 				timeSeriesData[questionTypeKey] = &ResponseData{
 					Responses:     []any{},
-					QuestionType:  string(response.QuestionType),
+					QuestionType:  questionType,
 					QuestionTexts: []string{},
 					ProductID:     productKey,
 					ProductName:   productName,
@@ -891,15 +918,23 @@ func (s *TimeSeriesService) processFeedbackData(feedbacks []feedbackmodel.Feedba
 
 			timeSeriesData[questionTypeKey].Responses = append(timeSeriesData[questionTypeKey].Responses, response.Answer)
 
+			// Get question text from response or question map
+			questionText := response.QuestionText
+			if questionText == "" && response.QuestionID != uuid.Nil {
+				if question, exists := questionMap[response.QuestionID]; exists {
+					questionText = question.Text
+				}
+			}
+			
 			questionTextExists := false
 			for _, text := range timeSeriesData[questionTypeKey].QuestionTexts {
-				if text == response.QuestionText {
+				if text == questionText {
 					questionTextExists = true
 					break
 				}
 			}
-			if !questionTextExists {
-				timeSeriesData[questionTypeKey].QuestionTexts = append(timeSeriesData[questionTypeKey].QuestionTexts, response.QuestionText)
+			if !questionTextExists && questionText != "" {
+				timeSeriesData[questionTypeKey].QuestionTexts = append(timeSeriesData[questionTypeKey].QuestionTexts, questionText)
 			}
 
 			if response.QuestionID != uuid.Nil {
@@ -909,8 +944,8 @@ func (s *TimeSeriesService) processFeedbackData(feedbacks []feedbackmodel.Feedba
 					individualQuestionData[individualQuestionKey] = &QuestionData{
 						Responses:    []any{},
 						QuestionID:   response.QuestionID.String(),
-						QuestionText: response.QuestionText,
-						QuestionType: string(response.QuestionType),
+						QuestionText: questionText,
+						QuestionType: questionType,
 						ProductID:    productKey,
 						ProductName:  productName,
 					}

@@ -119,18 +119,19 @@ func (h *ProductHandler) GetByOrganization(c echo.Context) error {
 // @Accept json
 // @Produce json
 // @Security ApiKeyAuth
-// @Param id path string true "Product ID"
+// @Param organizationId path string true "Organization ID"
+// @Param productId path string true "Product ID"
 // @Success 200 {object} response.Response{data=models.Product}
 // @Failure 400 {object} response.Response
 // @Failure 401 {object} response.Response
 // @Failure 404 {object} response.Response
 // @Failure 500 {object} response.Response
-// @Router /api/v1/products/{id} [get]
+// @Router /api/v1/organizations/{organizationId}/products/{productId} [get]
 func (h *ProductHandler) GetByID(c echo.Context) error {
 	ctx := c.Request().Context()
 	accountID := middleware.GetResourceAccountID(c)
 
-	productID, err := uuid.Parse(c.Param("id"))
+	productID, err := uuid.Parse(c.Param("productId"))
 	if err != nil {
 		return response.Error(c, errors.ErrInvalidUUID)
 	}
@@ -149,19 +150,20 @@ func (h *ProductHandler) GetByID(c echo.Context) error {
 // @Accept json
 // @Produce json
 // @Security ApiKeyAuth
-// @Param id path string true "Product ID"
+// @Param organizationId path string true "Organization ID"
+// @Param productId path string true "Product ID"
 // @Param updates body map[string]interface{} true "Fields to update"
 // @Success 200 {object} response.Response{data=map[string]string}
 // @Failure 400 {object} response.Response
 // @Failure 401 {object} response.Response
 // @Failure 404 {object} response.Response
 // @Failure 500 {object} response.Response
-// @Router /api/v1/products/{id} [put]
+// @Router /api/v1/organizations/{organizationId}/products/{productId} [put]
 func (h *ProductHandler) Update(c echo.Context) error {
 	ctx := c.Request().Context()
 	accountID := middleware.GetResourceAccountID(c)
 
-	productID, err := uuid.Parse(c.Param("id"))
+	productID, err := uuid.Parse(c.Param("productId"))
 	if err != nil {
 		return response.Error(c, errors.ErrInvalidUUID)
 	}
@@ -186,18 +188,19 @@ func (h *ProductHandler) Update(c echo.Context) error {
 // @Accept json
 // @Produce json
 // @Security ApiKeyAuth
-// @Param id path string true "Product ID"
+// @Param organizationId path string true "Organization ID"
+// @Param productId path string true "Product ID"
 // @Success 200 {object} response.Response{data=map[string]string}
 // @Failure 400 {object} response.Response
 // @Failure 401 {object} response.Response
 // @Failure 404 {object} response.Response
 // @Failure 500 {object} response.Response
-// @Router /api/v1/products/{id} [delete]
+// @Router /api/v1/organizations/{organizationId}/products/{productId} [delete]
 func (h *ProductHandler) Delete(c echo.Context) error {
 	ctx := c.Request().Context()
 	accountID := middleware.GetResourceAccountID(c)
 
-	productID, err := uuid.Parse(c.Param("id"))
+	productID, err := uuid.Parse(c.Param("productId"))
 	if err != nil {
 		return response.Error(c, errors.ErrInvalidUUID)
 	}

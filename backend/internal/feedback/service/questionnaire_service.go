@@ -8,7 +8,7 @@ import (
 	aiServices "kyooar/internal/ai/services"
 	feedbackinterface "kyooar/internal/feedback/interface"
 	feedbackmodel "kyooar/internal/feedback/model"
-	menuModels "kyooar/internal/product/models"
+	productModels "kyooar/internal/product/models"
 	"kyooar/internal/shared/config"
 )
 
@@ -113,7 +113,7 @@ func (s *questionnaireService) ReorderQuestions(ctx context.Context, accountID, 
 	return s.repo.ReorderQuestions(ctx, questionnaireID, questionIDs)
 }
 
-func (s *questionnaireService) GenerateQuestionsForProduct(ctx context.Context, accountID uuid.UUID, product *menuModels.Product) ([]*feedbackmodel.GeneratedQuestion, error) {
+func (s *questionnaireService) GenerateQuestionsForProduct(ctx context.Context, accountID uuid.UUID, product *productModels.Product) ([]*feedbackmodel.GeneratedQuestion, error) {
 	if s.questionGenerator == nil {
 		return nil, fmt.Errorf("question generator not available")
 	}
@@ -121,7 +121,7 @@ func (s *questionnaireService) GenerateQuestionsForProduct(ctx context.Context, 
 	return s.questionGenerator.GenerateQuestionsForProduct(ctx, product)
 }
 
-func (s *questionnaireService) GenerateAndSaveQuestionnaireForProduct(ctx context.Context, accountID uuid.UUID, product *menuModels.Product, name, description string, isDefault bool) (*feedbackmodel.Questionnaire, error) {
+func (s *questionnaireService) GenerateAndSaveQuestionnaireForProduct(ctx context.Context, accountID uuid.UUID, product *productModels.Product, name, description string, isDefault bool) (*feedbackmodel.Questionnaire, error) {
 	if s.questionGenerator == nil {
 		return nil, fmt.Errorf("question generator not available")
 	}

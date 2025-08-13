@@ -152,7 +152,7 @@
 
     try {
       const api = getApiClient();
-      await api.api.v1ProductsDelete(deletingProduct.id);
+      await api.api.v1OrganizationsProductsDelete(organizationId, deletingProduct.id);
       toast.success('Product deleted successfully');
       await fetchProducts();
     } catch (error) {
@@ -174,7 +174,7 @@
   async function handleToggleAvailability(product: any) {
     try {
       const api = getApiClient();
-      await api.api.v1ProductsUpdate(product.id, {
+      await api.api.v1OrganizationsProductsUpdate(organizationId, product.id, {
         ...product,
         is_available: !product.is_available,
       });
@@ -389,7 +389,7 @@
         const api = getApiClient();
         if (editingProduct) {
           // Update existing product
-          await api.api.v1ProductsUpdate(editingProduct.id, {
+          await api.api.v1OrganizationsProductsUpdate(organizationId, editingProduct.id, {
             ...productData,
             organization_id: organizationId,
           });

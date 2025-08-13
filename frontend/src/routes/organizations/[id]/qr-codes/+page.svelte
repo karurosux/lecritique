@@ -9,7 +9,7 @@
   import { getApiClient } from '$lib/api';
   import { toast } from 'svelte-sonner';
   import { invalidateAll } from '$app/navigation';
-  import { ModelsQRCodeType, ContentType } from '$lib/api/api';
+  import { QrcodemodelQRCodeType, ContentType } from '$lib/api/api';
   import { onMount } from 'svelte';
   import { page } from '$app/stores';
 
@@ -50,11 +50,11 @@
   }
 
   const qrTypeColors: Record<string, string> = {
-    [ModelsQRCodeType.QRCodeTypeTable]: 'bg-blue-100 text-blue-800',
-    [ModelsQRCodeType.QRCodeTypeLocation]: 'bg-green-100 text-green-800',
-    [ModelsQRCodeType.QRCodeTypeTakeaway]: 'bg-yellow-100 text-yellow-800',
-    [ModelsQRCodeType.QRCodeTypeDelivery]: 'bg-purple-100 text-purple-800',
-    [ModelsQRCodeType.QRCodeTypeGeneral]: 'bg-gray-100 text-gray-800',
+    [QrcodemodelQRCodeType.QRCodeTypeTable]: 'bg-blue-100 text-blue-800',
+    [QrcodemodelQRCodeType.QRCodeTypeLocation]: 'bg-green-100 text-green-800',
+    [QrcodemodelQRCodeType.QRCodeTypeTakeaway]: 'bg-yellow-100 text-yellow-800',
+    [QrcodemodelQRCodeType.QRCodeTypeDelivery]: 'bg-purple-100 text-purple-800',
+    [QrcodemodelQRCodeType.QRCodeTypeGeneral]: 'bg-gray-100 text-gray-800',
   };
 
   async function handleDelete(qrCode: (typeof qrCodes)[0], event?: MouseEvent) {

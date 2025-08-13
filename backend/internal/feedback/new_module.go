@@ -10,8 +10,8 @@ import (
 	feedbackmiddleware "kyooar/internal/feedback/middleware"
 	gormrepo "kyooar/internal/feedback/repository/gorm"
 	feedbackservice "kyooar/internal/feedback/service"
-	menuRepos "kyooar/internal/product/repositories"
-	menuServices "kyooar/internal/product/services"
+	productRepos "kyooar/internal/product/repositories"
+	productServices "kyooar/internal/product/services"
 	organizationinterface "kyooar/internal/organization/interface"
 	qrcodeinterface "kyooar/internal/qrcode/interface"
 	"kyooar/internal/shared/config"
@@ -46,7 +46,7 @@ func ProvideFeedbackService(i *do.Injector) (feedbackinterface.FeedbackService, 
 
 func ProvideQuestionService(i *do.Injector) (feedbackinterface.QuestionService, error) {
 	questionRepo := do.MustInvoke[feedbackinterface.QuestionRepository](i)
-	productRepo := do.MustInvoke[menuRepos.ProductRepository](i)
+	productRepo := do.MustInvoke[productRepos.ProductRepository](i)
 	organizationRepo := do.MustInvoke[organizationinterface.OrganizationRepository](i)
 
 	return feedbackservice.NewQuestionService(
@@ -83,13 +83,13 @@ func ProvideQuestionController(i *do.Injector) (*feedbackcontroller.QuestionCont
 
 func ProvideQuestionnaireController(i *do.Injector) (*feedbackcontroller.QuestionnaireController, error) {
 	questionnaireService := do.MustInvoke[feedbackinterface.QuestionnaireService](i)
-	productService := do.MustInvoke[menuServices.ProductService](i)
+	productService := do.MustInvoke[productServices.ProductService](i)
 	return feedbackcontroller.NewQuestionnaireController(questionnaireService, productService), nil
 }
 
 func ProvidePublicController(i *do.Injector) (*feedbackcontroller.PublicController, error) {
 	feedbackService := do.MustInvoke[feedbackinterface.FeedbackService](i)
-	productRepo := do.MustInvoke[menuRepos.ProductRepository](i)
+	productRepo := do.MustInvoke[productRepos.ProductRepository](i)
 	questionnaireRepo := do.MustInvoke[feedbackinterface.QuestionnaireRepository](i)
 	questionRepo := do.MustInvoke[feedbackinterface.QuestionRepository](i)
 	return feedbackcontroller.NewPublicController(feedbackService, productRepo, questionnaireRepo, questionRepo), nil

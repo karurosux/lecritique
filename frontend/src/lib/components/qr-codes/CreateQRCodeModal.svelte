@@ -2,7 +2,7 @@
   import { Modal, Button, Input, Select } from '$lib/components/ui';
   import { getApiClient } from '$lib/api';
   import { toast } from 'svelte-sonner';
-  import { ModelsQRCodeType } from '$lib/api/api';
+  import { QrcodemodelQRCodeType } from '$lib/api/api';
   import { Loader2 } from 'lucide-svelte';
 
   let {

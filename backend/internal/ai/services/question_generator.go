@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	feedbackmodel "kyooar/internal/feedback/model"
-	menuModels "kyooar/internal/product/models"
+	productModels "kyooar/internal/product/models"
 	"kyooar/internal/shared/config"
 )
 
@@ -49,7 +49,7 @@ func NewQuestionGenerator(cfg *config.Config) (*QuestionGenerator, error) {
 	}, nil
 }
 
-func (qg *QuestionGenerator) GenerateQuestionsForProduct(ctx context.Context, product *menuModels.Product) ([]*feedbackmodel.GeneratedQuestion, error) {
+func (qg *QuestionGenerator) GenerateQuestionsForProduct(ctx context.Context, product *productModels.Product) ([]*feedbackmodel.GeneratedQuestion, error) {
 	prompt := qg.buildPromptForProduct(product)
 	aiQuestions, err := qg.provider.GenerateQuestions(ctx, prompt)
 	if err != nil {
@@ -73,7 +73,7 @@ func (qg *QuestionGenerator) GenerateQuestionsForProduct(ctx context.Context, pr
 	return result, nil
 }
 
-func (qg *QuestionGenerator) buildPromptForProduct(product *menuModels.Product) string {
+func (qg *QuestionGenerator) buildPromptForProduct(product *productModels.Product) string {
 	tagsStr := ""
 	if len(product.Tags) > 0 {
 		tagsStr = fmt.Sprintf("\nTags: %s", strings.Join(product.Tags, ", "))

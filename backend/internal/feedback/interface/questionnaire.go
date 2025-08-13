@@ -5,7 +5,7 @@ import (
 
 	"github.com/google/uuid"
 	feedbackmodel "kyooar/internal/feedback/model"
-	menuModels "kyooar/internal/product/models"
+	productModels "kyooar/internal/product/models"
 )
 
 type QuestionnaireRepository interface {
@@ -32,6 +32,6 @@ type QuestionnaireService interface {
 	UpdateQuestion(ctx context.Context, accountID, questionID uuid.UUID, question *feedbackmodel.Question) (*feedbackmodel.Question, error)
 	DeleteQuestion(ctx context.Context, accountID, questionID uuid.UUID) error
 	ReorderQuestions(ctx context.Context, accountID, questionnaireID uuid.UUID, questionIDs []uuid.UUID) error
-	GenerateQuestionsForProduct(ctx context.Context, accountID uuid.UUID, product *menuModels.Product) ([]*feedbackmodel.GeneratedQuestion, error)
-	GenerateAndSaveQuestionnaireForProduct(ctx context.Context, accountID uuid.UUID, product *menuModels.Product, name, description string, isDefault bool) (*feedbackmodel.Questionnaire, error)
+	GenerateQuestionsForProduct(ctx context.Context, accountID uuid.UUID, product *productModels.Product) ([]*feedbackmodel.GeneratedQuestion, error)
+	GenerateAndSaveQuestionnaireForProduct(ctx context.Context, accountID uuid.UUID, product *productModels.Product, name, description string, isDefault bool) (*feedbackmodel.Questionnaire, error)
 }

@@ -88,29 +88,29 @@ func (s *Server) setupRoutes() {
 	v1 := s.echo.Group("/api/v1")
 	v1.Use(rateLimiter.Middleware())
 
-	// Register Subscription module first since Auth module depends on it
+	authModule.RegisterNewModule(s.injector)
 	subscriptionModule.RegisterNewModule(s.injector)
+	qrcodeModule.RegisterNewModule(s.injector)
+	productModule.RegisterNewModule(s.injector)
+	feedbackModule.RegisterNewModule(s.injector)
+	analyticsModule.RegisterNewModule(s.injector)
+	
 	subscriptionMod := subscriptionModule.NewSubscriptionModule(s.injector)
 	subscriptionMod.RegisterRoutes(v1)
 
 	authMod := authModule.NewAuthModule(s.injector)
 	authMod.RegisterRoutes(v1)
 	
-	// Register QRCode module before Organization module since Organization depends on it
-	qrcodeModule.RegisterNewModule(s.injector)
 	qrcodeMod := qrcodeModule.NewQRCodeModule(s.injector)
 	qrcodeMod.RegisterRoutes(v1)
 	
 	organizationMod := organizationModule.NewOrganizationModule(s.injector)
 	organizationMod.RegisterRoutes(v1)
 	
-	productMod := productModule.NewModule(s.injector)
-	productMod.RegisterRoutes(v1)
-	
-	feedbackMod := feedbackModule.NewModule(s.injector)
+	feedbackMod := feedbackModule.NewFeedbackModule(s.injector)
 	feedbackMod.RegisterRoutes(v1)
 	
-	analyticsMod := analyticsModule.NewModule(s.injector)
+	analyticsMod := analyticsModule.NewAnalyticsModule(s.injector)
 	analyticsMod.RegisterRoutes(v1)
 }
 
