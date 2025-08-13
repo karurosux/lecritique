@@ -2,7 +2,7 @@ package menu
 
 import (
 	"github.com/labstack/echo/v4"
-	"kyooar/internal/menu/handlers"
+	"kyooar/internal/product/handlers"
 	sharedMiddleware "kyooar/internal/shared/middleware"
 	"github.com/samber/do"
 )

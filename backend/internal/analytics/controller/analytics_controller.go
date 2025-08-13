@@ -12,7 +12,7 @@ import (
 	analyticsinterface "kyooar/internal/analytics/interface"
 	analyticsmodel "kyooar/internal/analytics/model"
 	feedbackinterface "kyooar/internal/feedback/interface"
-	menuRepos "kyooar/internal/menu/repositories"
+	productRepos "kyooar/internal/product/repositories"
 	organizationinterface "kyooar/internal/organization/interface"
 	"kyooar/internal/shared/errors"
 	"kyooar/internal/shared/logger"
@@ -25,14 +25,14 @@ import (
 
 type AnalyticsController struct {
 	feedbackRepo     feedbackinterface.FeedbackRepository
-	productRepo      menuRepos.ProductRepository
+	productRepo      productRepos.ProductRepository
 	organizationRepo organizationinterface.OrganizationRepository
 	analyticsService analyticsinterface.AnalyticsService
 }
 
 func NewAnalyticsController(
 	feedbackRepo feedbackinterface.FeedbackRepository,
-	productRepo menuRepos.ProductRepository,
+	productRepo productRepos.ProductRepository,
 	organizationRepo organizationinterface.OrganizationRepository,
 	analyticsService analyticsinterface.AnalyticsService,
 ) *AnalyticsController {

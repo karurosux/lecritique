@@ -9,9 +9,9 @@ import (
 	
 	organization "kyooar/internal/organization"
 	
-	menuHandlers "kyooar/internal/menu/handlers"
-	menuRepos "kyooar/internal/menu/repositories"
-	menuServices "kyooar/internal/menu/services"
+	productHandlers "kyooar/internal/product/handlers"
+	productRepos "kyooar/internal/product/repositories"
+	productServices "kyooar/internal/product/services"
 	
 	
 	
@@ -129,10 +129,10 @@ func RegisterAll(i *do.Injector, cfg *config.Config, db *gorm.DB) {
 	// Organization module registration
 	organization.RegisterNewModule(i)
 	
-	do.Provide(i, menuRepos.NewProductRepository)
-	do.Provide(i, menuServices.NewProductService)
-	do.Provide(i, menuHandlers.NewProductHandler)
-	do.Provide(i, menuHandlers.NewMenuPublicHandler)
+	do.Provide(i, productRepos.NewProductRepository)
+	do.Provide(i, productServices.NewProductService)
+	do.Provide(i, productHandlers.NewProductHandler)
+	do.Provide(i, productHandlers.NewMenuPublicHandler)
 	
 	// Feedback repositories, services and handlers are now provided by the new feedback module
 	

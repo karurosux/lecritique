@@ -3,7 +3,7 @@ package feedbackmodel
 import (
 	"github.com/google/uuid"
 	"github.com/lib/pq"
-	menuModels "kyooar/internal/menu/models"
+	menuModels "kyooar/internal/product/models"
 	organizationmodel "kyooar/internal/organization/model"
 	sharedModels "kyooar/internal/shared/models"
 )

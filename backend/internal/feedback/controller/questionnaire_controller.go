@@ -7,18 +7,18 @@ import (
 	"github.com/labstack/echo/v4"
 	feedbackinterface "kyooar/internal/feedback/interface"
 	feedbackmodel "kyooar/internal/feedback/model"
-	menuServices "kyooar/internal/menu/services"
+	productServices "kyooar/internal/product/services"
 	"kyooar/internal/shared/middleware"
 )
 
 type QuestionnaireController struct {
 	questionnaireService feedbackinterface.QuestionnaireService
-	productService       menuServices.ProductService
+	productService       productServices.ProductService
 }
 
 func NewQuestionnaireController(
 	questionnaireService feedbackinterface.QuestionnaireService,
-	productService menuServices.ProductService,
+	productService productServices.ProductService,
 ) *QuestionnaireController {
 	return &QuestionnaireController{
 		questionnaireService: questionnaireService,

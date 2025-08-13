@@ -5,8 +5,8 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
-	"kyooar/internal/menu/models"
-	"kyooar/internal/menu/services"
+	"kyooar/internal/product/models"
+	"kyooar/internal/product/services"
 	"kyooar/internal/shared/errors"
 	"kyooar/internal/shared/middleware"
 	"kyooar/internal/shared/response"

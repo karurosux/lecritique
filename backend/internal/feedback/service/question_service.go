@@ -8,7 +8,7 @@ import (
 	"github.com/labstack/echo/v4"
 	feedbackinterface "kyooar/internal/feedback/interface"
 	feedbackmodel "kyooar/internal/feedback/model"
-	menuRepos "kyooar/internal/menu/repositories"
+	menuRepos "kyooar/internal/product/repositories"
 	organizationinterface "kyooar/internal/organization/interface"
 )
 

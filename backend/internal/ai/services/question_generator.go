@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	feedbackmodel "kyooar/internal/feedback/model"
-	menuModels "kyooar/internal/menu/models"
+	menuModels "kyooar/internal/product/models"
 	"kyooar/internal/shared/config"
 )
 

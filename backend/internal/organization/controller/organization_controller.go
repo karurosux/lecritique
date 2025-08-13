@@ -6,7 +6,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	feedbackcontroller "kyooar/internal/feedback/controller"
-	menuHandlers "kyooar/internal/menu/handlers"
+	menuHandlers "kyooar/internal/product/handlers"
 	organizationinterface "kyooar/internal/organization/interface"
 	organizationmodel "kyooar/internal/organization/model"
 	qrcodecontroller "kyooar/internal/qrcode/controller"

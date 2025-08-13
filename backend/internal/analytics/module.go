@@ -10,7 +10,7 @@ import (
 	gormrepo "kyooar/internal/analytics/repository/gorm"
 	analyticsservice "kyooar/internal/analytics/services"
 	feedbackinterface "kyooar/internal/feedback/interface"
-	menuRepos "kyooar/internal/menu/repositories"
+	menuRepos "kyooar/internal/product/repositories"
 	organizationinterface "kyooar/internal/organization/interface"
 	qrcodeinterface "kyooar/internal/qrcode/interface"
 	sharedMiddleware "kyooar/internal/shared/middleware"

@@ -8,7 +8,7 @@ import (
 	aiServices "kyooar/internal/ai/services"
 	feedbackinterface "kyooar/internal/feedback/interface"
 	feedbackmodel "kyooar/internal/feedback/model"
-	menuModels "kyooar/internal/menu/models"
+	menuModels "kyooar/internal/product/models"
 	"kyooar/internal/shared/config"
 )
 

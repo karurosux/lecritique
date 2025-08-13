@@ -3,7 +3,7 @@ package repositories
 import (
 	"context"
 	"github.com/google/uuid"
-	"kyooar/internal/menu/models"
+	"kyooar/internal/product/models"
 	"kyooar/internal/shared/repositories"
 	"github.com/samber/do"
 	"gorm.io/gorm"

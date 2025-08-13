@@ -14,7 +14,7 @@ import (
 	analyticsinterface "kyooar/internal/analytics/interface"
 	feedbackmodel "kyooar/internal/feedback/model"
 	feedbackinterface "kyooar/internal/feedback/interface"
-	menuRepos "kyooar/internal/menu/repositories"
+	menuRepos "kyooar/internal/product/repositories"
 	qrcodemodel "kyooar/internal/qrcode/model"
 	qrcodeinterface "kyooar/internal/qrcode/interface"
 	organizationinterface "kyooar/internal/organization/interface"

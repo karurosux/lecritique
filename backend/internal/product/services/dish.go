@@ -3,8 +3,8 @@ package services
 import (
 	"context"
 	"github.com/google/uuid"
-	"kyooar/internal/menu/models"
-	menuRepos "kyooar/internal/menu/repositories"
+	"kyooar/internal/product/models"
+	menuRepos "kyooar/internal/product/repositories"
 	organizationinterface "kyooar/internal/organization/interface"
 	sharedRepos "kyooar/internal/shared/repositories"
 	"github.com/samber/do"

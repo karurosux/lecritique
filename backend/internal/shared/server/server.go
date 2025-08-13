@@ -16,7 +16,7 @@ import (
 	
 	authModule "kyooar/internal/auth"
 	organizationModule "kyooar/internal/organization"
-	menuModule "kyooar/internal/menu"
+	productModule "kyooar/internal/product"
 	feedbackModule "kyooar/internal/feedback"
 	qrcodeModule "kyooar/internal/qrcode"
 	analyticsModule "kyooar/internal/analytics"
@@ -104,8 +104,8 @@ func (s *Server) setupRoutes() {
 	organizationMod := organizationModule.NewOrganizationModule(s.injector)
 	organizationMod.RegisterRoutes(v1)
 	
-	menuMod := menuModule.NewModule(s.injector)
-	menuMod.RegisterRoutes(v1)
+	productMod := productModule.NewModule(s.injector)
+	productMod.RegisterRoutes(v1)
 	
 	feedbackMod := feedbackModule.NewModule(s.injector)
 	feedbackMod.RegisterRoutes(v1)

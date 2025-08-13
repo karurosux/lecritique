@@ -6,7 +6,7 @@ import (
 	"gorm.io/gorm"
 
 	feedbackcontroller "kyooar/internal/feedback/controller"
-	menuHandlers "kyooar/internal/menu/handlers"
+	productHandlers "kyooar/internal/product/handlers"
 	organizationcontroller "kyooar/internal/organization/controller"
 	organizationinterface "kyooar/internal/organization/interface"
 	gormrepo "kyooar/internal/organization/repository/gorm"
@@ -34,7 +34,7 @@ func ProvideOrganizationService(i *do.Injector) (organizationinterface.Organizat
 
 func ProvideOrganizationController(i *do.Injector) (*organizationcontroller.OrganizationController, error) {
 	organizationService := do.MustInvoke[organizationinterface.OrganizationService](i)
-	productHandler := do.MustInvoke[*menuHandlers.ProductHandler](i)
+	productHandler := do.MustInvoke[*productHandlers.ProductHandler](i)
 	qrCodeHandler := do.MustInvoke[*qrcodecontroller.QRCodeController](i)
 	feedbackController := do.MustInvoke[*feedbackcontroller.FeedbackController](i)
 	questionnaireController := do.MustInvoke[*feedbackcontroller.QuestionnaireController](i)

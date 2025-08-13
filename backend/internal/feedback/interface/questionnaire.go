@@ -5,7 +5,7 @@ import (
 
 	"github.com/google/uuid"
 	feedbackmodel "kyooar/internal/feedback/model"
-	menuModels "kyooar/internal/menu/models"
+	menuModels "kyooar/internal/product/models"
 )
 
 type QuestionnaireRepository interface {

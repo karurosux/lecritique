@@ -5,7 +5,7 @@ import (
 	"github.com/labstack/echo/v4"
 	feedbackinterface "kyooar/internal/feedback/interface"
 	feedbackmodel "kyooar/internal/feedback/model"
-	menuRepos "kyooar/internal/menu/repositories"
+	menuRepos "kyooar/internal/product/repositories"
 	"kyooar/internal/shared/errors"
 	"kyooar/internal/shared/logger"
 	"kyooar/internal/shared/response"
